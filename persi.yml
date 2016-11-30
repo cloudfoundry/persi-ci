@@ -1,0 +1,819 @@
+groups:
+- name: persi
+  jobs:
+  - unit-cephfs-driver
+  - unit-cephfs-broker
+  - create-cephfs-release
+  - deploy-cephfs-cluster
+  - teardown-cephfs-cluster
+  - certification-unix
+  - certification-tcp
+  - create-cf-release
+  - cf-deploy
+  - create-diego-release
+  - set-runtime-config
+  - diego-deploy
+  - run-ginkgo-pats-cephfsvolume
+  - run-ginkgo-pats-localvolume
+  - localdriver-unit
+  - localbroker-unit
+  - localdriver-certification
+  - localdriver-docker-certification
+  - create-local-volume-release
+  - deploy-local-broker
+  - efsdriver-unit
+  - efsbroker-unit
+  - efsdriver-certification
+  - create-efs-volume-release
+  - deploy-efs-broker
+  - run-ginkgo-pats-efsvolume
+- name: util
+  jobs:
+  - nightly-stemcell
+  - cephfs-bosh-cleanup
+resources:
+- name: nightly
+  type: time
+  source:
+    interval: 24h
+    start: 01:00 AM -0800
+    stop: 1:15 AM -0800
+- name: cephfs-bosh-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/cephfs-bosh-release.git
+- name: cephfs-bosh-release-tarball
+  type: s3
+  source:
+    bucket: cephfs-bosh-release-tarballs
+    regexp: cephfs-(.*).tgz
+    access_key_id: {{aws-access-key-id}}
+    secret_access_key: {{aws-secret-access-key}}
+- name: cephfs-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: cephfs-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+- name: local-volume-release-tarball
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: local-volume-release-tarballs
+    regexp: localvolume-(.*).tgz
+    secret_access_key: {{aws-secret-access-key}}
+- name: localvolume-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: localvolume-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+- name: local-volume-deployment
+  type: bosh-deployment
+  source:
+    deployment: localbroker
+    ignore_ssl: true
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+- name: efs-volume-release-tarball
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: efs-volume-release-tarballs
+    regexp: efsvolume-(.*).tgz
+    secret_access_key: {{aws-secret-access-key}}
+- name: efsvolume-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: efsvolume-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+- name: efs-volume-deployment
+  type: bosh-deployment
+  source:
+    deployment: efs-volume
+    ignore_ssl: true
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+- name: aws-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+- name: cephfs-cluster-deployment
+  type: bosh-deployment
+  source:
+    deployment: cephfs
+    ignore_ssl: true
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+- name: diego-dev-release
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: persi-diego-dev-releases
+    regexp: diego-0\.1476\.1-dev\.(\d+)\.tgz
+    secret_access_key: {{aws-secret-access-key}}
+- name: diego-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: persi-diego-release-versions
+    initial_version: 9999.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+- name: etcd-release-tarball
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/etcd-release
+- name: garden-runc-release-tarball
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry/garden-runc-release
+- name: cflinuxfs2-rootfs-release-tarball
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry/cflinuxfs2-rootfs-release
+- name: deployments-persi
+  type: git
+  source:
+    private_key: {{deployments-persi-key}}
+    uri: git@github.com:cloudfoundry/deployments-persi.git
+- name: diego-release
+  type: git
+  source:
+    branch: develop
+    fetch:
+    - master
+    ignore_paths:
+    - dev_releases
+    - git-hooks
+    - releases
+    - .final_builds
+    uri: https://github.com/cloudfoundry-incubator/diego-release
+- name: cf-release
+  type: git
+  source:
+    branch: release-candidate
+    uri: https://github.com/cloudfoundry/cf-release
+- name: cf-dev-release
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: persi-cf-releases
+    regexp: cf-dev-release-(.*).tgz
+    secret_access_key: {{aws-secret-access-key}}
+- name: cf-deployment
+  type: bosh-deployment
+  source:
+    deployment: persi-cf
+    ignore_ssl: true
+    password: {{bosh-director-password}}
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
+- name: diego-deployment
+  type: bosh-deployment
+  source:
+    deployment: persi-cf-diego
+    ignore_ssl: true
+    password: {{bosh-director-password}}
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
+- name: runtime-config
+  type: bosh-config
+  source:
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+    ignore_ssl: true
+    target: {{bosh-director-ip}}
+    type: runtime-config
+- name: local-volume-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/local-volume-release.git
+- name: efs-volume-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
+resource_types:
+- name: bosh-config
+  type: docker-image
+  source:
+    repository: dellemcdojo/bosh-config-resource
+jobs:
+- name: nightly-stemcell
+  plan:
+  - aggregate:
+    - get: nightly
+      trigger: true
+    - get: bosh-stemcell
+      resource: aws-stemcell
+- name: cephfs-bosh-cleanup
+  serial: true
+  plan:
+  - aggregate:
+    - get: cephfs-bosh-release
+    - get: nightly
+      trigger: true
+  - task: cleanup
+    file: cephfs-bosh-release/scripts/ci/bosh_cleanup.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USER: {{bosh-director-username}}
+- name: teardown-cephfs-cluster
+  serial_groups:
+  - cephfs-deploy
+  plan:
+  - aggregate:
+    - get: cephfs-bosh-release
+    - get: aws-stemcell
+      passed:
+      - nightly-stemcell
+      trigger: true
+    - get: deployments-persi
+  - task: teardown
+    file: cephfs-bosh-release/scripts/ci/teardown.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USERNAME: {{bosh-director-username}}
+      DEPLOYMENT_NAME: cephfs
+- name: create-cephfs-release
+  serial_groups:
+  - cephfs-deploy
+  plan:
+  - aggregate:
+    - get: cephfs-bosh-release
+      passed:
+      - unit-cephfs-broker
+      - unit-cephfs-driver
+      trigger: true
+    - get: ceph-version
+      resource: cephfs-version
+      params:
+        pre: rc
+  - put: ceph-version
+    resource: cephfs-version
+    params:
+      file: ceph-version/number
+  - task: create-release
+    file: cephfs-bosh-release/scripts/ci/create_cephfs_release.build.yml
+  - put: cephfs-bosh-release-tarball
+    params:
+      file: created-cephfs-bosh-release/cephfs-*.tgz
+- name: deploy-cephfs-cluster
+  serial_groups:
+  - cephfs-deploy
+  plan:
+  - aggregate:
+    - get: cephfs-bosh-release
+      passed:
+      - set-runtime-config
+      trigger: true
+    - get: diego-release
+      passed:
+      - create-diego-release
+    - get: cf-release
+      passed:
+      - create-cf-release
+    - get: cephfs-bosh-release-tarball
+      passed:
+      - set-runtime-config
+    - get: aws-stemcell
+      passed:
+      - teardown-cephfs-cluster
+      trigger: true
+    - get: deployments-persi
+  - task: generate-deployment-manifests
+    file: cephfs-bosh-release/scripts/ci/generate_deployment_manifests.build.yml
+    params:
+      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+      ENVIRONMENT_NAME: persi-cf
+      INFRASTRUCTURE: aws
+      USE_GARDEN_RUNC: false
+      USE_SQL: false
+      PATS_BROKER_USERNAME: {{pats-broker-username}}
+      PATS_BROKER_PASSWORD: {{pats-broker-password}}
+  - put: cephfs-cluster-deployment
+    params:
+      manifest: generated-manifest-ceph/cephfs-manifest.yml
+      releases:
+      - cephfs-bosh-release-tarball/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+- name: unit-cephfs-driver
+  public: true
+  plan:
+  - aggregate:
+    - get: diego-release
+      trigger: true
+    - get: cephfs-bosh-release
+      trigger: true
+  - task: build
+    file: cephfs-bosh-release/scripts/ci/run_cephdriver_unit.build.yml
+- name: unit-cephfs-broker
+  public: true
+  plan:
+  - aggregate:
+    - get: cephfs-bosh-release
+      trigger: true
+  - task: build
+    file: cephfs-bosh-release/scripts/ci/run_cephbroker_unit.build.yml
+- name: localdriver-unit
+  public: true
+  plan:
+  - get: local-volume-release
+    trigger: true
+  - task: build
+    file: local-volume-release/scripts/ci/run_driver_unit.build.yml
+- name: localbroker-unit
+  public: true
+  plan:
+  - get: local-volume-release
+    trigger: true
+  - task: build
+    file: local-volume-release/scripts/ci/run_broker_unit.build.yml
+- name: localdriver-certification
+  public: true
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - localdriver-unit
+      trigger: true
+  - task: build
+    file: local-volume-release/scripts/ci/run_driver_cert.build.yml
+- name: localdriver-docker-certification
+  public: true
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - localdriver-unit
+      trigger: true
+  - task: build
+    privileged: true
+    file: local-volume-release/scripts/ci/run_docker_cert.build.yml
+- name: create-local-volume-release
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - localdriver-certification
+      - localdriver-docker-certification
+      - localbroker-unit
+      trigger: true
+    - get: local-volume-version
+      resource: localvolume-version
+      params:
+        pre: rc
+  - put: local-volume-version
+    resource: localvolume-version
+    params:
+      file: local-volume-version/number
+  - task: create-release
+    file: local-volume-release/scripts/ci/create_local_volume_release.build.yml
+  - put: local-volume-release-tarball
+    params:
+      file: created-local-volume-release/local*.tgz
+- name: deploy-local-broker
+  serial_groups:
+  - localbroker-deploy
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - set-runtime-config
+      trigger: true
+    - get: diego-release
+      passed:
+      - diego-deploy
+    - get: cf-release
+      passed:
+      - cf-deploy
+    - get: local-volume-release-tarball
+      passed:
+      - set-runtime-config
+    - get: aws-stemcell
+      trigger: true
+    - get: deployments-persi
+  - task: generate-deployment-manifests
+    file: local-volume-release/scripts/ci/generate_deployment_manifests.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USERNAME: {{bosh-director-username}}
+      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+      ENVIRONMENT_NAME: persi-cf
+      INFRASTRUCTURE: aws
+  - put: local-volume-deployment
+    params:
+      manifest: generated-manifest-localvolume/localvolume-manifest.yml
+      releases:
+      - local-volume-release-tarball/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+- name: efsdriver-unit
+  public: true
+  plan:
+  - get: efs-volume-release
+    trigger: true
+  - task: build
+    file: efs-volume-release/scripts/ci/run_driver_unit.build.yml
+- name: efsbroker-unit
+  public: true
+  plan:
+  - get: efs-volume-release
+    trigger: true
+  - task: build
+    file: efs-volume-release/scripts/ci/run_broker_unit.build.yml
+- name: efsdriver-certification
+  public: true
+  plan:
+  - aggregate:
+    - get: efs-volume-release
+      passed:
+      - efsdriver-unit
+      - efsbroker-unit
+      trigger: true
+  - task: build
+    privileged: true
+    file: efs-volume-release/scripts/ci/run_driver_cert.build.yml
+- name: create-efs-volume-release
+  plan:
+  - aggregate:
+    - get: efs-volume-release
+      passed:
+      - efsdriver-certification
+      trigger: true
+    - get: efs-volume-version
+      resource: efsvolume-version
+      params:
+        pre: rc
+  - put: efs-volume-version
+    resource: efsvolume-version
+    params:
+      file: efs-volume-version/number
+  - task: create-release
+    file: efs-volume-release/scripts/ci/create_efs_volume_release.build.yml
+  - put: efs-volume-release-tarball
+    params:
+      file: created-efs-volume-release/efs*.tgz
+- name: deploy-efs-broker
+  serial_groups:
+  - efsbroker-deploy
+  plan:
+  - aggregate:
+    - get: efs-volume-release
+      passed:
+      - set-runtime-config
+      trigger: true
+    - get: cf-release
+      passed:
+      - cf-deploy
+    - get: efs-volume-release-tarball
+      passed:
+      - set-runtime-config
+    - get: aws-stemcell
+      trigger: true
+    - get: deployments-persi
+  - task: generate-deployment-manifests
+    file: efs-volume-release/scripts/ci/generate_deployment_manifests.build.yml
+    params:
+      AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
+      AWS_SECURITY_GROUP: sg-18931265
+      AWS_SUBNET_ID: subnet-6e5d3444
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USERNAME: {{bosh-director-username}}
+      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+      ENVIRONMENT_NAME: persi-cf
+      INFRASTRUCTURE: aws
+  - put: efs-volume-deployment
+    params:
+      manifest: generated-manifest-efs/efsvolume-manifest.yml
+      releases:
+      - efs-volume-release-tarball/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+- name: create-cf-release
+  serial_groups:
+  - cf-deploy
+  plan:
+  - aggregate:
+    - get: cf-release
+      trigger: true
+    - get: cephfs-bosh-release
+      passed:
+      - unit-cephfs-driver
+      - unit-cephfs-broker
+  - task: create-release
+    file: cephfs-bosh-release/scripts/ci/create_cf_dev_release.build.yml
+  - put: cf-dev-release
+    params:
+      file: created-cf-release/cf-dev-release-*.tgz
+- name: cf-deploy
+  serial_groups:
+  - cf-deploy
+  plan:
+  - aggregate:
+    - get: cf-dev-release
+    - get: diego-release
+      passed:
+      - unit-cephfs-driver
+    - get: cf-release
+      passed:
+      - create-cf-release
+      trigger: true
+    - get: cephfs-bosh-release
+    - get: bosh-stemcell
+      passed:
+      - nightly-stemcell
+      trigger: true
+      resource: aws-stemcell
+    - get: deployments-persi
+  - task: generate-deployment-manifests
+    file: cephfs-bosh-release/scripts/ci/generate_deployment_manifests.build.yml
+    params:
+      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+      ENVIRONMENT_NAME: persi-cf
+      INFRASTRUCTURE: aws
+      USE_GARDEN_RUNC: false
+      USE_SQL: false
+  - put: cf-deployment
+    params:
+      manifest: generated-manifest-ceph/cf-deployment.yml
+      releases:
+      - cf-dev-release/*.tgz
+      stemcells:
+      - bosh-stemcell/*.tgz
+- name: certification-tcp
+  public: true
+  serial_groups:
+  - cephfs-deploy
+  plan:
+  - aggregate:
+    - get: cephfs-bosh-release
+      passed:
+      - deploy-cephfs-cluster
+      trigger: true
+    - get: deployments-persi
+      passed:
+      - deploy-cephfs-cluster
+  - task: certification_tcp
+    privileged: true
+    file: cephfs-bosh-release/scripts/ci/run_acceptance_tcp.build.yml
+- name: certification-unix
+  public: true
+  serial_groups:
+  - cephfs-deploy
+  plan:
+  - aggregate:
+    - get: cephfs-bosh-release
+      passed:
+      - deploy-cephfs-cluster
+      trigger: true
+    - get: deployments-persi
+      passed:
+      - deploy-cephfs-cluster
+  - task: certification_unix
+    privileged: true
+    file: cephfs-bosh-release/scripts/ci/run_acceptance_unix.build.yml
+- name: create-diego-release
+  plan:
+  - aggregate:
+    - get: diego-release
+      passed:
+      - unit-cephfs-driver
+      trigger: true
+    - get: cephfs-bosh-release
+    - get: version
+      resource: diego-version
+      params:
+        pre: dev
+  - put: version
+    resource: diego-version
+    params:
+      file: version/number
+  - task: create-release
+    file: cephfs-bosh-release/scripts/ci/create_diego_dev_release.build.yml
+  - put: diego-dev-release
+    params:
+      file: created-diego-release/diego-*.tgz
+
+- name: set-runtime-config
+  serial_groups:
+  - diego-deploy
+  plan:
+  - aggregate:
+    - get: deployments-persi
+    - get: cephfs-bosh-release
+      passed:
+      - create-cephfs-release
+      trigger: true
+    - get: cephfs-bosh-release-tarball
+      passed:
+      - create-cephfs-release
+      trigger: true
+    - get: efs-volume-release
+      passed:
+      - create-efs-volume-release
+      trigger: true
+    - get: efs-volume-release-tarball
+      passed:
+      - create-efs-volume-release
+      trigger: true
+    - get: local-volume-release
+      passed:
+      - create-local-volume-release
+      trigger: true
+    - get: local-volume-release-tarball
+      passed:
+      - create-local-volume-release
+      trigger: true
+  - task: update_runtime_config
+    file: cephfs-bosh-release/scripts/ci/update_runtime_config.build.yml
+  - put: runtime-config
+    params:
+      manifest: deployments-persi/persi-ci/deployments/persi-cf/addons/driver-addons.yml
+      releases:
+      - cephfs-bosh-release-tarball/cephfs*.tgz
+      - local-volume-release-tarball/local*.tgz
+      - efs-volume-release-tarball/efs*.tgz
+
+- name: diego-deploy
+  serial_groups:
+  - diego-deploy
+  plan:
+  - aggregate:
+    - get: diego-dev-release
+      passed:
+      - create-diego-release
+      trigger: true
+      params:
+        submodules: none
+    - get: diego-release
+      passed:
+      - create-diego-release
+    - get: cephfs-bosh-release
+      passed:
+      - certification-tcp
+      - certification-unix
+      trigger: true
+    - get: cf-release
+      passed:
+      - create-cf-release
+      trigger: true
+      params:
+        submodules:
+        - src/loggregator
+    - get: cf-dev-release
+    - get: garden-runc-release-tarball
+    - get: etcd-release-tarball
+    - get: cflinuxfs2-rootfs-release-tarball
+    - get: local-volume-release
+      passed:
+      - set-runtime-config
+      trigger: true
+    - get: efs-volume-release
+      passed:
+      - set-runtime-config
+      trigger: true
+    - get: bosh-stemcell
+      passed:
+      - nightly-stemcell
+      trigger: true
+      resource: aws-stemcell
+    - get: deployments-persi
+  - task: generate-deployment-manifests
+    file: cephfs-bosh-release/scripts/ci/generate_deployment_manifests.build.yml
+    params:
+      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+      ENVIRONMENT_NAME: persi-cf
+      INFRASTRUCTURE: aws
+      USE_GARDEN_RUNC: true
+      USE_SQL: false
+  - put: diego-deployment
+    params:
+      manifest: generated-manifest-ceph/diego-deployment.yml
+      releases:
+      - cf-dev-release/*.tgz
+      - diego-dev-release/*.tgz
+      - garden-runc-release-tarball/*.tgz
+      - etcd-release-tarball/*.tgz
+      - cflinuxfs2-rootfs-release-tarball/*.tgz
+      stemcells:
+      - bosh-stemcell/*.tgz
+- name: run-ginkgo-pats-cephfsvolume
+  serial_groups:
+  - cf-deploy
+  - diego-deploy
+  - cephfs-deploy
+  plan:
+  - aggregate:
+    - get: cephfs-bosh-release
+      passed:
+      - diego-deploy
+      trigger: true
+    - get: diego-deployment
+      passed:
+      - diego-deploy
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - cf-deploy
+      trigger: true
+  - task: run-pats
+    file: cephfs-bosh-release/scripts/ci/run_pats_ceph.build.yml
+    params:
+      APPLICATION_PATH: cephfs-bosh-release/assets/pora
+      APPS_DOMAIN: persi.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://pats-broker.persi.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.persi.cf-app.com
+      CF_PASSWORD: {{cf-password}}
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: pats-plan
+      SERVICE_NAME: pats-service
+- name: run-ginkgo-pats-localvolume
+  serial_groups:
+  - cf-deploy
+  - diego-deploy
+  - localbroker-deploy
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - deploy-local-broker
+      trigger: true
+    - get: diego-deployment
+      passed:
+      - diego-deploy
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - cf-deploy
+      trigger: true
+  - task: run-pats
+    file: local-volume-release/scripts/ci/run_pats_localvolume.build.yml
+    params:
+      APPLICATION_PATH: local-volume-release/assets/pora
+      APPS_DOMAIN: persi.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://pats-broker.localvolume-ginkgoPATS.persi.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.persi.cf-app.com
+      CF_PASSWORD: {{cf-password}}
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: localvolume-ginkgoPATS-pats-plan
+      SERVICE_NAME: localvolume-ginkgoPATS-pats-service
+- name: run-ginkgo-pats-efsvolume
+  serial_groups:
+  - cf-deploy
+  - diego-deploy
+  - efsbroker-deploy
+  plan:
+  - aggregate:
+    - get: efs-volume-release
+      passed:
+      - deploy-efs-broker
+      trigger: true
+    - get: diego-deployment
+      passed:
+      - diego-deploy
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - cf-deploy
+      trigger: true
+  - task: run-pats
+    file: efs-volume-release/scripts/ci/run_pats_efsvolume.build.yml
+    params:
+      APPLICATION_PATH: efs-volume-release/assets/pora
+      APPS_DOMAIN: persi.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://efs-broker.persi.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.persi.cf-app.com
+      CF_PASSWORD: {{cf-password}}
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: generalPurpose
+      SERVICE_NAME: efs
