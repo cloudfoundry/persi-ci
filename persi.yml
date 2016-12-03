@@ -27,6 +27,7 @@ groups:
   - create-efs-volume-release
   - deploy-efs-broker
   - run-ginkgo-pats-efsvolume
+  - nfsdriver-unit
 - name: util
   jobs:
   - nightly-stemcell
@@ -210,6 +211,11 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
+- name: nfs-volume-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/nfs-volume-release.git
 resource_types:
 - name: bosh-config
   type: docker-image
@@ -817,3 +823,10 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
+- name: nfsdriver-unit
+  public: true
+  plan:
+  - get: nfs-volume-release
+    trigger: true
+  - task: build
+    file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
