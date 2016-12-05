@@ -28,6 +28,7 @@ groups:
   - deploy-efs-broker
   - run-ginkgo-pats-efsvolume
   - nfsdriver-unit
+  - nfsdriver-certification
 - name: util
   jobs:
   - nightly-stemcell
@@ -216,6 +217,16 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry-incubator/nfs-volume-release.git
+- name: lib-nfs
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/sahlberg/libnfs.git
+- name: fuse-nfs
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/sahlberg/fuse-nfs.git
 resource_types:
 - name: bosh-config
   type: docker-image
@@ -830,3 +841,16 @@ jobs:
     trigger: true
   - task: build
     file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
+- name: nfsdriver-certification
+  public: true
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - nfsdriver-unit
+      trigger: true
+    - get: lib-nfs
+    - get: fuse-nfs
+  - task: build
+    privileged: true
+    file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
