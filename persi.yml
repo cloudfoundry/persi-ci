@@ -6,8 +6,7 @@ groups:
   - create-cephfs-release
   - deploy-cephfs-cluster
   - teardown-cephfs-cluster
-  - certification-unix
-  - certification-tcp
+  - cephdriver-certification
   - create-cf-release
   - cf-deploy
   - create-diego-release
@@ -577,7 +576,7 @@ jobs:
       - cf-dev-release/*.tgz
       stemcells:
       - bosh-stemcell/*.tgz
-- name: certification-tcp
+- name: cephdriver-certification
   public: true
   serial_groups:
   - cephfs-deploy
@@ -590,25 +589,9 @@ jobs:
     - get: deployments-persi
       passed:
       - deploy-cephfs-cluster
-  - task: certification_tcp
+  - task: certification
     privileged: true
-    file: cephfs-bosh-release/scripts/ci/run_acceptance_tcp.build.yml
-- name: certification-unix
-  public: true
-  serial_groups:
-  - cephfs-deploy
-  plan:
-  - aggregate:
-    - get: cephfs-bosh-release
-      passed:
-      - deploy-cephfs-cluster
-      trigger: true
-    - get: deployments-persi
-      passed:
-      - deploy-cephfs-cluster
-  - task: certification_unix
-    privileged: true
-    file: cephfs-bosh-release/scripts/ci/run_acceptance_unix.build.yml
+    file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
 - name: create-diego-release
   plan:
   - aggregate:
@@ -687,8 +670,7 @@ jobs:
       - create-diego-release
     - get: cephfs-bosh-release
       passed:
-      - certification-tcp
-      - certification-unix
+      - cephdriver-certification
       trigger: true
     - get: cf-release
       passed:
