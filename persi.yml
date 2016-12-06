@@ -680,6 +680,7 @@ jobs:
   plan:
   - aggregate:
     - get: deployments-persi
+    - get: persi-ci
     - get: cephfs-bosh-release
       passed:
       - create-cephfs-release
@@ -705,7 +706,7 @@ jobs:
       - create-local-volume-release
       trigger: true
   - task: update_runtime_config
-    file: cephfs-bosh-release/scripts/ci/update_runtime_config.build.yml
+    file: persi-ci/scripts/ci/update_runtime_config.build.yml
   - put: runtime-config
     params:
       manifest: deployments-persi/persi-ci/deployments/persi-cf/addons/driver-addons.yml
