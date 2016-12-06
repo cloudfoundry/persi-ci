@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image: docker:///cloudfoundry/diego-pipeline
+
+inputs:
+  - name: deployments-persi
+  - name: persi-ci
+  - name: cephfs-bosh-release-tarball
+  - name: efs-volume-release-tarball
+  - name: local-volume-release-tarball
+
+outputs: []
+
+params: []
+
+run:
+  path: persi-ci/scripts/ci/update_runtime_config.sh

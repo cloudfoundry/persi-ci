@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -e -x -u
+
+source $(pwd)/persi-ci/scripts/ci/utils.sh
+check_param PATS_BROKER_USERNAME
+check_param PATS_BROKER_PASSWORD
+
+if [ -z "$ENVIRONMENT_NAME" ]; then
+  environment_path="${PWD}/${DEPLOYMENTS_DIR}"
+else
+  environment_path="${PWD}/${DEPLOYMENTS_DIR}/${ENVIRONMENT_NAME}"
+fi
+
+stubs_path="${environment_path}/stubs"
+templates_path="${environment_path}/templates"
+
+pushd cf-release
+  ./scripts/generate_deployment_manifest \
+    ${INFRASTRUCTURE} \
+    ${stubs_path}/cf/*.yml \
+    > ../generated-manifest-persi/cf-deployment.yml
+popd
+
+pushd diego-release
+  cp ../generated-manifest-ceph/cf-deployment.yml /tmp/cf.yml
+
+  ./scripts/generate-deployment-manifest \
+    -c /tmp/cf.yml \
+    -i ${stubs_path}/diego/iaas-settings.yml \
+    -p ${stubs_path}/diego/property-overrides.yml \
+    -n ${stubs_path}/diego/instance-count-overrides.yml \
+    -v ${stubs_path}/diego/release-versions.yml \
+    -s ${stubs_path}/diego/diego-sql.yml -x \
+    -g \
+    > ../generated-manifest-persi/diego-deployment.yml
+popd

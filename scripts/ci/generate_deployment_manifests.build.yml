@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image: docker:///cloudfoundry/diego-pipeline
+
+inputs:
+  - name: deployments-persi
+  - name: diego-release
+  - name: persi-ci
+  - name: cf-release
+
+outputs:
+  - name: generated-manifest-ceph
+
+params:
+  DEPLOYMENTS_DIR: ~
+  ENVIRONMENT_NAME: ~
+  INFRASTRUCTURE: ~
+  USE_GARDEN_RUNC: true
+  PATS_BROKER_USERNAME: ~
+  PATS_BROKER_PASSWORD: ~
+
+run:
+  path: persi-ci/scripts/ci/generate_deployment_manifests

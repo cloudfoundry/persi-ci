@@ -1,0 +1,15 @@
+---
+platform: linux
+
+image: docker:///cloudfoundry/diego-pipeline
+
+inputs:
+  - name: persi-ci
+
+params:
+  BOSH_PASSWORD: ~
+  BOSH_TARGET: ~
+  BOSH_USER: ~
+
+run:
+  path: persi-ci/scripts/ci/bosh_cleanup

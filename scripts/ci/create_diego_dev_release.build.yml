@@ -1,0 +1,15 @@
+---
+platform: linux
+
+image: docker:///cloudfoundry/diego-pipeline
+
+inputs:
+  - name: diego-release
+  - name: persi-ci
+  - name: version
+
+outputs:
+  - name: created-diego-release
+
+run:
+  path: persi-ci/scripts/ci/create_diego_dev_release
