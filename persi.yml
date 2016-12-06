@@ -5,6 +5,7 @@ groups:
   - unit-cephfs-broker
   - create-cephfs-release
   - deploy-cephfs-cluster
+  - deploy-nfs-cluster
   - teardown-cephfs-cluster
   - cephdriver-certification
   - create-cf-release
@@ -24,10 +25,12 @@ groups:
   - efsbroker-unit
   - efsdriver-certification
   - create-efs-volume-release
+  - create-nfs-volume-release
   - deploy-efs-broker
   - run-ginkgo-pats-efsvolume
   - nfsdriver-unit
   - nfsdriver-certification
+  - deploy-nfs-broker
 - name: util
   jobs:
   - nightly-stemcell
@@ -60,6 +63,17 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
+- name: nfs-cluster-deployment
+  type: bosh-deployment
+  source:
+    deployment: nfs-server
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+    target: {{bosh-director-ip}}
+- name: nfs-bosh-release
+  type: bosh-io-release
+  source:
+    repository: compozed/nfs-boshrelease
 - name: local-volume-release-tarball
   type: s3
   source:
@@ -104,6 +118,30 @@ resources:
   type: bosh-deployment
   source:
     deployment: efs-volume
+    ignore_ssl: true
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+- name: nfs-volume-release-tarball
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: nfs-volume-release-tarballs
+    regexp: nfsvolume-(.*).tgz
+    secret_access_key: {{aws-secret-access-key}}
+- name: nfsvolume-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: nfsvolume-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+- name: nfs-volume-deployment
+  type: bosh-deployment
+  source:
+    deployment: nfs-volume
     ignore_ssl: true
     target: {{bosh-director-ip}}
     username: {{bosh-director-username}}
@@ -327,6 +365,23 @@ jobs:
       manifest: generated-manifest-ceph/cephfs-manifest.yml
       releases:
       - cephfs-bosh-release-tarball/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+- name: deploy-nfs-cluster
+  serial_groups:
+  - nfs-deploy
+  plan:
+  - aggregate:
+    - get: nfs-bosh-release
+    - get: nfs-cluster-deployment
+    - get: deployments-persi
+    - get: aws-stemcell
+      trigger: true
+  - put: nfs-cluster-deployment
+    params:
+      manifest: deployments-persi/persi-ci/deployments/nfs-server.yml
+      releases:
+      - nfs-bosh-release/*.tgz
       stemcells:
       - aws-stemcell/*.tgz
 - name: unit-cephfs-driver
@@ -830,3 +885,56 @@ jobs:
   - task: build
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
+- name: create-nfs-volume-release
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      #passed:
+      #- nfsdriver-certification
+      trigger: true
+    - get: nfs-volume-version
+      resource: nfsvolume-version
+      params:
+        pre: rc
+  - put: nfs-volume-version
+    resource: nfsvolume-version
+    params:
+      file: nfs-volume-version/number
+  - task: create-release
+    file: nfs-volume-release/scripts/ci/create_nfs_volume_release.build.yml
+  - put: nfs-volume-release-tarball
+    params:
+      file: created-nfs-volume-release/nfs*.tgz
+- name: deploy-nfs-broker
+  serial_groups:
+  - nfsbroker-deploy
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+       - create-nfs-volume-release
+      trigger: true
+    - get: cf-release
+      passed:
+      - cf-deploy
+    - get: nfs-volume-release-tarball
+    - get: aws-stemcell
+      trigger: true
+    - get: deployments-persi
+  - task: generate-deployment-manifests
+    file: nfs-volume-release/scripts/ci/generate_deployment_manifests.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USERNAME: {{bosh-director-username}}
+      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+      ENVIRONMENT_NAME: persi-cf
+      INFRASTRUCTURE: aws
+  - put: nfs-volume-deployment
+    params:
+      manifest: generated-manifest-nfs/nfsvolume-manifest.yml
+      releases:
+      - nfs-volume-release-tarball/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+
