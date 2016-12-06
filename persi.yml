@@ -34,7 +34,7 @@ groups:
 - name: util
   jobs:
   - nightly-stemcell
-  - cephfs-bosh-cleanup
+  - bosh-cleanup
 resources:
 - name: nightly
   type: time
@@ -42,6 +42,11 @@ resources:
     interval: 24h
     start: 01:00 AM -0800
     stop: 1:15 AM -0800
+- name: persi-ci
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/persi-ci.git
 - name: cephfs-bosh-release
   type: git
   source:
@@ -273,15 +278,15 @@ jobs:
       trigger: true
     - get: bosh-stemcell
       resource: aws-stemcell
-- name: cephfs-bosh-cleanup
+- name: bosh-cleanup
   serial: true
   plan:
   - aggregate:
-    - get: cephfs-bosh-release
+    - get: persi-ci
     - get: nightly
       trigger: true
   - task: cleanup
-    file: cephfs-bosh-release/scripts/ci/bosh_cleanup.build.yml
+    file: persi-ci/scripts/ci/bosh_cleanup.build.yml
     params:
       BOSH_PASSWORD: {{bosh-director-password}}
       BOSH_TARGET: {{bosh-director-ip}}
