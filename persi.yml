@@ -137,10 +137,6 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
-- name: etcd-release-tarball
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry-incubator/etcd-release
 - name: garden-runc-release-tarball
   type: bosh-io-release
   source:
@@ -703,7 +699,6 @@ jobs:
         - src/loggregator
     - get: cf-dev-release
     - get: garden-runc-release-tarball
-    - get: etcd-release-tarball
     - get: cflinuxfs2-rootfs-release-tarball
     - get: local-volume-release
       passed:
@@ -734,7 +729,6 @@ jobs:
       - cf-dev-release/*.tgz
       - diego-dev-release/*.tgz
       - garden-runc-release-tarball/*.tgz
-      - etcd-release-tarball/*.tgz
       - cflinuxfs2-rootfs-release-tarball/*.tgz
       stemcells:
       - bosh-stemcell/*.tgz
