@@ -25,7 +25,7 @@ pushd cf-release
 popd
 
 pushd diego-release
-  cp ../generated-manifest-ceph/cf-deployment.yml /tmp/cf.yml
+  cp ../generated-manifest-persi/cf-deployment.yml /tmp/cf.yml
 
   ./scripts/generate-deployment-manifest \
     -c /tmp/cf.yml \
