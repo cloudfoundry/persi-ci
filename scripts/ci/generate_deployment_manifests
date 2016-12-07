@@ -15,6 +15,8 @@ fi
 stubs_path="${environment_path}/stubs"
 templates_path="${environment_path}/templates"
 
+mkdir -p generated-manifest-persi
+
 pushd cf-release
   ./scripts/generate_deployment_manifest \
     ${INFRASTRUCTURE} \
