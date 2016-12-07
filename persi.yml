@@ -741,6 +741,10 @@ jobs:
       passed:
       - set-runtime-config
       trigger: true
+    - get: cephfs-bosh-release
+      passed:
+      - set-runtime-config
+      trigger: true
     - get: bosh-stemcell
       passed:
       - nightly-stemcell
