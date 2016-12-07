@@ -586,18 +586,13 @@ jobs:
       stemcells:
       - aws-stemcell/*.tgz
 - name: create-cf-release
-  serial_groups:
-  - cf-deploy
   plan:
   - aggregate:
     - get: cf-release
       trigger: true
-    - get: cephfs-bosh-release
-      passed:
-      - unit-cephfs-driver
-      - unit-cephfs-broker
+    - get: persi-ci
   - task: create-release
-    file: cephfs-bosh-release/scripts/ci/create_cf_dev_release.build.yml
+    file: persi-ci/scripts/ci/create_cf_dev_release.build.yml
   - put: cf-dev-release
     params:
       file: created-cf-release/cf-dev-release-*.tgz
@@ -614,7 +609,7 @@ jobs:
       passed:
       - create-cf-release
       trigger: true
-    - get: cephfs-bosh-release
+    - get: persi-ci
     - get: bosh-stemcell
       passed:
       - nightly-stemcell
@@ -622,7 +617,7 @@ jobs:
       resource: aws-stemcell
     - get: deployments-persi
   - task: generate-deployment-manifests
-    file: cephfs-bosh-release/scripts/ci/generate_deployment_manifests.build.yml
+    file: persi-ci/scripts/ci/generate_deployment_manifests.build.yml
     params:
       DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
       ENVIRONMENT_NAME: persi-cf
@@ -631,7 +626,7 @@ jobs:
       USE_SQL: false
   - put: cf-deployment
     params:
-      manifest: generated-manifest-ceph/cf-deployment.yml
+      manifest: generated-manifest-persi/cf-deployment.yml
       releases:
       - cf-dev-release/*.tgz
       stemcells:
@@ -656,10 +651,8 @@ jobs:
   plan:
   - aggregate:
     - get: diego-release
-      passed:
-      - unit-cephfs-driver
       trigger: true
-    - get: cephfs-bosh-release
+    - get: persi-ci
     - get: version
       resource: diego-version
       params:
@@ -669,7 +662,7 @@ jobs:
     params:
       file: version/number
   - task: create-release
-    file: cephfs-bosh-release/scripts/ci/create_diego_dev_release.build.yml
+    file: persi-ci/scripts/ci/create_diego_dev_release.build.yml
   - put: diego-dev-release
     params:
       file: created-diego-release/diego-*.tgz
@@ -729,10 +722,7 @@ jobs:
     - get: diego-release
       passed:
       - create-diego-release
-    - get: cephfs-bosh-release
-      passed:
-      - cephdriver-certification
-      trigger: true
+    - get: persi-ci
     - get: cf-release
       passed:
       - create-cf-release
@@ -758,7 +748,7 @@ jobs:
       resource: aws-stemcell
     - get: deployments-persi
   - task: generate-deployment-manifests
-    file: cephfs-bosh-release/scripts/ci/generate_deployment_manifests.build.yml
+    file: persi-ci/scripts/ci/generate_deployment_manifests.build.yml
     params:
       DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
       ENVIRONMENT_NAME: persi-cf
@@ -767,7 +757,7 @@ jobs:
       USE_SQL: false
   - put: diego-deployment
     params:
-      manifest: generated-manifest-ceph/diego-deployment.yml
+      manifest: generated-manifest-persi/diego-deployment.yml
       releases:
       - cf-dev-release/*.tgz
       - diego-dev-release/*.tgz
