@@ -29,6 +29,7 @@ groups:
   - deploy-efs-broker
   - run-ginkgo-pats-efsvolume
   - nfsdriver-unit
+  - nfsbroker-unit
   - nfsdriver-certification
   - deploy-nfs-broker
 - name: util
@@ -271,6 +272,7 @@ resource_types:
   source:
     repository: dellemcdojo/bosh-config-resource
 jobs:
+#### Setup related jobs ###############################################################################################
 - name: nightly-stemcell
   plan:
   - aggregate:
@@ -291,6 +293,9 @@ jobs:
       BOSH_PASSWORD: {{bosh-director-password}}
       BOSH_TARGET: {{bosh-director-ip}}
       BOSH_USER: {{bosh-director-username}}
+#### End Setup ########################################################################################################
+
+##### CEPH relate jobs ################################################################################################
 - name: teardown-cephfs-cluster
   serial_groups:
   - cephfs-deploy
@@ -309,29 +314,24 @@ jobs:
       BOSH_TARGET: {{bosh-director-ip}}
       BOSH_USERNAME: {{bosh-director-username}}
       DEPLOYMENT_NAME: cephfs
-- name: create-cephfs-release
-  serial_groups:
-  - cephfs-deploy
+- name: unit-cephfs-driver
+  public: true
+  plan:
+  - aggregate:
+    - get: diego-release
+      trigger: true
+    - get: cephfs-bosh-release
+      trigger: true
+  - task: build
+    file: cephfs-bosh-release/scripts/ci/run_cephdriver_unit.build.yml
+- name: unit-cephfs-broker
+  public: true
   plan:
   - aggregate:
     - get: cephfs-bosh-release
-      passed:
-      - unit-cephfs-broker
-      - unit-cephfs-driver
       trigger: true
-    - get: ceph-version
-      resource: cephfs-version
-      params:
-        pre: rc
-  - put: ceph-version
-    resource: cephfs-version
-    params:
-      file: ceph-version/number
-  - task: create-release
-    file: cephfs-bosh-release/scripts/ci/create_cephfs_release.build.yml
-  - put: cephfs-bosh-release-tarball
-    params:
-      file: created-cephfs-bosh-release/cephfs-*.tgz
+  - task: build
+    file: cephfs-bosh-release/scripts/ci/run_cephbroker_unit.build.yml
 - name: deploy-cephfs-cluster
   serial_groups:
   - cephfs-deploy
@@ -369,41 +369,80 @@ jobs:
       - cephfs-bosh-release-tarball/*.tgz
       stemcells:
       - aws-stemcell/*.tgz
-- name: deploy-nfs-cluster
+- name: create-cephfs-release
   serial_groups:
-  - nfs-deploy
+  - cephfs-deploy
   plan:
   - aggregate:
-    - get: nfs-bosh-release
-    - get: nfs-cluster-deployment
-    - get: deployments-persi
-    - get: aws-stemcell
+    - get: cephfs-bosh-release
+      passed:
+      - unit-cephfs-broker
+      - unit-cephfs-driver
       trigger: true
-  - put: nfs-cluster-deployment
+    - get: ceph-version
+      resource: cephfs-version
+      params:
+        pre: rc
+  - put: ceph-version
+    resource: cephfs-version
     params:
-      manifest: deployments-persi/persi-ci/deployments/nfs-server.yml
-      releases:
-      - nfs-bosh-release/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
-- name: unit-cephfs-driver
+      file: ceph-version/number
+  - task: create-release
+    file: cephfs-bosh-release/scripts/ci/create_cephfs_release.build.yml
+  - put: cephfs-bosh-release-tarball
+    params:
+      file: created-cephfs-bosh-release/cephfs-*.tgz
+- name: cephdriver-certification
   public: true
-  plan:
-  - aggregate:
-    - get: diego-release
-      trigger: true
-    - get: cephfs-bosh-release
-      trigger: true
-  - task: build
-    file: cephfs-bosh-release/scripts/ci/run_cephdriver_unit.build.yml
-- name: unit-cephfs-broker
-  public: true
+  serial_groups:
+  - cephfs-deploy
   plan:
   - aggregate:
     - get: cephfs-bosh-release
+      passed:
+      - deploy-cephfs-cluster
       trigger: true
-  - task: build
-    file: cephfs-bosh-release/scripts/ci/run_cephbroker_unit.build.yml
+    - get: deployments-persi
+      passed:
+      - deploy-cephfs-cluster
+  - task: certification
+    privileged: true
+    file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
+- name: run-ginkgo-pats-cephfsvolume
+  serial_groups:
+  - cf-deploy
+  - diego-deploy
+  - cephfs-deploy
+  plan:
+  - aggregate:
+    - get: cephfs-bosh-release
+      passed:
+      - diego-deploy
+      trigger: true
+    - get: diego-deployment
+      passed:
+      - diego-deploy
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - cf-deploy
+      trigger: true
+  - task: run-pats
+    file: cephfs-bosh-release/scripts/ci/run_pats_ceph.build.yml
+    params:
+      APPLICATION_PATH: cephfs-bosh-release/assets/pora
+      APPS_DOMAIN: persi.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://pats-broker.persi.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.persi.cf-app.com
+      CF_PASSWORD: {{cf-password}}
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: pats-plan
+      SERVICE_NAME: pats-service
+#### END CEPH #########################################################################################################
+
+#### Local Volume related jobs ########################################################################################
 - name: localdriver-unit
   public: true
   plan:
@@ -428,39 +467,6 @@ jobs:
       trigger: true
   - task: build
     file: local-volume-release/scripts/ci/run_driver_cert.build.yml
-- name: localdriver-docker-certification
-  public: true
-  plan:
-  - aggregate:
-    - get: local-volume-release
-      passed:
-      - localdriver-unit
-      trigger: true
-  - task: build
-    privileged: true
-    file: local-volume-release/scripts/ci/run_docker_cert.build.yml
-- name: create-local-volume-release
-  plan:
-  - aggregate:
-    - get: local-volume-release
-      passed:
-      - localdriver-certification
-      - localdriver-docker-certification
-      - localbroker-unit
-      trigger: true
-    - get: local-volume-version
-      resource: localvolume-version
-      params:
-        pre: rc
-  - put: local-volume-version
-    resource: localvolume-version
-    params:
-      file: local-volume-version/number
-  - task: create-release
-    file: local-volume-release/scripts/ci/create_local_volume_release.build.yml
-  - put: local-volume-release-tarball
-    params:
-      file: created-local-volume-release/local*.tgz
 - name: deploy-local-broker
   serial_groups:
   - localbroker-deploy
@@ -498,6 +504,179 @@ jobs:
       - local-volume-release-tarball/*.tgz
       stemcells:
       - aws-stemcell/*.tgz
+- name: localdriver-docker-certification
+  public: true
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - localdriver-unit
+      trigger: true
+  - task: build
+    privileged: true
+    file: local-volume-release/scripts/ci/run_docker_cert.build.yml
+- name: create-local-volume-release
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - localdriver-certification
+      - localdriver-docker-certification
+      - localbroker-unit
+      trigger: true
+    - get: local-volume-version
+      resource: localvolume-version
+      params:
+        pre: rc
+  - put: local-volume-version
+    resource: localvolume-version
+    params:
+      file: local-volume-version/number
+  - task: create-release
+    file: local-volume-release/scripts/ci/create_local_volume_release.build.yml
+  - put: local-volume-release-tarball
+    params:
+      file: created-local-volume-release/local*.tgz
+- name: run-ginkgo-pats-localvolume
+  serial_groups:
+  - cf-deploy
+  - diego-deploy
+  - localbroker-deploy
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - deploy-local-broker
+      trigger: true
+    - get: diego-deployment
+      passed:
+      - diego-deploy
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - cf-deploy
+      trigger: true
+  - task: run-pats
+    file: local-volume-release/scripts/ci/run_pats_localvolume.build.yml
+    params:
+      APPLICATION_PATH: local-volume-release/assets/pora
+      APPS_DOMAIN: persi.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://pats-broker.localvolume-ginkgoPATS.persi.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.persi.cf-app.com
+      CF_PASSWORD: {{cf-password}}
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: localvolume-ginkgoPATS-pats-plan
+      SERVICE_NAME: localvolume-ginkgoPATS-pats-service
+#### END Local volume #################################################################################################
+
+#### NFS related jobs #################################################################################################
+- name: deploy-nfs-cluster
+  serial_groups:
+  - nfs-cluster-deploy
+  plan:
+  - aggregate:
+    - get: nfs-bosh-release
+    - get: nfs-cluster-deployment
+    - get: deployments-persi
+    - get: aws-stemcell
+      trigger: true
+  - put: nfs-cluster-deployment
+    params:
+      manifest: deployments-persi/persi-ci/deployments/nfs-server.yml
+      releases:
+      - nfs-bosh-release/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+- name: nfsdriver-unit
+  public: true
+  plan:
+  - get: nfs-volume-release
+    trigger: true
+  - task: build
+    file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
+- name: nfsbroker-unit
+  public: true
+  plan:
+  - get: nfs-volume-release
+    trigger: true
+  - task: build
+    file: nfs-volume-release/scripts/ci/run_broker_unit.build.yml
+- name: nfsdriver-certification
+  serial_groups:
+  - nfs-cluster-deploy
+  public: true
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - nfsdriver-unit
+      trigger: true
+    - get: lib-nfs
+    - get: fuse-nfs
+  - task: build
+    privileged: true
+    file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
+- name: create-nfs-volume-release
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - nfsdriver-certification
+      - nfsdriver-unit
+      - nfsbroker-unit
+      trigger: true
+    - get: nfs-volume-version
+      resource: nfsvolume-version
+      params:
+        pre: rc
+  - put: nfs-volume-version
+    resource: nfsvolume-version
+    params:
+      file: nfs-volume-version/number
+  - task: create-release
+    file: nfs-volume-release/scripts/ci/create_nfs_volume_release.build.yml
+  - put: nfs-volume-release-tarball
+    params:
+      file: created-nfs-volume-release/nfs*.tgz
+- name: deploy-nfs-broker
+  serial_groups:
+  - nfsbroker-deploy
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+       - create-nfs-volume-release
+       - deploy-nfs-cluster
+       - nfsbroker-unit
+      trigger: true
+    - get: cf-release
+      passed:
+      - cf-deploy
+    - get: nfs-volume-release-tarball
+    - get: aws-stemcell
+      trigger: true
+    - get: deployments-persi
+  - task: generate-deployment-manifests
+    file: nfs-volume-release/scripts/ci/generate_deployment_manifests.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USERNAME: {{bosh-director-username}}
+      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+      ENVIRONMENT_NAME: persi-cf
+      INFRASTRUCTURE: aws
+  - put: nfs-volume-deployment
+    params:
+      manifest: generated-manifest-nfs/nfsvolume-manifest.yml
+      releases:
+      - nfs-volume-release-tarball/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+#### END NFS #########################################################################################################
+
+#### EFS related jobs ################################################################################################
 - name: efsdriver-unit
   public: true
   plan:
@@ -530,6 +709,8 @@ jobs:
     - get: efs-volume-release
       passed:
       - efsdriver-certification
+      - efsdriver-unit
+      - efsbroker-unit
       trigger: true
     - get: efs-volume-version
       resource: efsvolume-version
@@ -552,6 +733,10 @@ jobs:
     - get: efs-volume-release
       passed:
       - set-runtime-config
+      - create-efs-volume-release
+      - efsdriver-certification
+      - efsdriver-unit
+      - efsbroker-unit
       trigger: true
     - get: cf-release
       passed:
@@ -582,6 +767,41 @@ jobs:
       - efs-volume-release-tarball/*.tgz
       stemcells:
       - aws-stemcell/*.tgz
+- name: run-ginkgo-pats-efsvolume
+  serial_groups:
+  - cf-deploy
+  - diego-deploy
+  - efsbroker-deploy
+  plan:
+  - aggregate:
+    - get: efs-volume-release
+      passed:
+      - deploy-efs-broker
+      trigger: true
+    - get: diego-deployment
+      passed:
+      - diego-deploy
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - cf-deploy
+      trigger: true
+  - task: run-pats
+    file: efs-volume-release/scripts/ci/run_pats_efsvolume.build.yml
+    params:
+      APPLICATION_PATH: efs-volume-release/assets/pora
+      APPS_DOMAIN: persi.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://efs-broker.persi.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.persi.cf-app.com
+      CF_PASSWORD: {{cf-password}}
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: generalPurpose
+      SERVICE_NAME: efs
+#### END EFS ##########################################################################################################
+
+#### CF related jobs ##################################################################################################
 - name: create-cf-release
   plan:
   - aggregate:
@@ -628,22 +848,6 @@ jobs:
       - cf-dev-release/*.tgz
       stemcells:
       - bosh-stemcell/*.tgz
-- name: cephdriver-certification
-  public: true
-  serial_groups:
-  - cephfs-deploy
-  plan:
-  - aggregate:
-    - get: cephfs-bosh-release
-      passed:
-      - deploy-cephfs-cluster
-      trigger: true
-    - get: deployments-persi
-      passed:
-      - deploy-cephfs-cluster
-  - task: certification
-    privileged: true
-    file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
 - name: create-diego-release
   plan:
   - aggregate:
@@ -663,7 +867,6 @@ jobs:
   - put: diego-dev-release
     params:
       file: created-diego-release/diego-*.tgz
-
 - name: set-runtime-config
   serial_groups:
   - diego-deploy
@@ -765,172 +968,4 @@ jobs:
       - cflinuxfs2-rootfs-release-tarball/*.tgz
       stemcells:
       - bosh-stemcell/*.tgz
-- name: run-ginkgo-pats-cephfsvolume
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - cephfs-deploy
-  plan:
-  - aggregate:
-    - get: cephfs-bosh-release
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-  - task: run-pats
-    file: cephfs-bosh-release/scripts/ci/run_pats_ceph.build.yml
-    params:
-      APPLICATION_PATH: cephfs-bosh-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://pats-broker.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: pats-plan
-      SERVICE_NAME: pats-service
-- name: run-ginkgo-pats-localvolume
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - localbroker-deploy
-  plan:
-  - aggregate:
-    - get: local-volume-release
-      passed:
-      - deploy-local-broker
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-  - task: run-pats
-    file: local-volume-release/scripts/ci/run_pats_localvolume.build.yml
-    params:
-      APPLICATION_PATH: local-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://pats-broker.localvolume-ginkgoPATS.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: localvolume-ginkgoPATS-pats-plan
-      SERVICE_NAME: localvolume-ginkgoPATS-pats-service
-- name: run-ginkgo-pats-efsvolume
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - efsbroker-deploy
-  plan:
-  - aggregate:
-    - get: efs-volume-release
-      passed:
-      - deploy-efs-broker
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-  - task: run-pats
-    file: efs-volume-release/scripts/ci/run_pats_efsvolume.build.yml
-    params:
-      APPLICATION_PATH: efs-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://efs-broker.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: generalPurpose
-      SERVICE_NAME: efs
-- name: nfsdriver-unit
-  public: true
-  plan:
-  - get: nfs-volume-release
-    trigger: true
-  - task: build
-    file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
-- name: nfsdriver-certification
-  public: true
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - nfsdriver-unit
-      trigger: true
-    - get: lib-nfs
-    - get: fuse-nfs
-  - task: build
-    privileged: true
-    file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
-- name: create-nfs-volume-release
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      #passed:
-      #- nfsdriver-certification
-      trigger: true
-    - get: nfs-volume-version
-      resource: nfsvolume-version
-      params:
-        pre: rc
-  - put: nfs-volume-version
-    resource: nfsvolume-version
-    params:
-      file: nfs-volume-version/number
-  - task: create-release
-    file: nfs-volume-release/scripts/ci/create_nfs_volume_release.build.yml
-  - put: nfs-volume-release-tarball
-    params:
-      file: created-nfs-volume-release/nfs*.tgz
-- name: deploy-nfs-broker
-  serial_groups:
-  - nfsbroker-deploy
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-       - create-nfs-volume-release
-      trigger: true
-    - get: cf-release
-      passed:
-      - cf-deploy
-    - get: nfs-volume-release-tarball
-    - get: aws-stemcell
-      trigger: true
-    - get: deployments-persi
-  - task: generate-deployment-manifests
-    file: nfs-volume-release/scripts/ci/generate_deployment_manifests.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USERNAME: {{bosh-director-username}}
-      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-      ENVIRONMENT_NAME: persi-cf
-      INFRASTRUCTURE: aws
-  - put: nfs-volume-deployment
-    params:
-      manifest: generated-manifest-nfs/nfsvolume-manifest.yml
-      releases:
-      - nfs-volume-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
-
+#### END CF ###########################################################################################################
