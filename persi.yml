@@ -579,10 +579,11 @@ jobs:
   - aggregate:
     - get: nfs-bosh-release
     - get: nfs-cluster-deployment
+      trigger: true
     - get: deployments-persi
+      trigger: true
     - get: aws-stemcell
       trigger: true
-  - get: nfs-volume-release
   - put: nfs-cluster-deployment
     params:
       manifest: deployments-persi/persi-ci/deployments/nfs-server.yml
@@ -649,9 +650,11 @@ jobs:
     - get: nfs-volume-release
       passed:
        - create-nfs-volume-release
-       - deploy-nfs-cluster
        - nfsbroker-unit
       trigger: true
+    - get: nfs-cluster-deployment
+      passed:
+      - deploy-nfs-cluster
     - get: cf-release
       passed:
       - cf-deploy
