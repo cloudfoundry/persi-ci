@@ -709,7 +709,7 @@ jobs:
       CF_API_ENDPOINT: api.persi.cf-app.com
       CF_PASSWORD: {{cf-password}}
       CF_USERNAME: {{cf-username}}
-      PLAN_NAME: generalPurpose
+      PLAN_NAME: Existing
       SERVICE_NAME: nfs
 #### END NFS #########################################################################################################
 
