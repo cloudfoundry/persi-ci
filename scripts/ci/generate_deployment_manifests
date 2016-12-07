@@ -34,6 +34,5 @@ pushd diego-release
     -n ${stubs_path}/diego/instance-count-overrides.yml \
     -v ${stubs_path}/diego/release-versions.yml \
     -s ${stubs_path}/diego/diego-sql.yml -x \
-    -g \
     > ../generated-manifest-persi/diego-deployment.yml
 popd
