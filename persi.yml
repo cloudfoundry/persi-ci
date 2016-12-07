@@ -341,9 +341,6 @@ jobs:
       passed:
       - set-runtime-config
       trigger: true
-    - get: diego-release
-      passed:
-      - create-diego-release
     - get: cf-release
       passed:
       - create-cf-release
