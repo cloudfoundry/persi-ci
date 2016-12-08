@@ -1,7 +1,7 @@
 ---
 platform: linux
 
-image: docker:///cloudfoundry/diego-ci
+image: docker:///cloudfoundry/diego-units-ci#latest
 
 inputs:
   - name: diego-release
