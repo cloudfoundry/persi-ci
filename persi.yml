@@ -915,6 +915,7 @@ jobs:
   plan:
   - aggregate:
     - get: persi-ci
+      trigger: true
     - get: cephfs-bosh-release
       passed:
       - create-cephfs-release
