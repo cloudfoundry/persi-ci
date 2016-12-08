@@ -23,6 +23,6 @@ addons:
   - name: efsdriver
     release: efs-volume
     properties: {}
-  - name: nfsdriver
+  - name: nfsv3driver
     release: nfs-volume
     properties: {}
