@@ -887,6 +887,7 @@ jobs:
       - cf-dev-release/*.tgz
       stemcells:
       - bosh-stemcell/*.tgz
+
 - name: create-diego-release
   plan:
   - aggregate:
@@ -906,7 +907,9 @@ jobs:
   - put: diego-dev-release
     params:
       file: created-diego-release/diego-*.tgz
-- name: set-runtime-config
+
+
+- name: set-runtime-config # install drivers as add-ons here
   serial_groups:
   - diego-deploy
   plan:
@@ -936,6 +939,10 @@ jobs:
       passed:
       - create-local-volume-release
       trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - create-nfs-volume-release
+      trigger: true
   - task: update_runtime_config
     file: persi-ci/scripts/ci/update_runtime_config.build.yml
   - put: runtime-config
@@ -945,6 +952,7 @@ jobs:
       - cephfs-bosh-release-tarball/cephfs*.tgz
       - local-volume-release-tarball/local*.tgz
       - efs-volume-release-tarball/efs*.tgz
+      - nfs-volume-release-tarball/nfs*.tgz
 
 - name: diego-deploy
   serial_groups:

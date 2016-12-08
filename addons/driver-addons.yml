@@ -6,6 +6,8 @@ releases:
   version: TBD
 - name: efs-volume
   version: TBD
+- name: nfs-volume
+  version: TBD
 addons:
 - name: voldrivers
   include:
@@ -21,3 +23,6 @@ addons:
   - name: efsdriver
     release: efs-volume
     properties: {}
+  - name: nfsdriver
+      release: nfs-volume
+      properties: {}
