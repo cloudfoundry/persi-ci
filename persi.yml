@@ -871,6 +871,7 @@ jobs:
     - get: garden-runc-release-master
       params: {submodules: none}
     - get: diego-ci
+    - get: persi-ci
   - task: garden-runc-release
     file: diego-ci/concourse/checkout_garden_runc.build.yml
   - task: build
