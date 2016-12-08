@@ -852,6 +852,7 @@ jobs:
   - put: cf-dev-release
     params:
       file: created-cf-release/cf-dev-release-*.tgz
+
 - name: cf-deploy
   serial_groups:
   - cf-deploy
@@ -970,6 +971,7 @@ jobs:
       passed:
       - create-diego-release
     - get: persi-ci
+      trigger: true
     - get: cf-release
       passed:
       - create-cf-release
