@@ -585,6 +585,8 @@ jobs:
       trigger: true
     - get: aws-stemcell
       trigger: true
+    - get: persi-ci
+      trigger: true
   - put: nfs-cluster-deployment
     params:
       manifest: deployments-persi/persi-ci/deployments/nfs-server.yml
