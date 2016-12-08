@@ -933,6 +933,9 @@ jobs:
   - aggregate:
     - get: diego-release
       trigger: true
+      passed:
+      - volman-unit
+      - volman-inigo
     - get: persi-ci
       trigger: true
     - get: version
