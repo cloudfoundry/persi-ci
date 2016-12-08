@@ -10,6 +10,8 @@ groups:
   - cephdriver-certification
   - create-cf-release
   - cf-deploy
+  - volman-unit
+  - volman-inigo
   - create-diego-release
   - set-runtime-config
   - diego-deploy
@@ -185,6 +187,15 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry/garden-runc-release
+- name: garden-runc-release-master
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/garden-runc-release
+    branch: master
+- name: diego-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/diego-ci
 - name: cflinuxfs2-rootfs-release-tarball
   type: bosh-io-release
   source:
@@ -296,7 +307,7 @@ jobs:
       BOSH_USER: {{bosh-director-username}}
 #### End Setup ########################################################################################################
 
-##### CEPH relate jobs ################################################################################################
+##### CEPH related jobs ################################################################################################
 - name: teardown-cephfs-cluster
   serial_groups:
   - cephfs-deploy
@@ -843,6 +854,30 @@ jobs:
 #### END EFS ##########################################################################################################
 
 #### CF related jobs ##################################################################################################
+- name: volman-unit
+  plan:
+  - aggregate:
+    - get: diego-release
+      trigger: true
+    - get: persi-ci
+  - task: run-unit
+    file: persi-ci/scripts/ci/run_volman_unit.build.yml
+- name: volman-inigo
+  plan:
+  - aggregate:
+    - get: diego-release
+      trigger: true
+    - get: garden-runc-release-tarball
+    - get: garden-runc-release-master
+      params: {submodules: none}
+    - get: diego-ci
+  - task: garden-runc-release
+    file: diego-ci/concourse/checkout_garden_runc.build.yml
+  - task: build
+    privileged: true
+    file: persi-ci/scripts/ci/run_volman_inigo.build.yml
+    params:
+      DEFAULT_EVENTUALLY_TIMEOUT: 5m
 - name: create-cf-release
   plan:
   - aggregate:

@@ -1,0 +1,13 @@
+---
+platform: linux
+
+image: docker:///cloudfoundry/diego-ci
+
+inputs:
+  - name: diego-release
+  - name: persi-ci
+
+params: {}
+
+run:
+  path: persi-ci/scripts/ci/run_volman_unit

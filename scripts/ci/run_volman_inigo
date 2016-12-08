@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e -x
+
+./diego-release/scripts/ci/run-inigo volman/
