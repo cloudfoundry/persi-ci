@@ -711,8 +711,8 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      EXISTING_NFS_SERVER: {{existing-nfs-server}}
-      EXISTING_SHARE_NAME: /var/vcap/store
+      SERVER_ADDRESS: {{existing-nfs-server}}
+      SHARE: /var/vcap/store
 #### END NFS #########################################################################################################
 
 #### EFS related jobs ################################################################################################
