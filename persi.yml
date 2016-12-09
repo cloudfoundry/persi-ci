@@ -885,7 +885,6 @@ jobs:
     - get: cf-release
       trigger: true
     - get: persi-ci
-      trigger: true
   - task: create-release
     file: persi-ci/scripts/ci/create_cf_dev_release.build.yml
   - put: cf-dev-release
