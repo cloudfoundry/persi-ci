@@ -2,4 +2,4 @@
 
 set -e -x
 
-./diego-release/scripts/ci/run-inigo volman/
+./diego-release/scripts/ci/run_inigo volman/
