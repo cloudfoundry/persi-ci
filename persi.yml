@@ -631,7 +631,10 @@ jobs:
       trigger: true
     - get: lib-nfs
     - get: fuse-nfs
-  - task: build
+  - task: fuse-nfs-cert
+    privileged: true
+    file: nfs-volume-release/scripts/ci/run_fuse_nfs_cert.build.yml
+  - task: driver-cert
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
 - name: create-nfs-volume-release
