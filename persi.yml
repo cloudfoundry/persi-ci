@@ -666,8 +666,9 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-       - create-nfs-volume-release
-       - nfsbroker-unit
+      - set-runtime-config
+      - create-nfs-volume-release
+      - nfsbroker-unit
       trigger: true
     - get: nfs-cluster-deployment
       passed:
@@ -676,6 +677,8 @@ jobs:
       passed:
       - cf-deploy
     - get: nfs-volume-release-tarball
+      passed:
+      - set-runtime-config
     - get: aws-stemcell
       trigger: true
     - get: deployments-persi
