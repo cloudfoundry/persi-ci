@@ -667,8 +667,6 @@ jobs:
     - get: nfs-volume-release
       passed:
       - set-runtime-config
-      - create-nfs-volume-release
-      - nfsbroker-unit
       trigger: true
     - get: nfs-cluster-deployment
       passed:
@@ -990,6 +988,9 @@ jobs:
       passed:
       - create-local-volume-release
       trigger: true
+    - get: nfs-volume-release
+      passed:
+      - create-nfs-volume-release
     - get: nfs-volume-release-tarball
       passed:
       - create-nfs-volume-release
