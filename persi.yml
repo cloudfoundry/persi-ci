@@ -634,6 +634,9 @@ jobs:
   - task: fuse-nfs-cert
     privileged: true
     file: nfs-volume-release/scripts/ci/run_fuse_nfs_cert.build.yml
+    params:
+      FUSE_MOUNT: nfs://54.234.122.229/export/users?uid=3000&gid=3050
+      NFS_MOUNT: 54.234.122.229:/export/users
   - task: driver-cert
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
