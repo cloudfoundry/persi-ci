@@ -1043,6 +1043,10 @@ jobs:
       passed:
       - set-runtime-config
       trigger: true
+    - get: nfs-volume-release
+      passed:
+      - set-runtime-config
+      trigger: true
     - get: cephfs-bosh-release
       passed:
       - set-runtime-config
