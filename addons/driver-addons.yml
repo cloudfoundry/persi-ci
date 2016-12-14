@@ -25,4 +25,5 @@ addons:
     properties: {}
   - name: nfsv3driver
     release: nfs-volume
-    properties: {}
+    properties:
+      log_level: debug
