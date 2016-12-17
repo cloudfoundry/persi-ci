@@ -5,7 +5,7 @@ groups:
   - unit-cephfs-broker
   - create-cephfs-release
   - deploy-cephfs-cluster
-  - deploy-nfs-cluster
+  - deploy-nfs-test-server
   - teardown-cephfs-cluster
   - cephdriver-certification
   - create-cf-release
@@ -72,17 +72,13 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
-- name: nfs-cluster-deployment
+- name: nfs-test-server-deployment
   type: bosh-deployment
   source:
     deployment: nfs-server
     username: {{bosh-director-username}}
     password: {{bosh-director-password}}
     target: {{bosh-director-ip}}
-- name: nfs-bosh-release
-  type: bosh-io-release
-  source:
-    repository: compozed/nfs-boshrelease
 - name: local-volume-release-tarball
   type: s3
   source:
@@ -584,25 +580,35 @@ jobs:
 #### END Local volume #################################################################################################
 
 #### NFS related jobs #################################################################################################
-- name: deploy-nfs-cluster
+- name: deploy-nfs-test-server
   serial_groups:
-  - nfs-cluster-deploy
+  - nfs-test-server-deploy
   plan:
   - aggregate:
-    - get: nfs-bosh-release
-    - get: nfs-cluster-deployment
+    - get: nfs-volume-release
+      passed:
+      - set-runtime-config
       trigger: true
-    - get: deployments-persi
-      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - set-runtime-config
     - get: aws-stemcell
-      trigger: true
     - get: persi-ci
-      trigger: true
-  - put: nfs-cluster-deployment
+    - get: deployments-persi
+  - task: generate-deployment-manifests
+    file: nfs-volume-release/scripts/ci/generate_nfs_test_server_manifests.build.yml
     params:
-      manifest: deployments-persi/persi-ci/deployments/nfs-server.yml
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USERNAME: {{bosh-director-username}}
+      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+      ENVIRONMENT_NAME: persi-cf
+      INFRASTRUCTURE: aws
+  - put: nfs-test-server-deployment
+    params:
+      manifest: generated-manifest-nfs/nfs-test-server-manifest.yml
       releases:
-      - nfs-bosh-release/*.tgz
+      - nfs-volume-release-tarball/*.tgz
       stemcells:
       - aws-stemcell/*.tgz
 - name: nfsdriver-unit
@@ -621,13 +627,13 @@ jobs:
     file: nfs-volume-release/scripts/ci/run_broker_unit.build.yml
 - name: nfsdriver-certification
   serial_groups:
-  - nfs-cluster-deploy
+  - nfs-test-server-deployment
   public: true
   plan:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - nfsdriver-unit
+      - deploy-nfs-test-server
       trigger: true
     - get: lib-nfs
     - get: fuse-nfs
@@ -635,8 +641,9 @@ jobs:
     privileged: true
     file: nfs-volume-release/scripts/ci/run_fuse_nfs_cert.build.yml
     params:
-      FUSE_MOUNT: nfs://54.234.122.229/export/users?uid=3000&gid=3050
-      NFS_MOUNT: 54.234.122.229:/export/users
+      FUSE_MOUNT: nfs://10.10.200.72/export2/certs?uid=3000&gid=3050
+      NFS_MOUNT: 10.10.200.72:/export2/certs
+      SOURCE: nfs://10.10.200.72/export/users
   - task: driver-cert
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
@@ -645,7 +652,6 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - nfsdriver-certification
       - nfsdriver-unit
       - nfsbroker-unit
       trigger: true
@@ -671,9 +677,6 @@ jobs:
       passed:
       - set-runtime-config
       trigger: true
-    - get: nfs-cluster-deployment
-      passed:
-      - deploy-nfs-cluster
     - get: cf-release
       passed:
       - cf-deploy
@@ -733,7 +736,7 @@ jobs:
       SERVICE_NAME: nfs
       #SERVER_ADDRESS: {{existing-nfs-server}}
       #SHARE: /var/vcap/store
-      SERVER_ADDRESS: 10.10.100.45
+      SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
 
 #### END NFS #########################################################################################################
