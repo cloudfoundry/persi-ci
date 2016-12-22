@@ -643,10 +643,11 @@ jobs:
     params:
       FUSE_MOUNT: nfs://10.10.200.72/export2/certs?uid=3000&gid=3050
       NFS_MOUNT: 10.10.200.72:/export2/certs
-      SOURCE: nfs://10.10.200.72/export/users
   - task: driver-cert
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
+    params:
+      SOURCE: nfs://10.10.200.72/export/users
 - name: create-nfs-volume-release
   plan:
   - aggregate:
