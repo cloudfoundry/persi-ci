@@ -39,6 +39,7 @@ groups:
   jobs:
   - nightly-stemcell
   - bosh-cleanup
+  - deploy-datadog-firehose-nozzle
 resources:
 - name: nightly
   type: time
@@ -51,6 +52,17 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry-incubator/persi-ci.git
+- name: datadog-firehose-nozzle-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/datadog-firehose-nozzle-release
+- name: datadog-firehose-nozzle-deployment
+  type: bosh-deployment
+  source:
+    deployment: datadog-firehose-nozzle
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+    target: {{bosh-director-ip}}
 - name: cephfs-bosh-release
   type: git
   source:
@@ -866,6 +878,23 @@ jobs:
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
 #### END EFS ##########################################################################################################
+
+#### DataDog related jobs #############################################################################################
+- name: deploy-datadog-firehose-nozzle
+  plan:
+  - aggregate:
+    - get: datadog-firehose-nozzle-release
+    - get: aws-stemcell
+      trigger: true
+    - get: deployments-persi
+  - put: datadog-firehose-nozzle-deployment
+    params:
+      manifest: deployments-persi/persi-ci/deployments/persi-cf/deployments/datadog-firehose-nozzle/datadog.yml
+      releases:
+      - datadog-firehose-nozzle-release/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+#### END DATADOG ######################################################################################################
 
 #### CF related jobs ##################################################################################################
 - name: volman-unit
