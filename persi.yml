@@ -1,5 +1,6 @@
 groups:
 - name: persi
+
   jobs:
   - unit-cephfs-driver
   - unit-cephfs-broker
@@ -35,6 +36,8 @@ groups:
   - nfsbroker-unit
   - nfsdriver-certification
   - deploy-nfs-broker
+  - create-isilon-volume
+  - run-ginkgo-pats-isilon
 - name: util
   jobs:
   - nightly-stemcell
@@ -753,6 +756,62 @@ jobs:
       SHARE: /export/users
 
 #### END NFS #########################################################################################################
+
+#### Isilon related jobs #############################################################################################
+
+- name: create-isilon-volume
+  plan:
+  - aggregate:
+    - get: deployments-persi
+    - get: diego-deployment
+      passed:
+      - diego-deploy
+      trigger: true
+  - task: create-share
+    file: deployments-persi/persi-ci/deployments/isilon-volume/create-share.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USERNAME: {{bosh-director-username}}
+
+- name: run-ginkgo-pats-isilon
+  serial_groups:
+  - cf-deploy
+  - diego-deploy
+  - nfsbroker-deploy
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - deploy-nfs-broker
+      trigger: true
+    - get: diego-deployment
+      passed:
+      - create-isilon-volume
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - cf-deploy
+      trigger: true
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: persi.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://nfs-broker.persi.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.persi.cf-app.com
+      CF_PASSWORD: {{cf-password}}
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      #SERVER_ADDRESS: {{existing-nfs-server}}
+      #SHARE: /var/vcap/store
+      SERVER_ADDRESS: isilon.persi.cf-app.com
+      SHARE: /ifs/persi-ci
+
+#### END Isilon ######################################################################################################
 
 #### EFS related jobs ################################################################################################
 - name: efsdriver-unit
