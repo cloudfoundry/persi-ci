@@ -34,7 +34,9 @@ groups:
   - run-ginkgo-pats-efsvolume
   - nfsdriver-unit
   - nfsbroker-unit
+  - kerbdriver-unit
   - nfsdriver-certification
+  - kerbdriver-certification
   - deploy-nfs-broker
   - create-isilon-volume
   - run-ginkgo-pats-isilon
@@ -633,6 +635,13 @@ jobs:
     trigger: true
   - task: build
     file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
+- name: kerbdriver-unit
+  public: true
+  plan:
+  - get: nfs-volume-release
+    trigger: true
+  - task: build
+    file: nfs-volume-release/scripts/ci/run_kerbdriver_unit.build.yml
 - name: nfsbroker-unit
   public: true
   plan:
@@ -663,12 +672,28 @@ jobs:
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
     params:
       SOURCE: nfs://10.10.200.72/export/users
+- name: kerbdriver-certification
+  serial_groups:
+  - nfs-test-server-deployment
+  public: true
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - deploy-nfs-test-server
+      trigger: true
+  - task: kerbdriver-cert
+    privileged: true
+    file: nfs-volume-release/scripts/ci/run_kerbdriver_cert_tcp.build.yml
+    params:
+      SOURCE: kerbserv.persi.cf-app.com:/export/home
 - name: create-nfs-volume-release
   plan:
   - aggregate:
     - get: nfs-volume-release
       passed:
       - nfsdriver-unit
+      - kerbdriver-unit
       - nfsbroker-unit
       trigger: true
     - get: nfs-volume-version
