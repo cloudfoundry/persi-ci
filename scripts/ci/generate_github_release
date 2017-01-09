@@ -8,6 +8,6 @@ check_param BASE_RELEASE_NAME
 
 ( cd ${RELEASE} && git rev-parse HEAD ) > generated-release/commitish
 
-version=$(cat ${RELEASE}/version)
+version=$(cat ${VERSION}/number)
 echo "${BASE_RELEASE_NAME} v$version" > generated-release/name
 echo "v$version" > generated-release/version

@@ -846,6 +846,8 @@ jobs:
       - shipit-nfs
       trigger: true
     - get: nfsvolume-final-release
+    - get: nfs-volume-version
+      resource: nfsvolume-version
   - task: generate-release
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
