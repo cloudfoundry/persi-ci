@@ -12,6 +12,7 @@ outputs:
   - name: generated-release
 
 params:
+  VERSION: replace-me
   RELEASE: replace-me
   BASE_RELEASE_NAME: replace-me
 

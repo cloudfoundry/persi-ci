@@ -851,6 +851,7 @@ jobs:
   - task: generate-release
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
+      VERSION: nfs-volume-version
       RELEASE: nfs-volume-release
       BASE_RELEASE_NAME: nfs-volume
   - put: github-release-nfs
