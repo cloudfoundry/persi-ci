@@ -4,17 +4,16 @@ platform: linux
 image: docker:///concourse/git-resource
 
 inputs:
-- name: diego-ci
-- name: diego-release-master
-- name: diego-final-releases
-- name: garden-runc-release-tarball
-- name: garden-windows-release-tarball
-- name: etcd-release-tarball
-- name: cflinuxfs2-rootfs-release-tarball
-- name: cf-mysql-release-tarball
+- name: persi-ci
+- name: nfs-volume-release
+- name: nfsvolume-final-release
 
 outputs:
   - name: generated-release
 
+params:
+  RELEASE: replace-me
+  BASE_RELEASE_NAME: replace-me
+
 run:
-  path: diego-ci/concourse/generate_github_release
+  path: persi-ci/scripts/ci/generate_github_release

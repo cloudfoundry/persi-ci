@@ -41,7 +41,7 @@ groups:
   - create-isilon-volume
   - run-ginkgo-pats-isilon
   - shipit-nfs
-#  - github-release
+  - github-release-nfs
 - name: util
   jobs:
   - nightly-stemcell
@@ -288,8 +288,17 @@ resources:
 - name: nfs-volume-release
   type: git
   source:
+    username: {{github-user}}
+    password: {{github-password}}
     branch: master
     uri: https://github.com/cloudfoundry-incubator/nfs-volume-release.git
+- name: github-release-nfs
+  type: github-release
+  source:
+    user: {{github-user}}
+    repository: nfs-volume-release
+    drafts: true
+    access_token: {{github-release-token}}
 - name: lib-nfs
   type: git
   source:
@@ -824,52 +833,31 @@ jobs:
       file: finalized-release/nfs-volume-*.tgz
   - put: nfs-volume-release
     params:
-      username: {{github-user}}
-      password: {{github-password}}
       repository: finalized-release/nfs-volume-release
       tag: nfs-volume-version/number
       tag_prefix: v
 
-#- name: github-release-nfs
-#  plan:
-#  - aggregate:
-#    - get: diego-ci
-#    - get: garden-runc-release-tarball
-#      passed: [shipit]
-#      trigger: true
-#    - get: garden-windows-release-tarball
-#      passed: [shipit]
-#      trigger: true
-#    - get: etcd-release-tarball
-#      passed: [shipit]
-#      trigger: true
-#    - get: cflinuxfs2-rootfs-release-tarball
-#      passed: [shipit]
-#      trigger: true
-#    - get: cf-mysql-release-tarball
-#      passed: [shipit]
-#      trigger: true
-#    - get: diego-final-releases
-#      passed: [shipit]
-#      trigger: true
-#    - get: diego-release-master
-#      passed: [shipit]
-#      params: {submodules: none}
-#      trigger: true
-#  - task: generate-release
-#    file: diego-ci/concourse/generate_github_release.build.yml
-#  - put: github-release
-#    params:
-#      commitish: generated-release/commitish
-#      name: generated-release/name
-#      tag: generated-release/version
-#      globs:
-#      - generated-release/garden-runc-*.tgz
-#      - generated-release/garden-windows-*.tgz
-#      - generated-release/etcd-*.tgz
-#      - generated-release/cflinuxfs2-rootfs-*.tgz
-#      - generated-release/cf-mysql-release-*.tgz
-#      - diego-final-releases/*.tgz
+- name: github-release-nfs
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: nfs-volume-release
+      passed:
+      - shipit-nfs
+      trigger: true
+    - get: nfsvolume-final-release
+  - task: generate-release
+    file: persi-ci/scripts/ci/generate_github_release.build.yml
+    params:
+      RELEASE: nfs-volume-release
+      BASE_RELEASE_NAME: nfs-volume
+  - put: github-release-nfs
+    params:
+      commitish: generated-release/commitish
+      name: generated-release/name
+      tag: generated-release/version
+      globs:
+      - nfsvolume-final-release/*.tgz
 
 #### END NFS #########################################################################################################
 
