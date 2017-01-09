@@ -1,0 +1,27 @@
+---
+platform: linux
+
+image: docker:///cloudfoundry/diego-pipeline
+
+inputs:
+  - name: persi-ci
+  - name: nfs-volume-release-tarball
+  - name: nfs-volume-release
+  - name: nfs-volume-version
+
+outputs:
+  - name: finalized-release
+
+params:
+  VERSION: replace-me
+  RELEASE: replace-me
+  TARBALL: replace-me
+  BASE_RELEASE_NAME: replace-me
+  GIT_USER: replace-me
+  GIT_EMAIL: replace-me
+  S3_ACCESS_KEY_ID: replace-me
+  S3_ACCESS_KEY: replace-me
+  S3_BUCKET_NAME: replace-me
+
+run:
+  path: persi-ci/scripts/ci/finalize_release

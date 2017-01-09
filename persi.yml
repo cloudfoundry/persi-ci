@@ -40,6 +40,8 @@ groups:
   - deploy-nfs-broker
   - create-isilon-volume
   - run-ginkgo-pats-isilon
+  - shipit
+#  - github-release
 - name: util
   jobs:
   - nightly-stemcell
@@ -168,6 +170,13 @@ resources:
     target: {{bosh-director-ip}}
     username: {{bosh-director-username}}
     password: {{bosh-director-password}}
+- name: nfsvolume-final-release
+  type: s3
+  source:
+    bucket: nfsvolume-final-releases
+    regexp: nfsvolume-(.*).tgz
+    access_key_id: {{nfsvolume-uploader_aws_ID}}
+    secret_access_key: {{nfsvolume-uploader_aws_secret}}
 - name: aws-stemcell
   type: bosh-io-stemcell
   source:
@@ -779,6 +788,85 @@ jobs:
       #SHARE: /var/vcap/store
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
+      BIND_CONFIG: "{uid:1000,gid:1000}"
+
+- name: shipit-nfs
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: nfs-volume-release-tarball
+      passed: run-ginkgo-pats-nfsvolume
+      #trigger: true
+    - get: nfs-volume-release
+    - get: nfs-volume-version
+         resource: nfsvolume-version
+         params:
+           bump: final
+  - task: finalize-release
+    file: persi-ci/scripts/ci/finalize_release.build.yml
+    params:
+      VERSION: nfs-volume-version
+      RELEASE: nfs-volume-release
+      TARBALL: nfs-volume-release-tarball
+      BASE_RELEASE_NAME: nfs-volume-release
+      GIT_USER: {{github-user}}
+      GIT_EMAIL: {{github-email}}
+      S3_ACCESS_KEY_ID: {{nfsvolume-uploader_aws_ID}}
+      S3_ACCESS_KEY: {{nfsvolume-uploader_aws_secret}}
+      S3_BUCKET_NAME: {{nfsvolume-uploader_s3_bucket}}
+  - put: nfs-volume-version
+    resource: nfsvolume-version
+    params:
+      file: nfs-volume-version/number
+  - put: nfsvolume-final-releases
+    params:
+      file: finalized-release/nfsvolume-*.tgz
+  - put: nfs-volume-release
+    params:
+      repository: finalized-release/nfs-volume-release
+      tag: nfs-volume-version/number
+      tag_prefix: v
+
+#- name: github-release-nfs
+#  plan:
+#  - aggregate:
+#    - get: diego-ci
+#    - get: garden-runc-release-tarball
+#      passed: [shipit]
+#      trigger: true
+#    - get: garden-windows-release-tarball
+#      passed: [shipit]
+#      trigger: true
+#    - get: etcd-release-tarball
+#      passed: [shipit]
+#      trigger: true
+#    - get: cflinuxfs2-rootfs-release-tarball
+#      passed: [shipit]
+#      trigger: true
+#    - get: cf-mysql-release-tarball
+#      passed: [shipit]
+#      trigger: true
+#    - get: diego-final-releases
+#      passed: [shipit]
+#      trigger: true
+#    - get: diego-release-master
+#      passed: [shipit]
+#      params: {submodules: none}
+#      trigger: true
+#  - task: generate-release
+#    file: diego-ci/concourse/generate_github_release.build.yml
+#  - put: github-release
+#    params:
+#      commitish: generated-release/commitish
+#      name: generated-release/name
+#      tag: generated-release/version
+#      globs:
+#      - generated-release/garden-runc-*.tgz
+#      - generated-release/garden-windows-*.tgz
+#      - generated-release/etcd-*.tgz
+#      - generated-release/cflinuxfs2-rootfs-*.tgz
+#      - generated-release/cf-mysql-release-*.tgz
+#      - diego-final-releases/*.tgz
 
 #### END NFS #########################################################################################################
 

@@ -1,0 +1,57 @@
+#!/bin/bash
+
+set -e -x -u
+
+source $(pwd)/persi-ci/scripts/ci/utils.sh
+check_param VERSION
+check_param RELEASE
+check_param TARBALL
+check_param BASE_RELEASE_NAME
+check_param GIT_USER
+check_param GIT_EMAIL
+check_param S3_ACCESS_KEY_ID
+check_param S3_ACCESS_KEY
+check_param S3_BUCKET_NAME
+
+echo "----- Copy private blobstore credentials into release"
+cat > ${RELEASE}/config/private.yml << EOF
+---
+blobstore:
+  s3:
+    access_key_id: ${S3_ACCESS_KEY_ID}
+    secret_access_key: ${S3_ACCESS_KEY}
+    bucket_name: ${S3_BUCKET_NAME}
+EOF
+
+FINAL_RELEASE_VERSION=$(cat ${VERSION}/number)
+DEV_RELEASE_TARBALL=$(ls $PWD/${TARBALL}/*.tgz)
+
+pushd ${RELEASE}
+  RELEASE_YML=$PWD/releases/${BASE_RELEASE_NAME}/${BASE_RELEASE_NAME}-${FINAL_RELEASE_VERSION}.yml
+  RELEASE_TGZ=$PWD/releases/${BASE_RELEASE_NAME}/${BASE_RELEASE_NAME}-${FINAL_RELEASE_VERSION}.tgz
+
+  # idempotently create tarball in case later parts of shipit fail
+  if [ -e "${RELEASE_YML}" ]; then
+    echo "----- Release already created; making tarball..."
+    bosh -n create release --with-tarball ${RELEASE_YML}
+  else
+    echo "----- Set git identity"
+    git config user.email "${GIT_EMAIL}"
+    git config user.name "${GIT_USER}"
+
+    echo "----- Create final release"
+    bosh -n finalize release $DEV_RELEASE_TARBALL --version $FINAL_RELEASE_VERSION
+
+    echo "----- Update master and develop branches on origin"
+    git add -A
+    git commit -m "Create final release ${FINAL_RELEASE_VERSION} [ci skip]"
+
+    echo "----- DEBUG: show the commit we just created"
+    git --no-pager show HEAD
+  fi
+
+  # make tarball easier to reach by upstream things
+  mv $RELEASE_TGZ ../finalized-release/${BASE_RELEASE_NAME}-$FINAL_RELEASE_VERSION.tgz
+popd
+
+cp -a ${RELEASE} finalized-release/

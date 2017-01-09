@@ -1,0 +1,20 @@
+---
+platform: linux
+
+image: docker:///concourse/git-resource
+
+inputs:
+- name: diego-ci
+- name: diego-release-master
+- name: diego-final-releases
+- name: garden-runc-release-tarball
+- name: garden-windows-release-tarball
+- name: etcd-release-tarball
+- name: cflinuxfs2-rootfs-release-tarball
+- name: cf-mysql-release-tarball
+
+outputs:
+  - name: generated-release
+
+run:
+  path: diego-ci/concourse/generate_github_release
