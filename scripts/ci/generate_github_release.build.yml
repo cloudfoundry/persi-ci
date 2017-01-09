@@ -6,7 +6,7 @@ image: docker:///concourse/git-resource
 inputs:
 - name: persi-ci
 - name: nfs-volume-release
-- name: nfsvolume-final-release
+- name: nfs-volume-version
 
 outputs:
   - name: generated-release
