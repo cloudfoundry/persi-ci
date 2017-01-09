@@ -174,7 +174,7 @@ resources:
   type: s3
   source:
     bucket: nfsvolume-final-releases
-    regexp: nfsvolume-(.*).tgz
+    regexp: nfs-volume-(.*).tgz
     access_key_id: {{nfsvolume-uploader_aws_ID}}
     secret_access_key: {{nfsvolume-uploader_aws_secret}}
 - name: aws-stemcell
@@ -809,22 +809,23 @@ jobs:
       VERSION: nfs-volume-version
       RELEASE: nfs-volume-release
       TARBALL: nfs-volume-release-tarball
-      BASE_RELEASE_NAME: nfs-volume-release
+      BASE_RELEASE_NAME: nfs-volume
       GIT_USER: {{github-user}}
       GIT_EMAIL: {{github-email}}
       S3_ACCESS_KEY_ID: {{nfsvolume-uploader_aws_ID}}
       S3_ACCESS_KEY: {{nfsvolume-uploader_aws_secret}}
       S3_BUCKET_NAME: {{nfsvolume-uploader_s3_bucket}}
-
   - put: nfs-volume-version
     resource: nfsvolume-version
     params:
       file: nfs-volume-version/number
   - put: nfsvolume-final-release
     params:
-      file: finalized-release/nfsvolume-*.tgz
+      file: finalized-release/nfs-volume-*.tgz
   - put: nfs-volume-release
     params:
+      username: {{github-user}}
+      password: {{github-password}}
       repository: finalized-release/nfs-volume-release
       tag: nfs-volume-version/number
       tag_prefix: v
