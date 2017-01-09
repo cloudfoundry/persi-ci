@@ -40,7 +40,7 @@ groups:
   - deploy-nfs-broker
   - create-isilon-volume
   - run-ginkgo-pats-isilon
-  - shipit
+  - shipit-nfs
 #  - github-release
 - name: util
   jobs:
@@ -795,13 +795,14 @@ jobs:
   - aggregate:
     - get: persi-ci
     - get: nfs-volume-release-tarball
-      passed: run-ginkgo-pats-nfsvolume
       #trigger: true
     - get: nfs-volume-release
+      passed:
+      - run-ginkgo-pats-nfsvolume
     - get: nfs-volume-version
-         resource: nfsvolume-version
-         params:
-           bump: final
+      resource: nfsvolume-version
+      params:
+        bump: final
   - task: finalize-release
     file: persi-ci/scripts/ci/finalize_release.build.yml
     params:
@@ -814,11 +815,12 @@ jobs:
       S3_ACCESS_KEY_ID: {{nfsvolume-uploader_aws_ID}}
       S3_ACCESS_KEY: {{nfsvolume-uploader_aws_secret}}
       S3_BUCKET_NAME: {{nfsvolume-uploader_s3_bucket}}
+
   - put: nfs-volume-version
     resource: nfsvolume-version
     params:
       file: nfs-volume-version/number
-  - put: nfsvolume-final-releases
+  - put: nfsvolume-final-release
     params:
       file: finalized-release/nfsvolume-*.tgz
   - put: nfs-volume-release
