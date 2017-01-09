@@ -162,6 +162,15 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
+- name: github-nfs-volume-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: nfsvolume-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
 - name: nfs-volume-deployment
   type: bosh-deployment
   source:
@@ -295,7 +304,7 @@ resources:
 - name: github-release-nfs
   type: github-release
   source:
-    user: {{github-user}}
+    user: cloudfoundry-incubator
     repository: nfs-volume-release
     drafts: true
     access_token: {{github-release-token}}
@@ -780,6 +789,9 @@ jobs:
       passed:
       - cf-deploy
       trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - deploy-nfs-broker
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
     params:
@@ -804,7 +816,9 @@ jobs:
   - aggregate:
     - get: persi-ci
     - get: nfs-volume-release-tarball
-      #trigger: true
+      trigger: true
+      passed:
+      - run-ginkgo-pats-nfsvolume
     - get: nfs-volume-release
       passed:
       - run-ginkgo-pats-nfsvolume
@@ -844,9 +858,13 @@ jobs:
     - get: nfs-volume-release
       passed:
       - shipit-nfs
-      trigger: true
     - get: nfsvolume-final-release
+      passed:
+      - shipit-nfs
+      trigger: true
     - get: nfs-volume-version
+      passed:
+      - shipit-nfs
       resource: nfsvolume-version
   - task: generate-release
     file: persi-ci/scripts/ci/generate_github_release.build.yml
@@ -861,6 +879,9 @@ jobs:
       tag: generated-release/version
       globs:
       - nfsvolume-final-release/*.tgz
+  - put: github-nfs-volume-version
+    params:
+      bump: patch
 
 #### END NFS #########################################################################################################
 
