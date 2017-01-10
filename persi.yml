@@ -715,6 +715,8 @@ jobs:
     params:
       SOURCE: kerbserv.persi.cf-app.com:/export/home
 - name: create-nfs-volume-release
+  serial_groups:
+  - nfs-version
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -812,11 +814,12 @@ jobs:
       BIND_CONFIG: "{uid:1000,gid:1000}"
 
 - name: shipit-nfs
+  serial_groups:
+  - nfs-version
   plan:
   - aggregate:
     - get: persi-ci
     - get: nfs-volume-release-tarball
-      trigger: true
       passed:
       - run-ginkgo-pats-nfsvolume
     - get: nfs-volume-release
@@ -852,6 +855,8 @@ jobs:
       tag_prefix: v
 
 - name: github-release-nfs
+  serial_groups:
+  - nfs-version
   plan:
   - aggregate:
     - get: persi-ci
