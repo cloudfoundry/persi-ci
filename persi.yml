@@ -1,6 +1,8 @@
+######################################################################################################################
+###################################### GROUPS SECTION ################################################################
+######################################################################################################################
 groups:
 - name: persi
-
   jobs:
   - unit-cephfs-driver
   - unit-cephfs-broker
@@ -47,7 +49,13 @@ groups:
   - nightly-stemcell
   - bosh-cleanup
   - deploy-datadog-firehose-nozzle
+###################################### END GROUPS SECTION ############################################################
+
+######################################################################################################################
+###################################### RESOURCES SECTION #############################################################
+######################################################################################################################
 resources:
+#### Mics resources ###############################################################################################
 - name: nightly
   type: time
   source:
@@ -70,6 +78,13 @@ resources:
     username: {{bosh-director-username}}
     password: {{bosh-director-password}}
     target: {{bosh-director-ip}}
+- name: aws-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+#### END Mics resources ###############################################################################################
+
+#### CEPH resources ###############################################################################################
 - name: cephfs-bosh-release
   type: git
   source:
@@ -91,6 +106,17 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
+- name: cephfs-cluster-deployment
+  type: bosh-deployment
+  source:
+    deployment: cephfs
+    ignore_ssl: true
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+#### END CEPH resources ###############################################################################################
+
+#### NFS resources ###############################################################################################
 - name: nfs-test-server-deployment
   type: bosh-deployment
   source:
@@ -98,6 +124,64 @@ resources:
     username: {{bosh-director-username}}
     password: {{bosh-director-password}}
     target: {{bosh-director-ip}}
+- name: nfs-volume-release-tarball
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: nfs-volume-release-tarballs
+    regexp: nfsvolume-(.*).tgz
+    secret_access_key: {{aws-secret-access-key}}
+- name: nfsvolume-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: nfsvolume-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+- name: nfs-volume-deployment
+  type: bosh-deployment
+  source:
+    deployment: nfs-volume
+    ignore_ssl: true
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+- name: nfsvolume-final-release
+  type: s3
+  source:
+    bucket: nfsvolume-final-releases
+    regexp: nfs-volume-(.*).tgz
+    access_key_id: {{nfsvolume-uploader_aws_ID}}
+    secret_access_key: {{nfsvolume-uploader_aws_secret}}
+- name: nfs-volume-release
+  type: git
+  source:
+    username: {{github-user}}
+    password: {{github-password}}
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/nfs-volume-release.git
+- name: github-release-nfs
+  type: github-release
+  source:
+    user: cloudfoundry-incubator
+    repository: nfs-volume-release
+    drafts: true
+    access_token: {{github-release-token}}
+- name: lib-nfs
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/sahlberg/libnfs.git
+- name: fuse-nfs
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/sahlberg/fuse-nfs.git
+#### END NFS resources ###############################################################################################
+
+#### local volume resources ##########################################################################################
 - name: local-volume-release-tarball
   type: s3
   source:
@@ -122,6 +206,14 @@ resources:
     target: {{bosh-director-ip}}
     username: {{bosh-director-username}}
     password: {{bosh-director-password}}
+- name: local-volume-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/local-volume-release.git
+#### END local volume resources ######################################################################################
+
+#### EFS resources ################################################################################################
 - name: efs-volume-release-tarball
   type: s3
   source:
@@ -146,58 +238,14 @@ resources:
     target: {{bosh-director-ip}}
     username: {{bosh-director-username}}
     password: {{bosh-director-password}}
-- name: nfs-volume-release-tarball
-  type: s3
+- name: efs-volume-release
+  type: git
   source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: nfs-volume-release-tarballs
-    regexp: nfsvolume-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
-- name: nfsvolume-version
-  type: semver
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: nfsvolume-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
-- name: github-nfs-volume-version
-  type: semver
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: nfsvolume-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
-- name: nfs-volume-deployment
-  type: bosh-deployment
-  source:
-    deployment: nfs-volume
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
-- name: nfsvolume-final-release
-  type: s3
-  source:
-    bucket: nfsvolume-final-releases
-    regexp: nfs-volume-(.*).tgz
-    access_key_id: {{nfsvolume-uploader_aws_ID}}
-    secret_access_key: {{nfsvolume-uploader_aws_secret}}
-- name: aws-stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-- name: cephfs-cluster-deployment
-  type: bosh-deployment
-  source:
-    deployment: cephfs
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
+#### END EFS resources ################################################################################################
+
+#### Diego resources ################################################################################################
 - name: diego-dev-release
   type: s3
   source:
@@ -231,11 +279,6 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry/cflinuxfs2-rootfs-release
-- name: deployments-persi
-  type: git
-  source:
-    private_key: {{deployments-persi-key}}
-    uri: git@github.com:cloudfoundry/deployments-persi.git
 - name: diego-release
   type: git
   source:
@@ -276,6 +319,14 @@ resources:
     password: {{bosh-director-password}}
     target: {{bosh-director-ip}}
     username: {{bosh-director-username}}
+#### End Diego resources ################################################################################################
+
+#### Persi resources ################################################################################################
+- name: deployments-persi
+  type: git
+  source:
+    private_key: {{deployments-persi-key}}
+    uri: git@github.com:cloudfoundry/deployments-persi.git
 - name: runtime-config
   type: bosh-config
   source:
@@ -284,45 +335,24 @@ resources:
     ignore_ssl: true
     target: {{bosh-director-ip}}
     type: runtime-config
-- name: local-volume-release
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry-incubator/local-volume-release.git
-- name: efs-volume-release
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
-- name: nfs-volume-release
-  type: git
-  source:
-    username: {{github-user}}
-    password: {{github-password}}
-    branch: master
-    uri: https://github.com/cloudfoundry-incubator/nfs-volume-release.git
-- name: github-release-nfs
-  type: github-release
-  source:
-    user: cloudfoundry-incubator
-    repository: nfs-volume-release
-    drafts: true
-    access_token: {{github-release-token}}
-- name: lib-nfs
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/sahlberg/libnfs.git
-- name: fuse-nfs
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/sahlberg/fuse-nfs.git
+#### End Persi resources ################################################################################################
+###################################### END RESOURCES SECTION #########################################################
+
+
+######################################################################################################################
+###################################### RESOURCE_TYPES SECTION ########################################################
+######################################################################################################################
 resource_types:
 - name: bosh-config
   type: docker-image
   source:
     repository: dellemcdojo/bosh-config-resource
+###################################### END RESOURCE_TYPES SECTION ####################################################
+
+
+######################################################################################################################
+###################################### JOBS SECTION ##################################################################
+######################################################################################################################
 jobs:
 #### Setup related jobs ###############################################################################################
 - name: nightly-stemcell
@@ -884,7 +914,7 @@ jobs:
       tag: generated-release/version
       globs:
       - nfsvolume-final-release/*.tgz
-  - put: github-nfs-volume-version
+  - put: nfsvolume-version
     params:
       bump: patch
 
@@ -1304,3 +1334,5 @@ jobs:
       stemcells:
       - bosh-stemcell/*.tgz
 #### END CF ###########################################################################################################
+###################################### END JOBS SECTION ###############################################################
+
