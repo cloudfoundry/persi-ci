@@ -43,6 +43,7 @@ groups:
   - create-isilon-volume
   - run-ginkgo-pats-isilon
   - shipit-nfs
+  - manual-bump-nfs
 - name: util
   jobs:
   - nightly-stemcell
@@ -879,11 +880,6 @@ jobs:
     - put: nfsvolume-final-release
       params:
         file: finalized-release/nfs-volume-*.tgz
-    - put: nfs-volume-release
-      params:
-        repository: finalized-release/nfs-volume-release
-        tag: nfs-volume-version/number
-        tag_prefix: v
   - task: generate-release
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
@@ -891,6 +887,11 @@ jobs:
       RELEASE: nfs-volume-release
       BASE_RELEASE_NAME: nfs-volume
   - aggregate:
+    - put: nfs-volume-release
+      params:
+        repository: finalized-release/nfs-volume-release
+        tag: nfs-volume-version/number
+        tag_prefix: v
     - put: github-release-nfs
       params:
         commitish: generated-release/commitish
@@ -901,6 +902,17 @@ jobs:
     - put: nfsvolume-version
       params:
         bump: patch
+- name: manual-bump-nfs
+  serial_groups:
+  - nfs-version
+  plan:
+  - get: nfs-volume-version
+    resource: nfsvolume-version
+    params:
+      bump: final
+  - put: nfsvolume-version
+    params:
+      bump: patch
 #### END NFS #########################################################################################################
 
 #### Isilon related jobs #############################################################################################

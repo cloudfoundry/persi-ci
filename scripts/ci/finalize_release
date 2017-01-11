@@ -30,6 +30,8 @@ pushd ${RELEASE}
   RELEASE_YML=$PWD/releases/${BASE_RELEASE_NAME}/${BASE_RELEASE_NAME}-${FINAL_RELEASE_VERSION}.yml
   RELEASE_TGZ=$PWD/releases/${BASE_RELEASE_NAME}/${BASE_RELEASE_NAME}-${FINAL_RELEASE_VERSION}.tgz
 
+  git pull
+
   # idempotently create tarball in case later parts of shipit fail
   if [ -e "${RELEASE_YML}" ]; then
     echo "----- Release already created; making tarball..."
