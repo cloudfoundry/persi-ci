@@ -399,7 +399,6 @@ jobs:
       BOSH_USERNAME: {{bosh-director-username}}
       DEPLOYMENT_NAME: cephfs
 - name: unit-cephfs-driver
-  public: true
   plan:
   - aggregate:
     - get: diego-release
@@ -409,7 +408,6 @@ jobs:
   - task: build
     file: cephfs-bosh-release/scripts/ci/run_cephdriver_unit.build.yml
 - name: unit-cephfs-broker
-  public: true
   plan:
   - aggregate:
     - get: cephfs-bosh-release
@@ -477,7 +475,6 @@ jobs:
     params:
       file: created-cephfs-bosh-release/cephfs-*.tgz
 - name: cephdriver-certification
-  public: true
   serial_groups:
   - cephfs-deploy
   plan:
@@ -528,21 +525,18 @@ jobs:
 
 #### Local Volume related jobs ########################################################################################
 - name: localdriver-unit
-  public: true
   plan:
   - get: local-volume-release
     trigger: true
   - task: build
     file: local-volume-release/scripts/ci/run_driver_unit.build.yml
 - name: localbroker-unit
-  public: true
   plan:
   - get: local-volume-release
     trigger: true
   - task: build
     file: local-volume-release/scripts/ci/run_broker_unit.build.yml
 - name: localdriver-certification
-  public: true
   plan:
   - aggregate:
     - get: local-volume-release
@@ -589,7 +583,6 @@ jobs:
       stemcells:
       - aws-stemcell/*.tgz
 - name: localdriver-docker-certification
-  public: true
   plan:
   - aggregate:
     - get: local-volume-release
@@ -688,21 +681,18 @@ jobs:
       stemcells:
       - aws-stemcell/*.tgz
 - name: nfsdriver-unit
-  public: true
   plan:
   - get: nfs-volume-release
     trigger: true
   - task: build
     file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
 - name: kerbdriver-unit
-  public: true
   plan:
   - get: nfs-volume-release
     trigger: true
   - task: build
     file: nfs-volume-release/scripts/ci/run_kerbdriver_unit.build.yml
 - name: nfsbroker-unit
-  public: true
   plan:
   - get: nfs-volume-release
     trigger: true
@@ -711,7 +701,6 @@ jobs:
 - name: nfsdriver-certification
   serial_groups:
   - nfs-test-server-deployment
-  public: true
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -734,7 +723,6 @@ jobs:
 - name: kerbdriver-certification
   serial_groups:
   - nfs-test-server-deployment
-  public: true
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -972,21 +960,18 @@ jobs:
 
 #### EFS related jobs ################################################################################################
 - name: efsdriver-unit
-  public: true
   plan:
   - get: efs-volume-release
     trigger: true
   - task: build
     file: efs-volume-release/scripts/ci/run_driver_unit.build.yml
 - name: efsbroker-unit
-  public: true
   plan:
   - get: efs-volume-release
     trigger: true
   - task: build
     file: efs-volume-release/scripts/ci/run_broker_unit.build.yml
 - name: efsdriver-certification
-  public: true
   plan:
   - aggregate:
     - get: efs-volume-release
