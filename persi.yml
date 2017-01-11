@@ -43,7 +43,6 @@ groups:
   - create-isilon-volume
   - run-ginkgo-pats-isilon
   - shipit-nfs
-  - github-release-nfs
 - name: util
   jobs:
   - nightly-stemcell
@@ -842,7 +841,6 @@ jobs:
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
       BIND_CONFIG: "{uid:1000,gid:1000}"
-
 - name: shipit-nfs
   serial_groups:
   - nfs-version
@@ -871,52 +869,36 @@ jobs:
       S3_ACCESS_KEY_ID: {{nfsvolume-uploader_aws_ID}}
       S3_ACCESS_KEY: {{nfsvolume-uploader_aws_secret}}
       S3_BUCKET_NAME: {{nfsvolume-uploader_s3_bucket}}
-  - put: nfs-volume-version
-    resource: nfsvolume-version
-    params:
-      file: nfs-volume-version/number
-  - put: nfsvolume-final-release
-    params:
-      file: finalized-release/nfs-volume-*.tgz
-  - put: nfs-volume-release
-    params:
-      repository: finalized-release/nfs-volume-release
-      tag: nfs-volume-version/number
-      tag_prefix: v
-
-- name: github-release-nfs
-  serial_groups:
-  - nfs-version
-  plan:
   - aggregate:
-    - get: persi-ci
-    - get: nfs-volume-release
-      passed:
-      - shipit-nfs
-    - get: nfsvolume-final-release
-      passed:
-      - shipit-nfs
-      trigger: true
-    - get: nfs-volume-version
-      passed:
-      - shipit-nfs
+    - put: nfs-volume-version
       resource: nfsvolume-version
+      params:
+        file: nfs-volume-version/number
+    - put: nfsvolume-final-release
+      params:
+        file: finalized-release/nfs-volume-*.tgz
+    - put: nfs-volume-release
+      params:
+        repository: finalized-release/nfs-volume-release
+        tag: nfs-volume-version/number
+        tag_prefix: v
   - task: generate-release
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
       VERSION: nfs-volume-version
       RELEASE: nfs-volume-release
       BASE_RELEASE_NAME: nfs-volume
-  - put: github-release-nfs
-    params:
-      commitish: generated-release/commitish
-      name: generated-release/name
-      tag: generated-release/version
-      globs:
-      - nfsvolume-final-release/*.tgz
-  - put: nfsvolume-version
-    params:
-      bump: patch
+  - aggregate:
+    - put: github-release-nfs
+      params:
+        commitish: generated-release/commitish
+        name: generated-release/name
+        tag: generated-release/version
+        globs:
+        - nfsvolume-final-release/*.tgz
+    - put: nfsvolume-version
+      params:
+        bump: patch
 
 #### END NFS #########################################################################################################
 
