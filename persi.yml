@@ -42,13 +42,17 @@ groups:
   - deploy-nfs-broker
   - create-isilon-volume
   - run-ginkgo-pats-isilon
-  - shipit-nfs
-  - manual-bump-nfs
 - name: util
   jobs:
   - nightly-stemcell
   - bosh-cleanup
   - deploy-datadog-firehose-nozzle
+- name: release-nfs
+  jobs:
+  - shipit-nfs
+  - manual-bump-nfs-patch
+  - manual-bump-nfs-minor
+  - manual-bump-nfs-major
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -890,7 +894,7 @@ jobs:
     - put: nfsvolume-version
       params:
         bump: patch
-- name: manual-bump-nfs
+- name: manual-bump-nfs-patch
   serial_groups:
   - nfs-version
   plan:
@@ -901,6 +905,28 @@ jobs:
   - put: nfsvolume-version
     params:
       bump: patch
+- name: manual-bump-nfs-minor
+  serial_groups:
+  - nfs-version
+  plan:
+  - get: nfs-volume-version
+    resource: nfsvolume-version
+    params:
+      bump: final
+  - put: nfsvolume-version
+    params:
+      bump: minor
+- name: manual-bump-nfs-major
+  serial_groups:
+  - nfs-version
+  plan:
+  - get: nfs-volume-version
+    resource: nfsvolume-version
+    params:
+      bump: final
+  - put: nfsvolume-version
+    params:
+      bump: major
 #### END NFS #########################################################################################################
 
 #### Isilon related jobs #############################################################################################
