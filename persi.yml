@@ -733,7 +733,7 @@ jobs:
     privileged: true
     file: nfs-volume-release/scripts/ci/run_kerbdriver_cert_tcp.build.yml
     params:
-      SOURCE: kerbserv.persi.cf-app.com:/export/home
+      SOURCE: nfs.persi.cf-app.com:/home
 - name: create-nfs-volume-release
   serial_groups:
   - nfs-version
