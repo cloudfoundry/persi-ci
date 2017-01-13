@@ -725,13 +725,11 @@ jobs:
     params:
       SOURCE: nfs://10.10.200.72/export/users
 - name: kerbdriver-certification
-  serial_groups:
-  - nfs-test-server-deployment
   plan:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-test-server
+      - kerbdriver-unit
       trigger: true
   - task: kerbdriver-cert
     privileged: true
