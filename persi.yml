@@ -18,10 +18,11 @@ groups:
   - create-diego-release
   - set-runtime-config
   - diego-deploy
-  - run-ginkgo-pats-cephfsvolume
-  - run-ginkgo-pats-localvolume
-  - run-ginkgo-pats-nfsvolume
-  - run-pats-nfs-pushed-broker
+  - pats-cephfs
+  - pats-local
+  - pats-nfs
+  - pats-nfs-pushed-broker
+  - pats-isilon
   - localdriver-unit
   - localbroker-unit
   - localdriver-certification
@@ -34,7 +35,7 @@ groups:
   - create-efs-volume-release
   - create-nfs-volume-release
   - deploy-efs-broker
-  - run-ginkgo-pats-efsvolume
+  - pats-efsvolume
   - nfsdriver-unit
   - nfsbroker-unit
   - kerbdriver-unit
@@ -42,7 +43,6 @@ groups:
   - kerbdriver-certification
   - deploy-nfs-broker
   - create-isilon-volume
-  - run-ginkgo-pats-isilon
 - name: util
   jobs:
   - nightly-stemcell
@@ -494,7 +494,7 @@ jobs:
   - task: certification
     privileged: true
     file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
-- name: run-ginkgo-pats-cephfsvolume
+- name: pats-cephfs
   serial_groups:
   - cf-deploy
   - diego-deploy
@@ -619,7 +619,7 @@ jobs:
   - put: local-volume-release-tarball
     params:
       file: created-local-volume-release/local*.tgz
-- name: run-ginkgo-pats-localvolume
+- name: pats-local
   serial_groups:
   - cf-deploy
   - diego-deploy
@@ -795,7 +795,7 @@ jobs:
       - nfs-volume-release-tarball/*.tgz
       stemcells:
       - aws-stemcell/*.tgz
-- name: run-ginkgo-pats-nfsvolume
+- name: pats-nfs
   serial_groups:
   - cf-deploy
   - diego-deploy
@@ -835,7 +835,7 @@ jobs:
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
       BIND_CONFIG: "{uid:1000,gid:1000}"
-- name: run-pats-nfs-pushed-broker
+- name: pats-nfs-pushed-broker
   serial_groups:
   - cf-deploy
   - diego-deploy
@@ -885,10 +885,10 @@ jobs:
     - get: persi-ci
     - get: nfs-volume-release-tarball
       passed:
-      - run-ginkgo-pats-nfsvolume
+      - pats-nfs
     - get: nfs-volume-release
       passed:
-      - run-ginkgo-pats-nfsvolume
+      - pats-nfs
     - get: nfs-volume-version
       resource: nfsvolume-version
       params:
@@ -986,7 +986,7 @@ jobs:
       BOSH_TARGET: {{bosh-director-ip}}
       BOSH_USERNAME: {{bosh-director-username}}
 
-- name: run-ginkgo-pats-isilon
+- name: pats-isilon
   serial_groups:
   - cf-deploy
   - diego-deploy
@@ -1113,7 +1113,7 @@ jobs:
       - efs-volume-release-tarball/*.tgz
       stemcells:
       - aws-stemcell/*.tgz
-- name: run-ginkgo-pats-efsvolume
+- name: pats-efsvolume
   serial_groups:
   - cf-deploy
   - diego-deploy
