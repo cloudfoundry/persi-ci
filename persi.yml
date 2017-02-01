@@ -870,13 +870,13 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      #SERVER_ADDRESS: {{existing-nfs-server}}
-      #SHARE: /var/vcap/store
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
       BIND_CONFIG: "{uid:1000,gid:1000}"
       PUSHED_BROKER_NAME: nfsbrokerpatsapp
-      SQL_SERVICE_NAME: pushed-broker-mysql
+      DB_SERVICE_INSTANCE_NAME: pushed-broker-mysql
+      DB_SERVICE_NAME: p-mysql
+      DB_DRIVER_NAME: mysql
 - name: shipit-nfs
   serial_groups:
   - nfs-version
