@@ -876,7 +876,7 @@ jobs:
       SHARE: /export/users
       BIND_CONFIG: "{uid:1000,gid:1000}"
       PUSHED_BROKER_NAME: nfsbrokerpatsapp
-      SQL_SERVICE_NAME: replace-me
+      SQL_SERVICE_NAME: pushed-broker-mysql
 - name: shipit-nfs
   serial_groups:
   - nfs-version
