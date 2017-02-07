@@ -23,6 +23,7 @@ groups:
   - pats-nfs
   - pats-nfs-pushed-broker
   - pats-isilon
+  - pats-efs
   - localdriver-unit
   - localbroker-unit
   - localdriver-certification
@@ -35,7 +36,6 @@ groups:
   - create-efs-volume-release
   - create-nfs-volume-release
   - deploy-efs-broker
-  - pats-efsvolume
   - nfsdriver-unit
   - nfsbroker-unit
   - kerbdriver-unit
@@ -526,6 +526,9 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: pats-plan
       SERVICE_NAME: pats-service
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+
 #### END CEPH #########################################################################################################
 
 #### Local Volume related jobs ########################################################################################
@@ -651,6 +654,9 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: localvolume-ginkgoPATS-pats-plan
       SERVICE_NAME: localvolume-ginkgoPATS-pats-service
+      TEST_MULTI_CELL: false
+      TEST_MOUNT_OPTIONS: false
+
 #### END Local volume #################################################################################################
 
 #### NFS related jobs #################################################################################################
@@ -835,6 +841,9 @@ jobs:
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
       BIND_CONFIG: "{uid:1000,gid:1000}"
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
+
 - name: pats-nfs-pushed-broker
   serial_groups:
   - cf-deploy
@@ -877,6 +886,9 @@ jobs:
       DB_SERVICE_INSTANCE_NAME: pushed-broker-mysql
       DB_SERVICE_NAME: p-mysql
       DB_DRIVER_NAME: mysql
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
+
 - name: shipit-nfs
   serial_groups:
   - nfs-version
@@ -1022,6 +1034,8 @@ jobs:
       #SHARE: /var/vcap/store
       SERVER_ADDRESS: isilon.persi.cf-app.com
       SHARE: /ifs/persi-ci
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
 
 #### END Isilon ######################################################################################################
 
@@ -1113,7 +1127,7 @@ jobs:
       - efs-volume-release-tarball/*.tgz
       stemcells:
       - aws-stemcell/*.tgz
-- name: pats-efsvolume
+- name: pats-efs
   serial_groups:
   - cf-deploy
   - diego-deploy
@@ -1145,6 +1159,9 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+
 #### END EFS ##########################################################################################################
 
 #### DataDog related jobs #############################################################################################
