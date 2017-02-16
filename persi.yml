@@ -884,9 +884,9 @@ jobs:
       BIND_CONFIG: "{uid:1000,gid:1000}"
       PUSHED_BROKER_NAME: nfsbrokerpatsapp
       DB_DRIVER_NAME: mysql
-      DBHOST: {{nfsbroker-mysql-host}}
-      DBPORT: 3306
-      DBNAME: nfsbroker
+      DB_HOST: {{nfsbroker-mysql-host}}
+      DB_PORT: 3306
+      DB_NAME: nfsbroker
       DB_USERNAME: {{nfsbroker-mysql-user}}
       DB_PASSWORD: {{nfsbroker-mysql-password}}
       TEST_MULTI_CELL: true
