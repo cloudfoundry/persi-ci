@@ -43,6 +43,7 @@ groups:
   - kerbdriver-certification
   - deploy-nfs-broker
   - create-isilon-volume
+  - create-ecs-release
 - name: util
   jobs:
   - nightly-stemcell
@@ -342,6 +343,21 @@ resources:
     target: {{bosh-director-ip}}
     type: runtime-config
 #### End Persi resources ################################################################################################
+
+#### ECS resources ###################################################################################################
+- name: ecs-release
+  type: git
+  source:
+    uri: git@github.com:EMC-Dojo/ecs-release.git
+- name: ecs-release-tarball
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: ecs-release-tarballs
+    regexp: ecs-(.*).tgz
+    secret_access_key: {{aws-secret-access-key}}
+#### End ECS resources ###############################################################################################
+
 ###################################### END RESOURCES SECTION #########################################################
 
 
@@ -1401,5 +1417,20 @@ jobs:
       stemcells:
       - bosh-stemcell/*.tgz
 #### END CF ###########################################################################################################
+
+#### START ECS ########################################################################################################
+- name: create-ecs-release
+  plan:
+  - aggregate:
+    - get: ecs-release
+      trigger: true
+    - get: persi-ci
+  - task: create-release
+    file: persi-ci/scripts/ci/create_ecs_release.build.yml
+  - put: ecs-release-tarball
+    params:
+      file: created-ecs-release/ecs*.tgz
+
+#### END ECS ##########################################################################################################
 ###################################### END JOBS SECTION ###############################################################
 
