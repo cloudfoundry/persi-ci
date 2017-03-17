@@ -6,6 +6,7 @@ image: docker:///cloudfoundry/diego-pipeline
 inputs:
   - name: ecs-release
   - name: persi-ci
+  - name: ecs-version
 
 outputs:
   - name: created-ecs-release

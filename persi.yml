@@ -348,7 +348,7 @@ resources:
 - name: ecs-release
   type: git
   source:
-    uri: git@github.com:EMC-Dojo/ecs-release.git
+    uri: https://github.com/EMC-Dojo/ecs-release.git
 - name: ecs-release-tarball
   type: s3
   source:
@@ -356,6 +356,16 @@ resources:
     bucket: ecs-release-tarballs
     regexp: ecs-(.*).tgz
     secret_access_key: {{aws-secret-access-key}}
+- name: ecs-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: ecs-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+
 #### End ECS resources ###############################################################################################
 
 ###################################### END RESOURCES SECTION #########################################################
@@ -1425,6 +1435,14 @@ jobs:
     - get: ecs-release
       trigger: true
     - get: persi-ci
+    - get: ecs-version
+      resource: ecs-version
+      params:
+        pre: rc
+  - put: ecs-version
+    resource: ecs-version
+    params:
+      file: ecs-version/number
   - task: create-release
     file: persi-ci/scripts/ci/create_ecs_release.build.yml
   - put: ecs-release-tarball

@@ -2,10 +2,9 @@
 
 set -x -e
 
-# TODO add versioning later
-#version=`0-dev?`
+version=`cat ecs-version/number`
 pushd ecs-release
 
-bosh -n --parallel 10 create release --name ecs-release --force --with-tarball
-mv dev_releases/ecs-release/ecs-release*.tgz ../created-ecs-release/
+bosh -n --parallel 10 create release --version $version --name ecs-release --force --with-tarball
+mv dev_releases/ecs-release/ecs-release-$version.tgz ../created-ecs-release/
 popd
