@@ -354,7 +354,7 @@ resources:
   source:
     access_key_id: {{aws-access-key-id}}
     bucket: ecs-release-tarballs
-    regexp: ecs-(.*).tgz
+    regexp: ecs-release-(.*).tgz
     secret_access_key: {{aws-secret-access-key}}
 - name: ecs-version
   type: semver
