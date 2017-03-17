@@ -73,7 +73,7 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/cloudfoundry-incubator/persi-ci.git
+    uri: https://github.com/cloudfoundry/persi-ci.git
 - name: datadog-firehose-nozzle-release
   type: bosh-io-release
   source:
@@ -217,7 +217,7 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/cloudfoundry-incubator/local-volume-release.git
+    uri: https://github.com/cloudfoundry/local-volume-release.git
 #### END local volume resources ######################################################################################
 
 #### EFS resources ################################################################################################
@@ -297,7 +297,7 @@ resources:
     - git-hooks
     - releases
     - .final_builds
-    uri: https://github.com/cloudfoundry-incubator/diego-release
+    uri: https://github.com/cloudfoundry/diego-release
 - name: cf-release
   type: git
   source:
