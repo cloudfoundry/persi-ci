@@ -1489,6 +1489,10 @@ jobs:
       - aws-stemcell/*.tgz
   - task: run-prov-errand
     file: persi-ci/scripts/ci/run_ecs_provision_errand.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USERNAME: {{bosh-director-username}}
 
 #### END ECS ##########################################################################################################
 ###################################### END JOBS SECTION ###############################################################

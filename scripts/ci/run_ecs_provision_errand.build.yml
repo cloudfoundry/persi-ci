@@ -7,7 +7,11 @@ inputs:
   - name: persi-ci
   - name: deployments-persi
 
-params: []
+params:
+  BOSH_PASSWORD: replace-me
+  BOSH_TARGET: replace-me
+  BOSH_USER: replace-me
 
 run:
+  path: persi-ci/scripts/ci/bosh_setup
   path: persi-ci/scripts/ci/run_ecs_provision_errand
