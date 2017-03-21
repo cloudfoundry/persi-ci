@@ -1492,7 +1492,7 @@ jobs:
     params:
       BOSH_PASSWORD: {{bosh-director-password}}
       BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USERNAME: {{bosh-director-username}}
+      BOSH_USER: {{bosh-director-username}}
 
 #### END ECS ##########################################################################################################
 ###################################### END JOBS SECTION ###############################################################
