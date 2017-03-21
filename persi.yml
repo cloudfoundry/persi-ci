@@ -44,6 +44,7 @@ groups:
   - deploy-nfs-broker
   - create-isilon-volume
   - create-ecs-release
+  - deploy-ecs
 - name: util
   jobs:
   - nightly-stemcell
@@ -365,7 +366,14 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
-
+- name: ecs-deployment
+  type: bosh-deployment
+  source:
+    deployment: ecs_multi
+    ignore_ssl: true
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
 #### End ECS resources ###############################################################################################
 
 ###################################### END RESOURCES SECTION #########################################################
@@ -1448,7 +1456,39 @@ jobs:
   - put: ecs-release-tarball
     params:
       file: created-ecs-release/ecs*.tgz
+- name: deploy-ecs
+  plan:
+  - aggregate:
+    - get: ecs-release
+      passed:
+      - create-ecs-release
+      trigger: true
+    - get: ecs-release-tarball
+      passed:
+      - create-ecs-release
+    - get: aws-stemcell
+#    - get: persi-ci
+    - get: deployments-persi
+    - get: persi-ci
+# TODO-stop hard coding the manifest!!!
+#  - task: generate-deployment-manifests
+#    file: nfs-volume-release/scripts/ci/generate_nfs_test_server_manifests.build.yml
+#    params:
+#      BOSH_PASSWORD: {{bosh-director-password}}
+#      BOSH_TARGET: {{bosh-director-ip}}
+#      BOSH_USERNAME: {{bosh-director-username}}
+#      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+#      ENVIRONMENT_NAME: persi-cf
+#      INFRASTRUCTURE: aws
+  - put: ecs-deployment
+    params:
+      manifest: deployments-persi/ecs-manifest.yml
+      releases:
+      - ecs-release-tarball/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+  - task: run-prov-errand
+    file: persi-ci/scripts/ci/run_ecs_provision_errand.build.yml
 
 #### END ECS ##########################################################################################################
 ###################################### END JOBS SECTION ###############################################################
-

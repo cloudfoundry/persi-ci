@@ -1,0 +1,13 @@
+---
+platform: linux
+
+image: docker:///cloudfoundry/diego-pipeline
+
+inputs:
+  - name: persi-ci
+  - name: deployments-persi
+
+params: []
+
+run:
+  path: persi-ci/scripts/ci/run_ecs_provision_errand
