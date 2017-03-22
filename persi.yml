@@ -1359,9 +1359,16 @@ jobs:
       trigger: true
   - task: update_runtime_config
     file: persi-ci/scripts/ci/update_runtime_config.build.yml
+    params:
+      LDAP_SVC_USER: {{ldap-svc-user}}
+      LDAP_SVC_PASS: {{ldap-svc-pass}}
+      LDAP_HOST: {{ldap-host}}
+      LDAP_PORT: 389
+      LDAP_PROTO: tcp
+      LDAP_USER_FQDN: {{ldap-user-fqdn}}
   - put: runtime-config
     params:
-      manifest: persi-ci/addons/driver-addons.yml
+      manifest: runtime-config-out/addons.yml
       releases:
       - cephfs-bosh-release-tarball/cephfs*.tgz
       - local-volume-release-tarball/local*.tgz

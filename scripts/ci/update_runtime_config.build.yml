@@ -10,9 +10,17 @@ inputs:
   - name: local-volume-release-tarball
   - name: nfs-volume-release-tarball
 
-outputs: []
+outputs:
+  - name: runtime-config-out
 
-params: []
+params:
+  LDAP_SVC_USER: ""
+  LDAP_SVC_PASS: ""
+  LDAP_HOST: ""
+  LDAP_PORT: 389
+  LDAP_PROTO: tcp
+  LDAP_USER_FQDN: ""
+
 
 run:
   path: persi-ci/scripts/ci/update_runtime_config.sh
