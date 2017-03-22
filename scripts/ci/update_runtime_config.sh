@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cat runtime-config-out/addons.yml << EOF
+cat > runtime-config-out/addons.yml << EOF
 ---
 releases:
 - name: local-volume
