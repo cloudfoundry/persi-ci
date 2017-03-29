@@ -875,7 +875,7 @@ jobs:
       #SHARE: /var/vcap/store
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
-      BIND_CONFIG: "{uid:1000,gid:1000}"
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
 - name: pats-nfs-ldap
@@ -917,7 +917,7 @@ jobs:
       #SHARE: /var/vcap/store
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
-      BIND_CONFIG: "{username:user1000,password:abc123!}"
+      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
 
@@ -958,7 +958,7 @@ jobs:
       SERVICE_NAME: nfs
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
-      BIND_CONFIG: "{uid:1000,gid:1000}"
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PUSHED_BROKER_NAME: nfsbrokerpatsapp
       DB_DRIVER_NAME: mysql
       DB_HOST: {{nfsbroker-mysql-host}}
@@ -1115,6 +1115,7 @@ jobs:
       #SHARE: /var/vcap/store
       SERVER_ADDRESS: isilon.persi.cf-app.com
       SHARE: /ifs/persi-ci
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
 
