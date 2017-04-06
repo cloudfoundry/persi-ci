@@ -919,7 +919,8 @@ jobs:
       SHARE: /export/users
       BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
       TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
+      TEST_MOUNT_OPTIONS: false
+      TEST_READ_ONLY: false
 
 - name: pats-nfs-pushed-broker
   serial_groups:
@@ -1023,8 +1024,8 @@ jobs:
         commitish: generated-release/commitish
         name: generated-release/name
         tag: generated-release/version
-        globs:
-        - nfsvolume-final-release/*.tgz
+        globs: []
+        # - nfsvolume-final-release/*.tgz
     - put: nfsvolume-version
       params:
         bump: patch
@@ -1111,13 +1112,12 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      #SERVER_ADDRESS: {{existing-nfs-server}}
-      #SHARE: /var/vcap/store
       SERVER_ADDRESS: isilon.persi.cf-app.com
-      SHARE: /ifs/persi-ci
+      SHARE: /ifs/persi-pats
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
+      TEST_READ_ONLY: false
 
 #### END Isilon ######################################################################################################
 
