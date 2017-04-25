@@ -682,13 +682,13 @@ jobs:
       APPLICATION_PATH: local-volume-release/assets/pora
       APPS_DOMAIN: persi.cf-app.com
       BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://pats-broker.localvolume-ginkgoPATS.persi.cf-app.com
+      BROKER_URL: http://local-broker.persi.cf-app.com
       BROKER_USER: {{pats-broker-username}}
       CF_API_ENDPOINT: api.persi.cf-app.com
       CF_PASSWORD: {{cf-password}}
       CF_USERNAME: {{cf-username}}
-      PLAN_NAME: localvolume-ginkgoPATS-pats-plan
-      SERVICE_NAME: localvolume-ginkgoPATS-pats-service
+      PLAN_NAME: local-plan
+      SERVICE_NAME: local-service
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
 
