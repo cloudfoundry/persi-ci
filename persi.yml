@@ -39,9 +39,7 @@ groups:
   - deploy-efs-broker
   - nfsdriver-unit
   - nfsbroker-unit
-  - kerbdriver-unit
   - nfsdriver-certification
-  - kerbdriver-certification
   - deploy-nfs-broker
   - create-isilon-volume
   - create-ecs-release
@@ -732,12 +730,6 @@ jobs:
     trigger: true
   - task: build
     file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
-- name: kerbdriver-unit
-  plan:
-  - get: nfs-volume-release
-    trigger: true
-  - task: build
-    file: nfs-volume-release/scripts/ci/run_kerbdriver_unit.build.yml
 - name: nfsbroker-unit
   plan:
   - get: nfs-volume-release
@@ -766,18 +758,6 @@ jobs:
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
     params:
       SOURCE: nfs://10.10.200.72/export2/certs
-- name: kerbdriver-certification
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - kerbdriver-unit
-      trigger: true
-  - task: kerbdriver-cert
-    privileged: true
-    file: nfs-volume-release/scripts/ci/run_kerbdriver_cert_tcp.build.yml
-    params:
-      SOURCE: nfs.persi.cf-app.com:/home
 - name: create-nfs-volume-release
   serial_groups:
   - nfs-version
@@ -786,7 +766,6 @@ jobs:
     - get: nfs-volume-release
       passed:
       - nfsdriver-unit
-      - kerbdriver-unit
       - nfsbroker-unit
       trigger: true
     - get: nfs-volume-version
