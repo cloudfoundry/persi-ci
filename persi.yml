@@ -172,7 +172,7 @@ resources:
 - name: github-release-nfs
   type: github-release
   source:
-    user: cloudfoundry-incubator
+    user: cloudfoundry
     repository: nfs-volume-release
     drafts: true
     access_token: {{github-release-token}}
