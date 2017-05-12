@@ -439,8 +439,6 @@ jobs:
 - name: unit-cephfs-driver
   plan:
   - aggregate:
-    - get: diego-release
-      trigger: true
     - get: cephfs-bosh-release
       trigger: true
   - task: build
@@ -1287,8 +1285,6 @@ jobs:
   - aggregate:
     - get: cf-dev-release
     - get: diego-release
-      passed:
-      - unit-cephfs-driver
     - get: cf-release
       passed:
       - create-cf-release
