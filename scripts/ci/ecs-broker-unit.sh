@@ -3,4 +3,6 @@
 set -e
 
 cd ecs-cf-service-broker
-./gradlew test
+export GRADLE_OPTS=-Dorg.gradle.native=false
+gradle -v
+gradle test
