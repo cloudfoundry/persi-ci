@@ -4,10 +4,8 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    #repository: starkandwayne/concourse-java
-    #tag: "8"
-    repository: gradle
-    tag: 3.5-jdk8
+    repository: starkandwayne/concourse-java
+    tag: "8"
 
 inputs:
 - name: ecs-cf-service-broker
