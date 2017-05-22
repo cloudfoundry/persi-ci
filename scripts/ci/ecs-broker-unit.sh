@@ -3,4 +3,4 @@
 set -e
 
 cd ecs-cf-service-broker
-./gradlew test
+gradle test
