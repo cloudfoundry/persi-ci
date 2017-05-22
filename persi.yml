@@ -44,6 +44,7 @@ groups:
   - create-isilon-volume
   - create-ecs-release
   - deploy-ecs
+  - ecs-broker-unit
 - name: util
   jobs:
   - nightly-stemcell
@@ -373,6 +374,11 @@ resources:
     target: {{bosh-director-ip}}
     username: {{bosh-director-username}}
     password: {{bosh-director-password}}
+- name: ecs-cf-service-broker
+  type: git
+  source:
+    uri: https://github.com/codedellemc/ecs-cf-service-broker
+
 #### End ECS resources ###############################################################################################
 
 ###################################### END RESOURCES SECTION #########################################################
@@ -1462,7 +1468,7 @@ jobs:
       - bosh-stemcell/*.tgz
 #### END CF ###########################################################################################################
 
-#### START ECS ########################################################################################################
+#### START ECS related jobs ###########################################################################################
 - name: create-ecs-release
   plan:
   - aggregate:
@@ -1519,6 +1525,15 @@ jobs:
       BOSH_PASSWORD: {{bosh-director-password}}
       BOSH_TARGET: {{bosh-director-ip}}
       BOSH_USER: {{bosh-director-username}}
+- name: ecs-broker-unit
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: ecs-cf-service-broker
+      trigger: true
+  - task: ecs-broker-unit
+    file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
+
 
 #### END ECS ##########################################################################################################
 ###################################### END JOBS SECTION ###############################################################
