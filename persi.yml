@@ -283,10 +283,10 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/diego-ci
-- name: cflinuxfs2-rootfs-release-tarball
+- name: cflinuxfs2-release-tarball
   type: bosh-io-release
   source:
-    repository: cloudfoundry/cflinuxfs2-rootfs-release
+    repository: cloudfoundry/cflinuxfs2-release
 - name: diego-release
   type: git
   source:
@@ -1425,7 +1425,7 @@ jobs:
         - src/loggregator
     - get: cf-dev-release
     - get: garden-runc-release-tarball
-    - get: cflinuxfs2-rootfs-release-tarball
+    - get: cflinuxfs2-release-tarball
     - get: local-volume-release
       passed:
       - set-runtime-config
@@ -1463,7 +1463,7 @@ jobs:
       - cf-dev-release/*.tgz
       - diego-dev-release/*.tgz
       - garden-runc-release-tarball/*.tgz
-      - cflinuxfs2-rootfs-release-tarball/*.tgz
+      - cflinuxfs2-release-tarball/*.tgz
       stemcells:
       - bosh-stemcell/*.tgz
 #### END CF ###########################################################################################################
