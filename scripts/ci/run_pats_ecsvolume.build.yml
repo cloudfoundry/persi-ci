@@ -1,0 +1,35 @@
+---
+platform: linux
+
+rootfs_uri: docker:///cloudfoundry/diego-pipeline
+
+inputs:
+  - name: ecs-release
+
+params:
+  CF_USERNAME: replace-me
+  CF_PASSWORD: replace-me
+  CF_API_ENDPOINT: replace-me
+  APPS_DOMAIN: replace-me
+  APPLICATION_PATH: replace-me
+  NAME_PREFIX: efsvolume
+  SERVICE_NAME: replace-me
+  PLAN_NAME: replace-me
+  BROKER_URL: replace-me
+  BROKER_USER: replace-me
+  BROKER_PASSWORD: replace-me
+  SERVER_ADDRESS: replace-me
+  SHARE: replace-me
+  PUSHED_BROKER_NAME:
+  DB_DRIVER_NAME:
+  DB_HOST:
+  DB_PORT:
+  DB_NAME:
+  DB_USERNAME:
+  DB_PASSWORD:
+  BIND_CONFIG:
+  TEST_MULTI_CELL: true
+  TEST_MOUNT_OPTIONS: false
+  TEST_READ_ONLY: true
+run:
+  path: persi-ci/scripts/ci/run_pats_withsetup

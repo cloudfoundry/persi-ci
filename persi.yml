@@ -1552,5 +1552,44 @@ jobs:
       BOSH_PASSWORD: {{bosh-director-password}}
       BOSH_TARGET: {{bosh-director-ip}}
       BOSH_USER: {{bosh-director-username}}
+- name: pats-ecs
+  serial_groups:
+  - cf-deploy
+  - diego-deploy
+  - deploy-ecs-broker
+  plan:
+  - aggregate:
+    - get: ecs-release
+      passed:
+      - deploy-ecs-release
+      trigger: true
+    - get: diego-deployment
+      passed:
+      - diego-deploy
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - cf-deploy
+      trigger: true
+  - task: run-pats
+    file: ecs-release/scripts/ci/run_pats_ecsvolume.build.yml
+    params:
+      APPLICATION_PATH: ecs-volume-release/assets/pora
+      APPS_DOMAIN: persi.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://ecs-broker.persi.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.persi.cf-app.com
+      CF_PASSWORD: {{cf-password}}
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      #SERVER_ADDRESS: {{existing-nfs-server}}
+      #SHARE: /var/vcap/store
+      SERVER_ADDRESS: 10.10.200.72
+      SHARE: /export/users
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
 #### END ECS ##########################################################################################################
 ###################################### END JOBS SECTION ###############################################################
