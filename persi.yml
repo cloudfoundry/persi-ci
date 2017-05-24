@@ -1571,8 +1571,10 @@ jobs:
       passed:
       - cf-deploy
       trigger: true
+    - get: deployments-persi
+    - get: persi-ci
   - task: run-pats
-    file: ecs-release/scripts/ci/run_pats_ecsvolume.build.yml
+    file: persi-ci/scripts/ci/run_pats_ecs.build.yml
     params:
       APPLICATION_PATH: ecs-volume-release/assets/pora
       APPS_DOMAIN: persi.cf-app.com
@@ -1583,7 +1585,7 @@ jobs:
       CF_PASSWORD: {{cf-password}}
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: Existing
-      SERVICE_NAME: nfs
+      SERVICE_NAME: ecs
       #SERVER_ADDRESS: {{existing-nfs-server}}
       #SHARE: /var/vcap/store
       SERVER_ADDRESS: 10.10.200.72
