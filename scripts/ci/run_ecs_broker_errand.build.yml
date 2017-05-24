@@ -13,4 +13,4 @@ params:
   BOSH_USER: replace-me
 
 run:
-  path: persi-ci/scripts/ci/run_ecs_provision_errand
+  path: persi-ci/scripts/ci/run_ecs_broker_errand
