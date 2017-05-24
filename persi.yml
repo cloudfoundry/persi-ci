@@ -44,6 +44,7 @@ groups:
   - create-isilon-volume
   - create-ecs-release
   - deploy-ecs
+  - deploy-ecs-broker
   - ecs-broker-unit
 - name: util
   jobs:
@@ -1533,7 +1534,23 @@ jobs:
       trigger: true
   - task: ecs-broker-unit
     file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
-
-
+- name: deploy-ecs-broker
+  plan:
+  - aggregate:
+    - get: ecs-release
+      passed:
+      - create-ecs-release
+      trigger: true
+    - get: ecs-release-tarball
+      passed:
+      - create-ecs-release
+    - get: deployments-persi
+    - get: persi-ci
+  - task: run-broker-errand
+    file: persi-ci/scripts/ci/run_ecs_broker_errand.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USER: {{bosh-director-username}}
 #### END ECS ##########################################################################################################
 ###################################### END JOBS SECTION ###############################################################
