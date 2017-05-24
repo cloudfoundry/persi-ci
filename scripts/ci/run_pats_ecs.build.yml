@@ -5,6 +5,7 @@ rootfs_uri: docker:///cloudfoundry/diego-pipeline
 
 inputs:
   - name: ecs-release
+  - name: persi-ci
 
 params:
   CF_USERNAME: replace-me
