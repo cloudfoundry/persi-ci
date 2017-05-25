@@ -355,7 +355,7 @@ resources:
 - name: ecs-broker-boshrelease
   type: git
   source:
-    uri: https://github.com/codedellemc/ecs-broker-boshrelease.git
+    uri: https://github.com/julian-hj/ecs-broker-boshrelease.git
 - name: ecs-release-tarball
   type: s3
   source:
