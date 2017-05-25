@@ -352,6 +352,10 @@ resources:
   type: git
   source:
     uri: https://github.com/EMC-Dojo/ecs-release.git
+- name: ecs-broker-boshrelease
+  type: git
+  source:
+    uri: https://github.com/codedellemc/ecs-broker-boshrelease.git
 - name: ecs-release-tarball
   type: s3
   source:
@@ -1538,13 +1542,8 @@ jobs:
 - name: deploy-ecs-broker
   plan:
   - aggregate:
-    - get: ecs-release
-      passed:
-      - create-ecs-release
+    - get: ecs-broker-boshrelease
       trigger: true
-    - get: ecs-release-tarball
-      passed:
-      - create-ecs-release
     - get: deployments-persi
     - get: persi-ci
   - task: run-broker-errand
