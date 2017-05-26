@@ -4,7 +4,6 @@ platform: linux
 rootfs_uri: docker:///cloudfoundry/diego-pipeline
 
 inputs:
-  - name: nfs-volume-release
   - name: persi-ci
 
 params:
