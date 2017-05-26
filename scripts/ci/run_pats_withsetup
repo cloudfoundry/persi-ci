@@ -53,6 +53,7 @@ cat << EOF > manifest.yml
 EOF
 fi
 
+go get code.cloudfoundry.org/persi-acceptance-tests
 go get github.com/onsi/ginkgo/ginkgo
 
 ${scripts_path}/ci/run_pats \
