@@ -31,35 +31,11 @@ check_param TEST_MOUNT_OPTIONS
 check_param TEST_READ_ONLY
 
 if [ -z "$APPLICATION_PATH" ]; then
-    echo "APPLICATION_PATH cannot be blank"
-    exit 1
+    export APPLICATION_PATH=${GOPATH}/src/code.cloudfoundryorg/persi-acceptance-tests/assets/pora
 fi
 
-pushd ${scripts_path}/../src/code.cloudfoundry.org/nfsbroker
-  GOOS=linux GOARCH=amd64 go build -o bin/nfsbroker
-  export BROKER_APPLICATION_PATH=$PWD
-
-  if [ -n "$PUSHED_BROKER_NAME" ]; then
-cat << EOF > manifest.yml
----
-  buildpack: binary_buildpack
-  env:
-    DBDRIVERNAME: ${DB_DRIVER_NAME}
-    SERVICENAME: ${SERVICE_NAME}
-    USERNAME: ${BROKER_USER}
-    PASSWORD: ${BROKER_PASSWORD}
-    LOGLEVEL: debug
-    DBHOST: ${DB_HOST}
-    DBPORT: ${DB_PORT}
-    DBNAME: ${DB_NAME}
-    DB_USERNAME: ${DB_USERNAME}
-    DB_PASSWORD: ${DB_PASSWORD}
-EOF
-
-  fi
-popd
-
 go get github.com/onsi/ginkgo/ginkgo
+go get -d code.cloudfoundry.org/persi-acceptance-tests
 
 ${scripts_path}/ci/run_pats \
 ${CF_USERNAME} \

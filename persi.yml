@@ -1542,7 +1542,6 @@ jobs:
 - name: deploy-ecs-broker
   plan:
   - aggregate:
-    - get: nfs-volume-release
     - get: ecs-broker-boshrelease
       trigger: true
     - get: deployments-persi
@@ -1575,7 +1574,6 @@ jobs:
   - task: run-pats
     file: persi-ci/scripts/ci/run_pats_ecs.build.yml
     params:
-      APPLICATION_PATH: ecs-volume-release/assets/pora
       APPS_DOMAIN: persi.cf-app.com
       BROKER_PASSWORD: {{pats-broker-password}}
       BROKER_URL: http://ecs-broker.persi.cf-app.com
