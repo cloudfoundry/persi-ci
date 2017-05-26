@@ -1542,6 +1542,7 @@ jobs:
 - name: deploy-ecs-broker
   plan:
   - aggregate:
+    - get: nfs-volume-release
     - get: ecs-broker-boshrelease
       trigger: true
     - get: deployments-persi

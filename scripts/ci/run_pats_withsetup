@@ -35,7 +35,11 @@ if [ -z "$APPLICATION_PATH" ]; then
     exit 1
 fi
 
-if [ -n "$PUSHED_BROKER_NAME" ]; then
+pushd ${scripts_path}/../src/code.cloudfoundry.org/nfsbroker
+  GOOS=linux GOARCH=amd64 go build -o bin/nfsbroker
+  export BROKER_APPLICATION_PATH=$PWD
+
+  if [ -n "$PUSHED_BROKER_NAME" ]; then
 cat << EOF > manifest.yml
 ---
   buildpack: binary_buildpack
@@ -51,9 +55,10 @@ cat << EOF > manifest.yml
     DB_USERNAME: ${DB_USERNAME}
     DB_PASSWORD: ${DB_PASSWORD}
 EOF
-fi
 
-go get -d code.cloudfoundry.org/persi-acceptance-tests
+  fi
+popd
+
 go get github.com/onsi/ginkgo/ginkgo
 
 ${scripts_path}/ci/run_pats \
