@@ -13,7 +13,7 @@ params:
   CF_API_ENDPOINT: replace-me
   APPS_DOMAIN: replace-me
   APPLICATION_PATH: replace-me
-  NAME_PREFIX: efsvolume
+  NAME_PREFIX: ecsvolume
   SERVICE_NAME: replace-me
   PLAN_NAME: replace-me
   BROKER_URL: replace-me
