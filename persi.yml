@@ -1561,7 +1561,6 @@ jobs:
     - get: ecs-release
       passed:
       - deploy-ecs
-      - deploy-ecs-broker
     - get: diego-deployment
       passed:
       - diego-deploy
