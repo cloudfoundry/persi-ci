@@ -35,7 +35,8 @@ if [ -z "$APPLICATION_PATH" ]; then
 fi
 
 go get github.com/onsi/ginkgo/ginkgo
-go get -d github.com/cloudfoundry-incubator/cf-test-helpers/...
+go get github.com/cloudfoundry-incubator/cf-test-helpers/cf
+go get github.com/cloudfoundry-incubator/cf-test-helpers/helpers
 go get -d code.cloudfoundry.org/persi-acceptance-tests
 
 ${scripts_path}/ci/run_pats \
