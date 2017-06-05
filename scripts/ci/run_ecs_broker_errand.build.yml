@@ -6,7 +6,7 @@ rootfs_uri: docker:///cloudfoundry/diego-pipeline
 inputs:
   - name: persi-ci
   - name: deployments-persi
-  - name: ecs-broker-boshrelease
+  - name: ecs-release
 
 params:
   BOSH_PASSWORD: replace-me
