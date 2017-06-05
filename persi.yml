@@ -1494,6 +1494,28 @@ jobs:
   - put: ecs-release-tarball
     params:
       file: created-ecs-release/ecs*.tgz
+- name: ecs-broker-unit
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: ecs-cf-service-broker
+      trigger: true
+  - task: ecs-broker-unit
+    file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
+- name: deploy-ecs-broker
+  plan:
+  - aggregate:
+    - get: ecs-broker-boshrelease
+      trigger: true
+    - get: ecs-release-tarball
+    - get: deployments-persi
+    - get: persi-ci
+  - task: run-broker-errand
+    file: persi-ci/scripts/ci/run_ecs_broker_errand.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USER: {{bosh-director-username}}
 - name: deploy-ecs
   plan:
   - aggregate:
@@ -1531,27 +1553,6 @@ jobs:
       BOSH_PASSWORD: {{bosh-director-password}}
       BOSH_TARGET: {{bosh-director-ip}}
       BOSH_USER: {{bosh-director-username}}
-- name: ecs-broker-unit
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: ecs-cf-service-broker
-      trigger: true
-  - task: ecs-broker-unit
-    file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
-- name: deploy-ecs-broker
-  plan:
-  - aggregate:
-    - get: ecs-broker-boshrelease
-      trigger: true
-    - get: deployments-persi
-    - get: persi-ci
-  - task: run-broker-errand
-    file: persi-ci/scripts/ci/run_ecs_broker_errand.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USER: {{bosh-director-username}}
 - name: pats-ecs
   serial_groups:
   - cf-deploy
@@ -1561,6 +1562,7 @@ jobs:
     - get: ecs-release
       passed:
       - deploy-ecs
+    - get: nfs-volume-release
     - get: diego-deployment
       passed:
       - diego-deploy
@@ -1572,11 +1574,11 @@ jobs:
     - get: deployments-persi
     - get: persi-ci
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats_ecs.build.yml
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
     params:
       APPS_DOMAIN: persi.cf-app.com
       BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://ecs-broker.persi.cf-app.com
+      BROKER_URL: http://ecs-v1.persi.cf-app.com
       BROKER_USER: {{pats-broker-username}}
       CF_API_ENDPOINT: api.persi.cf-app.com
       CF_PASSWORD: {{cf-password}}
