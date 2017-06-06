@@ -380,6 +380,14 @@ resources:
   type: git
   source:
     uri: https://github.com/codedellemc/ecs-cf-service-broker
+- name: ecs-broker-deployment
+  type: bosh-deployment
+  source:
+    deployment: ecs-broker-aws-ec2
+    ignore_ssl: true
+    password: {{bosh-director-password}}
+    target: {{bosh-director-ip}}
+    username: {{bosh-director-username}}
 
 #### End ECS resources ###############################################################################################
 
@@ -1502,9 +1510,22 @@ jobs:
   plan:
   - aggregate:
     - get: ecs-release
+      passed:
+      - create-ecs-release
       trigger: true
+    - get: ecs-release-tarball
+      passed:
+      - create-ecs-release
+    - get: aws-stemcell
     - get: deployments-persi
     - get: persi-ci
+  - put: ecs-broker-deployment
+    params:
+      manifest: deployments-persi/ecs-broker-aws-ec2-manifest.yml
+      releases:
+      - ecs-release-tarball/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
   - task: run-broker-errand
     file: persi-ci/scripts/ci/run_ecs_broker_errand.build.yml
     params:
@@ -1557,6 +1578,8 @@ jobs:
     - get: ecs-release
       passed:
       - deploy-ecs
+      - deploy-ecs-broker
+      trigger: true
     - get: nfs-volume-release
     - get: diego-deployment
       passed:
@@ -1574,18 +1597,18 @@ jobs:
       APPS_DOMAIN: persi.cf-app.com
       BROKER_PASSWORD: {{pats-broker-password}}
       BROKER_URL: http://ecs-v1.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
+      BROKER_USER: user
       CF_API_ENDPOINT: api.persi.cf-app.com
       CF_PASSWORD: {{cf-password}}
       CF_USERNAME: {{cf-username}}
-      PLAN_NAME: Existing
-      SERVICE_NAME: ecs
-      #SERVER_ADDRESS: {{existing-nfs-server}}
-      #SHARE: /var/vcap/store
-      SERVER_ADDRESS: 10.10.200.72
-      SHARE: /export/users
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      PLAN_NAME: 5gb-nfs
+      SERVICE_NAME: ecs-bucket
+      SERVER_ADDRESS: NotUsed
+      SHARE: NotUsed
+      BIND_CONFIG: '{}'
       TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
+      TEST_MOUNT_OPTIONS: false
+      TEST_READ_ONLY: false
+
 #### END ECS ##########################################################################################################
 ###################################### END JOBS SECTION ###############################################################
