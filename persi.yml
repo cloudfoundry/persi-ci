@@ -1506,32 +1506,6 @@ jobs:
       trigger: true
   - task: ecs-broker-unit
     file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
-- name: deploy-ecs-broker
-  plan:
-  - aggregate:
-    - get: ecs-release
-      passed:
-      - create-ecs-release
-      trigger: true
-    - get: ecs-release-tarball
-      passed:
-      - create-ecs-release
-    - get: aws-stemcell
-    - get: deployments-persi
-    - get: persi-ci
-  - put: ecs-broker-deployment
-    params:
-      manifest: deployments-persi/ecs-broker-aws-ec2-manifest.yml
-      releases:
-      - ecs-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
-  - task: run-broker-errand
-    file: persi-ci/scripts/ci/run_ecs_broker_errand.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USER: {{bosh-director-username}}
 - name: deploy-ecs
   plan:
   - aggregate:
@@ -1543,7 +1517,6 @@ jobs:
       passed:
       - create-ecs-release
     - get: aws-stemcell
-#    - get: persi-ci
     - get: deployments-persi
     - get: persi-ci
 # TODO-stop hard coding the manifest!!!
@@ -1565,6 +1538,50 @@ jobs:
       - aws-stemcell/*.tgz
   - task: run-prov-errand
     file: persi-ci/scripts/ci/run_ecs_provision_errand.build.yml
+    params:
+      BOSH_PASSWORD: {{bosh-director-password}}
+      BOSH_TARGET: {{bosh-director-ip}}
+      BOSH_USER: {{bosh-director-username}}
+- name: deploy-ecs-broker
+  plan:
+  - aggregate:
+    - get: ecs-release
+      passed:
+      - deploy-ecs
+      trigger: true
+    - get: ecs-release-tarball
+      passed:
+      - deploy-ecs
+    - get: aws-stemcell
+    - get: deployments-persi
+    - get: persi-ci
+  - task: generate-ecs-broker-manifests
+    file: ecs-release/scripts/ci/generate_ecs_broker_manifests.build.yml
+    params:
+      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
+      CF_APP_DOMAIN: persi.cf-app.com
+      ECS_BASE_URL: https://34.206.233.96:4443
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_USER: {{pats-broker-username}}
+      CF_PASSWORD: {{cf-password}}
+      CF_USER: {{cf-username}}
+      ECS_PASSWORD: {{ecs-password}}
+      ECS_USERNAME: {{ecs-user}}
+      ENCRYPTION_KEY: {{ecs-secret}}
+      MANAGEMENT_ENDPOINT: https://34.206.233.96:4443
+      ECS_NAMESPACE: bosh-namespace
+      OBJECT_ENDPOINT: http://bosh-namespace.34.206.233.96.nip.io:9020
+      REPOSITORY_ENDPOINT: http://bosh-namespace.34.206.233.96.nip.io:9020
+      ECS_BROKER_SECRET: {{ecs-secret}}
+  - put: ecs-broker-deployment
+    params:
+      manifest: generated-manifest-ecs-broker/ecsbroker-aws-manifest.yml
+      releases:
+      - ecs-release-tarball/*.tgz
+      stemcells:
+      - aws-stemcell/*.tgz
+  - task: run-broker-errand
+    file: persi-ci/scripts/ci/run_ecs_broker_errand.build.yml
     params:
       BOSH_PASSWORD: {{bosh-director-password}}
       BOSH_TARGET: {{bosh-director-ip}}
