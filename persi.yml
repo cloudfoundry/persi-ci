@@ -1549,6 +1549,8 @@ jobs:
   - task: ecs-broker-unit
     file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
 - name: deploy-ecs
+  serial_groups:
+  - ecs-deploy
   plan:
   - aggregate:
     - get: ecs-release
@@ -1585,6 +1587,8 @@ jobs:
       BOSH_TARGET: {{bosh-director-ip}}
       BOSH_USER: {{bosh-director-username}}
 - name: deploy-ecs-broker
+  serial_groups:
+  - ecs-deploy
   plan:
   - aggregate:
     - get: ecs-release
@@ -1634,11 +1638,11 @@ jobs:
   serial_groups:
   - cf-deploy
   - diego-deploy
+  - ecs-deploy
   plan:
   - aggregate:
     - get: ecs-release
       passed:
-      - deploy-ecs
       - deploy-ecs-broker
       trigger: true
     - get: nfs-volume-release
