@@ -1662,8 +1662,8 @@ jobs:
       CF_API_ENDPOINT: api.persi.cf-app.com
       CF_PASSWORD: {{cf-password}}
       CF_USERNAME: {{cf-username}}
-      PLAN_NAME: 5gb-nfs
-      SERVICE_NAME: ecs-bucket
+      PLAN_NAME: 5gb
+      SERVICE_NAME: ecs-file-bucket
       SERVER_ADDRESS: NotUsed
       SHARE: NotUsed
       BIND_CONFIG: '{}'
