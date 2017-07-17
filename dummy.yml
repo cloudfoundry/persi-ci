@@ -1,0 +1,65 @@
+---
+name: dummy
+director_uuid: f72d37fc-171e-437c-b84c-bec5c0c0603e
+compilation:
+  workers: 1
+  network: dummy-subnet
+  reuse_compilation_vms: true
+  cloud_properties:
+    availability_zone: us-east-1c
+    instance_type: m3.large
+    ephemeral_disk:
+      size: 10000
+      type: gp2
+jobs:
+- name: dummy-job
+  instances: 1
+  lifecycle: errand
+  networks:
+  - name: dummy-subnet
+    default:
+    - dns
+    - gateway
+  resource_pool: medium
+  templates:
+  - release: dummy
+    name: dummy
+  properties:
+    nfstestserver: {}
+
+releases:
+- name: dummy
+  version: latest
+
+networks:
+- name: dummy-subnet
+  subnets:
+  - cloud_properties:
+      security_groups:
+      - sg-18931265
+      subnet: subnet-8c2365d4
+    dns:
+    - 10.10.0.2
+    gateway: 10.10.200.1
+    range: 10.10.200.0/24
+    reserved:
+    - 10.10.200.2 - 10.10.200.9
+    - 10.10.200.106 - 10.10.200.180
+    static:
+    - 10.10.200.10 - 10.10.200.105
+  type: manual
+resource_pools:
+- name: medium
+  network: nfsvolume-subnet
+  stemcell:
+    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+    version: 'latest'
+  cloud_properties:
+    availability_zone: us-east-1c
+    instance_type: m3.medium
+update:
+  canaries: 1
+  max_in_flight: 3
+  serial: false
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
