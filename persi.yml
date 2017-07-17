@@ -346,6 +346,22 @@ resources:
     ignore_ssl: true
     target: {{bosh-director-ip}}
     type: runtime-config
+
+- name: dummy-deployment
+  type: bosh-deployment
+  source:
+    deployment: dummy
+    username: {{bosh-director-username}}
+    password: {{bosh-director-password}}
+    ignore_ssl: true
+    target: {{bosh-director-ip}}
+
+- name: github-release-dummy
+  type: github-release
+  source:
+    user: pivotal-cf-experimental
+    repository: dummy-boshrelease
+
 #### End Persi resources ################################################################################################
 
 #### ECS resources ###################################################################################################
@@ -417,8 +433,17 @@ jobs:
   - aggregate:
     - get: nightly
       trigger: true
+    - get: persi-ci
     - get: bosh-stemcell
       resource: aws-stemcell
+    - get: github-release-dummy
+  - put: dummy-deployment
+    params:
+      manifest: persi-ci/dummy.yml
+      releases:
+      - github-release-dummy/*.tgz
+      stemcells:
+      - bosh-stemcell/*.tgz
 - name: bosh-cleanup
   serial: true
   plan:
@@ -432,6 +457,8 @@ jobs:
       BOSH_PASSWORD: {{bosh-director-password}}
       BOSH_TARGET: {{bosh-director-ip}}
       BOSH_USER: {{bosh-director-username}}
+
+
 #### End Setup ########################################################################################################
 
 ##### CEPH related jobs ################################################################################################
