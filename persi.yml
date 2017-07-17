@@ -9,7 +9,6 @@ groups:
   - create-cephfs-release
   - deploy-cephfs-cluster
   - deploy-nfs-test-server
-  - teardown-cephfs-cluster
   - cephdriver-certification
   - create-cf-release
   - cf-deploy
@@ -50,6 +49,7 @@ groups:
   - pats-ecs
 - name: util
   jobs:
+  - teardown-cephfs-cluster
   - nightly-stemcell
   - bosh-cleanup
   - deploy-datadog-firehose-nozzle
@@ -471,7 +471,6 @@ jobs:
     - get: aws-stemcell
       passed:
       - nightly-stemcell
-      trigger: true
     - get: deployments-persi
   - task: teardown
     file: cephfs-bosh-release/scripts/ci/teardown.build.yml
@@ -511,7 +510,7 @@ jobs:
       - set-runtime-config
     - get: aws-stemcell
       passed:
-      - teardown-cephfs-cluster
+      - nightly-stemcell
       trigger: true
     - get: deployments-persi
   - task: generate-deployment-manifests
@@ -647,6 +646,8 @@ jobs:
       passed:
       - set-runtime-config
     - get: aws-stemcell
+      passed:
+      - nightly-stemcell
       trigger: true
     - get: deployments-persi
   - task: generate-deployment-manifests
@@ -748,6 +749,9 @@ jobs:
       passed:
       - set-runtime-config
     - get: aws-stemcell
+      passed:
+      - nightly-stemcell
+      trigger: true
     - get: persi-ci
     - get: deployments-persi
   - task: generate-deployment-manifests
@@ -839,6 +843,8 @@ jobs:
       passed:
       - set-runtime-config
     - get: aws-stemcell
+      passed:
+      - nightly-stemcell
       trigger: true
     - get: deployments-persi
   - task: generate-deployment-manifests
@@ -1249,6 +1255,8 @@ jobs:
       passed:
       - set-runtime-config
     - get: aws-stemcell
+      passed:
+      - nightly-stemcell
       trigger: true
     - get: deployments-persi
   - task: generate-deployment-manifests
@@ -1314,6 +1322,8 @@ jobs:
   - aggregate:
     - get: datadog-firehose-nozzle-release
     - get: aws-stemcell
+      passed:
+      - nightly-stemcell
       trigger: true
     - get: deployments-persi
   - put: datadog-firehose-nozzle-deployment
@@ -1588,6 +1598,9 @@ jobs:
       passed:
       - create-ecs-release
     - get: aws-stemcell
+      passed:
+      - nightly-stemcell
+      trigger: true
     - get: deployments-persi
     - get: persi-ci
 # TODO-stop hard coding the manifest!!!
@@ -1626,6 +1639,9 @@ jobs:
       passed:
       - deploy-ecs
     - get: aws-stemcell
+      passed:
+      - nightly-stemcell
+      trigger: true
     - get: deployments-persi
     - get: persi-ci
   - task: generate-ecs-broker-manifests
