@@ -6,6 +6,8 @@ groups:
   jobs:
   - unit-cephfs-driver
   - unit-cephfs-broker
+  - unit-local-controller-plugin
+  - local-controller-plugin-certification
   - create-cephfs-release
   - deploy-cephfs-cluster
   - deploy-nfs-test-server
@@ -407,6 +409,19 @@ resources:
     username: {{bosh-director-username}}
 
 #### End ECS resources ###############################################################################################
+
+#### CSI resources ###################################################################################################
+- name: csi-local-volume-release
+  type: git
+  source:
+    uri: https://github.com/jeffpak/csi-local-volume-release.git
+
+- name: csi-cert
+  type: git
+  source:
+    uri: https://github.com/paulcwarren/csi-cert
+
+#### End CSI resources ###############################################################################################
 
 ###################################### END RESOURCES SECTION #########################################################
 
@@ -1719,4 +1734,29 @@ jobs:
       TEST_READ_ONLY: false
 
 #### END ECS ##########################################################################################################
+
+#### START CSI related jobs ###########################################################################################
+- name: unit-local-controller-plugin
+  plan:
+  - aggregate:
+    - get: csi-local-volume-release
+      trigger: true
+  - task: local-controller-plugin-unit
+    file: csi-local-volume-release/scripts/ci/local-controller-plugin-unit.build.yml
+
+- name: local-controller-plugin-certification
+  plan:
+  - aggregate:
+    - get: csi-local-volume-release
+      passed:
+      - unit-local-controller-plugin
+      trigger: true
+    - get: csi-cert
+      trigger: true
+
+  - task: local-controller-plugin-certification
+    file: csi-local-volume-release/scripts/ci/local-controller-plugin-certification.build.yml
+
+#### END CSI related jobs ###########################################################################################
+
 ###################################### END JOBS SECTION ###############################################################
