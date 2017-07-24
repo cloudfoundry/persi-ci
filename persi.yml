@@ -1422,6 +1422,10 @@ jobs:
       - cf-dev-release/*.tgz
       stemcells:
       - bosh-stemcell/*.tgz
+  - task: wait-for-cf
+    file: persi-ci/scripts/ci/wait_for_cf.build.yml
+    params:
+      CF_API_ENDPOINT: api.persi.cf-app.com
 
 - name: create-diego-release
   plan:
