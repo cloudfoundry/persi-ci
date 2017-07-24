@@ -11,4 +11,4 @@ outputs:
   - name: created-csi-proto
 
 run:
-  path: csi-local-volume-release/scripts/ci/generate-proto.sh
+  path: persi-ci/scripts/ci/generate-proto.sh
