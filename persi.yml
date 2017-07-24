@@ -6,6 +6,7 @@ groups:
   jobs:
   - unit-cephfs-driver
   - unit-cephfs-broker
+  - create-protobuf
   - unit-local-controller-plugin
   - local-controller-plugin-certification
   - create-cephfs-release

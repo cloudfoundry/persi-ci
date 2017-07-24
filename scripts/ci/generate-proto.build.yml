@@ -1,0 +1,14 @@
+---
+platform: linux
+
+rootfs_uri: docker:///cloudfoundry/inigo-ci
+
+inputs:
+- name: csi-spec
+- name: persi-ci
+
+outputs:
+  - name: created-csi-proto
+
+run:
+  path: csi-local-volume-release/scripts/ci/generate-proto.sh
