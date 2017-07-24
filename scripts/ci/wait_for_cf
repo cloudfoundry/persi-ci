@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set +x
+
+n=0
+until [ $n -ge 50 ]
+do
+  cf api https://$CF_API_ENDPOINT --skip-ssl-validation && exit 0
+  n=$[$n+1]
+  sleep 1
+done
+exit 1
