@@ -6,7 +6,6 @@ groups:
   jobs:
   - unit-cephfs-driver
   - unit-cephfs-broker
-  - create-protobuf
   - unit-local-controller-plugin
   - local-controller-plugin-certification
   - create-cephfs-release
@@ -426,14 +425,6 @@ resources:
   type: git
   source:
     uri: https://github.com/container-storage-interface/spec.git
-
-- name: csi-proto
-  type: s3
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: csi-proto
-    regexp: csi(.*)
-    secret_access_key: {{aws-secret-access-key}}
 
 #### End CSI resources ###############################################################################################
 
@@ -1754,26 +1745,13 @@ jobs:
 #### END ECS ##########################################################################################################
 
 #### START CSI related jobs ###########################################################################################
-- name: create-protobuf
-  plan:
-  - aggregate:
-    - get: csi-spec
-      trigger: true
-    - get: persi-ci
-  - task: generate-proto
-    file: persi-ci/scripts/ci/generate-proto.build.yml
-  - put: csi-proto
-    params:
-      file: create-csi-proto/csi*
-
 - name: unit-local-controller-plugin
   plan:
   - aggregate:
     - get: csi-local-volume-release
       trigger: true
     - get: csi-spec
-      passed:
-      - create-protobuf
+      trigger: true
   - task: local-controller-plugin-unit
     file: csi-local-volume-release/scripts/ci/local-controller-plugin-unit.build.yml
 
