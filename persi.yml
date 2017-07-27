@@ -421,11 +421,6 @@ resources:
   source:
     uri: https://github.com/paulcwarren/csi-cert
 
-- name: csi-spec
-  type: git
-  source:
-    uri: https://github.com/container-storage-interface/spec.git
-
 #### End CSI resources ###############################################################################################
 
 ###################################### END RESOURCES SECTION #########################################################
@@ -1750,8 +1745,6 @@ jobs:
   - aggregate:
     - get: csi-local-volume-release
       trigger: true
-    - get: csi-spec
-      trigger: true
   - task: local-controller-plugin-unit
     file: csi-local-volume-release/scripts/ci/local-controller-plugin-unit.build.yml
 
@@ -1762,9 +1755,6 @@ jobs:
       passed:
       - unit-local-controller-plugin
       trigger: true
-    - get: csi-spec
-      passed:
-      - unit-local-controller-plugin
     - get: csi-cert
       trigger: true
   - task: local-controller-plugin-certification
