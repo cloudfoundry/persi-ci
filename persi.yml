@@ -8,6 +8,8 @@ groups:
   - unit-cephfs-broker
   - unit-local-controller-plugin
   - local-controller-plugin-certification
+  - certification-test-builds
+  - certification-test-publish
   - create-cephfs-release
   - deploy-cephfs-cluster
   - deploy-nfs-test-server
@@ -429,6 +431,32 @@ resources:
   type: git
   source:
     uri: https://github.com/paulcwarren/csi-cert
+
+- name: csi-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: csi-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+
+- name: csi-binaries
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    versioned_file: csi-cert.test.tgz
+    bucket: csi-binaries
+    secret_access_key: {{aws-secret-access-key}}
+
+- name: github-release-csi
+  type: github-release
+  source:
+    user: paulcwarren
+    repository: csi-cert
+    drafts: true
+    access_token: {{github-release-token}}
 
 #### End CSI resources ###############################################################################################
 
@@ -1775,6 +1803,51 @@ jobs:
       trigger: true
   - task: local-controller-plugin-certification
     file: csi-local-volume-release/scripts/ci/local-controller-plugin-certification.build.yml
+
+- name: certification-test-builds
+  plan:
+  - aggregate:
+    - get: csi-local-volume-release
+      passed:
+      - local-controller-plugin-certification
+      trigger: true
+    - get: csi-cert
+      passed:
+      - local-controller-plugin-certification
+      trigger: true
+  - task: certificate-test-build
+    file: csi-cert/scripts/ci/certificate-test-build.build.yml
+  - put: csi-binaries
+    params:
+      file: binaries/csi-cert.test.tgz
+
+- name: certification-test-publish
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: csi-version
+    - get: csi-binaries
+    - get: csi-cert
+      passed:
+      - certification-test-builds
+
+  - task: generate-release
+    file: persi-ci/scripts/ci/generate_csi_github_release.build.yml
+    params:
+      VERSION: csi-version
+      RELEASE: csi-cert
+      BASE_RELEASE_NAME: csi-cert
+
+  - put: github-release-csi
+    params:
+      name: generated-release/name
+      tag: generated-release/version
+      globs:
+      - csi-binaries/*.tgz
+
+  - put: csi-version
+    params:
+      bump: minor
 
 #### END CSI related jobs ###########################################################################################
 
