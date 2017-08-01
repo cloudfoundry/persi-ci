@@ -6,6 +6,7 @@ rootfs_uri: docker:///cloudfoundry/inigo-ci
 inputs:
 - name: diego-release
 - name: garden-runc-release
+- name: routing-release
 - name: persi-ci
 
 params:

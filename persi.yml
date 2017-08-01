@@ -68,7 +68,7 @@ groups:
 ######################################################################################################################
 resources:
 
-#### Mics resources ###############################################################################################
+#### Misc resources ###############################################################################################
 - name: nightly
   type: time
   source:
@@ -95,7 +95,7 @@ resources:
   type: bosh-io-stemcell
   source:
     name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-#### END Mics resources ###############################################################################################
+#### END Misc resources ###############################################################################################
 
 #### CEPH resources ###############################################################################################
 - name: cephfs-bosh-release
@@ -332,6 +332,15 @@ resources:
     password: {{bosh-director-password}}
     target: {{bosh-director-ip}}
     username: {{bosh-director-username}}
+- name: routing-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/routing-release.git
+- name: routing-release-tarball
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/cf-routing-release
 #### End Diego resources ################################################################################################
 
 #### Persi resources ################################################################################################
@@ -1367,10 +1376,17 @@ jobs:
     - get: garden-runc-release-tarball
     - get: garden-runc-release-master
       params: {submodules: none}
+    - get: routing-release
+      params: { submodules: none }
+    - get: routing-release-tarball
     - get: diego-ci
     - get: persi-ci
   - task: garden-runc-release
     file: diego-ci/concourse/checkout_garden_runc.build.yml
+  - task: routing-release
+    file: diego-ci/concourse/checkout_routing.build.yml
+    input_mapping:
+      routing-release-master: routing-release
   - task: build
     privileged: true
     file: persi-ci/scripts/ci/run_volman_inigo.build.yml
