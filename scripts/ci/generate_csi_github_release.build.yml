@@ -1,0 +1,20 @@
+---
+platform: linux
+
+rootfs_uri: docker:///concourse/git-resource
+
+inputs:
+- name: persi-ci
+- name: csi-version
+- name: csi-cert
+
+outputs:
+  - name: generated-release
+
+params:
+  VERSION: replace-me
+  RELEASE: replace-me
+  BASE_RELEASE_NAME: replace-me
+
+run:
+  path: persi-ci/scripts/ci/generate_github_release
