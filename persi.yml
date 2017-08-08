@@ -1911,6 +1911,7 @@ jobs:
     - get: gorgophone-env-director-state
     - get: cf-deployment-release-candidate
     - get: gorgophone-env-vars-store
+    - get: persi-ci
   - task: setup-infrastructure
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -1929,19 +1930,34 @@ jobs:
       params:
         repository: updated-bbl-state
         rebase: true
-  - task: deploy-cf-deployment
+  - task: bosh-upload-stemcell
+    file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
+    input_mapping:
+      cf-deployment: cf-deployment-release-candidate
+      bbl-state: gorgophone-env-director-state
+    params:
+      INFRASTRUCTURE: aws
+  - task: collect-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment-release-candidate
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-volume-service-nfs.yml"
+  - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
       cf-deployment: cf-deployment-release-candidate
       vars-store: gorgophone-env-vars-store
       bbl-state: gorgophone-env-director-state
-      ops-files: cf-deployment-release-candidate
+      ops-files: collected-ops-files
       vars-files: gorgophone-env-vars-store #placeholder for now as we don't have VARS_FILES
     params:
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/enable-volume-service-nfs.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
