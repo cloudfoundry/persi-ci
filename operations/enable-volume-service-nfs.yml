@@ -55,10 +55,12 @@
     vm_type: m3.medium
     networks: [ name: default ]
     jobs:
-#    - name: consul_agent
-#      release: consul
-#      consumes:
-#        consul: {from: consul_server}
+    - name: consul_agent
+      release: consul
+      consumes:
+        consul_common: {from: consul_common_link}
+        consul_server: nil
+        consul_client: {from: consul_client_link}
     - name: nfsbroker
       release: nfs-volume
       properties:
