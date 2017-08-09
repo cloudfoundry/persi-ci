@@ -1,0 +1,62 @@
+#!/bin/bash -e
+
+check_params() {
+  if [ ! -d ${ROOT_DIR}/diego-tarball ]; then
+    echo "[ERROR] diego-tarball input is missing."
+    exit 1
+  fi
+  if [ ! -d ${ROOT_DIR}/nfs-tarball ]; then
+    echo "[ERROR] nfs-tarball input is missing."
+    exit 1
+  fi
+
+  if [ -z "${DIEGO_VERSION}" ]; then
+    echo "[ERROR] DIEGO_VERSION parameter is missing."
+    exit 1
+  fi
+  if [ -z "${NFS_VERSION}" ]; then
+    echo "[ERROR] NFS_VERSION parameter is missing."
+    exit 1
+  fi
+}
+
+# Create collection directory (task output)
+create_collection_directory() {
+  mkdir -p ${ROOT_DIR}/collected-tarballs/operations
+}
+
+# Copy tarballs to collection with easy names
+collect_tarballs() {
+  cp ${ROOT_DIR}/diego-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/diego.tgz
+  cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
+}
+
+# Copy each new operation to collection
+create_operation_file() {
+    cat << EOF > ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
+---
+- type: replace
+  path: /releases/name=diego
+  value:
+    name: diego
+    version: ${DIEGO_VERSION}
+    url: collected-tarballs/diego.tgz
+- type: replace
+  path: /releases/name=nfs-volume
+  value:
+    name: nfs-volume
+    version: ${NFS_VERSION}
+    url: collected-tarballs/nfs.tgz
+EOF
+}
+
+main() {
+  ROOT_DIR="${1}"
+
+  check_params
+  create_collection_directory
+  collect_tarballs
+  create_operation_file
+}
+
+main ${PWD}
