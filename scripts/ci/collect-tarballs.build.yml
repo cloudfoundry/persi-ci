@@ -11,6 +11,8 @@ inputs:
 - name: persi-ci
 - name: diego-tarball
 - name: nfs-tarball
+- name: diego-version
+- name: nfs-version
 
 outputs:
 - name: collected-tarballs

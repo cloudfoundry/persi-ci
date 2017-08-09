@@ -1,5 +1,19 @@
 #!/bin/bash -e
 
+collect_versions() {
+  if [ ! -d ${ROOT_DIR}/diego-version ]; then
+    echo "[ERROR] diego-version input is missing."
+    exit 1
+  fi
+  if [ ! -d ${ROOT_DIR}/nfs-version ]; then
+    echo "[ERROR] nfs-version input is missing."
+    exit 1
+  fi
+
+  DIEGO_VERSION="$(cat diego-version/number)"
+  NFS_VERSION="$(cat nfs-version/number)"
+}
+
 check_params() {
   if [ ! -d ${ROOT_DIR}/diego-tarball ]; then
     echo "[ERROR] diego-tarball input is missing."
@@ -11,11 +25,11 @@ check_params() {
   fi
 
   if [ -z "${DIEGO_VERSION}" ]; then
-    echo "[ERROR] DIEGO_VERSION parameter is missing."
+    echo "[ERROR] DIEGO_VERSION is missing."
     exit 1
   fi
   if [ -z "${NFS_VERSION}" ]; then
-    echo "[ERROR] NFS_VERSION parameter is missing."
+    echo "[ERROR] NFS_VERSION is missing."
     exit 1
   fi
 }
@@ -53,6 +67,7 @@ EOF
 main() {
   ROOT_DIR="${1}"
 
+  collect_versions
   check_params
   create_collection_directory
   collect_tarballs
