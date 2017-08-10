@@ -72,6 +72,7 @@ main() {
   create_collection_directory
   collect_tarballs
   create_operation_file
+  sleep 60
 }
 
 main ${PWD}
