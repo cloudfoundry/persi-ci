@@ -54,13 +54,13 @@ create_operation_file() {
   value:
     name: diego
     version: ${DIEGO_VERSION}
-    url: collected-tarballs/diego.tgz
+    url: ops-files/diego.tgz
 - type: replace
   path: /releases/name=nfs-volume
   value:
     name: nfs-volume
     version: ${NFS_VERSION}
-    url: collected-tarballs/nfs.tgz
+    url: ops-files/nfs.tgz
 EOF
 }
 
@@ -72,7 +72,6 @@ main() {
   create_collection_directory
   collect_tarballs
   create_operation_file
-  sleep 60
 }
 
 main ${PWD}
