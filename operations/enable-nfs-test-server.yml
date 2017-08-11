@@ -19,7 +19,8 @@
           agent:
             services:
               nfstestserver:
-                name: nfs-test
+                name: nfstestserver
+                check: {}
     - name: nfstestserver
       release: nfs-volume
       properties:
