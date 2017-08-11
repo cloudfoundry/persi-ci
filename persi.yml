@@ -65,7 +65,15 @@ groups:
   - manual-bump-nfs-major
 - name: gorgophone
   jobs:
+  - nfsdriver-unit
+  - nfsbroker-unit
+  - nfsdriver-certification
+  - create-nfs-volume-release
+  - volman-unit
+  - volman-inigo
+  - create-diego-release
   - setup-cf-infrastructure
+  - pats-isilon-cf-deployment
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -1913,9 +1921,17 @@ jobs:
     - get: gorgophone-env-vars-store
     - get: persi-ci
     - get: diego-dev-release
+      passed: [ create-diego-release ]
+      trigger: true
     - get: diego-version
+      passed: [ create-diego-release ]
+    - get: nfs-volume-release
+      passed: [ create-nfs-volume-release ]
     - get: nfs-volume-release-tarball
+      passed: [ create-nfs-volume-release ]
+      trigger: true
     - get: nfsvolume-version
+      passed: [ create-nfs-volume-release ]
   - task: setup-infrastructure
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -1967,12 +1983,13 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/update-releases.yml"
   - task: add-tarballs
-      file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-      input_mapping:
-        base-ops-files: collected-ops-files
-        new-ops-files: collected-tarballs
-      params:
-        NEW_OPS_FILES: "diego.tgz nfs.tgz"
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: collected-tarballs
+    params:
+      BASE_OPS_FILE_DIR: "."
+      NEW_OPS_FILES: "diego.tgz nfs.tgz"
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
@@ -1991,6 +2008,40 @@ jobs:
       params:
         repository: updated-vars-store
         rebase: true
+
+- name: pats-isilon-cf-deployment
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_PASSWORD: {{gorgophone-pats-broker-password}}
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_PASSWORD: {{gorgophone-cf-password}}
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      SERVER_ADDRESS: isilon.persi.cf-app.com
+      SHARE: /ifs/persi-pats
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+      TEST_READ_ONLY: true
+
+
 
 #### END cf-deployment related jobs ##################################################################################
 
