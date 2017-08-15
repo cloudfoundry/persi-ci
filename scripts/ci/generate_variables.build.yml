@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v3.1.0
+
+inputs: []
+
+outputs:
+- name: generated-vars
+
+params:
+  LDAP_SVC_USER:
+  LDAP_SVC_PASS:
+  LDAP_HOST:
+  LDAP_PORT:
+  LDAP_PROTO:
+  LDAP_USER_FQDN:
+
+run:
+  path: persi-ci/scripts/ci/collect-tarballs
