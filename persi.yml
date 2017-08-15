@@ -7,7 +7,8 @@ groups:
   - unit-cephfs-driver
   - unit-cephfs-broker
   - unit-local-controller-plugin
-  - local-controller-plugin-certification
+  - unit-local-node-plugin
+  - csi-plugin-certification
   - certification-test-builds
   - certification-test-publish
   - create-cephfs-release
@@ -1863,28 +1864,37 @@ jobs:
   - task: local-controller-plugin-unit
     file: csi-local-volume-release/scripts/ci/local-controller-plugin-unit.build.yml
 
-- name: local-controller-plugin-certification
+- name: unit-local-node-plugin
+  plan:
+  - aggregate:
+    - get: csi-local-volume-release
+      trigger: true
+  - task: local-node-plugin-unit
+    file: csi-local-volume-release/scripts/ci/local-node-plugin-unit.build.yml
+
+- name: csi-plugin-certification
   plan:
   - aggregate:
     - get: csi-local-volume-release
       passed:
       - unit-local-controller-plugin
+      - unit-local-node-plugin
       trigger: true
     - get: csi-cert
       trigger: true
-  - task: local-controller-plugin-certification
-    file: csi-local-volume-release/scripts/ci/local-controller-plugin-certification.build.yml
+  - task: csi-plugin-certification
+    file: csi-local-volume-release/scripts/ci/csi-plugin-certification.build.yml
 
 - name: certification-test-builds
   plan:
   - aggregate:
     - get: csi-local-volume-release
       passed:
-      - local-controller-plugin-certification
+      - csi-plugin-certification
       trigger: true
     - get: csi-cert
       passed:
-      - local-controller-plugin-certification
+      - csi-plugin-certification
       trigger: true
   - task: certificate-test-build
     file: csi-cert/scripts/ci/certificate-test-build.build.yml
