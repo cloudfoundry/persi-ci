@@ -5,12 +5,12 @@ generate_nfs_vars() {
 
     cat << EOF > ${ROOT_DIR}/generated-vars/nfs-vars.yml
 ---
-nfs-ldap-svc-user: ${LDAP_SVC_USER}
-nfs-ldap-svc-password: ${LDAP_SVC_PASS}
+nfs-ldap-service-user: ${LDAP_SVC_USER}
+nfs-ldap-service-password: ${LDAP_SVC_PASS}
 nfs-ldap-host: ${LDAP_HOST}
 nfs-ldap-port: ${LDAP_PORT}
 nfs-ldap-proto: ${LDAP_PROTO}
-nfs-ldap-user-fqdn: ${LDAP_USER_FQDN}
+nfs-ldap-fqdn: ${LDAP_USER_FQDN}
 EOF
 }
 
