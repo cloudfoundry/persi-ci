@@ -117,3 +117,4 @@
   value:
     name: nfsv3driver
     release: nfs-volume
+    properties: {}
