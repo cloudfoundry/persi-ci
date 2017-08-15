@@ -998,6 +998,8 @@ jobs:
       - deploy-nfs-broker
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: nfs-volume-release #dummy input
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: persi.cf-app.com
@@ -1040,6 +1042,8 @@ jobs:
       - deploy-nfs-broker
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: nfs-volume-release #dummy input
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: persi.cf-app.com
@@ -1081,6 +1085,8 @@ jobs:
       - deploy-nfs-broker
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: nfs-volume-release #dummy input
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: persi.cf-app.com
@@ -1125,6 +1131,8 @@ jobs:
       - deploy-nfs-broker
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: nfs-volume-release #dummy input
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: persi.cf-app.com
@@ -1280,6 +1288,8 @@ jobs:
       trigger: true
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: nfs-volume-release #dummy input
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: persi.cf-app.com
@@ -1823,6 +1833,8 @@ jobs:
     - get: persi-ci
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: nfs-volume-release #dummy input
     params:
       APPS_DOMAIN: persi.cf-app.com
       BROKER_PASSWORD: {{pats-broker-password}}
@@ -2024,16 +2036,17 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_PASSWORD: {{gorgophone-pats-broker-password}}
       BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
       BROKER_USER: nfs-broker
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_PASSWORD: {{gorgophone-cf-password}}
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
@@ -2056,16 +2069,17 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_PASSWORD: {{gorgophone-pats-broker-password}}
       BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
       BROKER_USER: nfs-broker
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_PASSWORD: {{gorgophone-cf-password}}
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
@@ -2088,16 +2102,17 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_PASSWORD: {{gorgophone-pats-broker-password}}
       BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
       BROKER_USER: nfs-broker
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_PASSWORD: {{gorgophone-cf-password}}
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
@@ -2121,8 +2136,11 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
@@ -2130,7 +2148,6 @@ jobs:
       BROKER_URL: http://nfsbrokerpatsapp.gorgophone.cf-app.com
       BROKER_USER: fooser
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_PASSWORD: {{gorgophone-cf-password}}
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
