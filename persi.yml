@@ -77,6 +77,7 @@ groups:
   - pats-nfs-cf-deployment
   - pats-isilon-cf-deployment
   - pats-nfs-docker-cf-deployment
+  - pats-nfs-ldap-cf-deployment
   - pats-nfs-pushed-broker-cf-deployment
 ###################################### END GROUPS SECTION ############################################################
 
@@ -2142,6 +2143,40 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
       TEST_READ_ONLY: true
+      TEST_DOCKER_PORA: true
+
+- name: pats-nfs-ldap-cf-deployment
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      SERVER_ADDRESS: nfstestserver.service.cf.internal
+      SHARE: /export/users
+      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+      TEST_READ_ONLY: false
       TEST_DOCKER_PORA: true
 
 - name: pats-nfs-pushed-broker-cf-deployment
