@@ -7,7 +7,8 @@ image_resource:
     repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
     tag: v3.1.0
 
-inputs: []
+inputs:
+- name: persi-ci
 
 outputs:
 - name: generated-vars
@@ -21,4 +22,4 @@ params:
   LDAP_USER_FQDN:
 
 run:
-  path: persi-ci/scripts/ci/collect-tarballs
+  path: persi-ci/scripts/ci/generate_variables
