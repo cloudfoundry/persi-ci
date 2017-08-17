@@ -79,6 +79,7 @@ groups:
   - pats-nfs-docker-cf-deployment
   - pats-nfs-ldap-cf-deployment
   - pats-nfs-pushed-broker-cf-deployment
+  - nfs-test-bbr
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -2245,10 +2246,14 @@ jobs:
         - |
           tar -xvf bbr-release/bbr*.tar
           cp releases/bbr binary/
+  - task: get-bosh-env
+    file: persi-ci/scripts/ci/bbl-get-bosh-env.build.yml
+    input-mapping:
+      director-state: gorgophone-env-director-state
   - task: bbr-backup
     file: persi-ci/scripts/ci/bbr_backup.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      bosh-env: bosh-env
       binary: binary
       persi-ci: persi-ci
     params:

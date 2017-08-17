@@ -4,10 +4,10 @@ image_resource:
   type: docker-image
   source:
     repository: cloudfoundrylondon/bbr-pipeline
-    tag: final
+    tag: release-candidate
 
 inputs:
-  - name: director-state
+  - name: bosh-env
   - name: binary
   - name: persi-ci
 outputs:

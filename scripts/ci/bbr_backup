@@ -1,16 +1,10 @@
 #!/bin/bash -eu
 
-# bosh environment comes from bbl so we need to install the bbl cli in order to extract it
-# TODO--use a different image already having bbl installed?  Or split this into a separate task?
-wget https://github.com/cloudfoundry/bosh-bootloader/releases/download/v4.0.0/bbl-v4.0.0_linux_x86-64
-mv bbl-v4.0.0_linux_x86-64 bbl
-chmod +x bbl
-
-`./bbl --state-dir director-state print-env`
+source bosh-env/set-env.sh
 
 echo $BOSH_CA_CERT > ca-cert.pem
 export BOSH_CA_CERT_PATH="$PWD/ca-cert.pem"
-export BBR_PRIVATE_KEY=$("./bbl --state-dir director-state ssh-key")
+export BBR_PRIVATE_KEY=$(cat bosh-env/ssh-key)
 
 pushd backup-artifact
   ../binary/bbr deployment --target "${BOSH_ENVIRONMENT}" \

@@ -1,0 +1,6 @@
+#!/bin/bash -eu
+
+mkdir -p bosh-env
+bbl --state-dir director-state print-env > bosh-env/set-env.sh
+bbl --state-dir director-state ssh-key > bosh-env/ssh-key
+
