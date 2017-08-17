@@ -2247,7 +2247,7 @@ jobs:
           tar -xvf bbr-release/bbr*.tar
           cp releases/bbr binary/
   - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl-get-bosh-env.build.yml
+    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
   - task: bbr-backup
