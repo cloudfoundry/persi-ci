@@ -1,0 +1,21 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: cloudfoundrylondon/bbr-pipeline
+    tag: final
+
+inputs:
+  - name: director-state
+  - name: binary
+  - name: persi-ci
+outputs:
+  - name: backup-artifact
+
+params:
+  SKIP_SSL_VALIDATION: false
+  DEPLOYMENT_NAME:
+
+run:
+  path: persi-ci/scripts/ci/bbr_backup

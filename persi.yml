@@ -477,7 +477,6 @@ resources:
 #### End CSI resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
-
 - name: cf-deployment-release-candidate
   type: git
   source:
@@ -498,16 +497,7 @@ resources:
     private_key: {{deployments-persi-key}}
     paths:
     - bbl-state.json
-#- name: gorgophone-env-integration-configs
-#  type: git
-#  source:
-#    branch: master
-#    uri: git@github.com:cloudfoundry/gorgophone-env.git
-#    private_key: {{deployments-persi-key}}
-#    paths:
-#    - integration_config.json
-#    - wats_integration_config.json
-#    - rats_integration_config.json
+
 - name: gorgophone-env-vars-store
   type: git
   source:
@@ -516,9 +506,14 @@ resources:
     private_key: {{deployments-persi-key}}
     paths:
     - deployment-vars.yml
-#    - datadog-deployment-vars.yml
-#    - rds-vars.yml
+#   - datadog-deployment-vars.yml
+#   - rds-vars.yml
 
+- name: bbr-release
+  type: pivnet
+  source:
+    api_token: {{pivnet-api-token}}
+    product_slug: p-bosh-backup-and-restore
 #### End cf-deployment resources #####################################################################################
 
 ###################################### END RESOURCES SECTION #########################################################
@@ -532,6 +527,11 @@ resource_types:
   type: docker-image
   source:
     repository: dellemcdojo/bosh-config-resource
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
 ###################################### END RESOURCE_TYPES SECTION ####################################################
 
 
@@ -715,7 +715,6 @@ jobs:
       SERVICE_NAME: ceph-service
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
-
 #### END CEPH #########################################################################################################
 
 #### Local Volume related jobs ########################################################################################
@@ -2038,7 +2037,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/enable-volume-service-nfs.yml operations/enable-nfs-test-server.yml operations/update-releases.yml operations/enable-ldap-nfs.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/enable-volume-service-nfs.yml operations/enable-nfs-test-server.yml operations/update-releases.yml operations/enable-ldap-nfs.yml operations/experimental/deploy-bosh-backup-restore.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
@@ -2218,6 +2217,44 @@ jobs:
       DB_PASSWORD: {{gorgophone-nfsbroker-mysql-password}}
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
+
+- name: nfs-test-bbr
+  serial-groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: bbr-release
+    - get: gorgophone-env-director-state
+  - task: extract-binary
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: cloudfoundrylondon/bbr-pipeline
+          tag: release-candidate
+      inputs:
+      - name: bbr-release
+      outputs:
+      - name: binary
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          tar -xvf bbr-release/bbr*.tar
+          cp releases/bbr binary/
+  - task: bbr-backup
+    file: persi-ci/scripts/ci/bbr_backup.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+      binary: binary
+      persi-ci: persi-ci
+    params:
+      SKIP_SSL_VALIDATION: false
+      DEPLOYMENT_NAME: cf
+
 
 #### END cf-deployment related jobs ##################################################################################
 
