@@ -2,21 +2,18 @@
 
 source bosh-env/set-env.sh
 
-echo $BOSH_CA_CERT > ca-cert.pem
-export BOSH_CA_CERT_PATH="$PWD/ca-cert.pem"
+export CA_CERT="$PWD/bosh-env/ca-cert.pem"
 export BBR_PRIVATE_KEY=$(cat bosh-env/ssh-key)
 
 pushd backup-artifact
   ../binary/bbr deployment --target "${BOSH_ENVIRONMENT}" \
   --username "${BOSH_CLIENT}" \
   --deployment "${DEPLOYMENT_NAME}" \
-  --ca-cert "../ca-cert.pem" \
   pre-backup-check
 
   ../binary/bbr deployment --target "${BOSH_ENVIRONMENT}" \
   --username "${BOSH_CLIENT}" \
   --deployment "${DEPLOYMENT_NAME}" \
-  --ca-cert "../ca-cert.pem" \
   backup --with-manifest
 
   tar -cvf backup.tar -- *

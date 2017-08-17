@@ -3,4 +3,5 @@
 mkdir -p bosh-env
 bbl --state-dir director-state print-env > bosh-env/set-env.sh
 bbl --state-dir director-state ssh-key > bosh-env/ssh-key
+bbl --state-dir director-state director-ca-cert > bosh-env/ca-cert.pem
 
