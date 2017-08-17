@@ -2248,7 +2248,7 @@ jobs:
           cp releases/bbr binary/
   - task: get-bosh-env
     file: persi-ci/scripts/ci/bbl-get-bosh-env.build.yml
-    input-mapping:
+    input_mapping:
       director-state: gorgophone-env-director-state
   - task: bbr-backup
     file: persi-ci/scripts/ci/bbr_backup.build.yml
