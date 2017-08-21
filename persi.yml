@@ -1976,6 +1976,10 @@ jobs:
       params:
         repository: updated-bbl-state
         rebase: true
+  - task: update-cloud-config
+    file: persi-ci/scripts/ci/update_cloud_config.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
     input_mapping:
@@ -2251,6 +2255,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
   - task: bbr-backup
+    tags: ["jumpbox"]
     file: persi-ci/scripts/ci/bbr_backup.build.yml
     input_mapping:
       bosh-env: bosh-env

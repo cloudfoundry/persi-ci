@@ -9,8 +9,6 @@ image_resource:
 inputs:
   - name: director-state
   - name: persi-ci
-outputs:
-  - name: bosh-env
 
 params: {}
 
