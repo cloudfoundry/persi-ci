@@ -1,5 +1,5 @@
 - type: replace
   path: /networks/-
   value:
-    name: vip
+    name: henry
     type: vip
