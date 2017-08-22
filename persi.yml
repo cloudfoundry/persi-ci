@@ -2264,6 +2264,17 @@ jobs:
     params:
       SKIP_SSL_VALIDATION: false
       DEPLOYMENT_NAME: cf
+  - task: bbr-restore
+    tags: ["jumpbox"]
+    file: persi-ci/scripts/ci/bbr_restore.build.yml
+    input_mapping:
+      backup-artifact: backup-artifact
+      bosh-env: bosh-env
+      binary: binary
+      persi-ci: persi-ci
+    params:
+      SKIP_SSL_VALIDATION: false
+      DEPLOYMENT_NAME: cf
 
 
 #### END cf-deployment related jobs ##################################################################################
