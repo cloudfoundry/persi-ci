@@ -10,6 +10,6 @@ pushd backup-artifact
   --username "${BOSH_CLIENT}" \
   --deployment "${DEPLOYMENT_NAME}" \
   restore \
-    --artifact-path backup-artifact/*
+    --artifact-path backup.tar
 popd
 
