@@ -16,10 +16,7 @@ pushd backup-artifact
   --deployment "${DEPLOYMENT_NAME}" \
   backup --with-manifest
 
-  cat "${DEPLOYMENT_TIMESTAMP}"
   ls
-  mkdir backup
-  mv "${DEPLOYMENT_TIMESTAMP}"/* backup/*
   tar -cvf backup.tar -- *
 popd
 
