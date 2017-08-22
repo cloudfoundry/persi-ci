@@ -16,7 +16,6 @@ pushd backup-artifact
   --deployment "${DEPLOYMENT_NAME}" \
   backup --with-manifest
 
-  ls
   tar -cvf backup.tar -- *
 popd
 
