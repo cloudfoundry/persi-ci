@@ -20,7 +20,7 @@ curl https://glide.sh/get | sh
 
 #install bosh
 wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
-chmod bosh-cli-*
+chmod +x bosh-cli-*
 sudo mv bosh-cli-* /usr/local/bin/bosh-cli
 
 #install cf cli
