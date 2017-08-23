@@ -25,7 +25,7 @@ sudo mv bosh-cli-* /usr/local/bin/bosh-cli
 
 #install cf cli
 wget -O cf-cli.deb https://cli.run.pivotal.io/stable?release=debian64&source=github
-dpkg -i path/to/cf-cli*.deb && apt-get install -f
+dpkg -i cf-cli*.deb && apt-get install -f
 
 #wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo apt-key add -
 #echo "deb http://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
