@@ -9,7 +9,7 @@ image_resource:
 inputs:
   - name: bosh-env
   - name: persi-ci
-  - name: drats
+  - name: binary
 
 params: []
 
