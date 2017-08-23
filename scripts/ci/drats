@@ -5,7 +5,7 @@ source bosh-env/set-env.sh
 #export CA_CERT="$PWD/bosh-env/ca-cert.pem"
 #export BBR_PRIVATE_KEY=$(cat bosh-env/ssh-key)
 
-cat ${BOSH_CA_CERT} > bosh_cert.pem
+echo ${BOSH_CA_CERT} > bosh_cert.pem
 ca_cert_file=`readlink -f bosh_cert.pem`
 
 export DEPLOYMENT_TO_BACKUP=cf
