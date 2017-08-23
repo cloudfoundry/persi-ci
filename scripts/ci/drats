@@ -1,5 +1,7 @@
 #!/bin/bash -eu
 
+set -e -x
+
 source bosh-env/set-env.sh
 
 export CA_CERT="$PWD/bosh-env/ca-cert.pem"
