@@ -18,6 +18,17 @@ export BBR_BUILD_PATH=binary/bbr
 # install glide because drats doesn't
 curl https://glide.sh/get | sh
 
+#install bosh
+wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
+chmod bosh-cli-*
+sudo mv bosh-cli-* /usr/local/bin/bosh-cli
+
+#install cf cli
+wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo apt-key add -
+echo "deb http://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+sudo apt-get update
+sudo apt-get install cf-cli
+
 # make a go project
 mkdir -p runme
 pushd runme/
