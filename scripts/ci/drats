@@ -17,5 +17,8 @@ export BBR_BUILD_PATH=binary/bbr
 curl https://glide.sh/get | sh
 
 pushd drats/
+    export GOPATH=$PWD
+    export PATH=$GOPATH/bin:$PATH
+
     scripts/run_acceptance_tests.sh
 popd
