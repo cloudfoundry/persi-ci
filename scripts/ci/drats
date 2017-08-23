@@ -13,4 +13,7 @@ export BOSH_CLIENT_SECRET=${BOSH_CLIENT_SECRET}
 export BOSH_CERT_PATH=${CA_CERT}
 export BBR_BUILD_PATH=binary/bbr
 
+# install glide because drats doesn't
+curl https://glide.sh/get | sh
+
 drats/scripts/run_acceptance_tests.sh
