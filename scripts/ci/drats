@@ -1,0 +1,19 @@
+#!/bin/bash -eu
+
+source bosh-env/set-env.sh
+
+#export CA_CERT="$PWD/bosh-env/ca-cert.pem"
+#export BBR_PRIVATE_KEY=$(cat bosh-env/ssh-key)
+
+cat ${BOSH_CA_CERT} > bosh_cert.pem
+ca_cert_file=`readlink -f bosh_cert.pem`
+
+export DEPLOYMENT_TO_BACKUP=cf
+export DEPLOYMENT_TO_RESTORE=cf
+export BOSH_URL=${BOSH_ENVIRONMENT}
+export BOSH_CLIENT=${BOSH_CLIENT}
+export BOSH_CLIENT_SECRET=${BOSH_CLIENT_SECRET}
+export BOSH_CERT_PATH=${ca_cert_file}
+export BBR_BUILD_PATH=binary/bbr
+
+drats/scripts/run_acceptance_tests.sh
