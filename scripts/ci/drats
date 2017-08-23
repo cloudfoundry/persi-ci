@@ -13,7 +13,7 @@ export BOSH_URL=${BOSH_ENVIRONMENT}
 export BOSH_CLIENT=${BOSH_CLIENT}
 export BOSH_CLIENT_SECRET=${BOSH_CLIENT_SECRET}
 export BOSH_CERT_PATH=${CA_CERT}
-export BBR_BUILD_PATH=binary/bbr
+export BBR_BUILD_PATH=$(pwd)/binary/bbr
 
 # install glide because drats doesn't
 curl https://glide.sh/get | sh
