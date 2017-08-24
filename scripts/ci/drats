@@ -39,9 +39,10 @@ pushd runme/
     export PATH=$GOPATH/bin:$PATH
 
     go get github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
+    go get github.com/jeffpak/disaster-recovery-acceptance-tests
 
     # run drats
-    pushd src/github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests/
+    pushd src/github.com/jeffpak/disaster-recovery-acceptance-tests/
         scripts/run_acceptance_tests.sh
     popd
 popd
