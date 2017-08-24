@@ -34,14 +34,12 @@ dpkg -i cf-cli.deb && apt-get install -f
 
 # make a go project
 
-mkdir -p $GOPATH/src/cloudfoundry-incubator/disaster-recovery-acceptance-tests
-cp -r drats $GOPATH/src/cloudfoundry-incubator/disaster-recovery-acceptance-tests
 mkdir -p runme
 pushd runme/
     export GOPATH=$PWD
     export PATH=$GOPATH/bin:$PATH
 
-    go get github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
+#    go get github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
     go get github.com/jeffpak/disaster-recovery-acceptance-tests
 
     # run drats
