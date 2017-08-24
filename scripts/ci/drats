@@ -33,16 +33,15 @@ dpkg -i cf-cli.deb && apt-get install -f
 #sudo apt-get install cf-cli
 
 # make a go project
-
 mkdir -p runme
 pushd runme/
     export GOPATH=$PWD
     export PATH=$GOPATH/bin:$PATH
 
-    go get github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
-    go get github.com/onsi/gomega
-    go get github.com/totherme/unstructured
-    go get github.com/jeffpak/disaster-recovery-acceptance-tests
+    mkdir -p src/github.com/cloudfoundry-incubator/
+    pushd src/github.com/cloudfoundry-incubator/
+      git clone https://github.com/jeffpak/disaster-recovery-acceptance-tests disaster-recovery-acceptance-tests
+    popd
 
     # run drats
     pushd src/github.com/jeffpak/disaster-recovery-acceptance-tests/
