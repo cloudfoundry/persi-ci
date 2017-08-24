@@ -39,7 +39,8 @@ pushd runme/
     export GOPATH=$PWD
     export PATH=$GOPATH/bin:$PATH
 
-#    go get github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
+    go get github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
+    go get github.com/onsi/gomega
     go get github.com/jeffpak/disaster-recovery-acceptance-tests
 
     # run drats
