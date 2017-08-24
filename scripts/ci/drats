@@ -34,6 +34,7 @@ dpkg -i cf-cli.deb && apt-get install -f
 
 # make a go project
 
+mkdir -p $GOPATH/src/cloudfoundry-incubator/disaster-recovery-acceptance-tests
 cp -r drats $GOPATH/src/cloudfoundry-incubator/disaster-recovery-acceptance-tests
 mkdir -p runme
 pushd runme/
