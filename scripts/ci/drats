@@ -41,6 +41,7 @@ pushd runme/
 
     go get github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
     go get github.com/onsi/gomega
+    go get github.com/totherme
     go get github.com/jeffpak/disaster-recovery-acceptance-tests
 
     # run drats
