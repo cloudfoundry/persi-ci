@@ -37,6 +37,7 @@ pushd runme/
     export PATH=$GOPATH/bin:$PATH
 
     # install glide because drats doesn't
+    mkdir -p $GOPATH/bin
     curl https://glide.sh/get | sh
 
     mkdir -p src/github.com/cloudfoundry-incubator/
