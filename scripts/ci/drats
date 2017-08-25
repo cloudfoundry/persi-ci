@@ -30,15 +30,20 @@ mv bosh-cli-* /usr/local/bin/bosh-cli
 #sudo apt-get update
 #sudo apt-get install cf-cli
 
-pushd nfs-volume-release/src/code.cloudfoundry.org/nfsbroker
-  go build
+pushd nfs-volume-release
+    GOPATH=$PWD
+    PATH=$GOPATH/bin:$PATH
+
+    pushd /src/code.cloudfoundry.org/nfsbroker
+        go build
+    popd
 popd
 
 # make a go project
 mkdir -p runme
 pushd runme/
-    export GOPATH=$PWD
-    export PATH=$GOPATH/bin:$PATH
+    GOPATH=$PWD
+    PATH=$GOPATH/bin:$PATH
 
     # install glide because drats doesn't
     mkdir -p $GOPATH/bin
