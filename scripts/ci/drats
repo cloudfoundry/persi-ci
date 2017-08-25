@@ -15,8 +15,6 @@ export BOSH_CLIENT_SECRET=${BOSH_CLIENT_SECRET}
 export BOSH_CERT_PATH=${CA_CERT}
 export BBR_BUILD_PATH=$(pwd)/binary/bbr
 
-# install glide because drats doesn't
-curl https://glide.sh/get | sh
 
 #install bosh
 wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
@@ -37,6 +35,9 @@ mkdir -p runme
 pushd runme/
     export GOPATH=$PWD
     export PATH=$GOPATH/bin:$PATH
+
+    # install glide because drats doesn't
+    curl https://glide.sh/get | sh
 
     mkdir -p src/github.com/cloudfoundry-incubator/
     pushd src/github.com/cloudfoundry-incubator/
