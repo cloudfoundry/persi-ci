@@ -43,6 +43,23 @@ pushd runme/
       git clone https://github.com/jeffpak/disaster-recovery-acceptance-tests disaster-recovery-acceptance-tests
     popd
 
+    rm ${APPLICATION_PATH}/manifest.yml
+cat << EOF > ${APPLICATION_PATH}/manifest.yml
+---
+  buildpack: binary_buildpack
+  env:
+    DBDRIVERNAME: ${DB_DRIVER_NAME}
+    SERVICENAME: ${SERVICE_NAME}
+    USERNAME: ${BROKER_USER}
+    PASSWORD: ${BROKER_PASSWORD}
+    LOGLEVEL: debug
+    DBHOST: ${DB_HOST}
+    DBPORT: ${DB_PORT}
+    DBNAME: ${DB_NAME}
+    DB_USERNAME: ${DB_USERNAME}
+    DB_PASSWORD: ${DB_PASSWORD}
+EOF
+
     # run drats
     pushd src/github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests/
         scripts/run_acceptance_tests.sh

@@ -18,7 +18,14 @@ params:
  - PUSHED_BROKER_NAME: ~
  - SERVICE_NAME: ~
  - PLAN_NAME: ~
-
+ - BROKER_USER: ~
+ - BROKER_PASSWORD: ~
+ - DB_DRIVER_NAME: ~
+ - DB_HOST: ~
+ - DB_PORT: ~
+ - DB_NAME: ~
+ - DB_USERNAME: ~
+ - DB_PASSWORD: ~
 
 run:
   path: persi-ci/scripts/ci/drats
