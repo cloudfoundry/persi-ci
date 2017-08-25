@@ -11,8 +11,10 @@ inputs:
   - name: bosh-env
   - name: persi-ci
   - name: binary
+  - name: nfs-volume-release
 
 params:
+ - APPLICATION_PATH: ~
  - PUSHED_BROKER_NAME: ~
  - SERVICE_NAME: ~
  - PLAN_NAME: ~

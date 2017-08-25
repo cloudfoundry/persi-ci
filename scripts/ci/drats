@@ -38,9 +38,6 @@ pushd runme/
     export GOPATH=$PWD
     export PATH=$GOPATH/bin:$PATH
 
-    go get github.com/cloudfoundry/persi-acceptance-tests
-    export APPLICATION_PATH=../../cloudfoundry/persi-acceptance-tests/assets/pora
-
     mkdir -p src/github.com/cloudfoundry-incubator/
     pushd src/github.com/cloudfoundry-incubator/
       git clone https://github.com/jeffpak/disaster-recovery-acceptance-tests disaster-recovery-acceptance-tests
