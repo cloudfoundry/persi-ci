@@ -20,6 +20,7 @@ params:
  - PLAN_NAME: ~
  - BROKER_USER: ~
  - BROKER_PASSWORD: ~
+ - BROKER_URL: ~
  - DB_DRIVER_NAME: ~
  - DB_HOST: ~
  - DB_PORT: ~
