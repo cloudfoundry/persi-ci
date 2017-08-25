@@ -19,7 +19,7 @@ export BBR_BUILD_PATH=$(pwd)/binary/bbr
 #install bosh
 wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
 chmod +x bosh-cli-*
-sudo mv bosh-cli-* /usr/local/bin/bosh-cli
+mv bosh-cli-* /usr/local/bin/bosh-cli
 
 #install cf cli
 #wget -O cf-cli.deb "https://cli.run.pivotal.io/stable?release=debian64&source=github"
