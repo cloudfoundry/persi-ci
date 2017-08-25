@@ -13,7 +13,11 @@ inputs:
   - name: binary
   - name: nfs-volume-release
 
-params: []
+params:
+ - PUSHED_BROKER_NAME: ~
+ - SERVICE_NAME: ~
+ - PLAN_NAME: ~
+
 
 run:
   path: persi-ci/scripts/ci/drats
