@@ -34,7 +34,7 @@ pushd nfs-volume-release
     GOPATH=$PWD
     PATH=$GOPATH/bin:$PATH
 
-    pushd /src/code.cloudfoundry.org/nfsbroker
+    pushd src/code.cloudfoundry.org/nfsbroker
         go build
     popd
 popd
