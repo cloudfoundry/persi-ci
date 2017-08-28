@@ -12,7 +12,7 @@ nfs-ldap-port: ${LDAP_PORT}
 nfs-ldap-proto: ${LDAP_PROTO}
 nfs-ldap-fqdn: ${LDAP_USER_FQDN}
 nfsbroker-db-driver: ${DB_DRIVER_NAME}
-nfsbroker-db-user: ${DB_USER}
+nfsbroker-db-username: ${DB_USER}
 nfsbroker-db-password: ${DB_PASSWORD}
 nfsbroker-db-hostname: ${DB_HOSTNAME}
 nfsbroker-db-port: ${DB_PORT}
