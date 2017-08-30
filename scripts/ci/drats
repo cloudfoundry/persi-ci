@@ -63,6 +63,7 @@ cat << EOF > ${APPLICATION_PATH}/manifest.yml
 ---
   buildpack: binary_buildpack
   env:
+    ALLOWED_OPTIONS: "uid,gid"
     DBDRIVERNAME: ${DB_DRIVER_NAME}
     SERVICENAME: ${SERVICE_NAME}
     USERNAME: ${BROKER_USER}
