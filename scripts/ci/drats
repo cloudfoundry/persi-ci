@@ -50,9 +50,9 @@ pushd runme/
     mkdir -p $GOPATH/bin
     curl https://glide.sh/get | sh
 
-    mkdir -p src/github.com/jeffpak/
-    pushd src/github.com/jeffpak/
-      git clone https://github.com/jeffpak/persi-disaster-recovery-acceptance-tests persi-disaster-recovery-acceptance-tests
+    mkdir -p src/github.com/cloudfoundry-incubator/
+    pushd src/github.com/cloudfoundry-incubator/
+      git clone https://github.com/cloudfoundry-incubator/persi-disaster-recovery-acceptance-tests persi-disaster-recovery-acceptance-tests
 
         # run drats
         pushd persi-disaster-recovery-acceptance-tests/
