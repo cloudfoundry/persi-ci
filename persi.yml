@@ -79,7 +79,7 @@ groups:
   - pats-nfs-docker-cf-deployment
   - pats-nfs-ldap-cf-deployment
   - pats-nfs-pushed-broker-cf-deployment
-  - nfs-test-bbr
+  - pats-drats
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -515,6 +515,13 @@ resources:
   source:
     api_token: {{pivnet-api-token}}
     product_slug: p-bosh-backup-and-restore
+
+- name: drats
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/jeffpak/disaster-recovery-acceptance-tests
+
 #### End cf-deployment resources #####################################################################################
 
 ###################################### END RESOURCES SECTION #########################################################
@@ -2003,7 +2010,7 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-volume-service-nfs.yml operations/enable-nfs-test-server.yml operations/enable-ldap-nfs.yml"
+      NEW_OPS_FILES: "operations/enable-volume-service-nfs.yml operations/enable-nfs-test-server.yml operations/enable-ldap-nfs.yml operations/enable-nfs-broker-backup.yml"
   - task: collect-more-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2029,6 +2036,12 @@ jobs:
       LDAP_PORT: 389
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
+      DB_DRIVER_NAME: mysql
+      DB_HOST: {{gorgophone-nfsbroker-mariadb-host}}
+      DB_PORT: 3306
+      DB_NAME: nfsdb2
+      DB_USERNAME: {{gorgophone-nfsbroker-mariadb-user}}
+      DB_PASSWORD: {{gorgophone-nfsbroker-mariadb-password}}
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
@@ -2042,7 +2055,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/enable-volume-service-nfs.yml operations/enable-nfs-test-server.yml operations/update-releases.yml operations/enable-ldap-nfs.yml operations/experimental/deploy-bosh-backup-restore.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/enable-volume-service-nfs.yml operations/enable-nfs-test-server.yml operations/update-releases.yml operations/enable-ldap-nfs.yml operations/experimental/deploy-bosh-backup-restore.yml operations/enable-nfs-broker-backup.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
@@ -2223,7 +2236,7 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
 
-- name: nfs-test-bbr
+- name: pats-drats
   serial-groups:
   - gorgophone
   plan:
@@ -2231,6 +2244,11 @@ jobs:
     - get: persi-ci
     - get: bbr-release
     - get: gorgophone-env-director-state
+    - get: drats
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
   - task: extract-binary
     config:
       platform: linux
@@ -2254,27 +2272,31 @@ jobs:
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-  - task: bbr-backup
+  - task: drats
     tags: ["jumpbox"]
-    file: persi-ci/scripts/ci/bbr_backup.build.yml
+    file: persi-ci/scripts/ci/drats.build.yml
     input_mapping:
+      drats: drats
       bosh-env: bosh-env
-      binary: binary
       persi-ci: persi-ci
-    params:
-      SKIP_SSL_VALIDATION: false
-      DEPLOYMENT_NAME: cf
-  - task: bbr-restore
-    tags: ["jumpbox"]
-    file: persi-ci/scripts/ci/bbr_restore.build.yml
-    input_mapping:
-      backup-artifact: backup-artifact
-      bosh-env: bosh-env
       binary: binary
-      persi-ci: persi-ci
+      nfs-volume-release: nfs-volume-release
     params:
-      SKIP_SSL_VALIDATION: false
-      DEPLOYMENT_NAME: cf
+      APPLICATION_PATH: ../../../../../nfs-volume-release/src/code.cloudfoundry.org/nfsbroker
+      PUSHED_BROKER_NAME: nfs-drats-broker
+      SERVICE_NAME: nfs
+      PLAN_NAME: Existing
+      BROKER_USER: {{gorgophone-nfsbroker-mariadb-user}}
+      BROKER_PASSWORD: {{gorgophone-nfsbroker-mariadb-password}}
+      BROKER_URL: http://nfs-drats-broker.gorgophone.cf-app.com
+      SERVER_ADDRESS: 10.10.200.72
+      SHARE: /export/users
+      DB_DRIVER_NAME: mysql
+      DB_HOST: {{gorgophone-nfsbroker-mariadb-host}}
+      DB_PORT: 3306
+      DB_NAME: nfsdb2
+      DB_USERNAME: {{gorgophone-nfsbroker-mariadb-user}}
+      DB_PASSWORD: {{gorgophone-nfsbroker-mariadb-password}}
 
 
 #### END cf-deployment related jobs ##################################################################################
