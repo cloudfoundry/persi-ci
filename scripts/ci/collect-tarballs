@@ -9,9 +9,14 @@ collect_versions() {
     echo "[ERROR] nfs-version input is missing."
     exit 1
   fi
+  if [ ! -d ${ROOT_DIR}/csi-local-version ]; then
+    echo "[ERROR] csi-local-version input is missing."
+    exit 1
+  fi
 
   DIEGO_VERSION="$(cat diego-version/number)"
   NFS_VERSION="$(cat nfs-version/number)"
+  CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
 }
 
 check_params() {
@@ -23,6 +28,10 @@ check_params() {
     echo "[ERROR] nfs-tarball input is missing."
     exit 1
   fi
+  if [ ! -d ${ROOT_DIR}/csi-local-tarball ]; then
+    echo "[ERROR] csi-local-tarball input is missing."
+    exit 1
+  fi
 
   if [ -z "${DIEGO_VERSION}" ]; then
     echo "[ERROR] DIEGO_VERSION is missing."
@@ -30,6 +39,10 @@ check_params() {
   fi
   if [ -z "${NFS_VERSION}" ]; then
     echo "[ERROR] NFS_VERSION is missing."
+    exit 1
+  fi
+  if [ -z "${CSI_LOCAL_VERSION}" ]; then
+    echo "[ERROR] CSI_LOCAL_VERSION is missing."
     exit 1
   fi
 }
@@ -43,6 +56,7 @@ create_collection_directory() {
 collect_tarballs() {
   cp ${ROOT_DIR}/diego-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/diego.tgz
   cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
+  cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
 }
 
 # Copy each new operation to collection
