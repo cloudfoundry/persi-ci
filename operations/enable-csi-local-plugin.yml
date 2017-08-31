@@ -1,0 +1,12 @@
+- type: replace
+  path: /releases/-
+  value:
+    name: csi-local-volume-release
+    version: latest
+
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/-
+  value:
+    name: csi-localdriver
+    release: csi-local-volume-release
+    properties: {}
