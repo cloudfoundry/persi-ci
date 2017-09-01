@@ -70,6 +70,9 @@ groups:
   - nfsbroker-unit
   - nfsdriver-certification
   - create-nfs-volume-release
+  - unit-local-controller-plugin
+  - unit-local-node-plugin
+  - create-csi-local-volume-release
   - volman-unit
   - volman-inigo
   - create-diego-release
@@ -465,6 +468,24 @@ resources:
     access_key_id: {{aws-access-key-id}}
     versioned_file: csi-cert.test.tgz
     bucket: csi-binaries
+    secret_access_key: {{aws-secret-access-key}}
+
+- name: csi-local-volume-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: csi-local-volume-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+
+- name: csi-local-volume-release-tarball
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: csi-local-volume-release-tarballs
+    regexp: csi-local-volume-(.*).tgz
     secret_access_key: {{aws-secret-access-key}}
 
 - name: github-release-csi
@@ -1938,6 +1959,31 @@ jobs:
     params:
       bump: minor
 
+- name: create-csi-local-volume-release
+  plan:
+  - aggregate:
+    - get: csi-local-volume-release
+      passed:
+      - unit-local-node-plugin
+      - unit-local-controller-plugin
+      trigger: true
+    - get: csi-local-version
+      resource: csi-local-volume-version
+      params:
+        pre: rc
+
+  - put: csi-local-version
+    resource: csi-local-volume-version
+    params:
+      file: csi-local-version/number
+
+  - task: generate-release
+    file: csi-local-volume-release/scripts/ci/create_release.build.yml
+
+  - put: csi-local-volume-release-tarball
+    params:
+      file: created-csi-local-volume-release/csi*.tgz
+
 #### END CSI related jobs ############################################################################################
 
 #### START cf-deployment related jobs ################################################################################
@@ -1965,6 +2011,13 @@ jobs:
       trigger: true
     - get: nfsvolume-version
       passed: [ create-nfs-volume-release ]
+    - get: csi-local-volume-release
+      passed: [ create-csi-local-volume-release ]
+    - get: csi-local-volume-release-tarball
+      passed: [ create-csi-local-volume-release ]
+      trigger: true
+    - get: csi-local-volume-version
+      passed: [ create-csi-local-volume-release ]
   - task: setup-infrastructure
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -2001,8 +2054,10 @@ jobs:
       persi-ci: persi-ci
       diego-tarball: diego-dev-release
       nfs-tarball: nfs-volume-release-tarball
+      csi-local-tarball: csi-local-volume-release-tarball
       diego-version: diego-version
       nfs-version: nfsvolume-version
+      csi-local-version: csi-local-volume-version
   - task: collect-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2010,7 +2065,7 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-volume-service-nfs.yml operations/enable-nfs-test-server.yml operations/enable-ldap-nfs.yml operations/enable-nfs-broker-backup.yml"
+      NEW_OPS_FILES: "operations/enable-volume-service-nfs.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-ldap-nfs.yml operations/enable-nfs-broker-backup.yml"
   - task: collect-more-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2026,7 +2081,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz"
+      NEW_OPS_FILES: "diego.tgz nfs.tgz csi-local.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
@@ -2055,7 +2110,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/enable-volume-service-nfs.yml operations/enable-nfs-test-server.yml operations/update-releases.yml operations/enable-ldap-nfs.yml operations/experimental/deploy-bosh-backup-restore.yml operations/enable-nfs-broker-backup.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/enable-volume-service-nfs.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/update-releases.yml operations/enable-ldap-nfs.yml operations/experimental/deploy-bosh-backup-restore.yml operations/enable-nfs-broker-backup.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
