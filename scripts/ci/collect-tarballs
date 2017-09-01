@@ -80,7 +80,7 @@ create_operation_file() {
   value:
     name: csi-local-volume
     version: ${CSI_LOCAL_VERSION}
-    url: ops-files/csi-local-volume.tgz
+    url: ops-files/csi-local.tgz
 EOF
 }
 
