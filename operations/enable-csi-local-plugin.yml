@@ -14,7 +14,7 @@
 - type: replace
   path: /instance_groups/-
   value:
-    name: csi-broker
+    name: csi-localbroker
     azs:
     - z1
     instances: 1
@@ -30,6 +30,18 @@
       release: csi-local-volume
     - name: csi-localcontroller
       release: csi-local-volume
+    - name: route_registrar
+      release: routing
     properties:
+      route_registrar:
+        routes:
+        - name: csi-localbroker
+          port: 8999
+          registration_interval: 20s
+          tags:
+            component: csi-localbroker
+          uris:
+          - csi-localbroker.gorgophone.cf-app.com
+
       csi-localbroker:
         csi-controller-addr: 127.0.0.1:9860
