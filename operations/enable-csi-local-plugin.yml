@@ -11,6 +11,7 @@
     release: csi-local-volume
     properties: {}
 
+
 - type: replace
   path: /instance_groups/-
   value:
@@ -46,3 +47,9 @@
         csi-controller-addr: 127.0.0.1:9860
         username: csi-localbroker
         password: ((csi-localbroker-password))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: csi-localbroker-password
+    type: password
