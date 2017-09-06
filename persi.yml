@@ -83,6 +83,7 @@ groups:
   - pats-nfs-ldap-cf-deployment
   - pats-nfs-pushed-broker-cf-deployment
   - pats-drats
+  - pats-csi-local
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -2116,6 +2117,37 @@ jobs:
       params:
         repository: updated-vars-store
         rebase: true
+
+- name: pats-csi-local
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: csi-local-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: csi-local-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+
+  - task: run-pats
+    file: csi-local-volume-release/scripts/ci/run_pats_localvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: csi-local-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
+      BROKER_USER: csi-localbroker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: free
+      SERVICE_NAME: csilocalfs
+      TEST_MULTI_CELL: false
+      TEST_MOUNT_OPTIONS: false
+
 
 - name: pats-isilon-cf-deployment
   serial_groups:
