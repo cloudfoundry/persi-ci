@@ -10,3 +10,26 @@
     name: csi-localdriver
     release: csi-local-volume
     properties: {}
+
+- type: replace
+  path: /instance_groups/-
+  value:
+    name: csi-broker
+    azs:
+    - z1
+    instances: 1
+    vm_type: minimal
+    stemcell: default
+    update:
+      max_in_flight: 1
+      serial: true
+    networks:
+    - name: default
+    jobs:
+    - name: csi-localbroker
+      release: csi-local-volume
+    - name: csi-localcontroller
+      release: csi-local-volume
+      properties:
+        csi-localbroker:
+          csi-controller-addr: 127.0.0.1:9860
