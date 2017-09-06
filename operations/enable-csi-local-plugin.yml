@@ -30,6 +30,6 @@
       release: csi-local-volume
     - name: csi-localcontroller
       release: csi-local-volume
-      properties:
-        csi-localbroker:
-          csi-controller-addr: 127.0.0.1:9860
+    properties:
+      csi-localbroker:
+        csi-controller-addr: 127.0.0.1:9860
