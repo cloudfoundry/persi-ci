@@ -2,17 +2,17 @@
   path: /releases/-
   value:
     name: nfs-volume
-    version: 1.0.6
-    url: https://bosh.io/d/github.com/cloudfoundry-incubator/nfs-volume-release?v=1.0.6
-    sha1: 3ea1110e862ce27ee53bd0b2c482fe53af36ed06
+    version: 1.0.9
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/nfs-volume-release?v=1.0.9
+    sha1: 5def43a385b66a8daeee7ca63b18fb7ef9e6b63f
 
 - type: replace
   path: /releases/-
   value:
     name: broker-registrar
-    version: 3.2.3
-    url: https://bosh.io/d/github.com/cloudfoundry-community/broker-registrar-boshrelease?v=3.2.3
-    sha1: 9f41dc2f56ad985289532099bbe7849b1174914a
+    version: 3.3.1
+    url: https://bosh.io/d/github.com/cloudfoundry-community/broker-registrar-boshrelease?v=3.3.1
+    sha1: 3625828feca7134fd895adf0470bfd91b628bc22
 
 - type: replace
   path: /variables/-

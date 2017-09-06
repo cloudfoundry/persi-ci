@@ -2066,7 +2066,7 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-volume-service-nfs.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-ldap-nfs.yml operations/enable-nfs-broker-backup.yml"
+      NEW_OPS_FILES: "operations/enable-nfs-volume-service.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-nfs-ldap.yml operations/enable-nfs-broker-backup.yml"
   - task: collect-more-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
