@@ -42,6 +42,7 @@
             component: csi-localbroker
           uris:
           - csi-localbroker.gorgophone.cf-app.com
-
       csi-localbroker:
         csi-controller-addr: 127.0.0.1:9860
+        username: csi-localbroker
+        password: ((csi-localbroker-password))
