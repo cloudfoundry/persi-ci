@@ -26,6 +26,9 @@ params:
  - DB_NAME: nfs-broker
  - DB_USERNAME: nfs-broker
  - DB_PASSWORD:
+ - SERVER_ADDRESS: nfstestserver.service.cf.internal
+ - SHARE: /foo
+
 
 run:
   path: persi-ci/scripts/ci/drats
