@@ -6,9 +6,9 @@
       release: nfs-volume
       properties:
         nfsbroker:
-          db_driver: ((nfsbroker-db-driver))
-          db_username: ((nfsbroker-db-username))
-          db_password: ((nfsbroker-db-password))
-          db_hostname: ((nfsbroker-db-hostname))
-          db_port: ((nfsbroker-db-port))
-          db_name: ((nfsbroker-db-name))
+          db_driver: mysql
+          db_username: nfs-broker
+          db_password: ((nfs-broker-database-password))
+          db_hostname: sql-db.service.cf.internal
+          db_port: 3306
+          db_name: nfs-broker
