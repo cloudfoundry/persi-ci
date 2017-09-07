@@ -12,21 +12,20 @@ inputs:
   - name: persi-ci
   - name: binary
   - name: nfs-volume-release
+  - name: vars-store
 
 params:
- - APPLICATION_PATH: ~
- - PUSHED_BROKER_NAME: ~
- - SERVICE_NAME: ~
- - PLAN_NAME: ~
- - BROKER_USER: ~
- - BROKER_PASSWORD: ~
+ - SERVICE_NAME: nfs
+ - PLAN_NAME: Existing
+ - BROKER_USER: nfs-broker
+ - BROKER_PASSWORD:
  - BROKER_URL: ~
- - DB_DRIVER_NAME: ~
- - DB_HOST: ~
- - DB_PORT: ~
- - DB_NAME: ~
- - DB_USERNAME: ~
- - DB_PASSWORD: ~
+ - DB_DRIVER_NAME: mysql
+ - DB_HOST: sql-db.service.cf.internal
+ - DB_PORT: 3306
+ - DB_NAME: nfs-broker
+ - DB_USERNAME: nfs-broker
+ - DB_PASSWORD:
 
 run:
   path: persi-ci/scripts/ci/drats

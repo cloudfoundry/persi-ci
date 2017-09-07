@@ -2342,6 +2342,7 @@ jobs:
     - get: persi-ci
     - get: bbr-release
     - get: gorgophone-env-director-state
+    - get: gorgophone-env-vars-store
     - get: drats
     - get: nfs-volume-release
       passed:
@@ -2379,24 +2380,9 @@ jobs:
       persi-ci: persi-ci
       binary: binary
       nfs-volume-release: nfs-volume-release
+      vars-store: gorgophone-env-vars-store
     params:
-      APPLICATION_PATH: ../../../../../nfs-volume-release/src/code.cloudfoundry.org/nfsbroker
-      PUSHED_BROKER_NAME: nfs-drats-broker
-      SERVICE_NAME: nfs
-      PLAN_NAME: Existing
-      BROKER_USER: {{gorgophone-nfsbroker-mariadb-user}}
-      BROKER_PASSWORD: {{gorgophone-nfsbroker-mariadb-password}}
-      BROKER_URL: http://nfs-drats-broker.gorgophone.cf-app.com
-      SERVER_ADDRESS: 10.10.200.72
-      SHARE: /export/users
-      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
-      DB_DRIVER_NAME: mysql
-      DB_HOST: {{gorgophone-nfsbroker-mariadb-host}}
-      DB_PORT: 3306
-      DB_NAME: nfsdb2
-      DB_USERNAME: {{gorgophone-nfsbroker-mariadb-user}}
-      DB_PASSWORD: {{gorgophone-nfsbroker-mariadb-password}}
-
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
 
 #### END cf-deployment related jobs ##################################################################################
 

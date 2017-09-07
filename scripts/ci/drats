@@ -21,24 +21,16 @@ wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
 chmod +x bosh-cli-*
 mv bosh-cli-* /usr/local/bin/bosh-cli
 
-#install cf cli
-#wget -O cf-cli.deb "https://cli.run.pivotal.io/stable?release=debian64&source=github"
-#dpkg -i cf-cli.deb && apt-get install -f
-
-#wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo apt-key add -
-#echo "deb http://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-#sudo apt-get update
-#sudo apt-get install cf-cli
-
-# build the broker so the drats tests can push it
-pushd nfs-volume-release
-    GOPATH=$PWD
-    PATH=$GOPATH/bin:$PATH
-
-    pushd src/code.cloudfoundry.org/nfsbroker
-        go build -o bin/nfsbroker
-    popd
-popd
+if [ -z "$BROKER_PASSWORD" ]; then
+    if [ -e "vars-store/deployment-vars.yml" ]; then
+        BROKER_PASSWORD=`grep nfs-broker-password vars-store/deployment-vars.yml | awk  '{print $2}'`
+    fi
+fi
+if [ -z "$DB_PASSWORD" ]; then
+    if [ -e "vars-store/deployment-vars.yml" ]; then
+        DB_PASSWORD=`grep nfs-broker-database-password vars-store/deployment-vars.yml | awk  '{print $2}'`
+    fi
+fi
 
 # make a go project
 mkdir -p runme
@@ -52,30 +44,10 @@ pushd runme/
 
     mkdir -p src/github.com/cloudfoundry-incubator/
     pushd src/github.com/cloudfoundry-incubator/
-      git clone https://github.com/cloudfoundry-incubator/persi-disaster-recovery-acceptance-tests persi-disaster-recovery-acceptance-tests
+        git clone https://github.com/cloudfoundry-incubator/persi-disaster-recovery-acceptance-tests persi-disaster-recovery-acceptance-tests
 
         # run drats
         pushd persi-disaster-recovery-acceptance-tests/
-
-            rm ${APPLICATION_PATH}/manifest.yml
-cat << EOF > ${APPLICATION_PATH}/manifest.yml
----
-  buildpack: binary_buildpack
-  env:
-    ALLOWED_OPTIONS: "uid,gid"
-    DBDRIVERNAME: ${DB_DRIVER_NAME}
-    SERVICENAME: ${SERVICE_NAME}
-    USERNAME: ${BROKER_USER}
-    PASSWORD: ${BROKER_PASSWORD}
-    SERVER_ADDRESS: ${SERVER_ADDRESS}
-    SHARE: ${SHARE}
-    LOGLEVEL: debug
-    DBHOST: ${DB_HOST}
-    DBPORT: ${DB_PORT}
-    DBNAME: ${DB_NAME}
-    DB_USERNAME: ${DB_USERNAME}
-    DB_PASSWORD: ${DB_PASSWORD}
-EOF
             scripts/run_acceptance_tests.sh
         popd
     popd
