@@ -1046,6 +1046,7 @@ jobs:
       #SHARE: /var/vcap/store
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
+      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
@@ -1088,6 +1089,7 @@ jobs:
       SERVICE_NAME: nfs
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
+      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
@@ -1133,6 +1135,7 @@ jobs:
       #SHARE: /var/vcap/store
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
+      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
       BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
@@ -1177,6 +1180,7 @@ jobs:
       SERVICE_NAME: nfs
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
+      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PUSHED_BROKER_NAME: nfsbrokerpatsapp
       DB_DRIVER_NAME: mysql
@@ -1334,6 +1338,7 @@ jobs:
       SERVICE_NAME: nfs
       SERVER_ADDRESS: isilon.persi.cf-app.com
       SHARE: /ifs/persi-pats
+      CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
@@ -2144,6 +2149,7 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       PLAN_NAME: free
+      CREATE_CONFIG: '{"name":"csi-local-storage","capacity_range":{"requiredBytes":"0","limitBytes":"-1"},"volume_capabilities":[{"mount":{"fsType":"none","mountFlags":["-o something","-t anotherthing"]}}],"parameters":{"a":"b"}}'
       SERVICE_NAME: csilocalfs
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
@@ -2177,6 +2183,7 @@ jobs:
       SERVICE_NAME: nfs
       SERVER_ADDRESS: isilon.persi.cf-app.com
       SHARE: /ifs/persi-pats
+      CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
@@ -2210,6 +2217,7 @@ jobs:
       SERVICE_NAME: nfs
       SERVER_ADDRESS: nfstestserver.service.cf.internal
       SHARE: /export/users
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
@@ -2243,6 +2251,7 @@ jobs:
       SERVICE_NAME: nfs
       SERVER_ADDRESS: nfstestserver.service.cf.internal
       SHARE: /export/users
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
@@ -2277,6 +2286,7 @@ jobs:
       SERVICE_NAME: nfs
       SERVER_ADDRESS: nfstestserver.service.cf.internal
       SHARE: /export/users
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
@@ -2312,6 +2322,7 @@ jobs:
       SERVICE_NAME: nfs
       SERVER_ADDRESS: nfstestserver.service.cf.internal
       SHARE: /export/users
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PUSHED_BROKER_NAME: nfsbrokerpatsapp
       DB_DRIVER_NAME: mysql
@@ -2378,6 +2389,7 @@ jobs:
       BROKER_URL: http://nfs-drats-broker.gorgophone.cf-app.com
       SERVER_ADDRESS: 10.10.200.72
       SHARE: /export/users
+      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
       DB_DRIVER_NAME: mysql
       DB_HOST: {{gorgophone-nfsbroker-mariadb-host}}
       DB_PORT: 3306
