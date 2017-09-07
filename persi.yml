@@ -2356,6 +2356,7 @@ jobs:
       vars-store: gorgophone-env-vars-store
     params:
       BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      DB_HOST: 10.0.16.8
 
 #### END cf-deployment related jobs ##################################################################################
 
