@@ -2126,14 +2126,13 @@ jobs:
     input_mapping:
       vars-store: gorgophone-env-vars-store
     params:
-      APPLICATION_PATH: csi-local-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
       BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
       BROKER_USER: csi-localbroker
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       PLAN_NAME: free
-      CREATE_CONFIG: '{"name":"csi-local-storage","capacity_range":{"requiredBytes":"0","limitBytes":"-1"},"volume_capabilities":[{"mount":{"fsType":"none","mountFlags":["-o something","-t anotherthing"]}}],"parameters":{"a":"b"}}'
+      CREATE_CONFIG: '{\"name\":\"csi-local-storage\",\"volume_capabilities\":[{\"mount\":{}}]}'
       SERVICE_NAME: csilocalfs
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
