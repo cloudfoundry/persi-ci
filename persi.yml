@@ -1042,10 +1042,6 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      #SERVER_ADDRESS: {{existing-nfs-server}}
-      #SHARE: /var/vcap/store
-      SERVER_ADDRESS: 10.10.200.72
-      SHARE: /export/users
       CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
@@ -1087,8 +1083,6 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      SERVER_ADDRESS: 10.10.200.72
-      SHARE: /export/users
       CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
@@ -1131,10 +1125,6 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      #SERVER_ADDRESS: {{existing-nfs-server}}
-      #SHARE: /var/vcap/store
-      SERVER_ADDRESS: 10.10.200.72
-      SHARE: /export/users
       CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
       BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
       TEST_MULTI_CELL: true
@@ -1178,8 +1168,6 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      SERVER_ADDRESS: 10.10.200.72
-      SHARE: /export/users
       CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PUSHED_BROKER_NAME: nfsbrokerpatsapp
@@ -1336,8 +1324,6 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      SERVER_ADDRESS: isilon.persi.cf-app.com
-      SHARE: /ifs/persi-pats
       CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
@@ -1881,8 +1867,6 @@ jobs:
       CF_USERNAME: {{cf-username}}
       PLAN_NAME: 5gb
       SERVICE_NAME: ecs-file-bucket
-      SERVER_ADDRESS: NotUsed
-      SHARE: NotUsed
       BIND_CONFIG: '{}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
@@ -2181,8 +2165,6 @@ jobs:
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      SERVER_ADDRESS: isilon.persi.cf-app.com
-      SHARE: /ifs/persi-pats
       CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
@@ -2215,8 +2197,6 @@ jobs:
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      SERVER_ADDRESS: nfstestserver.service.cf.internal
-      SHARE: /export/users
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
@@ -2249,8 +2229,6 @@ jobs:
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      SERVER_ADDRESS: nfstestserver.service.cf.internal
-      SHARE: /export/users
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
@@ -2284,8 +2262,6 @@ jobs:
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      SERVER_ADDRESS: nfstestserver.service.cf.internal
-      SHARE: /export/users
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
       TEST_MULTI_CELL: true
@@ -2320,8 +2296,6 @@ jobs:
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      SERVER_ADDRESS: nfstestserver.service.cf.internal
-      SHARE: /export/users
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PUSHED_BROKER_NAME: nfsbrokerpatsapp
