@@ -446,7 +446,7 @@ resources:
 - name: csi-local-volume-release
   type: git
   source:
-    uri: https://github.com/jeffpak/csi-local-volume-release.git
+    uri: https://github.com/cloudfoundry/csi-local-volume-release.git
 
 - name: csi-cert
   type: git
