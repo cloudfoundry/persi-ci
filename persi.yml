@@ -2081,12 +2081,6 @@ jobs:
       LDAP_PORT: 389
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
-      DB_DRIVER_NAME: mysql
-      DB_HOST: {{gorgophone-nfsbroker-mariadb-host}}
-      DB_PORT: 3306
-      DB_NAME: nfsdb2
-      DB_USERNAME: {{gorgophone-nfsbroker-mariadb-user}}
-      DB_PASSWORD: {{gorgophone-nfsbroker-mariadb-password}}
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
