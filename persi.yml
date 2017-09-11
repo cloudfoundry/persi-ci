@@ -2121,6 +2121,7 @@ jobs:
       vars-store: gorgophone-env-vars-store
     params:
       APPS_DOMAIN: gorgophone.cf-app.com
+      BIND_CONFIG: '{\"mount\":\"/var/vcap/store\"}'
       BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
       BROKER_USER: csi-localbroker
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
