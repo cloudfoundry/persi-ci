@@ -94,8 +94,8 @@
     instances: 1
     azs: [z1]
     lifecycle: errand
-    vm_type: default
-    stemcell: minimal
+    vm_type: minimal
+    stemcell: default
     networks: [{name: default}]
     jobs:
     - name: broker-registrar
