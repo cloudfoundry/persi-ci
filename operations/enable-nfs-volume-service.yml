@@ -52,7 +52,7 @@
     azs: [z1]
     instances: 1
     stemcell: default
-    vm_type: m3.medium
+    vm_type: minimal
     networks: [ name: default ]
     jobs:
     - name: consul_agent
@@ -95,7 +95,7 @@
     azs: [z1]
     lifecycle: errand
     vm_type: default
-    stemcell: default
+    stemcell: minimal
     networks: [{name: default}]
     jobs:
     - name: broker-registrar

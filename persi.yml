@@ -500,10 +500,10 @@ resources:
 #### End CSI resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
-- name: cf-deployment-release-candidate
+- name: cf-deployment-develop
   type: git
   source:
-    branch: release-candidate
+    branch: develop
     uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
@@ -1986,7 +1986,7 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment-release-candidate
+    - get: cf-deployment-develop
     - get: gorgophone-env-vars-store
     - get: persi-ci
     - get: diego-dev-release
@@ -2033,7 +2033,7 @@ jobs:
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
     input_mapping:
-      cf-deployment: cf-deployment-release-candidate
+      cf-deployment: cf-deployment-develop
       bbl-state: gorgophone-env-director-state
     params:
       INFRASTRUCTURE: aws
@@ -2051,7 +2051,7 @@ jobs:
   - task: collect-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment-release-candidate
+      base-ops-files: cf-deployment-develop
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -2072,7 +2072,7 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "."
       NEW_OPS_FILES: "diego.tgz nfs.tgz csi-local.tgz"
-  - task: generate-variables
+  - task: generate-variablesa
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
       LDAP_SVC_USER: {{ldap-svc-user}}
@@ -2084,7 +2084,7 @@ jobs:
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
-      cf-deployment: cf-deployment-release-candidate
+      cf-deployment: cf-deployment-develop
       vars-store: gorgophone-env-vars-store
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
