@@ -11,6 +11,10 @@ nfs-ldap-host: ${LDAP_HOST}
 nfs-ldap-port: ${LDAP_PORT}
 nfs-ldap-proto: ${LDAP_PROTO}
 nfs-ldap-fqdn: ${LDAP_USER_FQDN}
+
+ecs-password: ${ECS_PASSWORD}
+ecs-username: ${ECS_USERNAME}
+ecs-ip: ${ECS_IP}
 EOF
 }
 

@@ -20,6 +20,9 @@ params:
   LDAP_PORT:
   LDAP_PROTO:
   LDAP_USER_FQDN:
+  ECS_PASSWORD:
+  ECS_USERNAME:
+  ECS_IP:
 
 run:
   path: persi-ci/scripts/ci/generate_variables

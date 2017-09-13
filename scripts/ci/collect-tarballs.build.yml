@@ -12,25 +12,16 @@ inputs:
 - name: diego-tarball
 - name: nfs-tarball
 - name: csi-local-tarball
+- name: ecs-tarball
 - name: diego-version
 - name: nfs-version
 - name: csi-local-version
+- name: ecs-version
 
 outputs:
 - name: collected-tarballs
 
-params:
-  DIEGO_VERSION:
-  # - Mandatory
-  # - release version for the uploaded diego tarball
-
-  NFS_VERSION:
-  # - Mandatory
-  # - release version for the uploaded nfs tarball
-
-  CSI_LOCAL_VERSION:
-  # - Mandatory
-  # - release version for the uploaded csi-local tarball
+params: {}
 
 run:
   path: persi-ci/scripts/ci/collect-tarballs

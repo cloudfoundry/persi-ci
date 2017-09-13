@@ -13,10 +13,15 @@ collect_versions() {
     echo "[ERROR] csi-local-version input is missing."
     exit 1
   fi
+  if [ ! -d ${ROOT_DIR}/ecs-version ]; then
+    echo "[ERROR] ecs-version input is missing."
+    exit 1
+  fi
 
   DIEGO_VERSION="$(cat diego-version/number)"
   NFS_VERSION="$(cat nfs-version/number)"
   CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
+  ECS_VERSION="$(cat ecs-version/number)"
 }
 
 check_params() {
@@ -32,6 +37,10 @@ check_params() {
     echo "[ERROR] csi-local-tarball input is missing."
     exit 1
   fi
+  if [ ! -d ${ROOT_DIR}/ecs-tarball ]; then
+    echo "[ERROR] ecs-tarball input is missing."
+    exit 1
+  fi
 
   if [ -z "${DIEGO_VERSION}" ]; then
     echo "[ERROR] DIEGO_VERSION is missing."
@@ -43,6 +52,10 @@ check_params() {
   fi
   if [ -z "${CSI_LOCAL_VERSION}" ]; then
     echo "[ERROR] CSI_LOCAL_VERSION is missing."
+    exit 1
+  fi
+  if [ -z "${ECS_VERSION}" ]; then
+    echo "[ERROR] ECS_VERSION is missing."
     exit 1
   fi
 }
@@ -57,6 +70,7 @@ collect_tarballs() {
   cp ${ROOT_DIR}/diego-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/diego.tgz
   cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
   cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
+  cp ${ROOT_DIR}/ecs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/ecs.tgz
 }
 
 # Copy each new operation to collection
@@ -81,6 +95,12 @@ create_operation_file() {
     name: csi-local-volume
     version: ${CSI_LOCAL_VERSION}
     url: ops-files/csi-local.tgz
+- type: replace
+  path: /releases/name=ecs-volume
+  value:
+    name: ecs-volume
+    version: ${ECS_VERSION}
+    url: ops-files/ecs.tgz
 EOF
 }
 
