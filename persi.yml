@@ -2303,7 +2303,7 @@ jobs:
       TEST_MOUNT_OPTIONS: true
 
 - name: pats-drats
-  serial-groups:
+  serial_groups:
   - gorgophone
   plan:
   - aggregate:
