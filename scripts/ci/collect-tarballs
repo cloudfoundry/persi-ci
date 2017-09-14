@@ -98,7 +98,7 @@ create_operation_file() {
 - type: replace
   path: /releases/name=ecs-release
   value:
-    name: ecs-volume
+    name: ecs-release
     version: ${ECS_VERSION}
     url: ops-files/ecs.tgz
 EOF
