@@ -13,6 +13,8 @@ nfs-ldap-fqdn: ${LDAP_USER_FQDN}
 ecs-password: ${ECS_PASSWORD}
 ecs-username: ${ECS_USERNAME}
 ecs-ip: ${ECS_IP}
+ecs-aws-id: ${ECS_AWS_ID}
+ecs-aws-key: ${ECS_AWS_KEY}
 EOF
 }
 

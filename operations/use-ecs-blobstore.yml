@@ -34,8 +34,8 @@
   value: &blobstore-properties
     provider: AWS
     endpoint: http://bosh-namespace.((ecs-ip)).nip.io:9020
-    aws_access_key_id: ((ecs-username))
-    aws_secret_access_key: ((ecs-password))
+    aws_access_key_id: ((ecs-aws-id))
+    aws_secret_access_key: ((ecs-aws-key))
 
 - type: replace
   path: /instance_groups/name=api/jobs/name=cloud_controller_ng/properties/cc/droplets?/fog_connection?
