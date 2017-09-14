@@ -2077,7 +2077,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz csi-local.tgz"
+      NEW_OPS_FILES: "diego.tgz nfs.tgz csi-local.tgz ecs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
@@ -2103,7 +2103,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/enable-nfs-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/update-releases.yml operations/enable-nfs-ldap.yml operations/experimental/deploy-bosh-backup-restore.yml operations/enable-nfs-broker-backup.yml  operations/deploy-ecs-broker-errand.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/enable-nfs-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-ecs-broker-errand.yml operations/update-releases.yml operations/enable-nfs-ldap.yml operations/experimental/deploy-bosh-backup-restore.yml operations/enable-nfs-broker-backup.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:

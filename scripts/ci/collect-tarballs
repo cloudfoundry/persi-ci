@@ -96,7 +96,7 @@ create_operation_file() {
     version: ${CSI_LOCAL_VERSION}
     url: ops-files/csi-local.tgz
 - type: replace
-  path: /releases/name=ecs-volume
+  path: /releases/name=ecs-release
   value:
     name: ecs-volume
     version: ${ECS_VERSION}

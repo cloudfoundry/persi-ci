@@ -1,7 +1,7 @@
 - type: replace
   path: /releases/-
   value:
-    name: ecs-volume
+    name: ecs-release
     version: latest
     url: TBD
 
