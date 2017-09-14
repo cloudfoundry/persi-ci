@@ -33,7 +33,7 @@
   path: /instance_groups/name=api/jobs/name=cloud_controller_ng/properties/cc/buildpacks?/fog_connection?
   value: &blobstore-properties
     provider: AWS
-    endpoint: ((ecs-ip))
+    endpoint: http://bosh-namespace.((ecs-ip)).nip.io:9020
     aws_access_key_id: ((ecs-username))
     aws_secret_access_key: ((ecs-password))
 
