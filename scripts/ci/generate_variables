@@ -1,8 +1,6 @@
 #!/bin/bash -e
 
 generate_nfs_vars() {
-    mkdir -p ${ROOT_DIR}/generated-vars
-
     cat << EOF > ${ROOT_DIR}/generated-vars/nfs-vars.yml
 ---
 nfs-ldap-service-user: ${LDAP_SVC_USER}
@@ -18,10 +16,23 @@ ecs-ip: ${ECS_IP}
 EOF
 }
 
+generate_cf_vars() {
+    cat << EOF > ${ROOT_DIR}/generated-vars/cf-vars.yml
+---
+app_package_directory_key: ${APP_PACKAGE_DIRECTORY_KEY}
+buildpack_directory_key: ${BUILDPACK_DIRECTORY_KEY}
+droplet_directory_key: ${DROPLET_DIRECTORY_KEY}
+resource_directory_key: ${resource_directory_key}
+EOF
+}
+
+
 main() {
   ROOT_DIR="${1}"
+  mkdir -p ${ROOT_DIR}/generated-vars
 
   generate_nfs_vars
+  generate_cf_vars
 }
 
 main ${PWD}

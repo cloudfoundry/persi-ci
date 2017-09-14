@@ -23,6 +23,10 @@ params:
   ECS_PASSWORD:
   ECS_USERNAME:
   ECS_IP:
+  APP_PACKAGE_DIRECTORY_KEY:
+  BUILDPACK_DIRECTORY_KEY:
+  DROPLET_DIRECTORY_KEY:
+  RESOURCE_DIRECTORY_KEY:
 
 run:
   path: persi-ci/scripts/ci/generate_variables
