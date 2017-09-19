@@ -1921,7 +1921,7 @@ jobs:
       BIND_CONFIG: '{}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: true
+      TEST_READ_ONLY: false
 
 #### END ECS ##########################################################################################################
 
