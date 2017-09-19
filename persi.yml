@@ -84,6 +84,7 @@ groups:
   - pats-nfs-pushed-broker-cf-deployment
   - pats-drats
   - pats-csi-local
+  - deploy-ecs-broker-cf-deployment
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -1871,6 +1872,23 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
+
+- name: deploy-ecs-broker-cf-deployment
+  serial_groups:
+  - ecs-deploy
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+    - get: ecs-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+  - task: run-broker-errand
+    file: persi-ci/scripts/ci/run_ecs_broker_errand.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params: {}
 
 #### END ECS ##########################################################################################################
 

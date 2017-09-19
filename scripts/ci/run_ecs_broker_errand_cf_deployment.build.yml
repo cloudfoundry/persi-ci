@@ -1,0 +1,17 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v3.9.0
+
+inputs:
+  - name: bbl-state  # - The Director's `bbl-state.json`
+  - name: persi-ci
+
+params: {}
+
+run:
+  path: persi-ci/scripts/ci/run_ecs_broker_errand_cf_deployment.sh
