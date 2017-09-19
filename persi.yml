@@ -1881,11 +1881,11 @@ jobs:
   - aggregate:
     - get: persi-ci
     - get: gorgophone-env-director-state
-    - get: ecs-release
+    - get: ecs-version
       passed: [ setup-cf-infrastructure ]
       trigger: true
   - task: run-broker-errand
-    file: persi-ci/scripts/ci/run_ecs_broker_errand.build.yml
+    file: persi-ci/scripts/ci/run_ecs_broker_errand_cf_deployment.build.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params: {}
