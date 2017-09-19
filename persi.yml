@@ -84,7 +84,9 @@ groups:
   - pats-nfs-pushed-broker-cf-deployment
   - pats-drats
   - pats-csi-local
+  - ecs-broker-unit
   - deploy-ecs-broker-cf-deployment
+  - pats-ecs-cf-deployment
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -1889,6 +1891,37 @@ jobs:
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params: {}
+
+- name: pats-ecs-cf-deployment
+  serial_groups:
+  - gorgophone
+  - ecs-deploy
+  plan:
+  - aggregate:
+    - get: ecs-version
+      passed:
+      - deploy-ecs-broker-cf-deployment
+      trigger: true
+    - get: nfs-volume-release
+    - get: gorgophone-env-vars-store
+    - get: persi-ci
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://ecs-v1.gorgophone.cf-app.com
+      BROKER_USER: user
+      BROKER_PASSWORD_KEY: ecs-broker-password
+      CF_USERNAME: admin
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      PLAN_NAME: 5gb
+      SERVICE_NAME: ecs-file-bucket
+      BIND_CONFIG: '{}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+      TEST_READ_ONLY: true
 
 #### END ECS ##########################################################################################################
 
