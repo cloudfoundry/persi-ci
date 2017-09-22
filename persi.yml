@@ -554,7 +554,7 @@ resources:
     branch: master
     uri: https://github.com/scottfrederick/spring-music.git
 
-- name: persistence-load-test
+- name: persistence-load-tests
   type: git
   source:
     branch: master
@@ -2443,7 +2443,7 @@ jobs:
     - get: persi-ci
     - get: gorgophone-env-director-state
     - get: gorgophone-env-vars-store
-    - get: persistence-load-test
+    - get: persistence-load-tests
     - get: assets
       resource: spring-music
 
