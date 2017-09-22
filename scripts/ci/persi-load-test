@@ -5,19 +5,18 @@ set -e -x
 source bosh-env/set-env.sh
 
 
-export CF_PASSWORD=`cat gorgophone-env-vars-store/deployment-vars.yml | grep cf_admin_password|awk '{print $2}'`
+export CF_PASSWORD=`cat vars-store/deployment-vars.yml | grep cf_admin_password|awk '{print $2}'`
 export ASSETS_PATH=${PWD}/assets/builds/lib/spring-music.jar
 
 mkdir -p runme/src/code.cloudfoundry.org
-cp -rf persistence-load-test runme/src/code.cloudfoundry.org/
+cp -rf persistence-load-tests runme/src/code.cloudfoundry.org/
 
 pushd runme
     GOPATH=$PWD
     PATH=$GOPATH/bin:$PATH
-    cd src/code.cloudfoundry.org/persistence-load-test
+    cd src/code.cloudfoundry.org/persistence-load-tests
+    go get ./...
 
-    go get github.com/onsi/ginkgo/ginkgo
-    go get .
     ginkgo -r
 popd
 

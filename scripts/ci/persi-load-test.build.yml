@@ -11,7 +11,7 @@ inputs:
   - name: vars-store
   - name: bosh-env
   - name: assets
-  - name: persistence-load-test
+  - name: persistence-load-tests
   - name: persi-ci
 
 params:
