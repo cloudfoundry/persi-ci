@@ -8,7 +8,7 @@ image_resource:
     tag: v3.10.0
 
 inputs:
-  - name: var-store
+  - name: vars-store
   - name: bosh-env
   - name: assets
   - name: persistence-load-test
