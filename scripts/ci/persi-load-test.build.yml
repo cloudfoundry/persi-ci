@@ -1,0 +1,25 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v3.10.0
+
+inputs:
+  - name: var-store
+  - name: bosh-env
+  - name: assets
+  - name: persistence-load-test
+  - name: persi-ci
+
+params:
+  CF_USERNAME:
+  CF_DEPLOYMENT: "cf"
+  DOMAIN_NAME:
+  NUM_OF_APPS: 1
+  SECONDS_OF_DOWNTIME:
+
+run:
+  path: persi-ci/scripts/ci/persi-load-test
