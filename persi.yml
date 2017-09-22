@@ -87,6 +87,7 @@ groups:
   - ecs-broker-unit
   - deploy-ecs-broker-cf-deployment
   - pats-ecs-cf-deployment
+  - persi-load-test
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -546,6 +547,19 @@ resources:
   source:
     branch: master
     uri: https://github.com/jeffpak/disaster-recovery-acceptance-tests
+
+- name: spring-music
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/scottfrederick/spring-music.git
+
+- name: persistence-load-test
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:cloudfoundry/persistence-load-tests.git
+    private_key: {{deployments-persi-key}}
 
 #### End cf-deployment resources #####################################################################################
 
@@ -2420,6 +2434,35 @@ jobs:
     params:
       BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
       DB_HOST: 10.0.16.8
+
+- name: persi-load-test
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+    - get: gorgophone-env-vars-store
+    - get: persistence-load-test
+    - get: assets
+      resource: spring-music
+
+  - task: get-bosh-env
+    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+  - task: run-persi-load-test
+    tags: ["jumpbox"]
+    file: persi-ci/scripts/ci/persi-load-test.build.yml
+    input_mapping:
+      bosh-env: bosh-env
+      vars-store: gorgophone-env-vars-store
+    params:
+      CF_USERNAME: admin
+      DOMAIN_NAME: "gorgophone.cf-app.com"
+      NUM_OF_APPS: 10
+      CF_DEPLOYMENT: "cf"
+      SECONDS_OF_DOWNTIME: 10
 
 #### END cf-deployment related jobs ##################################################################################
 
