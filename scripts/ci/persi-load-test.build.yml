@@ -10,7 +10,7 @@ image_resource:
 inputs:
   - name: vars-store
   - name: bosh-env
-  - name: assets
+  - name: spring-music
   - name: persistence-load-tests
   - name: persi-ci
 
