@@ -6,7 +6,7 @@ source bosh-env/set-env.sh
 
 
 export CF_PASSWORD=`cat vars-store/deployment-vars.yml | grep cf_admin_password|awk '{print $2}'`
-export ASSETS_PATH=${PWD}/assets/builds/lib/spring-music.jar
+export ASSETS_PATH=${PWD}/spring-music/spring-music.jar
 
 cf api api.${DOMAIN_NAME} --skip-ssl-validation
 
