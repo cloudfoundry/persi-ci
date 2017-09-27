@@ -15,6 +15,10 @@ ecs-username: ${ECS_USERNAME}
 ecs-ip: ${ECS_IP}
 ecs-aws-id: ${ECS_AWS_ID}
 ecs-aws-key: ${ECS_AWS_KEY}
+
+s3-blobstore-id: ${S3_BLOBSTORE_ID}
+s3-blobstore-key: ${S3_BLOBSTORE_KEY}
+s3-blobstore-region: ${S3_BLOBSTORE_REGION}
 EOF
 }
 
