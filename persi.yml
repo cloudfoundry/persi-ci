@@ -549,10 +549,13 @@ resources:
     uri: https://github.com/jeffpak/disaster-recovery-acceptance-tests
 
 - name: spring-music
-  type: git
+  type: s3
   source:
-    branch: master
-    uri: https://github.com/scottfrederick/spring-music.git
+    access_key_id: {{aws-access-key-id}}
+    bucket: persi-assets
+    regexp: (.*).jar
+    secret_access_key: {{aws-secret-access-key}}
+    region_name: us-west-1
 
 - name: persistence-load-tests
   type: git
@@ -2158,10 +2161,13 @@ jobs:
       ECS_IP: 34.206.233.96
       ECS_AWS_ID: {{ecs-blob-user}}
       ECS_AWS_KEY: {{ecs-blob-key}}
-      APP_PACKAGE_DIRECTORY_KEY: ecs-cc-packages
-      BUILDPACK_DIRECTORY_KEY: ecs-cc-buildpacks
-      DROPLET_DIRECTORY_KEY: ecs-cc-droplets
-      RESOURCE_DIRECTORY_KEY: ecs-cc-resources
+      S3_BLOBSTORE_ID: {{s3-blobstore-user}}
+      S3_BLOBSTORE_KEY: {{s3-blobstore-key}}
+      S3_BLOBSTORE_REGION: {{s3-blobstore-region}}
+      APP_PACKAGE_DIRECTORY_KEY: persi-cc-packages
+      BUILDPACK_DIRECTORY_KEY: persi-cc-buildpacks
+      DROPLET_DIRECTORY_KEY: persi-cc-droplets
+      RESOURCE_DIRECTORY_KEY: persi-cc-resources
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -2444,8 +2450,7 @@ jobs:
     - get: gorgophone-env-director-state
     - get: gorgophone-env-vars-store
     - get: persistence-load-tests
-    - get: assets
-      resource: spring-music
+    - get: spring-music
 
   - task: get-bosh-env
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
@@ -2462,7 +2467,8 @@ jobs:
       DOMAIN_NAME: "gorgophone.cf-app.com"
       NUM_OF_APPS: 10
       CF_DEPLOYMENT: "cf"
-      SECONDS_OF_DOWNTIME: 10
+      SECONDS_OF_DOWNTIME: 120
+      MINUTES_OF_SLEEP: 10
 
 #### END cf-deployment related jobs ##################################################################################
 
