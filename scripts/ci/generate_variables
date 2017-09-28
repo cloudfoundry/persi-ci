@@ -9,22 +9,22 @@ nfs-ldap-host: ${LDAP_HOST}
 nfs-ldap-port: ${LDAP_PORT}
 nfs-ldap-proto: ${LDAP_PROTO}
 nfs-ldap-fqdn: ${LDAP_USER_FQDN}
-
-ecs-password: ${ECS_PASSWORD}
-ecs-username: ${ECS_USERNAME}
-ecs-ip: ${ECS_IP}
-ecs-aws-id: ${ECS_AWS_ID}
-ecs-aws-key: ${ECS_AWS_KEY}
-
-s3-blobstore-id: ${S3_BLOBSTORE_ID}
-s3-blobstore-key: ${S3_BLOBSTORE_KEY}
-s3-blobstore-region: ${S3_BLOBSTORE_REGION}
 EOF
 }
 
 generate_cf_vars() {
     cat << EOF > ${ROOT_DIR}/generated-vars/cf-vars.yml
 ---
+ecs-password: ${ECS_PASSWORD}
+ecs-username: ${ECS_USERNAME}
+ecs-ip: ${ECS_IP}
+ecs-aws-id: ${ECS_AWS_ID}
+ecs-aws-key: ${ECS_AWS_KEY}
+
+blobstore_access_key_id: ${S3_BLOBSTORE_ID}
+blobstore_secret_access_key: ${S3_BLOBSTORE_KEY}
+aws_region: ${S3_BLOBSTORE_REGION}
+
 app_package_directory_key: ${APP_PACKAGE_DIRECTORY_KEY}
 buildpack_directory_key: ${BUILDPACK_DIRECTORY_KEY}
 droplet_directory_key: ${DROPLET_DIRECTORY_KEY}
