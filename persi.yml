@@ -306,6 +306,10 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry/garden-runc-release
+- name: garden-windows-release-tarball
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/garden-windows-bosh-release
 - name: garden-runc-release-master
   type: git
   source:
@@ -1688,6 +1692,7 @@ jobs:
         - src/loggregator
     - get: cf-dev-release
     - get: garden-runc-release-tarball
+    - get: garden-windows-release-tarball
     - get: cflinuxfs2-release-tarball
     - get: local-volume-release
       passed:
@@ -1726,6 +1731,7 @@ jobs:
       - cf-dev-release/*.tgz
       - diego-dev-release/*.tgz
       - garden-runc-release-tarball/*.tgz
+      - garden-windows-release-tarball/*.tgz
       - cflinuxfs2-release-tarball/*.tgz
       stemcells:
       - bosh-stemcell/*.tgz
