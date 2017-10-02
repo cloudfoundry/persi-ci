@@ -12,6 +12,16 @@ nfs-ldap-fqdn: ${LDAP_USER_FQDN}
 EOF
 }
 
+generate_efs_vars() {
+    cat << EOF > ${ROOT_DIR}/generated-vars/efs-vars.yml
+---
+aws-access-key-id: ${AWS_ACCESS_KEY_ID}
+aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+aws-subnet-ids: ${AWS_SECURITY_GROUP}
+aws-security-group: ${AWS_SUBNET_ID}
+EOF
+}
+
 generate_cf_vars() {
     cat << EOF > ${ROOT_DIR}/generated-vars/cf-vars.yml
 ---

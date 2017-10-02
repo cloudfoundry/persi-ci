@@ -9,6 +9,10 @@ collect_versions() {
     echo "[ERROR] nfs-version input is missing."
     exit 1
   fi
+  if [ ! -d ${ROOT_DIR}/efs-version ]; then
+    echo "[ERROR] efs-version input is missing."
+    exit 1
+  fi
   if [ ! -d ${ROOT_DIR}/csi-local-version ]; then
     echo "[ERROR] csi-local-version input is missing."
     exit 1
@@ -20,6 +24,7 @@ collect_versions() {
 
   DIEGO_VERSION="$(cat diego-version/number)"
   NFS_VERSION="$(cat nfs-version/number)"
+  EFS_VERSION="$(cat efs-version/number)"
   CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
   ECS_VERSION="$(cat ecs-version/number)"
 }
@@ -31,6 +36,10 @@ check_params() {
   fi
   if [ ! -d ${ROOT_DIR}/nfs-tarball ]; then
     echo "[ERROR] nfs-tarball input is missing."
+    exit 1
+  fi
+  if [ ! -d ${ROOT_DIR}/efs-tarball ]; then
+    echo "[ERROR] efs-tarball input is missing."
     exit 1
   fi
   if [ ! -d ${ROOT_DIR}/csi-local-tarball ]; then
@@ -48,6 +57,10 @@ check_params() {
   fi
   if [ -z "${NFS_VERSION}" ]; then
     echo "[ERROR] NFS_VERSION is missing."
+    exit 1
+  fi
+  if [ -z "${EFS_VERSION}" ]; then
+    echo "[ERROR] EFS_VERSION is missing."
     exit 1
   fi
   if [ -z "${CSI_LOCAL_VERSION}" ]; then
@@ -69,6 +82,7 @@ create_collection_directory() {
 collect_tarballs() {
   cp ${ROOT_DIR}/diego-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/diego.tgz
   cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
+  cp ${ROOT_DIR}/efs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/efs.tgz
   cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
   cp ${ROOT_DIR}/ecs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/ecs.tgz
 }
@@ -89,6 +103,12 @@ create_operation_file() {
     name: nfs-volume
     version: ${NFS_VERSION}
     url: ops-files/nfs.tgz
+- type: replace
+  path: /release/name=efs-volume
+  value:
+    name: efs-volume
+    version: ${EFS_VERSION}
+    url: ops-files/efs.tgz
 - type: replace
   path: /releases/name=csi-local-volume
   value:

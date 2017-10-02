@@ -11,10 +11,12 @@ inputs:
 - name: persi-ci
 - name: diego-tarball
 - name: nfs-tarball
+- name: efs-tarball
 - name: csi-local-tarball
 - name: ecs-tarball
 - name: diego-version
 - name: nfs-version
+- name: efs-version
 - name: csi-local-version
 - name: ecs-version
 

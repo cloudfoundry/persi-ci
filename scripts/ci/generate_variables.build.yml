@@ -29,6 +29,10 @@ params:
   BUILDPACK_DIRECTORY_KEY:
   DROPLET_DIRECTORY_KEY:
   RESOURCE_DIRECTORY_KEY:
+  AWS_ACCESS_KEY_ID:
+  AWS_SECRET_ACCESS_KEY:
+  AWS_SECURITY_GROUP:
+  AWS_SUBNET_ID:
 
 run:
   path: persi-ci/scripts/ci/generate_variables
