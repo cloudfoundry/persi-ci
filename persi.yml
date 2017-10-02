@@ -70,6 +70,7 @@ groups:
   - nfsbroker-unit
   - nfsdriver-certification
   - create-nfs-volume-release
+  - create-efs-volume-release
   - unit-local-controller-plugin
   - unit-local-node-plugin
   - create-csi-local-volume-release
@@ -78,6 +79,7 @@ groups:
   - create-diego-release
   - setup-cf-infrastructure
   - pats-nfs-cf-deployment
+  - pats-efs-cf-deployment
   - pats-isilon-cf-deployment
   - pats-nfs-docker-cf-deployment
   - pats-nfs-ldap-cf-deployment
@@ -2075,6 +2077,12 @@ jobs:
       trigger: true
     - get: nfsvolume-version
       passed: [ create-nfs-volume-release ]
+    - get: efs-volume-release
+      passed: [ create-efs-volume-release ]
+    - get: efs-volume-release-tarball
+      passed: [ create-efs-volume-release ]
+    - get: efsvolume-version
+      passed: [ create-efs-volume-release ]
     - get: csi-local-volume-release
       passed: [ create-csi-local-volume-release ]
     - get: csi-local-volume-release-tarball
@@ -2123,10 +2131,12 @@ jobs:
       persi-ci: persi-ci
       diego-tarball: diego-dev-release
       nfs-tarball: nfs-volume-release-tarball
+      efs-tarball: efs-volume-release-tarball
       csi-local-tarball: csi-local-volume-release-tarball
       ecs-tarball: ecs-release-tarball
       diego-version: diego-version
       nfs-version: nfsvolume-version
+      efs-version: efsvolume-version
       csi-local-version: csi-local-volume-version
       ecs-version: ecs-version
   - task: collect-ops-files
@@ -2136,7 +2146,7 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-nfs-ldap.yml operations/enable-nfs-broker-backup.yml operations/deploy-ecs-broker-errand.yml"
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-nfs-ldap.yml operations/enable-nfs-broker-backup.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml"
   - task: collect-more-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2152,7 +2162,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz csi-local.tgz ecs.tgz"
+      NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz csi-local.tgz ecs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
@@ -2174,6 +2184,10 @@ jobs:
       BUILDPACK_DIRECTORY_KEY: persi-cc-buildpacks
       DROPLET_DIRECTORY_KEY: persi-cc-droplets
       RESOURCE_DIRECTORY_KEY: persi-cc-resources
+      AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
+      AWS_SECURITY_GROUP: sg-18931265
+      AWS_SUBNET_ID: subnet-6e5d3444
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -2187,8 +2201,8 @@ jobs:
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
-      VARS_FILES: "nfs-vars.yml cf-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-ecs-broker-errand.yml operations/update-releases.yml operations/enable-nfs-ldap.yml operations/experimental/deploy-bosh-backup-restore.yml operations/enable-nfs-broker-backup.yml"
+      VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/update-releases.yml operations/enable-nfs-ldap.yml operations/experimental/deploy-bosh-backup-restore.yml operations/enable-nfs-broker-backup.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
@@ -2258,6 +2272,37 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: true
+
+- name: pats-efs-cf-deployment
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: efs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: efs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: efs-volume-release/scripts/ci/run_pats_efsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: efs-volume-release/assets/pora
+      APPS_DOMAIN: persi.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://efs-broker.persi.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.persi.cf-app.com
+      CF_PASSWORD: {{cf-password}}
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: generalPurpose
+      SERVICE_NAME: efs
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
 
 - name: pats-nfs-cf-deployment
   serial_groups:
