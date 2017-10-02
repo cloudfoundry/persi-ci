@@ -48,6 +48,7 @@ main() {
   mkdir -p ${ROOT_DIR}/generated-vars
 
   generate_nfs_vars
+  generate_efs_vars
   generate_cf_vars
 }
 
