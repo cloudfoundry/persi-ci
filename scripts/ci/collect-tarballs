@@ -104,7 +104,7 @@ create_operation_file() {
     version: ${NFS_VERSION}
     url: ops-files/nfs.tgz
 - type: replace
-  path: /release/name=efs-volume
+  path: /releases/name=efs-volume
   value:
     name: efs-volume
     version: ${EFS_VERSION}
