@@ -31,7 +31,7 @@
         aws-subnet-ids: ((aws-subnet-id))
         aws-security-group: ((aws-security-group))
     - name: efsdriver
-      release: cf-networking
+      release: efs-volume
       properties:
         listen_addr: 127.0.0.1:7089
         efs_vol_tools_addr: ""
