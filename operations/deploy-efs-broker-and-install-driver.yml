@@ -7,7 +7,8 @@
 - type: replace
   path: /instance_groups/-
   value:
-  - name: efs-deploy
+    name: efs-deploy
+    vm_extensions: [efsbroker]
     azs:
     - z1
     instances: 1
@@ -39,5 +40,3 @@
           driver_path: /var/vcap/data/voldrivers
           cell_mount_path: /var/vcap/data/volumes/efs
           log_level: info
-  - name: efsbroker
-    vm_extensions: [efsbroker]
