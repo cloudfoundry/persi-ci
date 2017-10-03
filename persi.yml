@@ -73,6 +73,7 @@ groups:
   - create-efs-volume-release
   - unit-local-controller-plugin
   - unit-local-node-plugin
+  - unit-smbdriver
   - create-csi-local-volume-release
   - volman-unit
   - volman-inigo
@@ -508,6 +509,14 @@ resources:
     access_token: {{github-release-token}}
 
 #### End CSI resources ###############################################################################################
+
+#### Start SMB resources ###############################################################################################
+- name: smb-volume-release
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/smb-volume-release.git
+
+#### End SMB resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
 - name: cf-deployment-develop
@@ -2051,6 +2060,17 @@ jobs:
       file: created-csi-local-volume-release/csi*.tgz
 
 #### END CSI related jobs ############################################################################################
+
+#### START SMB related jobs ###########################################################################################
+- name: unit-smbdriver
+  plan:
+  - aggregate:
+    - get: smb-volume-release
+      trigger: true
+  - task: smbdriver-unit
+    file: smb-volume-release/scripts/ci/smbdriver-unit.build.yml
+
+#### END SMB related jobs ###########################################################################################
 
 #### START cf-deployment related jobs ################################################################################
 
