@@ -1,0 +1,8 @@
+- type: replace
+  path: /vm_extensions/-
+  value:
+    name: efsbroker
+    cloud_properties:
+      iam_instance_profile: efsbroker
+
+

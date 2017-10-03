@@ -5,13 +5,6 @@
     version: latest
 
 - type: replace
-  path: /vm_extensions/-
-  value:
-    name: efsbroker
-    cloud_properties:
-      iam_instance_profile: efsbroker
-
-- type: replace
   path: /instance_groups/-
   value:
   - name: efs-deploy
