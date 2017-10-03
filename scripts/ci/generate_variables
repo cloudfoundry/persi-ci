@@ -19,6 +19,8 @@ aws-access-key-id: ${AWS_ACCESS_KEY_ID}
 aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
 aws-subnet-id: ${AWS_SUBNET_ID}
 aws-security-group: ${AWS_SECURITY_GROUP}
+ecs-broker-aws-access-key-id: ${ECS_BROKER_AWS_ACCESS_KEY_ID}
+ecs-broker-aws-secret-access-key: ${ECS_BROKER_AWS_SECRET_ACCESS_KEY}
 EOF
 }
 

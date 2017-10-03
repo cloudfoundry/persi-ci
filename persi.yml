@@ -2215,6 +2215,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
       AWS_SECURITY_GROUP: sg-18931265
       AWS_SUBNET_ID: subnet-6e5d3444
+      ECS_BROKER_AWS_ACCESS_KEY_ID: {{ecs-broker-aws-access-key-id}}
+      ECS_BROKER_AWS_SECRET_ACCESS_KEY: {{ecs-broker-aws-secret-access-key}}
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
