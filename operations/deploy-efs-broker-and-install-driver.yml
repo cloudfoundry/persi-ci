@@ -5,9 +5,16 @@
     version: latest
 
 - type: replace
+  path: /vm_extensions/-
+  value:
+    name: efsbroker
+    cloud_properties:
+      iam_instance_profile: efsbroker
+
+- type: replace
   path: /instance_groups/-
   value:
-    name: efs-deploy
+  - name: efs-deploy
     azs:
     - z1
     instances: 1
@@ -27,8 +34,6 @@
           username: admin
           password: admin
           aws-region: us-east-1
-          aws-access-key-id: ((ecs-broker-aws-access-key-id))
-          aws-secret-access-key: ((ecs-broker-aws-secret-access-key))
           aws-subnet-ids: ((aws-subnet-id))
           aws-security-group: ((aws-security-group))
     - name: efsdriver
@@ -41,3 +46,5 @@
           driver_path: /var/vcap/data/voldrivers
           cell_mount_path: /var/vcap/data/volumes/efs
           log_level: info
+  - name: efsbroker
+    vm_extensions: [efsbroker]
