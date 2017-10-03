@@ -74,6 +74,7 @@ groups:
   - unit-local-controller-plugin
   - unit-local-node-plugin
   - unit-smbdriver
+  - unit-azurefilebroker
   - create-csi-local-volume-release
   - volman-unit
   - volman-inigo
@@ -2069,6 +2070,14 @@ jobs:
       trigger: true
   - task: smbdriver-unit
     file: smb-volume-release/scripts/ci/smbdriver-unit.build.yml
+
+- name: unit-azurefilebroker
+  plan:
+  - aggregate:
+    - get: smb-volume-release
+      trigger: true
+  - task: azurefilebroker-unit
+    file: smb-volume-release/scripts/ci/azurefilebroker-unit.build.yml
 
 #### END SMB related jobs ###########################################################################################
 
