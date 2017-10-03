@@ -28,7 +28,7 @@
         aws-region: us-east-1
         aws-access-key-id: ((aws-access-key-id))
         aws-secret-access-key: ((aws-secret-access-key))
-        aws-subnet-ids: ((aws-subnet-id))
+        aws-subnet-ids: ((aws-subnet-ids))
         aws-security-group: ((aws-security-group))
     - name: efsdriver
       release: efs-volume
