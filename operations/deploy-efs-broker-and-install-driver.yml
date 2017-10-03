@@ -19,23 +19,25 @@
     - name: efsbroker
       release: efs-volume
       properties:
-        listen-addr: 0.0.0.0:8999
-        service-name: efs
-        service-id: efs-service-guid
-        data-dir: /var/vcap/store/efsbroker
-        username: admin
-        password: admin
-        aws-region: us-east-1
-        aws-access-key-id: ((aws-access-key-id))
-        aws-secret-access-key: ((aws-secret-access-key))
-        aws-subnet-ids: ((aws-subnet-ids))
-        aws-security-group: ((aws-security-group))
+        efsbroker:
+          listen-addr: 0.0.0.0:8999
+          service-name: efs
+          service-id: efs-service-guid
+          data-dir: /var/vcap/store/efsbroker
+          username: admin
+          password: admin
+          aws-region: us-east-1
+          aws-access-key-id: ((aws-access-key-id))
+          aws-secret-access-key: ((aws-secret-access-key))
+          aws-subnet-ids: ((aws-subnet-id))
+          aws-security-group: ((aws-security-group))
     - name: efsdriver
       release: efs-volume
       properties:
-        listen_addr: 127.0.0.1:7089
-        efs_vol_tools_addr: ""
-        debug_addr: 127.0.0.1:7189
-        driver_path: /var/vcap/data/voldrivers
-        cell_mount_path: /var/vcap/data/volumes/efs
-        log_level: info
+        efsdriver:
+          listen_addr: 127.0.0.1:7089
+          efs_vol_tools_addr: ""
+          debug_addr: 127.0.0.1:7189
+          driver_path: /var/vcap/data/voldrivers
+          cell_mount_path: /var/vcap/data/volumes/efs
+          log_level: info
