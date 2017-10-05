@@ -8,7 +8,6 @@
   path: /instance_groups/-
   value:
     name: efsbroker
-    vm_extensions: [efsbroker]
     azs:
     - z1
     instances: 1
