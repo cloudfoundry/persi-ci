@@ -28,6 +28,8 @@
           username: admin
           password: admin
           aws-region: us-east-1
+          aws-access-key-id: ((aws-access-key-id))
+          aws-secret-access-key: ((aws-secret-access-key))
           aws-subnet-ids: ((aws-subnet-id))
           aws-security-group: ((aws-security-group))
     - name: efsdriver
