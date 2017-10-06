@@ -2229,7 +2229,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/update-releases.yml operations/enable-nfs-ldap.yml operations/experimental/deploy-bosh-backup-restore.yml operations/enable-nfs-broker-backup.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/update-releases.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/enable-nfs-broker-backup.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
