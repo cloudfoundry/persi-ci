@@ -31,6 +31,15 @@
           aws-secret-access-key: ((aws-secret-access-key))
           aws-subnet-ids: ((aws-subnet-id))
           aws-security-group: ((aws-security-group))
+        route_registrar:
+          routes:
+          - name: efs-broker
+            port: 8999
+            registration_interval: 20s
+            tags:
+              component: efs-broker
+            uris:
+            - efs-broker.gorgophone.cf-app.com
     - name: efsdriver
       release: efs-volume
       properties:
