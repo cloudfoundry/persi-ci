@@ -11,6 +11,13 @@
     type: password
 
 - type: replace
+  path: /instance_groups/name=diego-cell/jobs/-
+  value:
+    name: efsdriver
+    release: efs-volume
+    properties: {}
+
+- type: replace
   path: /instance_groups/-
   value:
     name: efsbroker
