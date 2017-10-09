@@ -49,7 +49,7 @@
       properties:
         efsdriver:
           listen_addr: 127.0.0.1:7089
-          efs_vol_tools_addr: ""
+          efs_vol_tools_addr: ((efs-vol-tools-addr))
           debug_addr: 127.0.0.1:7189
           driver_path: /var/vcap/data/voldrivers
           cell_mount_path: /var/vcap/data/volumes/efs
