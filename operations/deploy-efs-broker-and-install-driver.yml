@@ -39,7 +39,7 @@
           data-dir: /var/vcap/store/efsbroker
           username: admin
           password: ((efs-broker-password))
-          aws-region: us-east-1
+          aws-region: us-west-2
           aws-access-key-id: ((aws-access-key-id))
           aws-secret-access-key: ((aws-secret-access-key))
           aws-subnet-ids: ((aws-subnet-id))
