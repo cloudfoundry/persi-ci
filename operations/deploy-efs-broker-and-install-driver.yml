@@ -5,17 +5,23 @@
     version: latest
 
 - type: replace
-  path: /variables/-
-  value:
-    name: efs-broker-password
-    type: password
-
-- type: replace
   path: /instance_groups/name=diego-cell/jobs/-
   value:
     name: efsdriver
     release: efs-volume
     properties: {}
+
+- type: replace
+  path: /instance_groups/name=api/jobs/name=cloud_controller_ng/properties/cc/volume_services_enabled?
+  value: true
+
+- type: replace
+  path: /instance_groups/name=cc-worker/jobs/name=cloud_controller_worker/properties/cc/volume_services_enabled?
+  value: true
+
+- type: replace
+  path: /instance_groups/name=scheduler/jobs/name=cloud_controller_clock/properties/cc/volume_services_enabled?
+  value: true
 
 - type: replace
   path: /instance_groups/-
@@ -49,7 +55,7 @@
       properties:
         efsdriver:
           listen_addr: 127.0.0.1:7089
-          efs_vol_tools_addr: ((efs-vol-tools-addr))
+          efs_vol_tools_addr: 127.0.0.1:7090
           debug_addr: 127.0.0.1:7189
           driver_path: /var/vcap/data/voldrivers
           cell_mount_path: /var/vcap/data/volumes/efs

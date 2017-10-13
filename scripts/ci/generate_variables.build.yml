@@ -33,6 +33,10 @@ params:
   AWS_SECRET_ACCESS_KEY:
   AWS_SECURITY_GROUP:
   AWS_SUBNET_ID:
+  S3_BLOBSTORE_ID:
+  S3_BLOBSTORE_KEY:
+  S3_BLOBSTORE_REGION:
+  EFS_BROKER_PASSWORD:
 
 run:
   path: persi-ci/scripts/ci/generate_variables

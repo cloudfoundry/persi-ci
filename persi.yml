@@ -2217,6 +2217,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
       AWS_SECURITY_GROUP: sg-18931265
       AWS_SUBNET_ID: subnet-6e5d3444
+      EFS_BROKER_PASSWORD: {{efs-broker-password}}
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -2321,13 +2322,12 @@ jobs:
       vars-store: gorgophone-env-vars-store
     params:
       APPLICATION_PATH: efs-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://efs-broker.persi.cf-app.com
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_PASSWORD: {{efs-broker-password}}
+      BROKER_URL: http://efs-broker.gorgophone.cf-app.com
       BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
       TEST_MULTI_CELL: true

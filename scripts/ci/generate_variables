@@ -20,6 +20,7 @@ aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
 aws-subnet-id: ${AWS_SUBNET_ID}
 aws-security-group: ${AWS_SECURITY_GROUP}
 efs-vol-tools-addr: ${EFS_VOL_TOOLS_ADDR}
+efs-broker-password: ${EFS_BROKER_PASSWORD}
 EOF
 }
 
