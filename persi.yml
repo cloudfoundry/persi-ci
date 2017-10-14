@@ -2216,7 +2216,7 @@ jobs:
       AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
       AWS_SECURITY_GROUP: sg-18931265
-      AWS_SUBNET_ID: subnet-6e5d3444
+      AWS_SUBNET_ID: subnet-f72f2493
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
 
   - task: bosh-deploy-cf
