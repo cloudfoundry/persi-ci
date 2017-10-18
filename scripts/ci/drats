@@ -16,7 +16,7 @@ export BOSH_CERT_PATH=${CA_CERT}
 export BBR_BUILD_PATH=$(pwd)/binary/bbr
 
 
-#install bosh
+# install bosh
 wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
 chmod +x bosh-cli-*
 mv bosh-cli-* /usr/local/bin/bosh-cli
@@ -42,12 +42,12 @@ pushd runme/
     mkdir -p $GOPATH/bin
     curl https://glide.sh/get | sh
 
-    mkdir -p src/github.com/cloudfoundry-incubator/
-    pushd src/github.com/cloudfoundry-incubator/
-        git clone https://github.com/cloudfoundry-incubator/persi-disaster-recovery-acceptance-tests persi-disaster-recovery-acceptance-tests
+    mkdir -p src/github.com/paulcwarren/
+    pushd src/github.com/paulcwarren/
+        git clone https://github.com/paulcwarren/disaster-recovery-acceptance-tests.git
 
         # run drats
-        pushd persi-disaster-recovery-acceptance-tests/
+        pushd disaster-recovery-acceptance-tests/
             scripts/run_acceptance_tests.sh
         popd
     popd
