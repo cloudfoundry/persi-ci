@@ -558,12 +558,6 @@ resources:
     api_token: {{pivnet-api-token}}
     product_slug: p-bosh-backup-and-restore
 
-- name: drats
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/jeffpak/disaster-recovery-acceptance-tests
-
 - name: spring-music
   type: s3
   source:
@@ -2480,7 +2474,6 @@ jobs:
     - get: bbr-release
     - get: gorgophone-env-director-state
     - get: gorgophone-env-vars-store
-    - get: drats
     - get: nfs-volume-release
       passed:
       - setup-cf-infrastructure
@@ -2512,15 +2505,20 @@ jobs:
     tags: ["jumpbox"]
     file: persi-ci/scripts/ci/drats.build.yml
     input_mapping:
-      drats: drats
       bosh-env: bosh-env
       persi-ci: persi-ci
       binary: binary
       nfs-volume-release: nfs-volume-release
       vars-store: gorgophone-env-vars-store
     params:
+      CF_API_URL: https://api.gorgophone.cf-app.com
+      CF_ADMIN_USERNAME: admin
+      SERVICE_NAME: nfs
+      PLAN_NAME: Existing
       BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      DB_HOST: 10.0.16.8
+      BROKER_USER: nfs-broker
+      SERVER_ADDRESS: nfstestserver.service.cf.internal
+      SHARE: /foo
 
 - name: persi-load-test
   serial_groups:
