@@ -2215,8 +2215,8 @@ jobs:
       RESOURCE_DIRECTORY_KEY: persi-cc-resources
       AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-18931265
-      AWS_SUBNET_ID: subnet-f72f2493
+      AWS_SECURITY_GROUP: sg-be897fd9
+      AWS_SUBNET_ID: subnet-80eaa2d9
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
 
   - task: bosh-deploy-cf
@@ -2323,11 +2323,12 @@ jobs:
     params:
       APPLICATION_PATH: efs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_PASSWORD: {{efs-broker-password}}
+      BROKER_PASSWORD: {{pats-broker-password}}
       BROKER_URL: http://efs-broker.gorgophone.cf-app.com
       BROKER_USER: {{pats-broker-username}}
+      BROKER_PASSWORD: {{efs-broker-password}}
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
+      CF_USERNAME: {{cf-username}}
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
       TEST_MULTI_CELL: true
