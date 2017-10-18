@@ -14,7 +14,7 @@ export BOSH_CLIENT=${BOSH_CLIENT}
 export BOSH_CLIENT_SECRET=${BOSH_CLIENT_SECRET}
 export BOSH_CERT_PATH=${CA_CERT}
 export BBR_BUILD_PATH=$(pwd)/binary/bbr
-
+export FOCUSED_SUITE_NAME=cf-nfsbroker
 
 # install bosh
 wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
