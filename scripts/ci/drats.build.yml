@@ -14,17 +14,14 @@ inputs:
   - name: vars-store
 
 params:
+ - CF_API_URL: https://api.gorgophone.cf-app.com
+ - CF_ADMIN_USERNAME: admin
+ - CF_ADMIN_PASSWORD:
  - SERVICE_NAME: nfs
  - PLAN_NAME: Existing
  - BROKER_USER: nfs-broker
  - BROKER_PASSWORD:
  - BROKER_URL: ~
- - DB_DRIVER_NAME: mysql
- - DB_HOST: sql-db.service.cf.internal
- - DB_PORT: 3306
- - DB_NAME: nfs-broker
- - DB_USERNAME: nfs-broker
- - DB_PASSWORD:
  - SERVER_ADDRESS: nfstestserver.service.cf.internal
  - SHARE: /foo
 

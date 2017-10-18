@@ -7,9 +7,10 @@ source bosh-env/set-env.sh
 export CA_CERT="$PWD/bosh-env/ca-cert.pem"
 #export BBR_PRIVATE_KEY=$(cat bosh-env/ssh-key)
 
-export DEPLOYMENT_TO_BACKUP=cf
-export DEPLOYMENT_TO_RESTORE=cf
-export BOSH_URL=${BOSH_ENVIRONMENT}
+export CF_DEPLOYMENT_NAME=cf
+export CF_API_URL=${CF_API_URL}
+export CF_ADMIN_USERNAME=${CF_ADMIN_USERNAME}
+export BOSH_ENVIRONMENT=${BOSH_ENVIRONMENT}
 export BOSH_CLIENT=${BOSH_CLIENT}
 export BOSH_CLIENT_SECRET=${BOSH_CLIENT_SECRET}
 export BOSH_CERT_PATH=${CA_CERT}
@@ -21,14 +22,15 @@ wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
 chmod +x bosh-cli-*
 mv bosh-cli-* /usr/local/bin/bosh-cli
 
+if [ -z "$CF_ADMIN_PASSWORD" ]; then
+    if [ -e "vars-store/deployment-vars.yml" ]; then
+        BROKER_PASSWORD=`grep cf_admin_password vars-store/deployment-vars.yml | awk  '{print $2}'`
+    fi
+fi
+
 if [ -z "$BROKER_PASSWORD" ]; then
     if [ -e "vars-store/deployment-vars.yml" ]; then
         BROKER_PASSWORD=`grep nfs-broker-password vars-store/deployment-vars.yml | awk  '{print $2}'`
-    fi
-fi
-if [ -z "$DB_PASSWORD" ]; then
-    if [ -e "vars-store/deployment-vars.yml" ]; then
-        DB_PASSWORD=`grep nfs-broker-database-password vars-store/deployment-vars.yml | awk  '{print $2}'`
     fi
 fi
 
