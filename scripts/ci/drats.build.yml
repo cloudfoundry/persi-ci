@@ -17,13 +17,11 @@ params:
  - CF_API_URL: https://api.gorgophone.cf-app.com
  - CF_ADMIN_USERNAME: admin
  - CF_ADMIN_PASSWORD:
- - SERVICE_NAME: nfs
- - PLAN_NAME: Existing
- - BROKER_USER: nfs-broker
- - BROKER_PASSWORD:
- - BROKER_URL: ~
- - SERVER_ADDRESS: nfstestserver.service.cf.internal
- - SHARE: /foo
+ - NFS_SERVICE_NAME: nfs
+ - NFS_PLAN_NAME: Existing
+ - NFS_BROKER_USER: nfs-broker
+ - NFS_BROKER_PASSWORD:
+ - NFS_BROKER_URL: ~
 
 
 run:

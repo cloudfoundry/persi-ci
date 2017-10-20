@@ -28,9 +28,9 @@ if [ -z "$CF_ADMIN_PASSWORD" ]; then
     fi
 fi
 
-if [ -z "$BROKER_PASSWORD" ]; then
+if [ -z "$NFS_BROKER_PASSWORD" ]; then
     if [ -e "vars-store/deployment-vars.yml" ]; then
-        BROKER_PASSWORD=`grep nfs-broker-password vars-store/deployment-vars.yml | awk  '{print $2}'`
+        NFS_BROKER_PASSWORD=`grep nfs-broker-password vars-store/deployment-vars.yml | awk  '{print $2}'`
     fi
 fi
 

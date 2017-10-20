@@ -2528,12 +2528,7 @@ jobs:
     params:
       CF_API_URL: https://api.gorgophone.cf-app.com
       CF_ADMIN_USERNAME: admin
-      SERVICE_NAME: nfs
-      PLAN_NAME: Existing
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
-      SERVER_ADDRESS: nfstestserver.service.cf.internal
-      SHARE: /foo
+      NFS_BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
 
 - name: persi-load-test
   serial_groups:
