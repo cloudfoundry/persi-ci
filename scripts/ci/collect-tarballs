@@ -124,6 +124,8 @@ create_operation_file() {
 - type: replace
   path: /instance_groups/name=uaa/jobs/name=uaa/properties?/release_level_backup?
   value: false
+- type: remove
+  path: /instance_groups/name=backup-restore/jobs/name=bbr-uaadb
 EOF
 }
 
