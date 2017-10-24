@@ -2222,10 +2222,10 @@ jobs:
       BUILDPACK_DIRECTORY_KEY: persi-cc-buildpacks
       DROPLET_DIRECTORY_KEY: persi-cc-droplets
       RESOURCE_DIRECTORY_KEY: persi-cc-resources
-      AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-be897fd9
-      AWS_SUBNET_ID: subnet-80eaa2d9
+      AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
+      AWS_SECURITY_GROUP: sg-80bfddfd
+      AWS_SUBNET_ID: subnet-aced69e4
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
 
   - task: bosh-deploy-cf
