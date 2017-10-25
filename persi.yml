@@ -6,14 +6,8 @@ groups:
   jobs:
   - unit-cephfs-driver
   - unit-cephfs-broker
-  - unit-local-controller-plugin
-  - unit-local-node-plugin
-  - csi-plugin-certification
-  - certification-test-builds
-  - certification-test-publish
   - create-cephfs-release
   - deploy-cephfs-cluster
-  - deploy-nfs-test-server
   - cephdriver-certification
   - create-cf-release
   - cf-deploy
@@ -24,34 +18,12 @@ groups:
   - diego-deploy
   - pats-cephfs
   - pats-local
-  - pats-nfs
-  - pats-nfs-pushed-broker
-  - pats-nfs-docker
-  - pats-nfs-ldap
-  - pats-isilon
-  - pats-efs
   - localdriver-unit
   - localbroker-unit
   - localdriver-certification
   - localdriver-docker-certification
   - create-local-volume-release
   - deploy-local-broker
-  - efsdriver-unit
-  - efsbroker-unit
-  - efsdriver-certification
-  - create-efs-volume-release
-  - create-nfs-volume-release
-  - deploy-efs-broker
-  - nfsdriver-unit
-  - nfsbroker-unit
-  - nfsdriver-certification
-  - deploy-nfs-broker
-  - create-isilon-volume
-  - create-ecs-release
-  - ecs-broker-unit
-  - deploy-ecs
-  - deploy-ecs-broker
-  - pats-ecs
 - name: util
   jobs:
   - teardown-cephfs-cluster
@@ -67,30 +39,37 @@ groups:
   - manual-bump-nfs-major
 - name: gorgophone
   jobs:
+  - volman-unit
+  - volman-inigo
   - nfsdriver-unit
   - nfsbroker-unit
   - nfsdriver-certification
-  - create-nfs-volume-release
-  - create-efs-volume-release
+  - efsdriver-unit
+  - efsbroker-unit
+  - efsdriver-certification
   - unit-local-controller-plugin
   - unit-local-node-plugin
+  - csi-plugin-certification
+  - certification-test-builds
+  - certification-test-publish
   - unit-smbdriver
   - unit-azurefilebroker
+  - ecs-broker-unit
+  - create-nfs-volume-release
+  - create-efs-volume-release
   - create-csi-local-volume-release
-  - volman-unit
-  - volman-inigo
   - create-diego-release
   - setup-cf-infrastructure
+  - deploy-ecs-broker-cf-deployment
   - pats-nfs-cf-deployment
   - pats-efs-cf-deployment
+  - create-isilon-volume
   - pats-isilon-cf-deployment
   - pats-nfs-docker-cf-deployment
   - pats-nfs-ldap-cf-deployment
   - pats-nfs-pushed-broker-cf-deployment
   - pats-drats
   - pats-csi-local
-  - ecs-broker-unit
-  - deploy-ecs-broker-cf-deployment
   - pats-ecs-cf-deployment
   - persi-load-test
 ###################################### END GROUPS SECTION ############################################################
@@ -162,13 +141,6 @@ resources:
 #### END CEPH resources ###############################################################################################
 
 #### NFS resources ###############################################################################################
-- name: nfs-test-server-deployment
-  type: bosh-deployment
-  source:
-    deployment: nfs-server
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
-    target: {{bosh-director-ip}}
 - name: nfs-volume-release-tarball
   type: s3
   source:
@@ -185,14 +157,6 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
-- name: nfs-volume-deployment
-  type: bosh-deployment
-  source:
-    deployment: nfs-volume
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
 - name: nfsvolume-final-release
   type: s3
   source:
@@ -909,40 +873,6 @@ jobs:
 #### END Local volume #################################################################################################
 
 #### NFS related jobs #################################################################################################
-- name: deploy-nfs-test-server
-  serial_groups:
-  - nfs-test-server-deploy
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - set-runtime-config
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - set-runtime-config
-    - get: aws-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-    - get: persi-ci
-    - get: deployments-persi
-  - task: generate-deployment-manifests
-    file: nfs-volume-release/scripts/ci/generate_nfs_test_server_manifests.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USERNAME: {{bosh-director-username}}
-      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-      ENVIRONMENT_NAME: persi-cf
-      INFRASTRUCTURE: aws
-  - put: nfs-test-server-deployment
-    params:
-      manifest: generated-manifest-nfs/nfs-test-server-manifest.yml
-      releases:
-      - nfs-volume-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
 - name: nfsdriver-unit
   plan:
   - get: nfs-volume-release
@@ -962,21 +892,23 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-test-server
+      - create-nfs-volume-release
       trigger: true
     - get: lib-nfs
     - get: fuse-nfs
   - task: fuse-nfs-cert
+    tags: ["jumpbox"]
     privileged: true
     file: nfs-volume-release/scripts/ci/run_fuse_nfs_cert.build.yml
     params:
-      FUSE_MOUNT: nfs://10.10.200.72/export2/certs?uid=3000&gid=3050
-      NFS_MOUNT: 10.10.200.72:/export2/certs
+      FUSE_MOUNT: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050
+      NFS_MOUNT: testnfsserver.gorgophone.cf-app.com:/export2/certs
   - task: driver-cert
+    tags: ["jumpbox"]
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
     params:
-      SOURCE: nfs://10.10.200.72/export2/certs
+      SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs
 - name: create-nfs-volume-release
   serial_groups:
   - nfs-version
@@ -1000,218 +932,6 @@ jobs:
   - put: nfs-volume-release-tarball
     params:
       file: created-nfs-volume-release/nfs*.tgz
-- name: deploy-nfs-broker
-  serial_groups:
-  - nfsbroker-deploy
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - set-runtime-config
-      trigger: true
-    - get: cf-release
-      passed:
-      - cf-deploy
-    - get: nfs-volume-release-tarball
-      passed:
-      - set-runtime-config
-    - get: aws-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-    - get: deployments-persi
-  - task: generate-deployment-manifests
-    file: nfs-volume-release/scripts/ci/generate_deployment_manifests.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USERNAME: {{bosh-director-username}}
-      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-      ENVIRONMENT_NAME: persi-cf
-      INFRASTRUCTURE: aws
-  - put: nfs-volume-deployment
-    params:
-      manifest: generated-manifest-nfs/nfsvolume-manifest.yml
-      releases:
-      - nfs-volume-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
-- name: pats-nfs
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - nfsbroker-deploy
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-broker
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-nfs-broker
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: nfs-volume-release #dummy input
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://nfs-broker.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-- name: pats-nfs-docker
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - nfsbroker-deploy
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-broker
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-nfs-broker
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: nfs-volume-release #dummy input
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://nfs-broker.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_DOCKER_PORA: true
-- name: pats-nfs-ldap
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - nfsbroker-deploy
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-broker
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-nfs-broker
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: nfs-volume-release #dummy input
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://nfs-broker.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
-      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: false
-
-- name: pats-nfs-pushed-broker
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - nfsbroker-deploy
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-broker
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-nfs-broker
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: nfs-volume-release #dummy input
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: admin
-      BROKER_URL: http://nfsbrokerpatsapp.persi.cf-app.com
-      BROKER_USER: admin
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"10.10.200.72/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      PUSHED_BROKER_NAME: nfsbrokerpatsapp
-      DB_DRIVER_NAME: mysql
-      DB_HOST: {{nfsbroker-mysql-host}}
-      DB_PORT: 3306
-      DB_NAME: nfsbroker
-      DB_USERNAME: {{nfsbroker-mysql-user}}
-      DB_PASSWORD: {{nfsbroker-mysql-password}}
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-
-
 - name: shipit-nfs
   serial_groups:
   - nfs-version
@@ -1220,10 +940,10 @@ jobs:
     - get: persi-ci
     - get: nfs-volume-release-tarball
       passed:
-      - pats-nfs
+      - pats-nfs-cf-deployment
     - get: nfs-volume-release
       passed:
-      - pats-nfs
+      - pats-nfs-cf-deployment
     - get: nfs-volume-version
       resource: nfsvolume-version
       params:
@@ -1309,58 +1029,15 @@ jobs:
 - name: create-isilon-volume
   plan:
   - aggregate:
+    - get: nfs-volume-release
+    - get: nfs-volume-release-tarball
     - get: deployments-persi
-    - get: diego-deployment
+    - get: gorgophone-env-director-state
       passed:
-      - diego-deploy
+      - setup-cf-infrastructure
       trigger: true
   - task: create-share
     file: deployments-persi/persi-ci/deployments/isilon-volume/create-share.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USERNAME: {{bosh-director-username}}
-
-- name: pats-isilon
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - nfsbroker-deploy
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-broker
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - create-isilon-volume
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: nfs-volume-release #dummy input
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://nfs-broker.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: false
-
 #### END Isilon ######################################################################################################
 
 #### EFS related jobs ################################################################################################
@@ -1651,13 +1328,6 @@ jobs:
       passed:
       - create-local-volume-release
       trigger: true
-    - get: nfs-volume-release
-      passed:
-      - create-nfs-volume-release
-    - get: nfs-volume-release-tarball
-      passed:
-      - create-nfs-volume-release
-      trigger: true
   - task: update_runtime_config
     file: persi-ci/scripts/ci/update_runtime_config.build.yml
     params:
@@ -1707,10 +1377,6 @@ jobs:
       - set-runtime-config
       trigger: true
     - get: efs-volume-release
-      passed:
-      - set-runtime-config
-      trigger: true
-    - get: nfs-volume-release
       passed:
       - set-runtime-config
       trigger: true
@@ -2037,6 +1703,7 @@ jobs:
       passed:
       - unit-local-node-plugin
       - unit-local-controller-plugin
+      - csi-plugin-certification
       trigger: true
     - get: csi-local-version
       resource: csi-local-volume-version
@@ -2279,7 +1946,6 @@ jobs:
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
 
-
 - name: pats-isilon-cf-deployment
   serial_groups:
   - gorgophone
@@ -2287,11 +1953,11 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - setup-cf-infrastructure
+      - create-isilon-volume
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
-      - setup-cf-infrastructure
+      - create-isilon-volume
     - get: gorgophone-env-vars-store
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
