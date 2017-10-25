@@ -2342,6 +2342,7 @@ jobs:
       SERVICE_NAME: efs
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
+      DEFAULT_TIMEOUT: 300
 
 - name: pats-nfs-cf-deployment
   serial_groups:
