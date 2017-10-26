@@ -59,6 +59,7 @@ groups:
   - create-efs-volume-release
   - create-csi-local-volume-release
   - create-diego-release
+  - create-ecs-release
   - setup-cf-infrastructure
   - deploy-ecs-broker-cf-deployment
   - pats-nfs-cf-deployment
