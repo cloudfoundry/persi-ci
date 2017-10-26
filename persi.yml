@@ -240,14 +240,6 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
-- name: efs-volume-deployment
-  type: bosh-deployment
-  source:
-    deployment: efs-volume
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
 - name: efs-volume-release
   type: git
   source:
@@ -1087,86 +1079,6 @@ jobs:
   - put: efs-volume-release-tarball
     params:
       file: created-efs-volume-release/efs*.tgz
-- name: deploy-efs-broker
-  serial_groups:
-  - efsbroker-deploy
-  plan:
-  - aggregate:
-    - get: efs-volume-release
-      passed:
-      - set-runtime-config
-      - create-efs-volume-release
-      - efsdriver-certification
-      - efsdriver-unit
-      - efsbroker-unit
-      trigger: true
-    - get: cf-release
-      passed:
-      - cf-deploy
-    - get: efs-volume-release-tarball
-      passed:
-      - set-runtime-config
-    - get: aws-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-    - get: deployments-persi
-  - task: generate-deployment-manifests
-    file: efs-volume-release/scripts/ci/generate_deployment_manifests.build.yml
-    params:
-      AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-18931265
-      AWS_SUBNET_ID: subnet-6e5d3444
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USERNAME: {{bosh-director-username}}
-      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-      ENVIRONMENT_NAME: persi-cf
-      INFRASTRUCTURE: aws
-  - put: efs-volume-deployment
-    params:
-      manifest: generated-manifest-efs/efsvolume-manifest.yml
-      releases:
-      - efs-volume-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
-- name: pats-efs
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - efsbroker-deploy
-  plan:
-  - aggregate:
-    - get: efs-volume-release
-      passed:
-      - deploy-efs-broker
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-  - task: run-pats
-    input_mapping:
-      vars-store: efs-volume-release #dummy input
-    file: efs-volume-release/scripts/ci/run_pats_efsvolume.build.yml
-    params:
-      APPLICATION_PATH: efs-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://efs-broker.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: generalPurpose
-      SERVICE_NAME: efs
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
 
 #### END EFS ##########################################################################################################
 
@@ -1313,14 +1225,6 @@ jobs:
       passed:
       - create-cephfs-release
       trigger: true
-    - get: efs-volume-release
-      passed:
-      - create-efs-volume-release
-      trigger: true
-    - get: efs-volume-release-tarball
-      passed:
-      - create-efs-volume-release
-      trigger: true
     - get: local-volume-release
       passed:
       - create-local-volume-release
@@ -1366,10 +1270,6 @@ jobs:
     - get: garden-runc-release-tarball
     - get: cflinuxfs2-release-tarball
     - get: local-volume-release
-      passed:
-      - set-runtime-config
-      trigger: true
-    - get: efs-volume-release
       passed:
       - set-runtime-config
       trigger: true
@@ -1777,6 +1677,7 @@ jobs:
       passed: [ create-nfs-volume-release ]
     - get: efs-volume-release
       passed: [ create-efs-volume-release ]
+      trigger: true
     - get: efs-volume-release-tarball
       passed: [ create-efs-volume-release ]
     - get: efsvolume-version
