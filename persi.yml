@@ -1343,8 +1343,6 @@ jobs:
       releases:
       - cephfs-bosh-release-tarball/cephfs*.tgz
       - local-volume-release-tarball/local*.tgz
-      - efs-volume-release-tarball/efs*.tgz
-      - nfs-volume-release-tarball/nfs*.tgz
 
 - name: diego-deploy
   serial_groups:
