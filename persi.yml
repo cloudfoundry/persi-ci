@@ -1661,6 +1661,7 @@ jobs:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment-develop
+      trigger: true
     - get: gorgophone-env-vars-store
     - get: persi-ci
     - get: diego-dev-release
@@ -1684,9 +1685,9 @@ jobs:
       passed: [ create-efs-volume-release ]
     - get: csi-local-volume-release
       passed: [ create-csi-local-volume-release ]
+      trigger: true
     - get: csi-local-volume-release-tarball
       passed: [ create-csi-local-volume-release ]
-      trigger: true
     - get: csi-local-volume-version
       passed: [ create-csi-local-volume-release ]
     - get: ecs-release-tarball
