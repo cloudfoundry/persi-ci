@@ -17,13 +17,6 @@ groups:
   - set-runtime-config
   - diego-deploy
   - pats-cephfs
-  - pats-local
-  - localdriver-unit
-  - localbroker-unit
-  - localdriver-certification
-  - localdriver-docker-certification
-  - create-local-volume-release
-  - deploy-local-broker
 - name: util
   jobs:
   - teardown-cephfs-cluster
@@ -215,14 +208,6 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
-- name: local-volume-deployment
-  type: bosh-deployment
-  source:
-    deployment: localbroker
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
 - name: local-volume-release
   type: git
   source:
@@ -764,45 +749,6 @@ jobs:
       trigger: true
   - task: build
     file: local-volume-release/scripts/ci/run_driver_cert.build.yml
-- name: deploy-local-broker
-  serial_groups:
-  - localbroker-deploy
-  plan:
-  - aggregate:
-    - get: local-volume-release
-      passed:
-      - set-runtime-config
-      trigger: true
-    - get: diego-release
-      passed:
-      - diego-deploy
-    - get: cf-release
-      passed:
-      - cf-deploy
-    - get: local-volume-release-tarball
-      passed:
-      - set-runtime-config
-    - get: aws-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-    - get: deployments-persi
-  - task: generate-deployment-manifests
-    file: local-volume-release/scripts/ci/generate_deployment_manifests.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USERNAME: {{bosh-director-username}}
-      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-      ENVIRONMENT_NAME: persi-cf
-      INFRASTRUCTURE: aws
-  - put: local-volume-deployment
-    params:
-      manifest: generated-manifest-localvolume/localvolume-manifest.yml
-      releases:
-      - local-volume-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
 - name: localdriver-docker-certification
   plan:
   - aggregate:
@@ -835,41 +781,6 @@ jobs:
   - put: local-volume-release-tarball
     params:
       file: created-local-volume-release/local*.tgz
-- name: pats-local
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - localbroker-deploy
-  plan:
-  - aggregate:
-    - get: local-volume-release
-      passed:
-      - deploy-local-broker
-      trigger: true
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-  - task: run-pats
-    file: local-volume-release/scripts/ci/run_pats_localvolume.build.yml
-    params:
-      APPLICATION_PATH: local-volume-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://local-broker.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: local-plan
-      SERVICE_NAME: local-service
-      TEST_MULTI_CELL: false
-      TEST_MOUNT_OPTIONS: false
-
 #### END Local volume #################################################################################################
 
 #### NFS related jobs #################################################################################################
@@ -1216,7 +1127,6 @@ jobs:
     params:
       file: created-diego-release/diego-*.tgz
 
-
 - name: set-runtime-config # install drivers as add-ons here
   serial_groups:
   - diego-deploy
@@ -1232,14 +1142,6 @@ jobs:
       passed:
       - create-cephfs-release
       trigger: true
-    - get: local-volume-release
-      passed:
-      - create-local-volume-release
-      trigger: true
-    - get: local-volume-release-tarball
-      passed:
-      - create-local-volume-release
-      trigger: true
   - task: update_runtime_config
     file: persi-ci/scripts/ci/update_runtime_config.build.yml
     params: {}
@@ -1248,7 +1150,6 @@ jobs:
       manifest: runtime-config-out/addons.yml
       releases:
       - cephfs-bosh-release-tarball/cephfs*.tgz
-      - local-volume-release-tarball/local*.tgz
 
 - name: diego-deploy
   serial_groups:
@@ -1276,10 +1177,6 @@ jobs:
     - get: cf-dev-release
     - get: garden-runc-release-tarball
     - get: cflinuxfs2-release-tarball
-    - get: local-volume-release
-      passed:
-      - set-runtime-config
-      trigger: true
     - get: cephfs-bosh-release
       passed:
       - set-runtime-config
