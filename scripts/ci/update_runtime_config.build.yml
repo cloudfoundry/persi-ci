@@ -6,7 +6,6 @@ rootfs_uri: docker:///cloudfoundry/diego-pipeline
 inputs:
   - name: persi-ci
   - name: cephfs-bosh-release-tarball
-  - name: local-volume-release-tarball
 
 outputs:
   - name: runtime-config-out
