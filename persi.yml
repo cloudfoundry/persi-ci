@@ -73,6 +73,8 @@ groups:
   - pats-csi-local
   - pats-ecs-cf-deployment
   - persi-load-test
+  - pats-local-cf-deployment
+
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -1683,6 +1685,13 @@ jobs:
       passed: [ create-efs-volume-release ]
     - get: efsvolume-version
       passed: [ create-efs-volume-release ]
+    - get: local-volume-release
+      passed: [ create-local-volume-release ]
+      trigger: true
+    - get: local-volume-release-tarball
+      passed: [ create-local-volume-release ]
+    - get: localvolume-version
+      passed: [ create-local-volume-release ]
     - get: csi-local-volume-release
       passed: [ create-csi-local-volume-release ]
       trigger: true
@@ -2043,6 +2052,32 @@ jobs:
       DB_PASSWORD: {{gorgophone-nfsbroker-mysql-password}}
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
+
+- name: pats-local-cf-deployment
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: local-volume-release/scripts/ci/run_pats_localvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: local-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://local-broker.gorgophone.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: local-plan
+      SERVICE_NAME: local-service
+      TEST_MULTI_CELL: false
+      TEST_MOUNT_OPTIONS: false
 
 - name: pats-drats
   serial_groups:
