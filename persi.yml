@@ -587,7 +587,7 @@ jobs:
 ##### CEPH related jobs ################################################################################################
 - name: teardown-cephfs-cluster
   serial_groups:
-  - cephfs-deploy
+  - ceph-cluster
   plan:
   - aggregate:
     - get: cephfs-bosh-release
@@ -618,7 +618,7 @@ jobs:
     file: cephfs-bosh-release/scripts/ci/run_cephbroker_unit.build.yml
 - name: deploy-cephfs-cluster
   serial_groups:
-  - cephfs-deploy
+  - ceph-cluster
   plan:
   - aggregate:
     - get: cephfs-bosh-release
@@ -654,8 +654,6 @@ jobs:
       stemcells:
       - aws-stemcell/*.tgz
 - name: create-cephfs-release
-  serial_groups:
-  - cephfs-deploy
   plan:
   - aggregate:
     - get: cephfs-bosh-release
@@ -678,7 +676,7 @@ jobs:
       file: created-cephfs-bosh-release/cephfs-*.tgz
 - name: cephdriver-certification
   serial_groups:
-  - cephfs-deploy
+  - ceph-cluster
   plan:
   - aggregate:
     - get: cephfs-bosh-release
@@ -693,22 +691,18 @@ jobs:
     file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
 - name: pats-cephfs
   serial_groups:
+  - ceph-cluster
   - cf-deploy
   - diego-deploy
-  - cephfs-deploy
   plan:
   - aggregate:
     - get: cephfs-bosh-release
       passed:
       - diego-deploy
       trigger: true
-    - get: diego-deployment
+    - get: diego-release
       passed:
       - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
       trigger: true
   - task: run-pats
     file: cephfs-bosh-release/scripts/ci/run_pats_ceph.build.yml
