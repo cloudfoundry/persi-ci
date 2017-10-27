@@ -2089,8 +2089,8 @@ jobs:
       BROKER_USER: {{pats-broker-username}}
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      PLAN_NAME: local-plan
-      SERVICE_NAME: local-service
+      PLAN_NAME: free-local-dist
+      SERVICE_NAME: local-volume
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
 
