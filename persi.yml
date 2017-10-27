@@ -55,6 +55,11 @@ groups:
   - unit-smbdriver
   - unit-azurefilebroker
   - ecs-broker-unit
+  - localdriver-unit
+  - localbroker-unit
+  - localdriver-certification
+  - localdriver-docker-certification
+  - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
   - create-csi-local-volume-release
@@ -1743,11 +1748,13 @@ jobs:
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: csi-local-volume-release-tarball
       ecs-tarball: ecs-release-tarball
+      local-tarball: local-volume-release-tarball
       diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
       csi-local-version: csi-local-volume-version
       ecs-version: ecs-version
+      local-version: localvolume-version
   - task: collect-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -1757,6 +1764,14 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-nfs-ldap.yml operations/enable-nfs-broker-backup.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml"
   - task: collect-more-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: local-volume-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-local-volume-service.yml"
+  - task: collect-even-more-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
       base-ops-files: collected-ops-files
