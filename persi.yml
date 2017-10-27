@@ -1786,7 +1786,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz csi-local.tgz ecs.tgz"
+      NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz local.tgz csi-local.tgz ecs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
