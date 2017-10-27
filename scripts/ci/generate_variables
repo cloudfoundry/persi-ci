@@ -48,6 +48,7 @@ generate_datadog_vars() {
 ---
 datadog_api_key: ${DATADOG_API_KEY}
 datadog_metric_prefix: ${DATADOG_METRIC_PREFIX}
+traffic_controller_external_port: 8443
 EOF
 }
 
