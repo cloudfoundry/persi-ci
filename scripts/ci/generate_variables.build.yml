@@ -37,6 +37,8 @@ params:
   S3_BLOBSTORE_KEY:
   S3_BLOBSTORE_REGION:
   EFS_BROKER_PASSWORD:
+  DATADOG_API_KEY:
+  DATADOG_METRIC_PREFIX:
 
 run:
   path: persi-ci/scripts/ci/generate_variables

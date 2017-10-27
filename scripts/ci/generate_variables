@@ -43,6 +43,15 @@ resource_directory_key: ${RESOURCE_DIRECTORY_KEY}
 EOF
 }
 
+generate_datadog_vars() {
+    cat << EOF > ${ROOT_DIR}/generated-vars/datadog-vars.yml
+---
+datadog_api_key: ${DATADOG_API_KEY}
+datadog_metric_prefix: ${DATADOG_METRIC_PREFIX}
+EOF
+}
+
+
 
 main() {
   ROOT_DIR="${1}"
@@ -51,6 +60,7 @@ main() {
   generate_nfs_vars
   generate_efs_vars
   generate_cf_vars
+  generate_datadog_vars
 }
 
 main ${PWD}

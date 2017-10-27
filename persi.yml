@@ -1789,6 +1789,8 @@ jobs:
       AWS_SECURITY_GROUP: sg-80bfddfd
       AWS_SUBNET_ID: subnet-aced69e4
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
+      DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
+      DATADOG_METRIC_PREFIX: gorgophone
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -1802,8 +1804,8 @@ jobs:
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
-      VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/enable-nfs-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/enable-nfs-broker-backup.yml operations/update-releases.yml"
+      VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml datadog-vars.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/enable-nfs-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/test/add-datadog-firehose-nozzle.yml operations/enable-nfs-broker-backup.yml operations/update-releases.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
