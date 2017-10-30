@@ -68,6 +68,8 @@
     jobs:
     - name: cephbroker
       release: cephfs
+    - name: route_registrar
+      release: routing
       properties:
         cephbroker:
           password: burrito
@@ -89,16 +91,12 @@
                     caps mds = "allow"
                     caps mon = "allow *"
                     caps osd = "allow *"
-
-    - name: route_registrar
-      release: routing
-      properties:
-        routes:
-        - name: ceph-broker
-          port: 8999
-          registration_interval: 20s
-          tags:
-            component: ceph-broker
-          uris:
-          - ceph-broker.gorgophone.cf-app.com
-
+        route_registrar:
+          routes:
+          - name: ceph-broker
+            port: 8999
+            registration_interval: 20s
+            tags:
+              component: ceph-broker
+            uris:
+            - ceph-broker.gorgophone.cf-app.com
