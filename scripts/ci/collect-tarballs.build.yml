@@ -14,12 +14,14 @@ inputs:
 - name: efs-tarball
 - name: csi-local-tarball
 - name: ecs-tarball
+- name: cephfs-tarball
 - name: local-tarball
 - name: diego-version
 - name: nfs-version
 - name: efs-version
 - name: csi-local-version
 - name: ecs-version
+- name: cephfs-version
 - name: local-version
 
 outputs:

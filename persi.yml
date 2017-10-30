@@ -4,11 +4,7 @@
 groups:
 - name: persi
   jobs:
-  - unit-cephfs-driver
-  - unit-cephfs-broker
-  - create-cephfs-release
   - deploy-cephfs-cluster
-  - cephdriver-certification
   - create-cf-release
   - cf-deploy
   - volman-unit
@@ -52,10 +48,14 @@ groups:
   - localbroker-unit
   - localdriver-certification
   - localdriver-docker-certification
+  - unit-cephfs-driver
+  - unit-cephfs-broker
+  - cephdriver-certification
   - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
   - create-csi-local-volume-release
+  - create-cephfs-release
   - create-diego-release
   - create-ecs-release
   - setup-cf-infrastructure
@@ -1599,6 +1599,11 @@ jobs:
       passed: [ create-ecs-release ]
     - get: ecs-version
       passed: [ create-ecs-release ]
+    - get: cephfs-bosh-release-tarball
+      passed: [ create-cephfs-release ]
+    - get: cephfs-version
+      passed: [ create-cephfs-release ]
+
   - task: setup-infrastructure
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -1640,11 +1645,13 @@ jobs:
       csi-local-tarball: csi-local-volume-release-tarball
       ecs-tarball: ecs-release-tarball
       local-tarball: local-volume-release-tarball
+      cephfs-tarball: cephfs-bosh-release-tarball
       diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
       csi-local-version: csi-local-volume-version
       ecs-version: ecs-version
+      cephfs-version: cephfs-version
       local-version: localvolume-version
   - task: collect-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
@@ -1653,7 +1660,7 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-nfs-ldap.yml operations/enable-nfs-broker-backup.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml"
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-nfs-ldap.yml operations/enable-nfs-broker-backup.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/deploy-ceph-broker-and-install-driver.yml"
   - task: collect-more-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -1720,7 +1727,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml datadog-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/enable-nfs-volume-service.yml operations/enable-local-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/test/add-datadog-firehose-nozzle.yml operations/enable-nfs-broker-backup.yml operations/update-releases.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/enable-nfs-volume-service.yml operations/enable-local-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/test/add-datadog-firehose-nozzle.yml operations/enable-nfs-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/update-releases.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
