@@ -68,8 +68,6 @@
     jobs:
     - name: cephbroker
       release: cephfs
-    - name: route_registrar
-      release: routing
       properties:
         cephbroker:
           password: burrito
@@ -91,6 +89,9 @@
                     caps mds = "allow"
                     caps mon = "allow *"
                     caps osd = "allow *"
+    - name: route_registrar
+      release: routing
+      properties:
         route_registrar:
           routes:
           - name: ceph-broker
