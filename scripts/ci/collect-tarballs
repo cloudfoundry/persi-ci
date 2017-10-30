@@ -160,9 +160,9 @@ create_operation_file() {
     version: ${ECS_VERSION}
     url: ops-files/ecs.tgz
 - type: replace
-  path: /releases/name=cephfs-release
+  path: /releases/name=cephfs
   value:
-    name: cephfs-release
+    name: cephfs
     version: ${CEPHFS_VERSION}
     url: ops-files/cephfs.tgz
 - type: replace

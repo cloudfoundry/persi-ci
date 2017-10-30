@@ -1,14 +1,14 @@
 - type: replace
   path: /releases/-
   value:
-    name: cephfs-release
+    name: cephfs
     version: latest
 
 - type: replace
   path: /instance_groups/name=diego-cell/jobs/-
   value:
     name: cephdriver
-    release: cephfs-release
+    release: cephfs
     properties: {}
 
 - type: replace
@@ -37,7 +37,7 @@
       - name: default
     jobs:
     - name: cephfs
-      release: cephfs-release
+      release: cephfs
       properties:
         cephfs:
           client_keyring: |
@@ -67,7 +67,7 @@
       - name: default
     jobs:
     - name: cephbroker
-      release: cephfs-release
+      release: cephfs
       properties:
         cephbroker:
           password: burrito
