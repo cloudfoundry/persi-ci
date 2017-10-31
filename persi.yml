@@ -4,7 +4,6 @@
 groups:
 - name: persi
   jobs:
-  - deploy-cephfs-cluster
   - create-cf-release
   - cf-deploy
   - volman-unit
@@ -12,7 +11,6 @@ groups:
   - create-diego-release
   - set-runtime-config
   - diego-deploy
-  - pats-cephfs
 - name: util
   jobs:
   - teardown-cephfs-cluster
@@ -51,6 +49,7 @@ groups:
   - unit-cephfs-driver
   - unit-cephfs-broker
   - cephdriver-certification
+  - deploy-cephfs-cluster
   - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
@@ -72,6 +71,7 @@ groups:
   - pats-ecs-cf-deployment
   - persi-load-test
   - pats-local-cf-deployment
+  - pats-cephfs-cf-deployment
 
 ###################################### END GROUPS SECTION ############################################################
 
@@ -131,14 +131,6 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
-- name: cephfs-cluster-deployment
-  type: bosh-deployment
-  source:
-    deployment: cephfs
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
 #### END CEPH resources ###############################################################################################
 
 #### NFS resources ###############################################################################################
@@ -473,7 +465,6 @@ resources:
 - name: cf-deployment-develop
   type: git
   source:
-    branch: develop
     uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
@@ -490,6 +481,13 @@ resources:
     private_key: {{deployments-persi-key}}
     paths:
     - bbl-state.json
+
+- name: gorgophone-env
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:cloudfoundry/gorgophone-env.git
+    private_key: {{deployments-persi-key}}
 
 - name: gorgophone-env-vars-store
   type: git
@@ -616,43 +614,31 @@ jobs:
       trigger: true
   - task: build
     file: cephfs-bosh-release/scripts/ci/run_cephbroker_unit.build.yml
+
 - name: deploy-cephfs-cluster
-  serial_groups:
-  - ceph-cluster
+  serial_groups: [cephfs]
   plan:
   - aggregate:
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+    - get: gorgophone-env
     - get: cephfs-bosh-release
       passed:
-      - set-runtime-config
-      trigger: true
-    - get: cf-release
-      passed:
-      - create-cf-release
+      - create-cephfs-release
     - get: cephfs-bosh-release-tarball
-      passed:
-      - set-runtime-config
-    - get: aws-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-    - get: deployments-persi
-  - task: generate-deployment-manifests
-    file: cephfs-bosh-release/scripts/ci/generate_deployment_manifests.build.yml
+
+  - task: get-bosh-env
+    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+  - task: bosh-deploy-cephfs
+    file: persi-ci/scripts/ci/deploy-ceph.yml
+    input_mapping:
+      vars-store: gorgophone-env
+      bosh-env: bosh-env
     params:
-      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-      ENVIRONMENT_NAME: persi-cf
-      INFRASTRUCTURE: aws
-      USE_GARDEN_RUNC: false
-      USE_SQL: false
-      PATS_BROKER_USERNAME: {{pats-broker-username}}
-      PATS_BROKER_PASSWORD: {{pats-broker-password}}
-  - put: cephfs-cluster-deployment
-    params:
-      manifest: generated-manifest-ceph/cephfs-manifest.yml
-      releases:
-      - cephfs-bosh-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
+      CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
+
 - name: create-cephfs-release
   plan:
   - aggregate:
@@ -675,46 +661,47 @@ jobs:
     params:
       file: created-cephfs-bosh-release/cephfs-*.tgz
 - name: cephdriver-certification
-  serial_groups:
-  - ceph-cluster
+  serial_groups: [cephfs]
   plan:
   - aggregate:
     - get: cephfs-bosh-release
       passed:
       - deploy-cephfs-cluster
+      - setup-cf-infrastructure
       trigger: true
-    - get: deployments-persi
-      passed:
-      - deploy-cephfs-cluster
+    - get: gorgophone-env-director-state
+    - get: persi-ci
+
+  - task: get-bosh-env
+    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
   - task: certification
+    tags: ["jumpbox"]
     privileged: true
     file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
-- name: pats-cephfs
+- name: pats-cephfs-cf-deployment
   serial_groups:
-  - ceph-cluster
-  - cf-deploy
-  - diego-deploy
+  - cephfs
+  - gorgophone
   plan:
   - aggregate:
     - get: cephfs-bosh-release
       passed:
-      - diego-deploy
+      - cephdriver-certification
       trigger: true
-    - get: diego-release
-      passed:
-      - diego-deploy
-      trigger: true
+    - get: gorgophone-env-vars-store
   - task: run-pats
     file: cephfs-bosh-release/scripts/ci/run_pats_ceph.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
     params:
       APPLICATION_PATH: cephfs-bosh-release/assets/pora
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://ceph-broker.persi.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://ceph-broker.gorgophone.cf-app.com
+      BROKER_USER: admin
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
       PLAN_NAME: ceph-plan
       SERVICE_NAME: ceph-service
       TEST_MULTI_CELL: true
@@ -1601,6 +1588,9 @@ jobs:
       passed: [ create-ecs-release ]
     - get: cephfs-bosh-release-tarball
       passed: [ create-cephfs-release ]
+    - get: cephfs-bosh-release
+      passed: [ create-cephfs-release ]
+      trigger: true
     - get: cephfs-version
       passed: [ create-cephfs-release ]
 
@@ -1685,6 +1675,11 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "."
       NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz local.tgz csi-local.tgz ecs.tgz cephfs.tgz"
+  - task: get-bosh-env
+    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
@@ -1713,6 +1708,7 @@ jobs:
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone
+      CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -1726,7 +1722,7 @@ jobs:
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
-      VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml datadog-vars.yml"
+      VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml datadog-vars.yml cephfs-vars.yml"
       OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/enable-nfs-volume-service.yml operations/enable-local-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/test/add-datadog-firehose-nozzle.yml operations/enable-nfs-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/update-releases.yml"
     ensure:
       put: gorgophone-env-vars-store
