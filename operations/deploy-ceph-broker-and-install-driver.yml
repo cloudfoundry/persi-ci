@@ -39,7 +39,7 @@
       release: cephfs
       properties:
         cephbroker:
-          password: burrito
+          password: ((cephfs-broker-password))
           plan-id: ceph-plan-id
           plan-name: ceph-plan
           service-id: ceph-volume
@@ -58,3 +58,9 @@
               component: ceph-broker
             uris:
             - ceph-broker.gorgophone.cf-app.com
+
+- type: replace
+  path: /variables/-
+  value:
+    name: cephfs-broker-password
+    type: password
