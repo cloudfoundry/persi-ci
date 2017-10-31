@@ -1,0 +1,28 @@
+#!/bin/bash -eu
+set -ex
+
+source bosh-env/set-env.sh
+
+generate_cephfs_vars() {
+    cat << EOF > ./cephfs-vars.yml
+---
+gorgophone-cephfs-keyring: |
+`echo ${CEPHFS_KEYRING}|sed 's/^/  /'`
+EOF
+}
+
+bosh \
+  -n \
+  interpolate var-store/manifest/cephfs.yml \
+  --vars-file=./cephfs-vars.yml \
+  > interpolated_manifest.yml
+
+bosh \
+  -n \
+  delete-deployment \
+  cephfs || true
+
+bosh \
+  -n \
+  -d cephfs \
+  deploy interpolated_manifest.yml
