@@ -46,6 +46,7 @@
           service-name: ceph-service
           username: admin
           keyring: ((gorgophone-cephfs-keyring))
+          mds: ((gorgophone-cephfs-mds))
     - name: route_registrar
       release: routing
       properties:

@@ -9,6 +9,7 @@ image_resource:
 
 inputs:
 - name: persi-ci
+- name: bosh-env
 
 outputs:
 - name: generated-vars

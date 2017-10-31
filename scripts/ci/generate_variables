@@ -53,8 +53,13 @@ EOF
 }
 
 generate_cephfs_vars() {
+  source bosh-env/set-env.sh
+  export CEPH_CLUSTER_IP=`bosh -d cephfs instances|grep cephfs|awk '{print $4}'`
+  export CEPHFS_MDS=${CEPH_CLUSTER_IP}:6789
+
     cat << EOF > ${ROOT_DIR}/generated-vars/cephfs-vars.yml
 ---
+gorgophone-cephfs-mds: ${CEPHFS_MDS}
 gorgophone-cephfs-keyring: |
 `echo ${CEPHFS_KEYRING}|sed 's/^/  /'`
 EOF
