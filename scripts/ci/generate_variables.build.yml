@@ -39,6 +39,7 @@ params:
   EFS_BROKER_PASSWORD:
   DATADOG_API_KEY:
   DATADOG_METRIC_PREFIX:
+  CEPHFS_KEYRING:
 
 run:
   path: persi-ci/scripts/ci/generate_variables

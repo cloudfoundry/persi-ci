@@ -26,37 +26,6 @@
 - type: replace
   path: /instance_groups/-
   value:
-    name: cephfs
-    azs:
-    - z1
-    instances: 1
-    vm_type: minimal
-    stemcell: default
-    persistent_disk_type: 50GB
-    networks:
-      - name: default
-    jobs:
-    - name: cephfs
-      release: cephfs
-      properties:
-        cephfs:
-          client_keyring: |
-            [osd.0]
-                    key = AQA+3mJX7Fy7IhAA/+mRxx8ffieAXh801hnZgw==
-            [osd.1]
-                    key = AQBD3mJX+niJLhAAdYQ7Ik0rRtFFq14zpR9s1Q==
-            [osd.2]
-                    key = AQBH3mJXmHMiAxAAAujWWsLBZ6t5OcyIfuYsaQ==
-            [client.admin]
-                    key = AQA73mJXD0mWDBAAg72+AwcWM2i223ZSj8y85A==
-                    auid = 0
-                    caps mds = "allow"
-                    caps mon = "allow *"
-                    caps osd = "allow *"
-
-- type: replace
-  path: /instance_groups/-
-  value:
     name: cephbroker
     azs:
     - z1
@@ -76,19 +45,7 @@
           service-id: ceph-volume
           service-name: ceph-service
           username: admin
-          keyring: |
-            [osd.0]
-                    key = AQA+3mJX7Fy7IhAA/+mRxx8ffieAXh801hnZgw==
-            [osd.1]
-                    key = AQBD3mJX+niJLhAAdYQ7Ik0rRtFFq14zpR9s1Q==
-            [osd.2]
-                    key = AQBH3mJXmHMiAxAAAujWWsLBZ6t5OcyIfuYsaQ==
-            [client.admin]
-                    key = AQA73mJXD0mWDBAAg72+AwcWM2i223ZSj8y85A==
-                    auid = 0
-                    caps mds = "allow"
-                    caps mon = "allow *"
-                    caps osd = "allow *"
+          keyring: ((gorgophone-cephfs-keyring))
     - name: route_registrar
       release: routing
       properties:

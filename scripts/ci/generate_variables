@@ -52,6 +52,13 @@ traffic_controller_external_port: 4443
 EOF
 }
 
+generate_cephfs_vars() {
+    cat << EOF > ${ROOT_DIR}/generated-vars/cephfs-vars.yml
+---
+gorgophone-cephfs-keyring: ${CEPHFS_KEYRING}
+EOF
+}
+
 
 
 main() {
@@ -62,6 +69,7 @@ main() {
   generate_efs_vars
   generate_cf_vars
   generate_datadog_vars
+  generate_cephfs_vars
 }
 
 main ${PWD}
