@@ -24,8 +24,8 @@ bosh \
 
 bosh \
   -n \
-  delete-deployment \
-  cephfs || true
+  -d cephfs \
+  delete-deployment || true
 
 bosh \
   -n \
