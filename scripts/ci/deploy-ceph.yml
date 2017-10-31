@@ -10,6 +10,7 @@ image_resource:
 inputs:
 - name: persi-ci
 - name: vars-store  # - The BOSH deployment's vars-store yaml file
+- name: bosh-env
 - name: cephfs-bosh-release
 - name: cephfs-bosh-release-tarball
 
