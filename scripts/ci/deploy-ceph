@@ -3,6 +3,9 @@ set -ex
 
 source bosh-env/set-env.sh
 
+mkdir ops-files
+cp cephfs-bosh-release-tarball/*.tgz ops-files/cephfs.tgz
+
 generate_cephfs_vars() {
     cat << EOF > ./cephfs-vars.yml
 ---

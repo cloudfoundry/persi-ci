@@ -10,7 +10,6 @@ image_resource:
 inputs:
 - name: persi-ci
 - name: vars-store  # - The BOSH deployment's vars-store yaml file
-- name: vars-files  # - Variable files to be made available
 - name: cephfs-bosh-release
 - name: cephfs-bosh-release-tarball
 
