@@ -16,7 +16,7 @@ EOF
 
 bosh \
   -n \
-  interpolate var-store/manifest/cephfs.yml \
+  interpolate vars-store/manifest/cephfs.yml \
   --vars-file=./cephfs-vars.yml \
   > interpolated_manifest.yml
 
