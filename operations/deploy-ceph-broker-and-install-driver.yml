@@ -32,7 +32,7 @@
     instances: 1
     vm_type: minimal
     stemcell: default
-    persistent_disk_type: 5GB
+    persistent_disk_type: 50GB
     networks:
       - name: default
     jobs:
