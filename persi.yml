@@ -625,6 +625,7 @@ jobs:
     - get: cephfs-bosh-release
       passed:
       - create-cephfs-release
+      trigger: true
     - get: cephfs-bosh-release-tarball
 
   - task: get-bosh-env
