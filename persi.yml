@@ -2,28 +2,6 @@
 ###################################### GROUPS SECTION ################################################################
 ######################################################################################################################
 groups:
-- name: persi
-  jobs:
-  - create-cf-release
-  - cf-deploy
-  - volman-unit
-  - volman-inigo
-  - create-diego-release
-  - set-runtime-config
-  - diego-deploy
-- name: util
-  jobs:
-  - teardown-cephfs-cluster
-  - nightly-stemcell
-  - bosh-cleanup
-  - deploy-datadog-firehose-nozzle
-  - bbl-destroy
-- name: release-nfs
-  jobs:
-  - shipit-nfs
-  - manual-bump-nfs-patch
-  - manual-bump-nfs-minor
-  - manual-bump-nfs-major
 - name: gorgophone
   jobs:
   - volman-unit
@@ -73,6 +51,16 @@ groups:
   - pats-local-cf-deployment
   - pats-cephfs-cf-deployment
 
+- name: util
+  jobs:
+  - bbl-destroy
+- name: release-nfs
+  jobs:
+  - shipit-nfs
+  - manual-bump-nfs-patch
+  - manual-bump-nfs-minor
+  - manual-bump-nfs-major
+
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -81,32 +69,11 @@ groups:
 resources:
 
 #### Misc resources ###############################################################################################
-- name: nightly
-  type: time
-  source:
-    interval: 24h
-    start: 01:00 AM -0800
-    stop: 1:15 AM -0800
 - name: persi-ci
   type: git
   source:
     branch: master
     uri: https://github.com/cloudfoundry/persi-ci.git
-- name: datadog-firehose-nozzle-release
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry-incubator/datadog-firehose-nozzle-release
-- name: datadog-firehose-nozzle-deployment
-  type: bosh-deployment
-  source:
-    deployment: datadog-firehose-nozzle
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
-    target: {{bosh-director-ip}}
-- name: aws-stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
 #### END Misc resources ###############################################################################################
 
 #### CEPH resources ###############################################################################################
@@ -265,10 +232,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/diego-ci
-- name: cflinuxfs2-release-tarball
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry/cflinuxfs2-release
 - name: diego-release
   type: git
   source:
@@ -281,34 +244,6 @@ resources:
     - releases
     - .final_builds
     uri: https://github.com/cloudfoundry/diego-release
-- name: cf-release
-  type: git
-  source:
-    branch: release-candidate
-    uri: https://github.com/cloudfoundry/cf-release
-- name: cf-dev-release
-  type: s3
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: persi-cf-releases
-    regexp: cf-dev-release-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
-- name: cf-deployment
-  type: bosh-deployment
-  source:
-    deployment: persi-cf
-    ignore_ssl: true
-    password: {{bosh-director-password}}
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-- name: diego-deployment
-  type: bosh-deployment
-  source:
-    deployment: persi-cf-diego
-    ignore_ssl: true
-    password: {{bosh-director-password}}
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
 - name: routing-release
   type: git
   source:
@@ -326,29 +261,6 @@ resources:
   source:
     private_key: {{deployments-persi-key}}
     uri: git@github.com:cloudfoundry/deployments-persi.git
-- name: runtime-config
-  type: bosh-config
-  source:
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-    type: runtime-config
-
-- name: dummy-deployment
-  type: bosh-deployment
-  source:
-    deployment: dummy
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-
-- name: github-release-dummy
-  type: github-release
-  source:
-    user: pivotal-cf-experimental
-    repository: dummy-boshrelease
 
 #### End Persi resources ################################################################################################
 
@@ -373,27 +285,10 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
-- name: ecs-deployment
-  type: bosh-deployment
-  source:
-    deployment: ecs_multi
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
 - name: ecs-cf-service-broker
   type: git
   source:
     uri: https://github.com/codedellemc/ecs-cf-service-broker
-- name: ecs-broker-deployment
-  type: bosh-deployment
-  source:
-    deployment: ecs-broker-aws-ec2
-    ignore_ssl: true
-    password: {{bosh-director-password}}
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-
 #### End ECS resources ###############################################################################################
 
 #### CSI resources ###################################################################################################
@@ -543,63 +438,8 @@ resource_types:
 ###################################### END RESOURCE_TYPES SECTION ####################################################
 
 
-######################################################################################################################
-###################################### JOBS SECTION ##################################################################
-######################################################################################################################
 jobs:
-
-#### Setup related jobs ###############################################################################################
-- name: nightly-stemcell
-  plan:
-  - aggregate:
-    - get: nightly
-      trigger: true
-    - get: persi-ci
-    - get: bosh-stemcell
-      resource: aws-stemcell
-    - get: github-release-dummy
-  - put: dummy-deployment
-    params:
-      manifest: persi-ci/dummy.yml
-      releases:
-      - github-release-dummy/*.tgz
-      stemcells:
-      - bosh-stemcell/*.tgz
-- name: bosh-cleanup
-  serial: true
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: nightly
-      trigger: true
-  - task: cleanup
-    file: persi-ci/scripts/ci/bosh_cleanup.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USER: {{bosh-director-username}}
-
-
-#### End Setup ########################################################################################################
-
 ##### CEPH related jobs ################################################################################################
-- name: teardown-cephfs-cluster
-  serial_groups:
-  - ceph-cluster
-  plan:
-  - aggregate:
-    - get: cephfs-bosh-release
-    - get: aws-stemcell
-      passed:
-      - nightly-stemcell
-    - get: deployments-persi
-  - task: teardown
-    file: cephfs-bosh-release/scripts/ci/teardown.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USERNAME: {{bosh-director-username}}
-      DEPLOYMENT_NAME: cephfs
 - name: unit-cephfs-driver
   plan:
   - aggregate:
@@ -982,24 +822,6 @@ jobs:
 
 #### END EFS ##########################################################################################################
 
-#### DataDog related jobs #############################################################################################
-- name: deploy-datadog-firehose-nozzle
-  plan:
-  - aggregate:
-    - get: datadog-firehose-nozzle-release
-    - get: aws-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-    - get: deployments-persi
-  - put: datadog-firehose-nozzle-deployment
-    params:
-      manifest: deployments-persi/persi-ci/deployments/persi-cf/deployments/datadog-firehose-nozzle/datadog.yml
-      releases:
-      - datadog-firehose-nozzle-release/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
-#### END DATADOG ######################################################################################################
 
 #### CF related jobs ##################################################################################################
 - name: volman-unit
@@ -1010,6 +832,7 @@ jobs:
     - get: persi-ci
   - task: run-unit
     file: persi-ci/scripts/ci/run_volman_unit.build.yml
+
 - name: volman-inigo
   plan:
   - aggregate:
@@ -1034,56 +857,6 @@ jobs:
     file: persi-ci/scripts/ci/run_volman_inigo.build.yml
     params:
       DEFAULT_EVENTUALLY_TIMEOUT: 5m
-- name: create-cf-release
-  plan:
-  - aggregate:
-    - get: cf-release
-      trigger: true
-    - get: persi-ci
-  - task: create-release
-    file: persi-ci/scripts/ci/create_cf_dev_release.build.yml
-  - put: cf-dev-release
-    params:
-      file: created-cf-release/cf-dev-release-*.tgz
-
-- name: cf-deploy
-  serial_groups:
-  - cf-deploy
-  plan:
-  - aggregate:
-    - get: cf-dev-release
-    - get: diego-release
-    - get: cf-release
-      passed:
-      - create-cf-release
-      trigger: true
-    - get: persi-ci
-      trigger: true
-    - get: bosh-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-      resource: aws-stemcell
-    - get: deployments-persi
-  - task: generate-deployment-manifests
-    file: persi-ci/scripts/ci/generate_deployment_manifests.build.yml
-    params:
-      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-      ENVIRONMENT_NAME: persi-cf
-      INFRASTRUCTURE: aws
-      USE_GARDEN_RUNC: false
-      USE_SQL: false
-  - put: cf-deployment
-    params:
-      manifest: generated-manifest-persi/cf-deployment.yml
-      releases:
-      - cf-dev-release/*.tgz
-      stemcells:
-      - bosh-stemcell/*.tgz
-  - task: wait-for-cf
-    file: persi-ci/scripts/ci/wait_for_cf.build.yml
-    params:
-      CF_API_ENDPOINT: api.persi.cf-app.com
 
 - name: create-diego-release
   plan:
@@ -1109,84 +882,6 @@ jobs:
     params:
       file: created-diego-release/diego-*.tgz
 
-- name: set-runtime-config # install drivers as add-ons here
-  serial_groups:
-  - diego-deploy
-  plan:
-  - aggregate:
-    - get: persi-ci
-      trigger: true
-    - get: cephfs-bosh-release
-      passed:
-      - create-cephfs-release
-      trigger: true
-    - get: cephfs-bosh-release-tarball
-      passed:
-      - create-cephfs-release
-      trigger: true
-  - task: update_runtime_config
-    file: persi-ci/scripts/ci/update_runtime_config.build.yml
-    params: {}
-  - put: runtime-config
-    params:
-      manifest: runtime-config-out/addons.yml
-      releases:
-      - cephfs-bosh-release-tarball/cephfs*.tgz
-
-- name: diego-deploy
-  serial_groups:
-  - diego-deploy
-  plan:
-  - aggregate:
-    - get: diego-dev-release
-      passed:
-      - create-diego-release
-      trigger: true
-      params:
-        submodules: none
-    - get: diego-release
-      passed:
-      - create-diego-release
-    - get: persi-ci
-      trigger: true
-    - get: cf-release
-      passed:
-      - create-cf-release
-      trigger: true
-      params:
-        submodules:
-        - src/loggregator
-    - get: cf-dev-release
-    - get: garden-runc-release-tarball
-    - get: cflinuxfs2-release-tarball
-    - get: cephfs-bosh-release
-      passed:
-      - set-runtime-config
-      trigger: true
-    - get: bosh-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-      resource: aws-stemcell
-    - get: deployments-persi
-  - task: generate-deployment-manifests
-    file: persi-ci/scripts/ci/generate_deployment_manifests.build.yml
-    params:
-      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-      ENVIRONMENT_NAME: persi-cf
-      INFRASTRUCTURE: aws
-      USE_GARDEN_RUNC: true
-      USE_SQL: false
-  - put: diego-deployment
-    params:
-      manifest: generated-manifest-persi/diego-deployment.yml
-      releases:
-      - cf-dev-release/*.tgz
-      - diego-dev-release/*.tgz
-      - garden-runc-release-tarball/*.tgz
-      - cflinuxfs2-release-tarball/*.tgz
-      stemcells:
-      - bosh-stemcell/*.tgz
 #### END CF ###########################################################################################################
 
 #### START ECS related jobs ###########################################################################################
@@ -1209,6 +904,7 @@ jobs:
   - put: ecs-release-tarball
     params:
       file: created-ecs-release/ecs*.tgz
+
 - name: ecs-broker-unit
   plan:
   - aggregate:
@@ -1217,138 +913,6 @@ jobs:
       trigger: true
   - task: ecs-broker-unit
     file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
-- name: deploy-ecs
-  serial_groups:
-  - ecs-deploy
-  plan:
-  - aggregate:
-    - get: ecs-release
-      passed:
-      - create-ecs-release
-      trigger: true
-    - get: ecs-release-tarball
-      passed:
-      - create-ecs-release
-    - get: aws-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-    - get: deployments-persi
-    - get: persi-ci
-# TODO-stop hard coding the manifest!!!
-#  - task: generate-deployment-manifests
-#    file: nfs-volume-release/scripts/ci/generate_nfs_test_server_manifests.build.yml
-#    params:
-#      BOSH_PASSWORD: {{bosh-director-password}}
-#      BOSH_TARGET: {{bosh-director-ip}}
-#      BOSH_USERNAME: {{bosh-director-username}}
-#      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-#      ENVIRONMENT_NAME: persi-cf
-#      INFRASTRUCTURE: aws
-  - put: ecs-deployment
-    params:
-      manifest: deployments-persi/ecs-manifest.yml
-      releases:
-      - ecs-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
-  - task: run-prov-errand
-    file: persi-ci/scripts/ci/run_ecs_provision_errand.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USER: {{bosh-director-username}}
-- name: deploy-ecs-broker
-  serial_groups:
-  - ecs-deploy
-  plan:
-  - aggregate:
-    - get: ecs-release
-      passed:
-      - deploy-ecs
-      trigger: true
-    - get: ecs-release-tarball
-      passed:
-      - deploy-ecs
-    - get: aws-stemcell
-      passed:
-      - nightly-stemcell
-      trigger: true
-    - get: deployments-persi
-    - get: persi-ci
-  - task: generate-ecs-broker-manifests
-    file: ecs-release/scripts/ci/generate_ecs_broker_manifests.build.yml
-    params:
-      DEPLOYMENTS_DIR: deployments-persi/persi-ci/deployments
-      CF_APP_DOMAIN: persi.cf-app.com
-      ECS_BASE_URL: https://34.206.233.96:4443
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_USER: {{pats-broker-username}}
-      CF_PASSWORD: {{cf-password}}
-      CF_USER: {{cf-username}}
-      ECS_PASSWORD: {{ecs-password}}
-      ECS_USERNAME: {{ecs-user}}
-      ENCRYPTION_KEY: {{ecs-secret}}
-      ERRAND_PUBLIC_IP: 34.200.85.71
-      ERRAND_SUBNET_NAME: nfsvolume-subnet
-      MANAGEMENT_ENDPOINT: https://34.206.233.96:4443
-      ECS_NAMESPACE: bosh-namespace
-      OBJECT_ENDPOINT: http://bosh-namespace.34.206.233.96.nip.io:9020
-      REPOSITORY_ENDPOINT: http://bosh-namespace.34.206.233.96.nip.io:9020
-      ECS_BROKER_SECRET: {{ecs-secret}}
-  - put: ecs-broker-deployment
-    params:
-      manifest: generated-manifest-ecs-broker/ecsbroker-aws-manifest.yml
-      releases:
-      - ecs-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
-  - task: run-broker-errand
-    file: persi-ci/scripts/ci/run_ecs_broker_errand.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USER: {{bosh-director-username}}
-- name: pats-ecs
-  serial_groups:
-  - cf-deploy
-  - diego-deploy
-  - ecs-deploy
-  plan:
-  - aggregate:
-    - get: ecs-release
-      passed:
-      - deploy-ecs-broker
-      trigger: true
-    - get: nfs-volume-release
-    - get: diego-deployment
-      passed:
-      - diego-deploy
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - cf-deploy
-      trigger: true
-    - get: deployments-persi
-    - get: persi-ci
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: nfs-volume-release #dummy input
-    params:
-      APPS_DOMAIN: persi.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://ecs-v1.persi.cf-app.com
-      BROKER_USER: user
-      CF_API_ENDPOINT: api.persi.cf-app.com
-      CF_PASSWORD: {{cf-password}}
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: 5gb
-      SERVICE_NAME: ecs-file-bucket
-      BIND_CONFIG: '{}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: false
 
 - name: deploy-ecs-broker-cf-deployment
   serial_groups:
@@ -1397,7 +961,6 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
-
 #### END ECS ##########################################################################################################
 
 #### START CSI related jobs ###########################################################################################
