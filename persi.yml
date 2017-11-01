@@ -1706,6 +1706,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
       AWS_SECURITY_GROUP: sg-80bfddfd
       AWS_SUBNET_ID: subnet-aced69e4
+      AWS_AZ: us-west-2a
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone

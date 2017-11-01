@@ -17,8 +17,9 @@ generate_efs_vars() {
 ---
 aws-access-key-id: ${AWS_ACCESS_KEY_ID}
 aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
-aws-subnet-id: ${AWS_SUBNET_ID}
-aws-security-group: ${AWS_SECURITY_GROUP}
+aws-subnet-ids: ${AWS_SUBNET_ID}
+aws-security-groups: ${AWS_SECURITY_GROUP}
+aws-azs: ${AWS_AZ}
 efs-broker-password: ${EFS_BROKER_PASSWORD}
 EOF
 }
