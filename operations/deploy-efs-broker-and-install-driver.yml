@@ -48,8 +48,10 @@
           aws-region: us-west-2
           aws-access-key-id: ((aws-access-key-id))
           aws-secret-access-key: ((aws-secret-access-key))
-          aws-subnet-ids: ((aws-subnet-id))
-          aws-security-group: ((aws-security-group))
+          aws-subnet-ids: ((aws-subnet-ids))
+          aws-security-groups: ((aws-security-groups))
+          aws-subnet-ids: ((aws-subnet-ids))
+          aws-azs: ((aws-azs))
     - name: efsdriver
       release: efs-volume
       properties:
