@@ -12,23 +12,23 @@ groups:
   - efsdriver-unit
   - efsbroker-unit
   - efsdriver-certification
-  - unit-local-controller-plugin
-  - unit-local-node-plugin
+  - csi-local-controller-plugin-unit
+  - csi-local-node-plugin-unit
   - csi-plugin-certification
   - certification-test-builds
   - certification-test-publish
-  - unit-smbdriver
-  - unit-azurefilebroker
+  - cifs-smbdriver-unit
+  - cifs-azurefilebroker-unit
   - ecs-broker-unit
   - localdriver-unit
   - localbroker-unit
   - localdriver-certification
   - localdriver-docker-certification
-  - unit-cephfs-driver
-  - unit-cephfs-broker
+  - cephfs-driver-unit
+  - cephfs-broker-unit
   - cephdriver-certification
   - deploy-cephfs-cluster
-  - smbdriver-certification
+  - cifs-smbdriver-certification
   - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
@@ -54,8 +54,81 @@ groups:
   - pats-local-cf-deployment
   - pats-cephfs-cf-deployment
 
+- name: csi
+  jobs:
+  - csi-local-controller-plugin-unit
+  - csi-local-node-plugin-unit
+  - csi-plugin-certification
+  - pats-csi-local
+  - create-csi-local-volume-release
+  - setup-cf-infrastructure
+  - pats-drats
+
+- name: nfs
+  jobs:
+  - nfsdriver-unit
+  - nfsbroker-unit
+  - nfsdriver-certification
+  - create-nfs-volume-release
+  - pats-nfs-cf-deployment
+  - pats-nfs-docker-cf-deployment
+  - pats-nfs-ldap-cf-deployment
+  - pats-nfs-pushed-broker-cf-deployment
+  - setup-cf-infrastructure
+  - pats-drats
+
+- name: efs
+  jobs:
+  - efsdriver-unit
+  - efsbroker-unit
+  - efsdriver-certification
+  - create-efs-volume-release
+  - pats-efs-cf-deployment
+  - setup-cf-infrastructure
+  - pats-drats
+
+- name: ecs
+  jobs:
+  - ecs-broker-unit
+  - create-ecs-release
+  - deploy-ecs-broker-cf-deployment
+  - pats-ecs-cf-deployment
+  - setup-cf-infrastructure
+  - pats-drats
+
+- name: cephfs
+  jobs:
+  - cephfs-driver-unit
+  - cephfs-broker-unit
+  - cephdriver-certification
+  - deploy-cephfs-cluster
+  - create-cephfs-release
+  - pats-cephfs-cf-deployment
+  - setup-cf-infrastructure
+  - pats-drats
+
+- name: cifs
+  jobs:
+  - cifs-smbdriver-unit
+  - cifs-azurefilebroker-unit
+  - create-smb-volume-release
+  - deploy-smb-cluster
+  - cifs-smbdriver-certification
+
+- name: local
+  jobs:
+  - localdriver-unit
+  - localbroker-unit
+  - localdriver-certification
+  - localdriver-docker-certification
+  - create-local-volume-release
+  - pats-local-cf-deployment
+  - setup-cf-infrastructure
+  - pats-drats
+
 - name: util
   jobs:
+  - persi-load-test
   - bbl-destroy
 - name: release-nfs
   jobs:
@@ -461,14 +534,14 @@ resource_types:
 
 jobs:
 ##### CEPH related jobs ################################################################################################
-- name: unit-cephfs-driver
+- name: cephfs-driver-unit
   plan:
   - aggregate:
     - get: cephfs-bosh-release
       trigger: true
   - task: build
     file: cephfs-bosh-release/scripts/ci/run_cephdriver_unit.build.yml
-- name: unit-cephfs-broker
+- name: cephfs-broker-unit
   plan:
   - aggregate:
     - get: cephfs-bosh-release
@@ -506,8 +579,8 @@ jobs:
   - aggregate:
     - get: cephfs-bosh-release
       passed:
-      - unit-cephfs-broker
-      - unit-cephfs-driver
+      - cephfs-broker-unit
+      - cephfs-driver-unit
       trigger: true
     - get: ceph-version
       resource: cephfs-version
@@ -986,7 +1059,7 @@ jobs:
 #### END ECS ##########################################################################################################
 
 #### START CSI related jobs ###########################################################################################
-- name: unit-local-controller-plugin
+- name: csi-local-controller-plugin-unit
   plan:
   - aggregate:
     - get: csi-local-volume-release
@@ -994,7 +1067,7 @@ jobs:
   - task: local-controller-plugin-unit
     file: csi-local-volume-release/scripts/ci/local-controller-plugin-unit.build.yml
 
-- name: unit-local-node-plugin
+- name: csi-local-node-plugin-unit
   plan:
   - aggregate:
     - get: csi-local-volume-release
@@ -1007,8 +1080,8 @@ jobs:
   - aggregate:
     - get: csi-local-volume-release
       passed:
-      - unit-local-controller-plugin
-      - unit-local-node-plugin
+      - csi-local-controller-plugin-unit
+      - csi-local-node-plugin-unit
       trigger: true
     - get: csi-cert
       trigger: true
@@ -1065,8 +1138,8 @@ jobs:
   - aggregate:
     - get: csi-local-volume-release
       passed:
-      - unit-local-node-plugin
-      - unit-local-controller-plugin
+      - csi-local-node-plugin-unit
+      - csi-local-controller-plugin-unit
       - csi-plugin-certification
       trigger: true
     - get: csi-local-version
@@ -1089,7 +1162,7 @@ jobs:
 #### END CSI related jobs ############################################################################################
 
 #### START SMB related jobs ###########################################################################################
-- name: unit-smbdriver
+- name: cifs-smbdriver-unit
   plan:
   - aggregate:
     - get: smb-volume-release
@@ -1097,7 +1170,7 @@ jobs:
   - task: smbdriver-unit
     file: smb-volume-release/scripts/ci/smbdriver-unit.build.yml
 
-- name: unit-azurefilebroker
+- name: cifs-azurefilebroker-unit
   plan:
   - aggregate:
     - get: smb-volume-release
@@ -1110,8 +1183,8 @@ jobs:
   - aggregate:
     - get: smb-volume-release
       passed:
-      - unit-azurefilebroker
-      - unit-smbdriver
+      - cifs-azurefilebroker-unit
+      - cifs-smbdriver-unit
       trigger: true
     - get: smb-volume-version
       resource: smb-volume-version
@@ -1153,7 +1226,7 @@ jobs:
       username: {{smb_server_username}}
       password: {{smb_server_password}}
 
-- name: smbdriver-certification
+- name: cifs-smbdriver-certification
   serial_groups:
   - smb-volume
   plan:
