@@ -28,6 +28,7 @@ groups:
   - unit-cephfs-broker
   - cephdriver-certification
   - deploy-cephfs-cluster
+  - smbdriver-certification
   - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
@@ -1148,6 +1149,29 @@ jobs:
     input_mapping:
       vars-store: gorgophone-env
       bosh-env: bosh-env
+    params:
+      username: {{smb_server_username}}
+      password: {{smb_server_password}}
+
+- name: smbdriver-certification
+  serial_groups:
+  - smb-volume
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: smb-volume-release
+      passed:
+      - deploy-smb-cluster
+      trigger: true
+    - get: gorgophone-env-director-state
+  - task: get-bosh-env
+    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+  - task: driver-cert
+    tags: ["jumpbox"]
+    privileged: true
+    file: smb-volume-release/scripts/ci/run_driver_cert.build.yml
     params:
       username: {{smb_server_username}}
       password: {{smb_server_password}}
