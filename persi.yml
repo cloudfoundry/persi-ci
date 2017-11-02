@@ -35,6 +35,7 @@ groups:
   - create-cephfs-release
   - create-diego-release
   - create-ecs-release
+  - create-smb-volume-release
   - setup-cf-infrastructure
   - deploy-ecs-broker-cf-deployment
   - pats-nfs-cf-deployment
@@ -354,6 +355,24 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/smb-volume-release.git
 
+- name: smb-volume-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: smb-volume-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+
+- name: smb-volume-release-tarball
+  type: s3
+  source:
+    bucket: smb-volume-release-tarballs
+    regexp: smbvolume-(.*).tgz
+    access_key_id: {{aws-access-key-id}}
+    secret_access_key: {{aws-secret-access-key}}
+
 #### End SMB resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
@@ -501,6 +520,7 @@ jobs:
   - put: cephfs-bosh-release-tarball
     params:
       file: created-cephfs-bosh-release/cephfs-*.tgz
+
 - name: cephdriver-certification
   serial_groups: [cephfs]
   plan:
@@ -1082,6 +1102,28 @@ jobs:
       trigger: true
   - task: azurefilebroker-unit
     file: smb-volume-release/scripts/ci/azurefilebroker-unit.build.yml
+
+- name: create-smb-volume-release
+  plan:
+  - aggregate:
+    - get: smb-volume-release
+      passed:
+      - unit-azurefilebroker
+      - unit-smbdriver
+      trigger: true
+    - get: smb-volume-version
+      resource: smb-volume-version
+      params:
+        pre: rc
+  - put: smb-volume-version
+    resource: smb-volume-version
+    params:
+      file: smb-volume-version/number
+  - task: create-release
+    file: smb-volume-release/scripts/ci/create_smb_volume_release.build.yml
+  - put: smb-volume-release-tarball
+    params:
+      file: created-smb-volume-release/smbvolume-*.tgz
 
 #### END SMB related jobs ###########################################################################################
 
