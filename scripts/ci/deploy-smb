@@ -1,0 +1,33 @@
+#!/bin/bash -eu
+set -ex
+
+source bosh-env/set-env.sh
+
+mkdir ops-files
+cp smb-volume-release-tarball/*.tgz ops-files/smbvolume.tgz
+
+generate_smb_vars() {
+    cat << EOF > ./smb-vars.yml
+---
+smb_username: ${username}
+smb_password: ${password}
+EOF
+}
+
+generate_smb_vars
+
+bosh \
+  -n \
+  interpolate vars-store/manifest/smbtestserver.yml \
+  --vars-file=./smb-vars.yml \
+  > interpolated_manifest.yml
+
+bosh \
+  -n \
+  -d smbtestserver \
+  delete-deployment || true
+
+bosh \
+  -n \
+  -d smbtestserver \
+  deploy interpolated_manifest.yml
