@@ -31,6 +31,11 @@ collect_versions() {
     exit 1
   fi
 
+  if [ ! -d ${ROOT_DIR}/smb-version ]; then
+    echo "[ERROR] smb-version input is missing."
+    exit 1
+  fi
+
 
   DIEGO_VERSION="$(cat diego-version/number)"
   NFS_VERSION="$(cat nfs-version/number)"
@@ -39,6 +44,7 @@ collect_versions() {
   CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
   ECS_VERSION="$(cat ecs-version/number)"
   CEPHFS_VERSION="$(cat cephfs-version/number)"
+  SMB_VERSION="$(cat smb-version/number)"
 }
 
 check_params() {
@@ -72,6 +78,12 @@ check_params() {
     exit 1
   fi
 
+  if [ ! -d ${ROOT_DIR}/smb-tarball ]; then
+    echo "[ERROR] smb-tarball input is missing."
+    exit 1
+  fi
+
+
   if [ -z "${DIEGO_VERSION}" ]; then
     echo "[ERROR] DIEGO_VERSION is missing."
     exit 1
@@ -100,6 +112,10 @@ check_params() {
     echo "[ERROR] CEPHFS_VERSION is missing."
     exit 1
   fi
+  if [ -z "${SMB_VERSION}" ]; then
+    echo "[ERROR] SMB_VERSION is missing."
+    exit 1
+  fi
 
 }
 
@@ -117,6 +133,7 @@ collect_tarballs() {
   cp ${ROOT_DIR}/ecs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/ecs.tgz
   cp ${ROOT_DIR}/local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/local.tgz
   cp ${ROOT_DIR}/cephfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/cephfs.tgz
+  cp ${ROOT_DIR}/smb-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/smb.tgz
 }
 
 # Copy each new operation to collection
@@ -165,6 +182,12 @@ create_operation_file() {
     name: cephfs
     version: ${CEPHFS_VERSION}
     url: ops-files/cephfs.tgz
+- type: replace
+  path: /releases/name=smb-volume
+  value:
+    name: smb-volume
+    version: ${SMB_VERSION}
+    url: ops-files/smb.tgz
 - type: replace
   path: /instance_groups/name=uaa/jobs/name=uaa/properties?/release_level_backup?
   value: false

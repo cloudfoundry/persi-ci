@@ -16,6 +16,7 @@ inputs:
 - name: ecs-tarball
 - name: cephfs-tarball
 - name: local-tarball
+- name: smb-tarball
 - name: diego-version
 - name: nfs-version
 - name: efs-version
@@ -23,6 +24,7 @@ inputs:
 - name: ecs-version
 - name: cephfs-version
 - name: local-version
+- name: smb-version
 
 outputs:
 - name: collected-tarballs
