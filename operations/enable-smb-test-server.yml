@@ -24,4 +24,6 @@
     - name: smbtestserver
       release: smb-volume
       properties:
-        smbtestserver: {}
+        smbtestserver:
+          username: ((smb-username))
+          password: ((smb-password))
