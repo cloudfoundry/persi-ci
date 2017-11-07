@@ -66,13 +66,6 @@ gorgophone-cephfs-keyring: |
 EOF
 }
 
-generate_smb_vars() {
-    cat << EOF > ${ROOT_DIR}/generated-vars/smb-vars.yml
----
-smb_username: ${SMB_USERNAME}
-smb_password: ${SMB_PASSWORD}
-EOF
-}
 
 main() {
   ROOT_DIR="${1}"
@@ -83,7 +76,6 @@ main() {
   generate_cf_vars
   generate_datadog_vars
   generate_cephfs_vars
-  generate_smb_vars
 }
 
 main ${PWD}

@@ -42,8 +42,6 @@ params:
   DATADOG_API_KEY:
   DATADOG_METRIC_PREFIX:
   CEPHFS_KEYRING:
-  SMB_USERNAME:
-  SMB_PASSWORD:
 
 run:
   path: persi-ci/scripts/ci/generate_variables
