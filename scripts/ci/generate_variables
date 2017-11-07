@@ -67,7 +67,7 @@ EOF
 }
 
 generate_smb_vars() {
-    cat << EOF > ./smb-vars.yml
+    cat << EOF > ${ROOT_DIR}/generated-vars/smb-vars.yml
 ---
 smb_username: ${SMB_USERNAME}
 smb_password: ${SMB_PASSWORD}
