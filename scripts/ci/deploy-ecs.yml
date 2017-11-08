@@ -12,7 +12,7 @@ inputs:
 - name: vars-store  # - The BOSH deployment's vars-store yaml file
 - name: bosh-env
 - name: ecs-bosh-release
-- name: ecs-bosh-release-tarball
+- name: ecs-release-tarball
 
 run:
   path: persi-ci/scripts/ci/deploy-ecs
