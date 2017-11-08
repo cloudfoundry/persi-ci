@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v3.15.0
+
+inputs:
+- name: persi-ci
+- name: vars-store  # - The BOSH deployment's vars-store yaml file
+- name: bosh-env
+- name: ecs-bosh-release
+- name: ecs-bosh-release-tarball
+
+run:
+  path: persi-ci/scripts/ci/deploy-ecs
+

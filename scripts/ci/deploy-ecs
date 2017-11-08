@@ -1,0 +1,12 @@
+#!/bin/bash -eu
+set -ex
+
+source bosh-env/set-env.sh
+
+mkdir ops-files
+cp ecs-release-tarball/*.tgz ops-files/ecs.tgz
+
+bosh \
+  -n \
+  -d ecs \
+  deploy vars-store/manifest/ecs.yml

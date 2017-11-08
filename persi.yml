@@ -91,11 +91,11 @@ groups:
   jobs:
   - ecs-broker-unit
   - create-ecs-release
+  - deploy-ecs-cluster
   - deploy-ecs-broker-cf-deployment
   - pats-ecs-cf-deployment
   - setup-cf-infrastructure
   - pats-drats
-  - deploy-ecs
 
 - name: cephfs
   jobs:
@@ -367,18 +367,6 @@ resources:
   type: git
   source:
     uri: https://github.com/codedellemc/ecs-cf-service-broker
-- name: ecs-deployment
-  type: bosh-deployment
-  source:
-    deployment: ecs_multi
-    ignore_ssl: true
-    target: {{bosh-director-ip}}
-    username: {{bosh-director-username}}
-    password: {{bosh-director-password}}
-- name: aws-stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
 #### End ECS resources ###############################################################################################
 
 #### CSI resources ###################################################################################################
@@ -1023,11 +1011,13 @@ jobs:
   - task: ecs-broker-unit
     file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
 
-- name: deploy-ecs
-  serial_groups:
-  - ecs-deploy
+- name: deploy-ecs-cluster
+  serial_groups: [ecs-deploy]
   plan:
   - aggregate:
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+    - get: gorgophone-env
     - get: ecs-release
       passed:
       - create-ecs-release
@@ -1035,22 +1025,16 @@ jobs:
     - get: ecs-release-tarball
       passed:
       - create-ecs-release
-    - get: aws-stemcell
-    - get: deployments-persi
-    - get: persi-ci
-  - put: ecs-deployment
-    params:
-      manifest: deployments-persi/ecs-manifest.yml
-      releases:
-      - ecs-release-tarball/*.tgz
-      stemcells:
-      - aws-stemcell/*.tgz
-  - task: run-prov-errand
-    file: persi-ci/scripts/ci/run_ecs_provision_errand.build.yml
-    params:
-      BOSH_PASSWORD: {{bosh-director-password}}
-      BOSH_TARGET: {{bosh-director-ip}}
-      BOSH_USER: {{bosh-director-username}}
+
+  - task: get-bosh-env
+    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+  - task: bosh-deploy-ecs
+    file: persi-ci/scripts/ci/deploy-ecs.yml
+    input_mapping:
+      vars-store: gorgophone-env
+      bosh-env: bosh-env
 
 - name: deploy-ecs-broker-cf-deployment
   serial_groups:
