@@ -94,8 +94,9 @@ groups:
   - create-ecs-release
   - deploy-ecs-cluster
   - deploy-ecs-broker-cf-deployment
-  - pats-ecs-cf-deployment
   - setup-cf-infrastructure
+  - ecs-lbats
+  - pats-ecs-cf-deployment
   - pats-drats
 
 - name: cephfs
@@ -368,6 +369,16 @@ resources:
   type: git
   source:
     uri: https://github.com/codedellemc/ecs-cf-service-broker
+- name: ecs-lite-ci
+  type: git
+  source:
+    uri: https://github.com/EMCECS/ecs-lite-ci
+    branch: master
+- name: ecs-load-balancer-tests
+  type: git
+  source:
+    uri: https://github.com/EMCECS/ecs-load-balancer-tests.git
+    branch: master
 #### End ECS resources ###############################################################################################
 
 #### CSI resources ###################################################################################################
@@ -1085,6 +1096,30 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
+
+- name: ecs-lbats
+  serial_groups:
+  - gorgophone
+  - ecs-deploy
+  plan:
+  - aggregate:
+    - get: ecs-lite-ci
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: ecs-load-balancer-tests
+    - get: gorgophone-env-vars-store
+  - task: load-balanacer-tests
+    file: ecs-lite-ci/scripts/ci/run_lbats.build.yml
+    params:
+      ECS_URL: http://bosh-namespace.10.0.16.33.nip.io
+      AWS_REGION: us-region-2
+      AWS_ACCESS_KEY_ID: some-id
+      AWS_SECRET_ACCESS_KEY: some-secret-key
+      BUCKET: some-bucket
+      DEPLOYMENT: ecs
+      ECS_NODE_ID: ecsservers
+
 #### END ECS ##########################################################################################################
 
 #### START CSI related jobs ###########################################################################################
