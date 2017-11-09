@@ -374,6 +374,8 @@ resources:
   source:
     uri: https://github.com/EMCECS/ecs-lite-ci
     branch: master
+    username: {{ecs-lite-ci-user}}
+    password: {{ecs-lite-ci-password}}
 - name: ecs-load-balancer-tests
   type: git
   source:
@@ -1103,13 +1105,14 @@ jobs:
   - ecs-deploy
   plan:
   - aggregate:
-    - get: ecs-lite-ci
+    - get: persi-ci
       passed:
       - setup-cf-infrastructure
-      trigger: true
+    - get: ecs-lite-ci
     - get: ecs-load-balancer-tests
     - get: gorgophone-env-vars-store
   - task: load-balanacer-tests
+    tags: ["jumpbox"]
     file: ecs-lite-ci/scripts/ci/run_lbats.build.yml
     params:
       ECS_URL: http://bosh-namespace.10.0.16.33.nip.io
@@ -1117,7 +1120,7 @@ jobs:
       AWS_ACCESS_KEY_ID: some-id
       AWS_SECRET_ACCESS_KEY: some-secret-key
       BUCKET: some-bucket
-      DEPLOYMENT: ecs
+      ECS_DEPLOYMENT: ecs
       ECS_NODE_ID: ecsservers
 
 #### END ECS ##########################################################################################################
