@@ -1018,7 +1018,8 @@ jobs:
     - get: persi-ci
     - get: gorgophone-env-director-state
     - get: gorgophone-env
-    - get: ecs-release
+    - get: ecs-bosh-release
+      resource: ecs-release
       passed:
       - create-ecs-release
       trigger: true
