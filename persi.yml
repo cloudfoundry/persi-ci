@@ -50,6 +50,8 @@ groups:
   - pats-nfs-pushed-broker-cf-deployment
   - pats-drats
   - pats-csi-local
+  - pats-cifs-smb
+  - deploy-ecs-cluster
   - pats-ecs-cf-deployment
   - persi-load-test
   - pats-local-cf-deployment
@@ -118,6 +120,7 @@ groups:
   - deploy-smb-cluster
   - cifs-smbdriver-certification
   - setup-cf-infrastructure
+  - pats-cifs-smb
 
 - name: local
   jobs:
@@ -376,11 +379,19 @@ resources:
     branch: master
     username: {{ecs-lite-ci-user}}
     password: {{ecs-lite-ci-password}}
+    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+- name: ecs-lite-ci
+  type: git
+  source:
+    branch: master
+    password: Dangerous123!
+    uri: https://github.com/EMCECS/ecs-lite-ci
+    username: ecs-ci-robot
 - name: ecs-load-balancer-tests
   type: git
   source:
-    uri: https://github.com/EMCECS/ecs-load-balancer-tests.git
     branch: master
+    uri: https://github.com/EMCECS/ecs-load-balancer-tests.git
 #### End ECS resources ###############################################################################################
 
 #### CSI resources ###################################################################################################
@@ -1051,6 +1062,32 @@ jobs:
       vars-store: gorgophone-env
       bosh-env: bosh-env
 
+- name: deploy-ecs-cluster
+  serial_groups:
+  - ecs-deploy
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+    - get: gorgophone-env
+    - get: ecs-bosh-release
+      passed:
+      - create-ecs-release
+      trigger: true
+      resource: ecs-release
+    - get: ecs-release-tarball
+      passed:
+      - create-ecs-release
+  - task: get-bosh-env
+    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+  - task: bosh-deploy-ecs
+    file: persi-ci/scripts/ci/deploy-ecs.yml
+    input_mapping:
+      bosh-env: bosh-env
+      vars-store: gorgophone-env
+
 - name: deploy-ecs-broker-cf-deployment
   serial_groups:
   - ecs-deploy
@@ -1111,7 +1148,7 @@ jobs:
     - get: ecs-lite-ci
     - get: ecs-load-balancer-tests
     - get: gorgophone-env-vars-store
-  - task: load-balanacer-tests
+  - task: load-balancer-tests
     tags: ["jumpbox"]
     file: ecs-lite-ci/scripts/ci/run_lbats.build.yml
     params:
@@ -1316,6 +1353,39 @@ jobs:
       username: {{smb_server_username}}
       password: {{smb_server_password}}
 
+- name: pats-cifs-smb
+  serial_groups:
+  - gorgophone
+  - smb-volume
+  plan:
+  - aggregate:
+    - get: smb-volume-release
+      passed:
+      - cifs-smbdriver-certification
+      trigger: true
+    - get: smb-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+
+  - task: run-pats
+    file: smb-volume-release/scripts/ci/run_pats_smbvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: smb-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\",\"username\":\"smbuser\",\"password\":\"CHANGEME\"}'
+      BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
+      BROKER_USER: admin
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      CREATE_CONFIG: '{\"share\":\"//smbtestserver.service.cf.internal/vol2\"}'
+      SERVICE_NAME: azurefile-service
+      TEST_MULTI_CELL: false
+      TEST_MOUNT_OPTIONS: false
+
 #### END SMB related jobs ###########################################################################################
 
 #### START cf-deployment related jobs ################################################################################
@@ -1456,7 +1526,7 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-nfs-ldap.yml operations/enable-nfs-broker-backup.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml"
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-nfs-volume-service.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-smb-test-server.yml operations/enable-nfs-ldap.yml operations/enable-nfs-broker-backup.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml"
   - task: collect-more-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -1516,6 +1586,8 @@ jobs:
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone
       CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
+      SMB_USERNAME: {{smb_server_username}}
+      SMB_PASSWORD: {{smb_server_password}}
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -1529,8 +1601,8 @@ jobs:
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
-      VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml datadog-vars.yml cephfs-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/enable-nfs-volume-service.yml operations/enable-local-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/test/add-datadog-firehose-nozzle.yml operations/enable-nfs-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml operations/update-releases.yml"
+      VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/enable-nfs-volume-service.yml operations/enable-local-volume-service.yml operations/enable-nfs-test-server.yml operations/enable-smb-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/test/add-datadog-firehose-nozzle.yml operations/enable-nfs-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml operations/update-releases.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
