@@ -38,6 +38,7 @@ groups:
   - create-ecs-release
   - create-smb-volume-release
   - deploy-smb-cluster
+  - deploy-ecs-cluster
   - setup-cf-infrastructure
   - deploy-ecs-broker-cf-deployment
   - pats-nfs-cf-deployment
@@ -1458,7 +1459,7 @@ jobs:
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
       ECS_PASSWORD: {{ecs-password}}
       ECS_USERNAME: {{ecs-user}}
-      ECS_IP: 34.206.233.96
+      ECS_IP: 34.208.242.178
       ECS_AWS_ID: {{ecs-blob-user}}
       ECS_AWS_KEY: {{ecs-blob-key}}
       S3_BLOBSTORE_ID: {{s3-blobstore-user}}
