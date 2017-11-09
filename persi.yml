@@ -1497,7 +1497,7 @@ jobs:
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
       ECS_PASSWORD: {{ecs-password}}
       ECS_USERNAME: {{ecs-user}}
-      ECS_IP: 34.208.242.178
+      ECS_IP: 10.0.31.252
       ECS_AWS_ID: {{ecs-blob-user}}
       ECS_AWS_KEY: {{ecs-blob-key}}
       S3_BLOBSTORE_ID: {{s3-blobstore-user}}
