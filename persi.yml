@@ -380,13 +380,6 @@ resources:
     username: {{ecs-lite-ci-user}}
     password: {{ecs-lite-ci-password}}
     name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-- name: ecs-lite-ci
-  type: git
-  source:
-    branch: master
-    password: Dangerous123!
-    uri: https://github.com/EMCECS/ecs-lite-ci
-    username: ecs-ci-robot
 - name: ecs-load-balancer-tests
   type: git
   source:
@@ -1037,32 +1030,6 @@ jobs:
     file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
 
 - name: deploy-ecs-cluster
-  serial_groups: [ecs-deploy]
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: gorgophone-env
-    - get: ecs-bosh-release
-      resource: ecs-release
-      passed:
-      - create-ecs-release
-      trigger: true
-    - get: ecs-release-tarball
-      passed:
-      - create-ecs-release
-
-  - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-  - task: bosh-deploy-ecs
-    file: persi-ci/scripts/ci/deploy-ecs.yml
-    input_mapping:
-      vars-store: gorgophone-env
-      bosh-env: bosh-env
-
-- name: deploy-ecs-cluster
   serial_groups:
   - ecs-deploy
   plan:
@@ -1375,7 +1342,7 @@ jobs:
     params:
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\",\"username\":\"smbuser\",\"password\":\"CHANGEME\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\",\"username\":\"smbuser\",\"password\":\"sgi11tdadfigag14\"}'
       BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
       BROKER_USER: admin
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
