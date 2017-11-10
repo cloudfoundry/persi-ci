@@ -1110,8 +1110,6 @@ jobs:
   plan:
   - aggregate:
     - get: persi-ci
-      passed:
-      - setup-cf-infrastructure
     - get: ecs-lite-ci
     - get: ecs-load-balancer-tests
     - get: gorgophone-env-vars-store
