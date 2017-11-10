@@ -27,10 +27,10 @@ check_param ECS_NODE_ID
 token=`curl -L --location-trusted -k http://10.0.31.252/login -u "root:ChangeMe" -v`
 
 # Delete the user
-#curl https://10.0.31.252:4443/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user", "namespace": "bosh-namespace"}'
+#curl ${ECS_MGMT_URL}/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user", "namespace": "bosh-namespace"}'
 
-curl https://10.0.31.252:4443/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user","namespace":"bosh-namespace","tags":[""]}'
-export AWS_SECRET_ACCESS_KEY=`curl https://10.0.31.252:4443/object/user-secret-keys/lbats-user -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
+curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user","namespace":"bosh-namespace","tags":[""]}'
+export AWS_SECRET_ACCESS_KEY=`curl ${ECS_MGMT_URL}/object/user-secret-keys/lbats-user -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
 
 #git clone https://github.com/EMCECS/s3curl.git
 #cat << EOF > ~/.s3curl
