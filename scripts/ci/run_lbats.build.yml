@@ -23,4 +23,4 @@ params:
   - ECS_NODE_ID: replace-me
 
 run:
-  path: ecs-lite-ci/scripts/ci/run_lbats.sh
+  path: persi-ci/scripts/ci/run_lbats.sh

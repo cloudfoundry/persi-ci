@@ -1117,7 +1117,7 @@ jobs:
     - get: gorgophone-env-vars-store
   - task: load-balancer-tests
     tags: ["jumpbox"]
-    file: ecs-lite-ci/scripts/ci/run_lbats.build.yml
+    file: persi-ci/scripts/ci/run_lbats.build.yml
     params:
       ECS_URL: http://bosh-namespace.10.0.16.33.nip.io
       AWS_REGION: us-region-2
