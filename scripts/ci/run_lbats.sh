@@ -25,7 +25,7 @@ check_param ECS_NODE_ID
 
 export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update
-sudo apt-get -y install default-jdk
+sudo apt-get -y install openjdk-8-jdk
 sudo apt-get -y install maven
 
 pushd ecs-load-balancer-tests
