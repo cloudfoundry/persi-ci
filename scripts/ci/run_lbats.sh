@@ -3,10 +3,11 @@
 set -e -x -u
 
 source $(pwd)/ecs-lite-ci/scripts/ci/utils.sh
-check_param ECS_URL
+check_param ECS_MGMT_URL
+check_param ECS_S3_URL
 check_param AWS_REGION
 check_param AWS_ACCESS_KEY_ID
-check_param AWS_SECRET_ACCESS_KEY
+#check_param AWS_SECRET_ACCESS_KEY
 check_param BUCKET
 check_param ECS_DEPLOYMENT
 check_param ECS_NODE_ID
@@ -22,6 +23,34 @@ check_param ECS_NODE_ID
 #unset BOSH_ALL_PROXY
 
 ### gorgpphone
+
+token=`curl -L --location-trusted -k http://10.0.31.252/login -u "root:ChangeMe" -v`
+
+# Delete the user
+#curl https://10.0.31.252:4443/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user", "namespace": "bosh-namespace"}'
+
+curl https://10.0.31.252:4443/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user","namespace":"bosh-namespace","tags":[""]}'
+export AWS_SECRET_ACCESS_KEY=`curl https://10.0.31.252:4443/object/user-secret-keys/lbats-user -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
+
+#git clone https://github.com/EMCECS/s3curl.git
+#cat << EOF > ~/.s3curl
+#%awsSecretAccessKeys = (
+#    'lbats-user' => {
+#        id => 'lbats-user',
+#        key => '${secret_key}',
+#    },
+#);
+#EOF
+#chmod 600 ~/.s3curl
+#
+#cat << EOF > /usr/bin/s3curl
+## begin customizing here
+#my @endpoints = ( '10.0.31.252', 'bosh-namespace.10.0.31.252.nip.io', );
+#EOF
+#
+#pushd s3curl/
+#    ./s3curl
+#popd
 
 export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update

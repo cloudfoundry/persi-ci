@@ -15,10 +15,10 @@ inputs:
 outputs: {}
 
 params:
-  - ECS_URL: replace-me
+  - ECS_MGMT_URL: replace-me
+  - ECS_S3_URL: replace-me
   - AWS_REGION: replace-me
   - AWS_ACCESS_KEY_ID: replace-me
-  - AWS_SECRET_ACCESS_KEY: replace-me
   - BUCKET: replace-me
   - ECS_DEPLOYMENT: replace-me
   - ECS_NODE_ID: replace-me
