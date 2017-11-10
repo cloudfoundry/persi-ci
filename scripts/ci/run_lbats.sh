@@ -4,6 +4,8 @@ set -e -x -u
 
 source $(pwd)/ecs-lite-ci/scripts/ci/utils.sh
 check_param ECS_MGMT_URL
+check_param ECS_ADMIN_USER
+check_param ECS_ADMIN_PASSWORD
 check_param ECS_S3_URL
 check_param AWS_REGION
 check_param AWS_ACCESS_KEY_ID
@@ -24,7 +26,8 @@ check_param ECS_NODE_ID
 
 ### gorgpphone
 
-token=`curl -L --location-trusted -k http://10.0.31.252/login -u "root:ChangeMe" -v`
+token=`curl -L --location-trusted -k ${ECS_MGMT_URL}/login -u "${ECS_ADMIN_USER}:${ECS_ADMIN_PASSWORD}" -v`
+echo ${token}
 
 # Delete the user
 #curl ${ECS_MGMT_URL}/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user", "namespace": "bosh-namespace"}'
