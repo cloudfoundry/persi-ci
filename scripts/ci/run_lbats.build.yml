@@ -1,0 +1,26 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: latest
+
+inputs:
+  - name: ecs-lite-ci
+  - name: ecs-load-balancer-tests
+
+outputs: {}
+
+params:
+  - ECS_URL: replace-me
+  - AWS_REGION: replace-me
+  - AWS_ACCESS_KEY_ID: replace-me
+  - AWS_SECRET_ACCESS_KEY: replace-me
+  - BUCKET: replace-me
+  - ECS_DEPLOYMENT: replace-me
+  - ECS_NODE_ID: replace-me
+
+run:
+  path: ecs-lite-ci/scripts/ci/run_lbats.sh
