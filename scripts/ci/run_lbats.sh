@@ -25,6 +25,8 @@ check_param ECS_NODE_ID
 
 export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository -y ppa:webupd8team/java
 sudo apt-get -y install openjdk-8-jdk
 sudo apt-get -y install maven
 
