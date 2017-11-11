@@ -8,11 +8,21 @@ check_param ECS_ADMIN_USER
 check_param ECS_ADMIN_PASSWORD
 check_param ECS_S3_URL
 check_param AWS_REGION
-check_param AWS_ACCESS_KEY_ID
+check_param ECS_ACCESS_KEY_ID
 #check_param AWS_SECRET_ACCESS_KEY
 check_param BUCKET
 check_param ECS_DEPLOYMENT
 check_param ECS_NODE_ID
+
+token=`curl -L --location-trusted -k ${ECS_MGMT_URL}/login -u "${ECS_ADMIN_USER}:${ECS_ADMIN_PASSWORD}" -v`
+echo ${token}
+
+function tearDown {
+    curl ${ECS_MGMT_URL}/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user", "namespace": "bosh-namespace"}'
+    curl ${ECS_MGMT_URL}/logout -k  -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace"
+}
+
+trap tearDown EXIT
 
 ### ecs-lite-ci
 # Create bosh environment alias with certificate in ~/creds.yml
@@ -26,14 +36,11 @@ check_param ECS_NODE_ID
 
 ### gorgpphone
 
-token=`curl -L --location-trusted -k ${ECS_MGMT_URL}/login -u "${ECS_ADMIN_USER}:${ECS_ADMIN_PASSWORD}" -v`
-echo ${token}
-
-# Delete the user
-#curl ${ECS_MGMT_URL}/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user", "namespace": "bosh-namespace"}'
-
+# create test user
 curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user","namespace":"bosh-namespace","tags":[""]}'
-export AWS_SECRET_ACCESS_KEY=`curl ${ECS_MGMT_URL}/object/user-secret-keys/lbats-user -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
+
+# give that user a secret key
+export ECS_SECRET_ACCESS_KEY=`curl ${ECS_MGMT_URL}/object/user-secret-keys/lbats-user -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
 
 #git clone https://github.com/EMCECS/s3curl.git
 #cat << EOF > ~/.s3curl
