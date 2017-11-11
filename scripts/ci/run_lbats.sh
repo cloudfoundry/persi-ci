@@ -48,16 +48,14 @@ trap tearDown EXIT
 ### gorgpphone
 
 # if test user doesn't exist already
-if [ ${ECS_SECRET_KEY+x} ]; then
-    curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
+curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
 {
     "user":"${ECS_ACCESS_KEY_ID}",
     "namespace":"bosh-namespace",
     "tags":[""]
 }
 END
-    export ECS_SECRET_KEY=`curl ${ECS_MGMT_URL}/object/user-secret-keys/${ECS_ACCESS_KEY_ID} -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
-fi
+export ECS_SECRET_KEY=`curl ${ECS_MGMT_URL}/object/user-secret-keys/${ECS_ACCESS_KEY_ID} -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
 
 #git clone https://github.com/EMCECS/s3curl.git
 #cat << EOF > ~/.s3curl
