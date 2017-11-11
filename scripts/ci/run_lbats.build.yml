@@ -20,7 +20,7 @@ params:
   - ECS_ADMIN_PASSWORD: replace-me
   - ECS_S3_URL: replace-me
   - AWS_REGION: replace-me
-  - ECS_ACCESS_KEY_ID: replace-me
+  - ECS_ACCESS_KEY_ID: ~
   - ECS_SECRET_KEY: ~
   - BUCKET: replace-me
   - ECS_DEPLOYMENT: replace-me
