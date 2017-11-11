@@ -8,19 +8,23 @@ check_param ECS_ADMIN_USER
 check_param ECS_ADMIN_PASSWORD
 check_param ECS_S3_URL
 check_param AWS_REGION
-check_param ECS_ACCESS_KEY_ID
+#check_param ECS_ACCESS_KEY_ID
 #check_param AWS_SECRET_ACCESS_KEY
 check_param BUCKET
 check_param ECS_DEPLOYMENT
 check_param ECS_NODE_ID
 
+sudo apt-get -y install uuid-runtime
+
+uuid=`uuidgen`
+export ECS_ACCESS_KEY_ID=lbats-user-${uuid}
 export AWS_BUCKET=${BUCKET}
 
 token=`curl -L --location-trusted -k ${ECS_MGMT_URL}/login -u "${ECS_ADMIN_USER}:${ECS_ADMIN_PASSWORD}" -I | grep -Fi X-SDS-AUTH-TOKEN | awk -F':' '{print $2}' | xargs`
 echo ${token}
 
 function tearDown {
-    curl ${ECS_MGMT_URL}/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user", "namespace": "bosh-namespace"}'
+    curl ${ECS_MGMT_URL}/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"${ECS_ACCESS_KEY_ID}", "namespace": "bosh-namespace"}'
     curl ${ECS_MGMT_URL}/logout -k  -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace"
 }
 
@@ -40,15 +44,15 @@ trap tearDown EXIT
 
 # if test user doesn't exist already
 if [ ${ECS_SECRET_KEY+x} ]; then
-    curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"lbats-user","namespace":"bosh-namespace","tags":[""]}'
-    export ECS_SECRET_KEY=`curl ${ECS_MGMT_URL}/object/user-secret-keys/lbats-user -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
+    curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"user":"${ECS_ACCESS_KEY_ID}","namespace":"bosh-namespace","tags":[""]}'
+    export ECS_SECRET_KEY=`curl ${ECS_MGMT_URL}/object/user-secret-keys/${ECS_ACCESS_KEY_ID} -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
 fi
 
 #git clone https://github.com/EMCECS/s3curl.git
 #cat << EOF > ~/.s3curl
 #%awsSecretAccessKeys = (
-#    'lbats-user' => {
-#        id => 'lbats-user',
+#    '${ECS_ACCESS_KEY_ID}' => {
+#        id => '${ECS_ACCESS_KEY_ID}',
 #        key => '${secret_key}',
 #    },
 #);
