@@ -18,7 +18,7 @@ sudo apt-get -y install uuid-runtime
 
 uuid=`uuidgen`
 ecs_access_key_id=lbats-user-${uuid}
-aws_bucket=${BUCKET}
+aws_bucket=${BUCKET}-${uuid}
 
 token=`curl -L --location-trusted -k ${ECS_MGMT_URL}/login -u "${ECS_ADMIN_USER}:${ECS_ADMIN_PASSWORD}" -I | grep -Fi X-SDS-AUTH-TOKEN | awk -F':' '{print $2}' | xargs`
 echo ${token}
@@ -55,14 +55,16 @@ curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H
     "tags":[""]
 }
 END
-ecs_secret_key=`curl ${ECS_MGMT_URL}/object/user-secret-keys/${ecs_access_key_id} -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
+response=`curl ${ECS_MGMT_URL}/object/user-secret-keys/${ecs_access_key_id} -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}'`
+echo ${response}
+ecs_secret_key=`echo ${response} | jq -r '.secret_key'`
 
 #git clone https://github.com/EMCECS/s3curl.git
 #cat << EOF > ~/.s3curl
 #%awsSecretAccessKeys = (
 #    '${ECS_ACCESS_KEY_ID}' => {
 #        id => '${ECS_ACCESS_KEY_ID}',
-#        key => '${secret_key}',
+#        key => '${ecs_secret_key}',
 #    },
 #);
 #EOF
