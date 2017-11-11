@@ -26,7 +26,7 @@ echo ${token}
 function tearDown {
     curl ${ECS_MGMT_URL}/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
 {
-    "user":"$ECS_ACCESS_KEY_ID",
+    "user":"${ecs_access_key_id}",
     "namespace": "bosh-namespace"
 }
 END
@@ -50,7 +50,7 @@ trap tearDown EXIT
 # if test user doesn't exist already
 curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
 {
-    "user":"${ECS_ACCESS_KEY_ID}",
+    "user":"${ecs_access_key_id}",
     "namespace":"bosh-namespace",
     "tags":[""]
 }
