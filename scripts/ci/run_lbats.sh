@@ -17,8 +17,8 @@ check_param ECS_NODE_ID
 sudo apt-get -y install uuid-runtime
 
 uuid=`uuidgen`
-export ECS_ACCESS_KEY_ID=lbats-user-${uuid}
-export AWS_BUCKET=${BUCKET}
+ecs_access_key_id=lbats-user-${uuid}
+aws_bucket=${BUCKET}
 
 token=`curl -L --location-trusted -k ${ECS_MGMT_URL}/login -u "${ECS_ADMIN_USER}:${ECS_ADMIN_PASSWORD}" -I | grep -Fi X-SDS-AUTH-TOKEN | awk -F':' '{print $2}' | xargs`
 echo ${token}
@@ -55,7 +55,7 @@ curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H
     "tags":[""]
 }
 END
-export ECS_SECRET_KEY=`curl ${ECS_MGMT_URL}/object/user-secret-keys/${ECS_ACCESS_KEY_ID} -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
+ecs_secret_key=`curl ${ECS_MGMT_URL}/object/user-secret-keys/${ECS_ACCESS_KEY_ID} -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}' | jq -r '.secret_key'`
 
 #git clone https://github.com/EMCECS/s3curl.git
 #cat << EOF > ~/.s3curl
@@ -86,5 +86,5 @@ sudo apt-get -y install openjdk-8-jdk
 sudo apt-get -y install maven
 
 pushd ecs-load-balancer-tests
-    mvn clean test
+    ECS_ACCESS_KEY_ID=${ecs_access_key_id} ECS_SECRET_KEY=${ecs_secret_key} AWS_BUCKET=${aws_bucket} mvn clean test
 popd
