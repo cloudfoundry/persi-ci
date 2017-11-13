@@ -2,6 +2,6 @@
 
 set -e -x -u
 
-$(dirname $0)/bosh_setup
+source bosh-env/set-env.sh
 
-bosh -n cleanup
+bosh -n clean-up

@@ -1,15 +1,16 @@
 ---
 platform: linux
 
-rootfs_uri: docker:///cloudfoundry/diego-pipeline
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v3.15.0
+
 
 inputs:
-  - name: persi-ci
-
-params:
-  BOSH_PASSWORD: ~
-  BOSH_TARGET: ~
-  BOSH_USER: ~
+- name: persi-ci
+- name: bosh-env
 
 run:
   path: persi-ci/scripts/ci/bosh_cleanup
