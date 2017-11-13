@@ -137,6 +137,7 @@ groups:
   jobs:
   - persi-load-test
   - bbl-destroy
+  - gorgophone-bosh-cleanup
 - name: release-nfs
   jobs:
   - shipit-nfs
@@ -344,6 +345,14 @@ resources:
   source:
     private_key: {{deployments-persi-key}}
     uri: git@github.com:cloudfoundry/deployments-persi.git
+
+- name: sunday
+  type: time
+  source:
+    days: [ Sunday ]
+    start: 12:00 PM
+    stop: 1:00 PM
+    location: America/Los_Angeles
 
 #### End Persi resources ################################################################################################
 
@@ -1054,6 +1063,24 @@ jobs:
     input_mapping:
       bosh-env: bosh-env
       vars-store: gorgophone-env
+
+- name: gorgophone-bosh-cleanup
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: sunday
+      trigger: true
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+  - task: get-bosh-env
+    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+  - task: bosh-cleanup
+    file: persi-ci/scripts/ci/bosh_cleanup.build.yml
+    input_mapping:
+      bosh-env: bosh-env
 
 - name: deploy-ecs-broker-cf-deployment
   serial_groups:
