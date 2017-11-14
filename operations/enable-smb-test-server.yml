@@ -6,6 +6,7 @@
     instances: 1
     stemcell: default
     vm_type: m3.medium
+    persistent_disk_type: 10GB
     networks: [ name: default ]
     jobs:
     - name: consul_agent

@@ -1366,7 +1366,7 @@ jobs:
     params:
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\",\"username\":\"smbuser\",\"password\":\"sgi11tdadfigag14\"}'
+      BIND_CONFIG: '{\"uid\":\"2000\",\"gid\":\"2000\",\"username\":\"smbuser\",\"password\":\"sgi11tdadfigag14\"}'
       BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
       BROKER_USER: admin
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
