@@ -1140,6 +1140,8 @@ jobs:
   - task: load-balancer-tests
     tags: ["jumpbox"]
     file: persi-ci/scripts/ci/run_lbats.build.yml
+    input-mapping:
+      gorgophone-env: gorgophone-env-vars-store
     params:
       ECS_MGMT_URL: https://10.0.31.252:4443
       ECS_ADMIN_USER: {{ecs-user}}
