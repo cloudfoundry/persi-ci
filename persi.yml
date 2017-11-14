@@ -1149,7 +1149,7 @@ jobs:
 #      ECS_ACCESS_KEY_ID: lbats-user
 #      ECS_SECRET_KEY: LsKeqFCztQ8qDAjKb6f1uiW03IfjeJRdTB4mTtYw
 #      ECS_SECRET_KEY: wChh97Yi1PTu74O1nfOLttbnRa3rhZys7poXn5SK
-#      BUCKET: lbats-bucket
+      BUCKET: lbats-bucket
       ECS_DEPLOYMENT: ecs
       ECS_NODE_ID: ecs_servers
 

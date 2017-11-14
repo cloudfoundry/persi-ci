@@ -11,6 +11,7 @@ inputs:
   - name: ecs-lite-ci
   - name: ecs-load-balancer-tests
   - name: persi-ci
+  - name: gorgophone-env
 
 outputs: {}
 

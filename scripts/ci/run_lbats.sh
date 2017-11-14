@@ -46,6 +46,8 @@ trap tearDown EXIT
 #unset BOSH_ALL_PROXY
 
 ### gorgpphone
+bbl print-env > setenv.sh
+source setenv.sh
 
 # if test user doesn't exist already
 curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
