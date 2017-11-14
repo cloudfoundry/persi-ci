@@ -1295,7 +1295,7 @@ jobs:
 
 - name: cifs-smbdriver-certification
   serial_groups:
-  - smb-volume
+  - gorgophone
   plan:
   - aggregate:
     - get: persi-ci
@@ -1319,7 +1319,6 @@ jobs:
 - name: pats-cifs-smb
   serial_groups:
   - gorgophone
-  - smb-volume
   plan:
   - aggregate:
     - get: smb-volume-release
