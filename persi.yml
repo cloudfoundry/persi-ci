@@ -1141,13 +1141,17 @@ jobs:
     tags: ["jumpbox"]
     file: persi-ci/scripts/ci/run_lbats.build.yml
     params:
-      ECS_URL: http://bosh-namespace.10.0.16.33.nip.io
+      ECS_MGMT_URL: https://10.0.31.252:4443
+      ECS_ADMIN_USER: {{ecs-user}}
+      ECS_ADMIN_PASSWORD: {{ecs-password}}
+      ECS_S3_URL: http://bosh-namespace.10.0.31.252.nip.io:9020
       AWS_REGION: us-region-2
-      AWS_ACCESS_KEY_ID: some-id
-      AWS_SECRET_ACCESS_KEY: some-secret-key
-      BUCKET: some-bucket
+#      ECS_ACCESS_KEY_ID: lbats-user
+#      ECS_SECRET_KEY: LsKeqFCztQ8qDAjKb6f1uiW03IfjeJRdTB4mTtYw
+#      ECS_SECRET_KEY: wChh97Yi1PTu74O1nfOLttbnRa3rhZys7poXn5SK
+#      BUCKET: lbats-bucket
       ECS_DEPLOYMENT: ecs
-      ECS_NODE_ID: ecsservers
+      ECS_NODE_ID: ecs_servers
 
 #### END ECS ##########################################################################################################
 
