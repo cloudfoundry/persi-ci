@@ -10,7 +10,7 @@ check_param ECS_S3_URL
 check_param AWS_REGION
 #check_param ECS_ACCESS_KEY_ID
 #check_param AWS_SECRET_ACCESS_KEY
-#check_param BUCKET
+check_param BUCKET
 check_param ECS_DEPLOYMENT
 check_param ECS_NODE_ID
 
