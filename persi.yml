@@ -37,7 +37,6 @@ groups:
   - create-diego-release
   - create-ecs-release
   - create-smb-volume-release
-  - deploy-smb-cluster
   - deploy-ecs-cluster
   - setup-cf-infrastructure
   - deploy-ecs-broker-cf-deployment
@@ -117,7 +116,6 @@ groups:
   - cifs-smbdriver-unit
   - cifs-azurefilebroker-unit
   - create-smb-volume-release
-  - deploy-smb-cluster
   - cifs-smbdriver-certification
   - setup-cf-infrastructure
   - pats-cifs-smb
@@ -1295,32 +1293,6 @@ jobs:
     params:
       file: created-smb-volume-release/smbvolume-*.tgz
 
-- name: deploy-smb-cluster
-  serial_groups: [smb-volume]
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: gorgophone-env
-    - get: smb-volume-release
-      passed:
-      - create-smb-volume-release
-      trigger: true
-    - get: smb-volume-release-tarball
-
-  - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-  - task: bosh-deploy-smb
-    file: persi-ci/scripts/ci/deploy-smb.yml
-    input_mapping:
-      vars-store: gorgophone-env
-      bosh-env: bosh-env
-    params:
-      username: {{smb_server_username}}
-      password: {{smb_server_password}}
-
 - name: cifs-smbdriver-certification
   serial_groups:
   - smb-volume
@@ -1329,7 +1301,7 @@ jobs:
     - get: persi-ci
     - get: smb-volume-release
       passed:
-      - deploy-smb-cluster
+      - setup-cf-infrastructure
       trigger: true
     - get: gorgophone-env-director-state
   - task: get-bosh-env
