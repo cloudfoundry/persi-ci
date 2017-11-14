@@ -346,10 +346,9 @@ resources:
     private_key: {{deployments-persi-key}}
     uri: git@github.com:cloudfoundry/deployments-persi.git
 
-- name: sunday
+- name: night
   type: time
   source:
-    days: [ Sunday ]
     start: 12:00 PM
     stop: 1:00 PM
     location: America/Los_Angeles
@@ -1069,7 +1068,7 @@ jobs:
   - gorgophone
   plan:
   - aggregate:
-    - get: sunday
+    - get: night
       trigger: true
     - get: persi-ci
     - get: gorgophone-env-director-state
