@@ -92,5 +92,10 @@ sudo apt-get -y install openjdk-8-jdk
 sudo apt-get -y install maven
 
 pushd ecs-load-balancer-tests
-    ECS_ACCESS_KEY_ID=${ecs_access_key_id} ECS_SECRET_KEY=${ecs_secret_key} AWS_BUCKET=${aws_bucket} mvn clean test
+    ECS_ACCESS_KEY_ID=${ecs_access_key_id} \
+    ECS_SECRET_KEY=${ecs_secret_key} \
+    AWS_BUCKET=${aws_bucket} \
+    DEPLOYMENT=${ECS_DEPLOYMENT} \
+    ECS_SERVER_INSTANCE_ID=${ECS_NODE_ID} \
+    mvn clean test
 popd
