@@ -844,15 +844,13 @@ jobs:
     - put: nfs-volume-version
       resource: nfsvolume-version
       params:
-        file: nfs-volume-version/number
+        file: volume-version/number
     - put: nfsvolume-final-release
       params:
         file: finalized-release/nfs-volume-*.tgz
   - task: generate-release
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
-      VERSION: nfs-volume-version
-      RELEASE: nfs-volume-release
       BASE_RELEASE_NAME: nfs-volume
   - aggregate:
     - put: nfs-volume-release
@@ -1408,15 +1406,13 @@ jobs:
     - put: smb-volume-version
       resource: smb-volume-version
       params:
-        file: smb-volume-version/number
+        file: volume-version/number
     - put: smbvolume-final-release
       params:
         file: finalized-release/smb-volume-*.tgz
   - task: generate-release
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
-      VERSION: smb-volume-version
-      RELEASE: smb-volume-release
       BASE_RELEASE_NAME: smb-volume
   - aggregate:
     - put: smb-volume-release

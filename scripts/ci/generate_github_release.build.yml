@@ -5,15 +5,13 @@ rootfs_uri: docker:///concourse/git-resource
 
 inputs:
 - name: persi-ci
-- name: nfs-volume-release
-- name: nfs-volume-version
+- name: volume-release
+- name: volume-version
 
 outputs:
   - name: generated-release
 
 params:
-  VERSION: replace-me
-  RELEASE: replace-me
   BASE_RELEASE_NAME: replace-me
 
 run:
