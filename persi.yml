@@ -136,12 +136,20 @@ groups:
   - persi-load-test
   - bbl-destroy
   - gorgophone-bosh-cleanup
+
 - name: release-nfs
   jobs:
   - shipit-nfs
   - manual-bump-nfs-patch
   - manual-bump-nfs-minor
   - manual-bump-nfs-major
+
+- name: release-cifs-smb
+  jobs:
+  - shipit-smb
+  - manual-bump-smb-patch
+  - manual-bump-smb-minor
+  - manual-bump-smb-major
 
 ###################################### END GROUPS SECTION ############################################################
 
@@ -474,6 +482,22 @@ resources:
     access_key_id: {{aws-access-key-id}}
     secret_access_key: {{aws-secret-access-key}}
 
+- name: smbvolume-final-release
+  type: s3
+  source:
+    bucket: smbvolume-final-releases
+    regexp: smb-volume-(.*).tgz
+    access_key_id: {{smbvolume-uploader_aws_ID}}
+    secret_access_key: {{smbvolume-uploader_aws_secret}}
+
+- name: github-release-smb
+  type: github-release
+  source:
+    user: cloudfoundry
+    repository: smb-volume-release
+    drafts: true
+    access_token: {{github-release-token}}
+
 #### End SMB resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
@@ -792,20 +816,22 @@ jobs:
   plan:
   - aggregate:
     - get: persi-ci
-    - get: nfs-volume-release-tarball
+    - get: volume-release-tarball
+      resource: nfs-volume-release-tarball
       passed:
       - pats-nfs-cf-deployment
-    - get: nfs-volume-release
+    - get: volume-release
+      resource: nfs-volume-release
       passed:
       - pats-nfs-cf-deployment
-    - get: nfs-volume-version
+    - get: volume-version
+      resource: nfs-volume-version
       resource: nfsvolume-version
       params:
         bump: final
   - task: finalize-release
     file: persi-ci/scripts/ci/finalize_release.build.yml
     params:
-      VERSION: nfs-volume-version
       RELEASE: nfs-volume-release
       TARBALL: nfs-volume-release-tarball
       BASE_RELEASE_NAME: nfs-volume
@@ -1350,6 +1376,97 @@ jobs:
       SERVICE_NAME: azurefile-service
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
+
+- name: shipit-smb
+  serial_groups:
+  - smb-version
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: volume-release-tarball
+      resource: smb-volume-release-tarball
+      passed:
+      - pats-cifs-smb
+    - get: volume-release
+      resource: smb-volume-release
+      passed:
+      - pats-cifs-smb
+    - get: volume-version
+      resource: smb-volume-version
+      params:
+        bump: final
+  - task: finalize-release
+    file: persi-ci/scripts/ci/finalize_release.build.yml
+    params:
+      BASE_RELEASE_NAME: smb-volume
+      GIT_USER: {{github-user}}
+      GIT_EMAIL: {{github-email}}
+      S3_ACCESS_KEY_ID: {{smbvolume-uploader_aws_ID}}
+      S3_ACCESS_KEY: {{smbvolume-uploader_aws_secret}}
+      S3_BUCKET_NAME: {{smbvolume-uploader_s3_bucket}}
+  - aggregate:
+    - put: smb-volume-version
+      resource: smb-volume-version
+      params:
+        file: smb-volume-version/number
+    - put: smbvolume-final-release
+      params:
+        file: finalized-release/smb-volume-*.tgz
+  - task: generate-release
+    file: persi-ci/scripts/ci/generate_github_release.build.yml
+    params:
+      VERSION: smb-volume-version
+      RELEASE: smb-volume-release
+      BASE_RELEASE_NAME: smb-volume
+  - aggregate:
+    - put: smb-volume-release
+      params:
+        repository: finalized-release/smb-volume-release
+        tag: smb-volume-version/number
+        tag_prefix: v
+    - put: github-release-smb
+      params:
+        commitish: generated-release/commitish
+        name: generated-release/name
+        tag: generated-release/version
+        globs: []
+        # - smbvolume-final-release/*.tgz
+    - put: smb-volume-version
+      params:
+        bump: patch
+- name: manual-bump-smb-patch
+  serial_groups:
+  - smb-version
+  plan:
+  - get: smb-volume-version
+    resource: smb-volume-version
+    params:
+      bump: final
+  - put: smb-volume-version
+    params:
+      bump: patch
+- name: manual-bump-smb-minor
+  serial_groups:
+  - smb-version
+  plan:
+  - get: smb-volume-version
+    resource: smb-volume-version
+    params:
+      bump: final
+  - put: smb-volume-version
+    params:
+      bump: minor
+- name: manual-bump-smb-major
+  serial_groups:
+  - smb-version
+  plan:
+  - get: smb-volume-version
+    resource: smb-volume-version
+    params:
+      bump: final
+  - put: smb-volume-version
+    params:
+      bump: major
 
 #### END SMB related jobs ###########################################################################################
 
