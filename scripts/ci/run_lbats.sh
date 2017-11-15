@@ -14,8 +14,6 @@ check_param BUCKET
 check_param ECS_DEPLOYMENT
 check_param ECS_NODE_ID
 
-sudo apt-get -y install uuid-runtime
-
 uuid=`uuidgen`
 ecs_access_key_id=lbats-user-${uuid}
 aws_bucket=${BUCKET}-${uuid}
@@ -23,7 +21,6 @@ aws_bucket=${BUCKET}-${uuid}
 token=`curl -L --location-trusted -k ${ECS_MGMT_URL}/login -u "${ECS_ADMIN_USER}:${ECS_ADMIN_PASSWORD}" -I | grep -Fi X-SDS-AUTH-TOKEN | awk -F':' '{print $2}' | xargs`
 echo ${token}
 
-# if test user doesn't exist already
 response=`curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
 {
     "user":"${ecs_access_key_id}",
@@ -68,14 +65,6 @@ pushd gorgophone-env
     bbl print-env > setenv.sh
     source setenv.sh
 popd
-
-export DEBIAN_FRONTEND=noninteractive
-sudo apt-get update
-sudo apt-get install -y software-properties-common
-sudo add-apt-repository -y ppa:openjdk-r/ppa
-sudo apt-get update
-sudo apt-get -y install openjdk-8-jdk
-sudo apt-get -y install maven
 
 pushd ecs-load-balancer-tests
     ECS_ACCESS_KEY_ID=${ecs_access_key_id} \
