@@ -55,7 +55,7 @@ pushd runme/
 
         # run drats
         pushd disaster-recovery-acceptance-tests/
-            scripts/run_acceptance_tests_local.sh
+            scripts/_run_acceptance_tests.sh
         popd
     popd
 popd
