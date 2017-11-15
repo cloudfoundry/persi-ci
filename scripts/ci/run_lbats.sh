@@ -23,18 +23,6 @@ aws_bucket=${BUCKET}-${uuid}
 token=`curl -L --location-trusted -k ${ECS_MGMT_URL}/login -u "${ECS_ADMIN_USER}:${ECS_ADMIN_PASSWORD}" -I | grep -Fi X-SDS-AUTH-TOKEN | awk -F':' '{print $2}' | xargs`
 echo ${token}
 
-function tearDown {
-    curl ${ECS_MGMT_URL}/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
-{
-    "user":"${ecs_access_key_id}",
-    "namespace": "bosh-namespace"
-}
-END
-    curl ${ECS_MGMT_URL}/logout -k  -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace"
-}
-
-trap tearDown EXIT
-
 # if test user doesn't exist already
 response=`curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
 {
@@ -53,6 +41,18 @@ if [ ${ecs_secret_key} == "null" ]; then
     exit 1
 fi
 
+function tearDown {
+    curl ${ECS_MGMT_URL}/object/users/deactivate -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
+{
+    "user":"${ecs_access_key_id}",
+    "namespace": "bosh-namespace"
+}
+END
+    curl ${ECS_MGMT_URL}/logout -k  -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace"
+}
+
+trap tearDown EXIT
+
 ### ecs-lite-ci
 # Create bosh environment alias with certificate in ~/creds.yml
 #bosh alias-env bosh-2 -e 10.249.246.81 --ca-cert <(bosh int ecs-lite-ci/creds.yml --path /director_ssl/ca)
@@ -63,32 +63,11 @@ fi
 #
 #unset BOSH_ALL_PROXY
 
-### gorgpphone
+### gorgophone
 pushd gorgophone-env
     bbl print-env > setenv.sh
     source setenv.sh
 popd
-
-
-#git clone https://github.com/EMCECS/s3curl.git
-#cat << EOF > ~/.s3curl
-#%awsSecretAccessKeys = (
-#    '${ECS_ACCESS_KEY_ID}' => {
-#        id => '${ECS_ACCESS_KEY_ID}',
-#        key => '${ecs_secret_key}',
-#    },
-#);
-#EOF
-#chmod 600 ~/.s3curl
-#
-#cat << EOF > /usr/bin/s3curl
-## begin customizing here
-#my @endpoints = ( '10.0.31.252', 'bosh-namespace.10.0.31.252.nip.io', );
-#EOF
-#
-#pushd s3curl/
-#    ./s3curl
-#popd
 
 export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update
