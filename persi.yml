@@ -855,6 +855,7 @@ jobs:
   - aggregate:
     - put: nfs-volume-release
       params:
+        branch: master
         repository: finalized-release/volume-release
         tag: volume-version/number
         tag_prefix: v
@@ -1417,6 +1418,7 @@ jobs:
   - aggregate:
     - put: smb-volume-release
       params:
+        branch: master
         repository: finalized-release/volume-release
         tag: volume-version/number
         tag_prefix: v
