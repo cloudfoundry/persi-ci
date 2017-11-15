@@ -855,8 +855,8 @@ jobs:
   - aggregate:
     - put: nfs-volume-release
       params:
-        repository: finalized-release/nfs-volume-release
-        tag: nfs-volume-version/number
+        repository: finalized-release/volume-release
+        tag: volume-version/number
         tag_prefix: v
     - put: github-release-nfs
       params:
@@ -1417,8 +1417,8 @@ jobs:
   - aggregate:
     - put: smb-volume-release
       params:
-        repository: finalized-release/smb-volume-release
-        tag: smb-volume-version/number
+        repository: finalized-release/volume-release
+        tag: volume-version/number
         tag_prefix: v
     - put: github-release-smb
       params:
