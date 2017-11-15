@@ -462,6 +462,9 @@ resources:
 - name: smb-volume-release
   type: git
   source:
+    username: {{github-user}}
+    password: {{github-password}}
+    branch: master
     uri: https://github.com/cloudfoundry/smb-volume-release.git
 
 - name: smb-volume-version
@@ -855,7 +858,6 @@ jobs:
   - aggregate:
     - put: nfs-volume-release
       params:
-        branch: master
         repository: finalized-release/volume-release
         tag: volume-version/number
         tag_prefix: v
@@ -1418,7 +1420,6 @@ jobs:
   - aggregate:
     - put: smb-volume-release
       params:
-        branch: master
         repository: finalized-release/volume-release
         tag: volume-version/number
         tag_prefix: v
