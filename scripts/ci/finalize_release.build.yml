@@ -5,17 +5,14 @@ rootfs_uri: docker:///cloudfoundry/diego-pipeline
 
 inputs:
   - name: persi-ci
-  - name: nfs-volume-release-tarball
-  - name: nfs-volume-release
-  - name: nfs-volume-version
+  - name: volume-release-tarball
+  - name: volume-release
+  - name: volume-version
 
 outputs:
   - name: finalized-release
 
 params:
-  VERSION: replace-me
-  RELEASE: replace-me
-  TARBALL: replace-me
   BASE_RELEASE_NAME: replace-me
   GIT_USER: replace-me
   GIT_EMAIL: replace-me
