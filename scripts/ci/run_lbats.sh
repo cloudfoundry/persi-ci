@@ -35,6 +35,24 @@ END
 
 trap tearDown EXIT
 
+# if test user doesn't exist already
+response=`curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
+{
+    "user":"${ecs_access_key_id}",
+    "namespace":"bosh-namespace",
+    "tags":[""]
+}
+END`
+echo ${response}
+
+response=`curl ${ECS_MGMT_URL}/object/user-secret-keys/${ecs_access_key_id} -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}'`
+echo ${response}
+ecs_secret_key=`echo ${response} | jq -r '.secret_key'`
+
+if [ ${ecs_secret_key} == "null" ]; then
+    exit 1
+fi
+
 ### ecs-lite-ci
 # Create bosh environment alias with certificate in ~/creds.yml
 #bosh alias-env bosh-2 -e 10.249.246.81 --ca-cert <(bosh int ecs-lite-ci/creds.yml --path /director_ssl/ca)
@@ -51,17 +69,6 @@ pushd gorgophone-env
     source setenv.sh
 popd
 
-# if test user doesn't exist already
-curl ${ECS_MGMT_URL}/object/users -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json"  -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d @- <<END;
-{
-    "user":"${ecs_access_key_id}",
-    "namespace":"bosh-namespace",
-    "tags":[""]
-}
-END
-response=`curl ${ECS_MGMT_URL}/object/user-secret-keys/${ecs_access_key_id} -k  -X POST -H "X-SDS-AUTH-TOKEN: ${token}" -H "Content-Type: application/json" -H "Accept: application/json" -H "x-emc-namespace: bosh-namespace" -d '{"namespace": "bosh-namespace"}'`
-echo ${response}
-ecs_secret_key=`echo ${response} | jq -r '.secret_key'`
 
 #git clone https://github.com/EMCECS/s3curl.git
 #cat << EOF > ~/.s3curl
