@@ -1997,6 +1997,7 @@ jobs:
       CF_API_URL: https://api.gorgophone.cf-app.com
       CF_ADMIN_USERNAME: admin
       NFS_BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      SMB_BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
 
 - name: persi-load-test
   serial_groups:
