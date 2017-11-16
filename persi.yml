@@ -119,6 +119,7 @@ groups:
   - cifs-smbdriver-certification
   - setup-cf-infrastructure
   - pats-cifs-smb
+  - pats-drats
 
 - name: local
   jobs:
@@ -1961,6 +1962,11 @@ jobs:
       passed:
       - setup-cf-infrastructure
       trigger: true
+    - get: smb-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+
   - task: extract-binary
     config:
       platform: linux
