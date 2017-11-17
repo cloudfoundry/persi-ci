@@ -44,6 +44,12 @@ if [ -z "$NFS_BROKER_PASSWORD" ]; then
     fi
 fi
 
+if [ -z "$SMB_BROKER_PASSWORD" ]; then
+    if [ -e "vars-store/deployment-vars.yml" ]; then
+        SMB_BROKER_PASSWORD=`grep azurefile-broker-password vars-store/deployment-vars.yml | awk  '{print $2}'`
+    fi
+fi
+
 # make a go project
 mkdir -p runme
 pushd runme/
