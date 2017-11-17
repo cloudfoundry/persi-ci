@@ -22,7 +22,7 @@ params:
  - NFS_BROKER_USER: nfs-broker
  - NFS_BROKER_PASSWORD:
  - NFS_BROKER_URL: ~
- - SMB_SERVICE_NAME: smb
+ - SMB_SERVICE_NAME: azurefile-service
  - SMB_PLAN_NAME: Existing
  - SMB_BROKER_USER: admin
  - SMB_BROKER_PASSWORD:
