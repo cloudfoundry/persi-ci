@@ -4,3 +4,6 @@
 - type: replace
   path: /instance_groups/name=diego-cell/instances
   value: 2
+- type: replace
+  path: /instance_groups/name=diego-cell/azs
+  value: [ z1, z2 ]
