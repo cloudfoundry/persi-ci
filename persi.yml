@@ -1561,6 +1561,7 @@ jobs:
       BBL_LB_KEY: {{gorgophone_lbs_ssl_signing_key}}
       BBL_ENV_NAME: gorgophone
       LB_DOMAIN: gorgophone.cf-app.com
+      OPS_FILES: bosh-opsfile/increase_bosh_persistent_disk.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
       ops-files: gorgophone-env-director-state #placeholder since we don't use ops files here yet
