@@ -793,6 +793,12 @@ jobs:
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
     params:
       SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs
+  - task: experimental-driver-cert
+    tags: ["jumpbox"]
+    privileged: true
+    file: nfs-volume-release/scripts/ci/run_driver_cert_experimental.build.yml
+    params:
+      SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs
 - name: create-nfs-volume-release
   serial_groups:
   - nfs-version
