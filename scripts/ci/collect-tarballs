@@ -140,12 +140,12 @@ collect_tarballs() {
 create_operation_file() {
     cat << EOF > ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 ---
-#- type: replace
-#  path: /releases/name=diego
-#  value:
-#    name: diego
-#    version: ${DIEGO_VERSION}
-#    url: ops-files/diego.tgz
+- type: replace
+  path: /releases/name=diego
+  value:
+    name: diego
+    version: ${DIEGO_VERSION}
+    url: ops-files/diego.tgz
 - type: replace
   path: /releases/name=nfs-volume
   value:
