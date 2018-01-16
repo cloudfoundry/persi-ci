@@ -73,6 +73,7 @@ groups:
   - nfsdriver-unit
   - nfsbroker-unit
   - nfsdriver-certification
+  - nfsdriver-certification-async
   - create-nfs-volume-release
   - pats-nfs-cf-deployment
   - pats-nfs-experimental
@@ -242,6 +243,11 @@ resources:
   type: git
   source:
     branch: master
+    uri: https://github.com/sahlberg/fuse-nfs.git
+- name: fuse-nfs-async
+  type: git
+  source:
+    branch: async
     uri: https://github.com/sahlberg/fuse-nfs.git
 #### END NFS resources ###############################################################################################
 
@@ -799,6 +805,35 @@ jobs:
     tags: ["jumpbox"]
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_experimental.build.yml
+    params:
+      SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs
+- name: nfsdriver-certification-async
+  serial_groups:
+  - nfs-test-server-deployment
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - create-nfs-volume-release
+      trigger: true
+    - get: lib-nfs
+    - get: fuse-nfs-async
+
+  - task: fuse-nfs-cert
+    tags: ["jumpbox"]
+    privileged: true
+    file: nfs-volume-release/scripts/ci/run_fuse_nfs_cert.build.yml
+    input_mapping:
+      fuse-nfs: fuse-nfs-async
+    params:
+      FUSE_MOUNT: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050&multithread=1
+      NFS_MOUNT: testnfsserver.gorgophone.cf-app.com:/export2/certs
+  - task: driver-cert
+    tags: ["jumpbox"]
+    privileged: true
+    file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
+    input_mapping:
+      fuse-nfs: fuse-nfs-async
     params:
       SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs
 - name: create-nfs-volume-release
