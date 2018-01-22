@@ -14,6 +14,7 @@ groups:
   - efsdriver-certification
   - csi-local-controller-plugin-unit
   - csi-local-node-plugin-unit
+  - csi-broker-unit
   - csi-plugin-certification
   - certification-test-builds
   - certification-test-publish
@@ -63,6 +64,7 @@ groups:
   - csi-local-controller-plugin-unit
   - csi-local-node-plugin-unit
   - csi-plugin-certification
+  - csi-broker-unit
   - pats-csi-local
   - create-csi-local-volume-release
   - setup-cf-infrastructure
@@ -1244,6 +1246,14 @@ jobs:
   - task: local-node-plugin-unit
     file: csi-local-volume-release/scripts/ci/local-node-plugin-unit.build.yml
 
+- name: csi-broker-unit
+  plan:
+  - aggregate:
+    - get: csi-local-volume-release
+      trigger: true
+  - task: csi-broker-unit
+    file: csi-local-volume-release/scripts/ci/csi-broker-unit.build.yml
+
 - name: csi-plugin-certification
   plan:
   - aggregate:
@@ -1310,6 +1320,7 @@ jobs:
       - csi-local-node-plugin-unit
       - csi-local-controller-plugin-unit
       - csi-plugin-certification
+      - csi-broker-unit
       trigger: true
     - get: csi-local-version
       resource: csi-local-volume-version
