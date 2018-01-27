@@ -529,8 +529,6 @@ resources:
     branch: master
     uri: git@github.com:cloudfoundry/gorgophone-env.git
     private_key: {{deployments-persi-key}}
-    paths:
-    - bbl-state.json
 
 - name: gorgophone-env
   type: git
@@ -1537,7 +1535,7 @@ jobs:
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
     input_mapping:
-      bbl-state: gorgophone-env-director-state
+      env-repo: gorgophone-env-director-state
 
 - name: setup-cf-infrastructure
   serial_groups: [gorgophone]
@@ -1616,22 +1614,26 @@ jobs:
       LB_DOMAIN: gorgophone.cf-app.com
       OPS_FILES: bosh-opsfile/increase_bosh_persistent_disk.yml
     input_mapping:
-      bbl-state: gorgophone-env-director-state
+      env-repo: gorgophone-env-director-state
       ops-files: gorgophone-env-director-state #placeholder since we don't use ops files here yet
     ensure:
       put: gorgophone-env-director-state
       params:
-        repository: updated-bbl-state
+        repository: updated-env-repo
         rebase: true
   - task: update-cloud-config
     file: persi-ci/scripts/ci/update_cloud_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
     input_mapping:
       cf-deployment: cf-deployment-develop
-      bbl-state: gorgophone-env-director-state
+      env-repo: gorgophone-env-director-state
     params:
       INFRASTRUCTURE: aws
   - task: collect-tarballs
@@ -1730,7 +1732,7 @@ jobs:
     input_mapping:
       cf-deployment: cf-deployment-develop
       vars-store: gorgophone-env-vars-store
-      bbl-state: gorgophone-env-director-state
+      env-repo: gorgophone-env-director-state
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:

@@ -10,7 +10,11 @@ inputs:
   - name: director-state
   - name: persi-ci
 
-params: {}
+params:
+  BBL_IAAS: aws
+  BBL_AWS_ACCESS_KEY_ID:
+  BBL_AWS_SECRET_ACCESS_KEY:
+
 
 run:
   path: persi-ci/scripts/ci/update_cloud_config.sh
