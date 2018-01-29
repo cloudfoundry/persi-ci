@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-bbl --state-dir director-state print-env > set-env.sh
+bbl --state-dir director-state/bbl-state print-env > set-env.sh
 source set-env.sh
 unset BOSH_ALL_PROXY
 bosh cloud-config > temp.yml
