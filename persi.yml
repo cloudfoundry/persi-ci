@@ -625,6 +625,11 @@ jobs:
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: bosh-deploy-cephfs
     file: persi-ci/scripts/ci/deploy-ceph.yml
     input_mapping:
@@ -671,6 +676,11 @@ jobs:
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: certification
     tags: ["jumpbox"]
     privileged: true
@@ -1125,6 +1135,11 @@ jobs:
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: bosh-deploy-ecs
     file: persi-ci/scripts/ci/deploy-ecs.yml
     input_mapping:
@@ -1144,6 +1159,11 @@ jobs:
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: bosh-cleanup
     file: persi-ci/scripts/ci/bosh_cleanup.build.yml
     input_mapping:
@@ -1390,6 +1410,11 @@ jobs:
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: driver-cert
     tags: ["jumpbox"]
     privileged: true
@@ -1694,7 +1719,11 @@ jobs:
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
@@ -2112,6 +2141,11 @@ jobs:
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: drats
     tags: ["jumpbox"]
     file: persi-ci/scripts/ci/drats.build.yml
@@ -2137,11 +2171,15 @@ jobs:
     - get: gorgophone-env-vars-store
     - get: persistence-load-tests
     - get: spring-music
-
   - task: get-bosh-env
     file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: run-persi-load-test
     tags: ["jumpbox"]
     file: persi-ci/scripts/ci/persi-load-test.build.yml
