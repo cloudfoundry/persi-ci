@@ -12,6 +12,7 @@ inputs:
 
 params:
   BBL_IAAS: aws
+  BBL_AWS_REGION:
   BBL_AWS_ACCESS_KEY_ID:
   BBL_AWS_SECRET_ACCESS_KEY:
 
