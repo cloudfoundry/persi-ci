@@ -10,5 +10,5 @@ trap finish EXIT
 bbl --state-dir director-state/bbl-state print-env > set-env.sh
 source set-env.sh
 bosh cloud-config > temp.yml
-bosh interpolate temp.yml -o persi-ci/operations/add-vip-network-to-bosh.yml > temp2.yml
+bosh interpolate temp.yml -o persi-ci/operations/add-vip-network-to-bosh.yml -o persi-ci/operations/change-minimal-vm-to-t2-nano.yml > temp2.yml
 bosh -n update-cloud-config temp2.yml
