@@ -667,8 +667,9 @@ jobs:
     - get: gorgophone-env-director-state
     - get: persi-ci
 
-  - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+  - task: certification
+    tags: ["jumpbox"]
+    privileged: true
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
@@ -676,9 +677,6 @@ jobs:
       BBL_AWS_REGION: us-west-2
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-  - task: certification
-    tags: ["jumpbox"]
-    privileged: true
     file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
 - name: pats-cephfs-cf-deployment
   serial_groups:
