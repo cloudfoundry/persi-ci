@@ -1,5 +1,10 @@
 #!/bin/bash -eu
 
+function finish {
+  pkill ssh || true
+}
+trap finish EXIT
+
 source bosh-env/set-env.sh
 
 export CA_CERT="$PWD/bosh-env/ca-cert.pem"

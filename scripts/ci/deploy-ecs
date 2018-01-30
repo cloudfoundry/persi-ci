@@ -1,6 +1,11 @@
 #!/bin/bash -eu
 set -ex
 
+function finish {
+  pkill ssh || true
+}
+trap finish EXIT
+
 source bosh-env/set-env.sh
 
 mkdir ops-files

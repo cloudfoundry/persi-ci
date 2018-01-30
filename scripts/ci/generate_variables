@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+function finish {
+  pkill ssh || true
+}
+trap finish EXIT
+
 generate_nfs_vars() {
     cat << EOF > ${ROOT_DIR}/generated-vars/nfs-vars.yml
 ---

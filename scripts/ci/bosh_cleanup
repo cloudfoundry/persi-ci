@@ -2,6 +2,11 @@
 
 set -e -x -u
 
+function finish {
+  pkill ssh || true
+}
+trap finish EXIT
+
 source bosh-env/set-env.sh
 
 bosh -n clean-up
