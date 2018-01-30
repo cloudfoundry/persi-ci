@@ -9,7 +9,7 @@ image_resource:
 
 inputs:
 - name: persi-ci
-- name: bosh-env
+- name: director-state
 
 outputs:
 - name: generated-vars
@@ -42,6 +42,10 @@ params:
   DATADOG_API_KEY:
   DATADOG_METRIC_PREFIX:
   CEPHFS_KEYRING:
+  BBL_IAAS: aws
+  BBL_AWS_REGION:
+  BBL_AWS_ACCESS_KEY_ID:
+  BBL_AWS_SECRET_ACCESS_KEY:
 
 run:
   path: persi-ci/scripts/ci/generate_variables

@@ -7,26 +7,30 @@ image_resource:
     tag: "latest"
 
 inputs:
-  - name: bosh-env
-  - name: persi-ci
-  - name: binary
-  - name: nfs-volume-release
-  - name: vars-store
+- name: persi-ci
+- name: binary
+- name: nfs-volume-release
+- name: vars-store
+- name: director-state
 
 params:
- - CF_API_URL: https://api.gorgophone.cf-app.com
- - CF_ADMIN_USERNAME: admin
- - CF_ADMIN_PASSWORD:
- - NFS_SERVICE_NAME: nfs
- - NFS_PLAN_NAME: Existing
- - NFS_BROKER_USER: nfs-broker
- - NFS_BROKER_PASSWORD:
- - NFS_BROKER_URL: ~
- - SMB_SERVICE_NAME: azurefile-service
- - SMB_PLAN_NAME: Existing
- - SMB_BROKER_USER: admin
- - SMB_BROKER_PASSWORD:
- - SMB_BROKER_URL: ~
+  CF_API_URL: https://api.gorgophone.cf-app.com
+  CF_ADMIN_USERNAME: admin
+  CF_ADMIN_PASSWORD:
+  NFS_SERVICE_NAME: nfs
+  NFS_PLAN_NAME: Existing
+  NFS_BROKER_USER: nfs-broker
+  NFS_BROKER_PASSWORD:
+  NFS_BROKER_URL: ~
+  SMB_SERVICE_NAME: azurefile-service
+  SMB_PLAN_NAME: Existing
+  SMB_BROKER_USER: admin
+  SMB_BROKER_PASSWORD:
+  SMB_BROKER_URL: ~
+  BBL_IAAS: aws
+  BBL_AWS_REGION:
+  BBL_AWS_ACCESS_KEY_ID:
+  BBL_AWS_SECRET_ACCESS_KEY:
 
 
 

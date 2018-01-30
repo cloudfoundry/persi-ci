@@ -621,22 +621,17 @@ jobs:
       trigger: true
     - get: cephfs-bosh-release-tarball
 
-  - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: bosh-deploy-cephfs
     file: persi-ci/scripts/ci/deploy-ceph.yml
     input_mapping:
       vars-store: gorgophone-env
-      bosh-env: bosh-env
+      director-state: gorgophone-env-director-state
     params:
       CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
 
 - name: create-cephfs-release
   plan:
@@ -1131,20 +1126,16 @@ jobs:
     - get: ecs-release-tarball
       passed:
       - create-ecs-release
-  - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+  - task: bosh-deploy-ecs
+    file: persi-ci/scripts/ci/deploy-ecs.yml
     input_mapping:
+      vars-store: gorgophone-env
       director-state: gorgophone-env-director-state
     params:
       BBL_IAAS: aws
       BBL_AWS_REGION: us-west-2
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-  - task: bosh-deploy-ecs
-    file: persi-ci/scripts/ci/deploy-ecs.yml
-    input_mapping:
-      bosh-env: bosh-env
-      vars-store: gorgophone-env
 
 - name: gorgophone-bosh-cleanup
   serial_groups:
@@ -1155,8 +1146,8 @@ jobs:
       trigger: true
     - get: persi-ci
     - get: gorgophone-env-director-state
-  - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
+  - task: bosh-cleanup
+    file: persi-ci/scripts/ci/bosh_cleanup.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
@@ -1164,10 +1155,6 @@ jobs:
       BBL_AWS_REGION: us-west-2
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-  - task: bosh-cleanup
-    file: persi-ci/scripts/ci/bosh_cleanup.build.yml
-    input_mapping:
-      bosh-env: bosh-env
 
 - name: deploy-ecs-broker-cf-deployment
   serial_groups:
@@ -1715,17 +1702,10 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "."
       NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz local.tgz csi-local.tgz ecs.tgz cephfs.tgz smb.tgz"
-  - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
     params:
       LDAP_SVC_USER: {{ldap-svc-user}}
       LDAP_SVC_PASS: {{ldap-svc-pass}}
@@ -1756,6 +1736,10 @@ jobs:
       CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
       SMB_USERNAME: {{smb_server_username}}
       SMB_PASSWORD: {{smb_server_password}}
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -2137,20 +2121,11 @@ jobs:
         - |
           tar -xvf bbr-release/bbr*.tar
           cp releases/bbr binary/
-  - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: drats
     tags: ["jumpbox"]
     file: persi-ci/scripts/ci/drats.build.yml
     input_mapping:
-      bosh-env: bosh-env
+      director-state: gorgophone-env-director-state
       persi-ci: persi-ci
       binary: binary
       nfs-volume-release: nfs-volume-release
@@ -2160,6 +2135,10 @@ jobs:
       CF_ADMIN_USERNAME: admin
       NFS_BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
       SMB_BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
 
 - name: persi-load-test
   serial_groups:
@@ -2171,20 +2150,11 @@ jobs:
     - get: gorgophone-env-vars-store
     - get: persistence-load-tests
     - get: spring-music
-  - task: get-bosh-env
-    file: persi-ci/scripts/ci/bbl_get_bosh_env.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
   - task: run-persi-load-test
     tags: ["jumpbox"]
     file: persi-ci/scripts/ci/persi-load-test.build.yml
     input_mapping:
-      bosh-env: bosh-env
+      director-state: gorgophone-env-director-state
       vars-store: gorgophone-env-vars-store
     params:
       CF_USERNAME: admin
@@ -2193,6 +2163,10 @@ jobs:
       CF_DEPLOYMENT: "cf"
       SECONDS_OF_DOWNTIME: 120
       MINUTES_OF_SLEEP: 10
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
 
 #### END cf-deployment related jobs ##################################################################################
 

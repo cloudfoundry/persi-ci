@@ -8,11 +8,11 @@ image_resource:
     tag: v3.19.0
 
 inputs:
-  - name: vars-store
-  - name: bosh-env
-  - name: spring-music
-  - name: persistence-load-tests
-  - name: persi-ci
+- name: vars-store
+- name: spring-music
+- name: persistence-load-tests
+- name: persi-ci
+- name: director-state
 
 params:
   CF_USERNAME:
@@ -20,6 +20,10 @@ params:
   DOMAIN_NAME:
   NUM_OF_APPS: 1
   SECONDS_OF_DOWNTIME:
+  BBL_IAAS: aws
+  BBL_AWS_REGION:
+  BBL_AWS_ACCESS_KEY_ID:
+  BBL_AWS_SECRET_ACCESS_KEY:
 
 run:
   path: persi-ci/scripts/ci/persi-load-test

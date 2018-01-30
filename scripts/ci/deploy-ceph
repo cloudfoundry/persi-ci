@@ -6,6 +6,7 @@ function finish {
 }
 trap finish EXIT
 
+source persi-ci/scripts/ci/bbl_get_bosh_env
 source bosh-env/set-env.sh
 
 mkdir ops-files
