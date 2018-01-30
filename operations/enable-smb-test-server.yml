@@ -5,7 +5,7 @@
     azs: [z1]
     instances: 1
     stemcell: default
-    vm_type: m3.medium
+    vm_type: medium
     persistent_disk_type: 10GB
     networks: [ name: default ]
     jobs:
