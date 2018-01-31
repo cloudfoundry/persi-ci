@@ -662,7 +662,7 @@ jobs:
     - get: cephfs-bosh-release
       passed:
       - deploy-cephfs-cluster
-      - setup-cf-infrastructure
+      - cephfs-driver-unit
       trigger: true
     - get: gorgophone-env-director-state
     - get: persi-ci
