@@ -1722,8 +1722,8 @@ jobs:
       RESOURCE_DIRECTORY_KEY: persi-cc-resources
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-80bfddfd,sg-80bfddfd
-      AWS_SUBNET_ID: subnet-aced69e4,subnet-caf89cac
+      AWS_SECURITY_GROUP: sg-2ff60150,sg-2ff60150
+      AWS_SUBNET_ID: subnet-2bb4b763,subnet-5fa64526
       AWS_AZ: us-west-2a,us-west-2b
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
