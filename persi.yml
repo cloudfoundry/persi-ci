@@ -1564,6 +1564,7 @@ jobs:
     - get: diego-dev-release
       passed: [ create-diego-release ]
       trigger: true
+    - get: diego-release
     - get: diego-version
       passed: [ create-diego-release ]
     - get: nfs-volume-release
@@ -1771,6 +1772,10 @@ jobs:
       passed:
       - setup-cf-infrastructure
       trigger: true
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
     - get: csi-local-volume-release-tarball
       passed:
       - setup-cf-infrastructure
@@ -1838,6 +1843,11 @@ jobs:
       passed:
       - setup-cf-infrastructure
     - get: gorgophone-env-vars-store
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
+
   - task: run-pats
     file: efs-volume-release/scripts/ci/run_pats_efsvolume.build.yml
     input_mapping:
@@ -2025,6 +2035,10 @@ jobs:
   - gorgophone
   plan:
   - aggregate:
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
     - get: nfs-volume-release
       passed:
       - setup-cf-infrastructure
@@ -2064,6 +2078,10 @@ jobs:
   - gorgophone
   plan:
   - aggregate:
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
     - get: local-volume-release
       passed:
       - setup-cf-infrastructure
@@ -2090,6 +2108,10 @@ jobs:
   - gorgophone
   plan:
   - aggregate:
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
     - get: persi-ci
     - get: bbr-release
     - get: gorgophone-env-director-state
