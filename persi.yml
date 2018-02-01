@@ -964,6 +964,11 @@ jobs:
       - setup-cf-infrastructure
       trigger: true
   - task: create-share
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
     file: deployments-persi/persi-ci/deployments/isilon-volume/create-share.build.yml
 #### END Isilon ######################################################################################################
 
