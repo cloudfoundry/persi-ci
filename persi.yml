@@ -1671,15 +1671,15 @@ jobs:
       cephfs-version: cephfs-version
       local-version: localvolume-version
       smb-version: smb-volume-version
-  - task: collect-ops-files
+  - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
       base-ops-files: cf-deployment-develop
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml"
-  - task: collect-more-ops-files
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-broker-backup.yml operations/deploy-smb-broker-and-install-driver.yml"
+  - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
       base-ops-files: collected-ops-files
@@ -1687,7 +1687,15 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-local-volume-service.yml"
-  - task: collect-even-more-ops-files
+  - task: collect-ceph-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: cephfs-bosh-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/deploy-ceph-broker-and-install-driver.yml"
+  - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
       base-ops-files: collected-ops-files

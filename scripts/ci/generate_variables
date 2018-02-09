@@ -66,8 +66,8 @@ generate_cephfs_vars() {
 
     cat << EOF > ${ROOT_DIR}/generated-vars/cephfs-vars.yml
 ---
-gorgophone-cephfs-mds: ${CEPHFS_MDS}
-gorgophone-cephfs-keyring: |
+cephfs-mds: ${CEPHFS_MDS}
+cephfs-keyring: |
 `echo ${CEPHFS_KEYRING}|sed 's/^/  /'`
 EOF
 }
