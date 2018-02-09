@@ -622,9 +622,10 @@ jobs:
     - get: cephfs-bosh-release-tarball
 
   - task: bosh-deploy-cephfs
-    file: persi-ci/scripts/ci/deploy-ceph.yml
+    file: cephfs-bosh-release/scripts/ci/deploy-ceph.yml
     input_mapping:
       vars-store: gorgophone-env
+      releases: gorgophone-env
       director-state: gorgophone-env-director-state
     params:
       CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
