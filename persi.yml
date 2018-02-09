@@ -1720,7 +1720,7 @@ jobs:
     params:
       LDAP_SVC_USER: {{ldap-svc-user}}
       LDAP_SVC_PASS: {{ldap-svc-pass}}
-      LDAP_HOST: {{ldap-host}}
+      LDAP_HOST: 10.0.16.27
       LDAP_PORT: 389
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
@@ -2000,7 +2000,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
+      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
