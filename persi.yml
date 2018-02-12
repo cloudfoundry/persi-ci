@@ -1572,6 +1572,10 @@ jobs:
       resource: openldap-version
       params:
         pre: rc
+  - put: openldap-version
+    resource: openldap-version
+    params:
+      file: openldap-version/number
   - task: create-release
     file: persi-ci/scripts/ci/create_openldap_release.build.yml
   - put: openldap-release-tarball
