@@ -1,0 +1,17 @@
+---
+platform: linux
+
+rootfs_uri: docker:///cloudfoundry/diego-pipeline
+
+inputs:
+  - name: openldap-release
+  - name: persi-ci
+  - name: openldap-version
+
+outputs:
+  - name: created-openldap-release
+
+params: []
+
+run:
+  path: persi-ci/scripts/ci/create_openldap_release

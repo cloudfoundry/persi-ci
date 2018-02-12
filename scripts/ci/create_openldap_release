@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -x -e
+
+version=`cat openldap-version/number`
+pushd openldap-release
+
+bosh -n --parallel 10 create release --version $version --name openldap-release --force --with-tarball
+mv dev_releases/openldap-release/openldap-release-$version.tgz ../created-openldap-release/
+popd

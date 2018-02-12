@@ -26,6 +26,11 @@ collect_versions() {
     exit 1
   fi
 
+  if [ ! -d ${ROOT_DIR}/openldap-version ]; then
+    echo "[ERROR] ecs-version input is missing."
+    exit 1
+  fi
+
   if [ ! -d ${ROOT_DIR}/cephfs-version ]; then
     echo "[ERROR] cephfs-version input is missing."
     exit 1
@@ -43,6 +48,7 @@ collect_versions() {
   LOCAL_VERSION="$(cat local-version/number)"
   CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
   ECS_VERSION="$(cat ecs-version/number)"
+  OPENLDAP_VERSION="$(cat openldap-version/number)"
   CEPHFS_VERSION="$(cat cephfs-version/number)"
   SMB_VERSION="$(cat smb-version/number)"
 }
@@ -106,6 +112,10 @@ check_params() {
   fi
   if [ -z "${ECS_VERSION}" ]; then
     echo "[ERROR] ECS_VERSION is missing."
+    exit 1
+  fi
+  if [ -z "${OPENLDAP_VERSION}" ]; then
+    echo "[ERROR] OPENLDAP_VERSION is missing."
     exit 1
   fi
   if [ -z "${CEPHFS_VERSION}" ]; then
@@ -176,6 +186,12 @@ create_operation_file() {
     name: ecs-release
     version: ${ECS_VERSION}
     url: ops-files/ecs.tgz
+- type: replace
+  path: /releases/name=openldap-release
+  value:
+    name: openldap-release
+    version: ${OPENLDAP_VERSION}
+    url: ops-files/openldap.tgz
 - type: replace
   path: /releases/name=cephfs
   value:
