@@ -37,7 +37,7 @@
     networks: [ name: default ]
     jobs:
     - name: ldap-server
-      release: openldap
+      release: openldap-release
 
 - type: replace
   path: /releases/-
