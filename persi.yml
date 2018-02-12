@@ -609,7 +609,9 @@ jobs:
     file: cephfs-bosh-release/scripts/ci/run_cephbroker_unit.build.yml
 
 - name: deploy-cephfs-cluster
-  serial_groups: [cephfs]
+  serial_groups:
+  - cephfs
+  - gorgophone
   plan:
   - aggregate:
     - get: persi-ci
