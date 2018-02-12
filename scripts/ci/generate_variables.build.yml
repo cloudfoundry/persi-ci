@@ -17,7 +17,6 @@ outputs:
 params:
   LDAP_SVC_USER:
   LDAP_SVC_PASS:
-  LDAP_HOST:
   LDAP_PORT:
   LDAP_PROTO:
   LDAP_USER_FQDN:

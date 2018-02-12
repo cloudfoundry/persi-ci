@@ -6,11 +6,14 @@ function finish {
 trap finish EXIT
 
 generate_nfs_vars() {
+
+  export LDAP_SERVER_IP=`bosh -d cf instances|grep openldapserver |awk '{print $4}'`
+
     cat << EOF > ${ROOT_DIR}/generated-vars/nfs-vars.yml
 ---
 nfs-ldap-service-user: ${LDAP_SVC_USER}
 nfs-ldap-service-password: ${LDAP_SVC_PASS}
-nfs-ldap-host: ${LDAP_HOST}
+nfs-ldap-host: ${LDAP_SERVER_IP}
 nfs-ldap-port: ${LDAP_PORT}
 nfs-ldap-proto: ${LDAP_PROTO}
 nfs-ldap-fqdn: ${LDAP_USER_FQDN}

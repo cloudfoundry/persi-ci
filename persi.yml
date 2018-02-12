@@ -1719,7 +1719,6 @@ jobs:
     params:
       LDAP_SVC_USER: {{ldap-svc-user}}
       LDAP_SVC_PASS: {{ldap-svc-pass}}
-      LDAP_HOST: 10.0.16.27
       LDAP_PORT: 389
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
