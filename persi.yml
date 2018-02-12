@@ -1710,6 +1710,7 @@ jobs:
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: csi-local-volume-release-tarball
       ecs-tarball: ecs-release-tarball
+      openldap-tarball: openldap-release-tarball
       local-tarball: local-volume-release-tarball
       cephfs-tarball: cephfs-bosh-release-tarball
       smb-tarball: smb-volume-release-tarball
