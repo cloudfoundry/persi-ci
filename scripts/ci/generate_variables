@@ -6,7 +6,8 @@ function finish {
 trap finish EXIT
 
 generate_nfs_vars() {
-
+  source persi-ci/scripts/ci/bbl_get_bosh_env
+  source bosh-env/set-env.sh
   export LDAP_SERVER_IP=`bosh -d cf instances|grep openldapserver |awk '{print $4}'`
 
     cat << EOF > ${ROOT_DIR}/generated-vars/nfs-vars.yml
