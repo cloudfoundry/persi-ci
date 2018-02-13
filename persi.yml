@@ -1734,7 +1734,7 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-broker-backup.yml operations/deploy-smb-broker-and-install-driver.yml"
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/enable-nfs-broker-backup.yml operations/deploy-smb-broker-and-install-driver.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -1759,7 +1759,15 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
-  - task: collect-tarball-ops-files
+  - task: collect-ecs-ops-files
+      file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+      input_mapping:
+        base-ops-files: collected-ops-files
+        new-ops-files: ecs-release
+      params:
+        BASE_OPS_FILE_DIR: "operations"
+        NEW_OPS_FILES: "operations/deploy-ecs-broker-errand.yml"
+    - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
       base-ops-files: collected-ops-files
