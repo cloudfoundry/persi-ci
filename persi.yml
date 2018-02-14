@@ -64,6 +64,7 @@ groups:
   jobs:
   - csi-local-controller-plugin-unit
   - csi-local-node-plugin-unit
+  - csi-local-node-plugin-unit-windows
   - csi-plugin-certification
   - csi-broker-unit
   - pats-csi-local
@@ -1278,6 +1279,14 @@ jobs:
       trigger: true
   - task: local-node-plugin-unit
     file: csi-local-volume-release/scripts/ci/local-node-plugin-unit.build.yml
+
+- name: csi-local-node-plugin-unit-windows
+  plan:
+  - aggregate:
+    - get: csi-local-volume-release
+      trigger: true
+  - task: local-node-plugin-unit-windows
+    file: csi-local-volume-release/scripts/ci/local-node-plugin-unit-windows.build.yml
 
 - name: csi-broker-unit
   plan:
