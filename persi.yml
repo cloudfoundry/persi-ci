@@ -1649,6 +1649,8 @@ jobs:
       passed: [ create-ecs-release ]
     - get: ecs-version
       passed: [ create-ecs-release ]
+    - get: ecs-release
+      passed: [ create-ecs-release ]
     - get: openldap-release-tarball
       passed: [ create-openldap-release ]
     - get: openldap-version
