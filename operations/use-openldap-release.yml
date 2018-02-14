@@ -1,0 +1,18 @@
+- type: replace
+  path: /instance_groups/-
+  value:
+    name: openldapserver
+    azs: [z1]
+    instances: 1
+    stemcell: default
+    vm_type: small
+    networks: [ name: default ]
+    jobs:
+    - name: ldap-server
+      release: openldap-release
+
+- type: replace
+  path: /releases/-
+  value:
+    name: openldap-release
+    version: latest
