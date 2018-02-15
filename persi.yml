@@ -44,6 +44,7 @@ groups:
   - deploy-ecs-broker-cf-deployment
   - pats-nfs-cf-deployment
   - pats-nfs-experimental
+  - pats-nfsv4-experimental
   - pats-efs-cf-deployment
   - create-isilon-volume
   - pats-isilon-cf-deployment
@@ -82,6 +83,7 @@ groups:
   - create-nfs-volume-release
   - pats-nfs-cf-deployment
   - pats-nfs-experimental
+  - pats-nfsv4-experimental
   - pats-nfs-docker-cf-deployment
   - pats-nfs-ldap-cf-deployment
   - pats-nfs-ldap-experimental
@@ -2019,6 +2021,39 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
       TEST_READ_ONLY: true
+
+- name: pats-nfsv4-experimental
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs-experimental
+      CREATE_CONFIG: '{\"share\":\"fs-72911edb.efs.us-west-2.amazonaws.com\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_READ_ONLY: true
+
 
 - name: pats-nfs-docker-cf-deployment
   serial_groups:
