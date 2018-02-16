@@ -744,12 +744,14 @@ jobs:
     trigger: true
   - task: build
     file: local-volume-release/scripts/ci/run_driver_unit.build.yml
+
 - name: localbroker-unit
   plan:
   - get: local-volume-release
     trigger: true
   - task: build
     file: local-volume-release/scripts/ci/run_broker_unit.build.yml
+
 - name: localdriver-certification
   plan:
   - aggregate:
@@ -769,6 +771,7 @@ jobs:
   - task: build
     privileged: true
     file: local-volume-release/scripts/ci/run_docker_cert.build.yml
+
 - name: create-local-volume-release
   plan:
   - aggregate:
@@ -791,6 +794,36 @@ jobs:
   - put: local-volume-release-tarball
     params:
       file: created-local-volume-release/local*.tgz
+
+- name: pats-local
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
+    - get: local-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: local-volume-release/scripts/ci/run_pats_localvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: local-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://local-broker.gorgophone.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: free-local-dist
+      SERVICE_NAME: local-volume
+      TEST_MULTI_CELL: false
+      TEST_MOUNT_OPTIONS: false
 #### END Local volume #################################################################################################
 
 #### NFS related jobs #################################################################################################
@@ -981,6 +1014,246 @@ jobs:
   - put: nfsvolume-version
     params:
       bump: major
+
+
+- name: pats-nfs
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_READ_ONLY: true
+
+- name: pats-nfs-experimental
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs-experimental
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_READ_ONLY: true
+
+- name: pats-nfsv4-experimental
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs-experimental
+      CREATE_CONFIG: '{\"share\":\"fs-72911edb.efs.us-west-2.amazonaws.com/\",\"version\":\"4.1\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_READ_ONLY: true
+
+- name: pats-nfs-docker
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_READ_ONLY: true
+      TEST_DOCKER_PORA: true
+
+- name: pats-nfs-ldap
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+      TEST_READ_ONLY: false
+      TEST_DOCKER_PORA: true
+
+- name: pats-nfs-ldap-experimental
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs-experimental
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+      TEST_READ_ONLY: false
+      TEST_DOCKER_PORA: true
+
+- name: pats-nfs-pushed-broker
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
+    - get: nfs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_PASSWORD: foo
+      BROKER_URL: http://nfsbrokerpatsapp.gorgophone.cf-app.com
+      BROKER_USER: fooser
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      PUSHED_BROKER_NAME: nfsbrokerpatsapp
+      DB_DRIVER_NAME: mysql
+      DB_HOST: {{gorgophone-nfsbroker-mysql-host}}
+      DB_PORT: 3306
+      DB_NAME: nfsdb1
+      DB_USERNAME: {{gorgophone-nfsbroker-mysql-user}}
+      DB_PASSWORD: {{gorgophone-nfsbroker-mysql-password}}
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
+
 #### END NFS #########################################################################################################
 
 #### Isilon related jobs #############################################################################################
@@ -1001,6 +1274,38 @@ jobs:
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
     file: deployments-persi/persi-ci/deployments/isilon-volume/create-share.build.yml
+
+- name: pats-isilon
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - create-isilon-volume
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - create-isilon-volume
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+      TEST_READ_ONLY: true
 #### END Isilon ######################################################################################################
 
 #### EFS related jobs ################################################################################################
@@ -1049,6 +1354,43 @@ jobs:
   - put: efs-volume-release-tarball
     params:
       file: created-efs-volume-release/efs*.tgz
+
+- name: pats-efs
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: efs-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: efs-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
+
+  - task: run-pats
+    file: efs-volume-release/scripts/ci/run_pats_efsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: efs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_PASSWORD: {{pats-broker-password}}
+      BROKER_URL: http://efs-broker.gorgophone.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
+      BROKER_PASSWORD: {{efs-broker-password}}
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: {{cf-username}}
+      PLAN_NAME: generalPurpose
+      SERVICE_NAME: efs
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+      DEFAULT_TIMEOUT: 300
 
 #### END EFS ##########################################################################################################
 
@@ -1383,6 +1725,40 @@ jobs:
     params:
       file: created-csi-local-volume-release/csi*.tgz
 
+- name: pats-csi-local
+  serial_groups:
+  - gorgophone
+  plan:
+  - aggregate:
+    - get: csi-local-volume-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
+    - get: csi-local-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+
+  - task: run-pats
+    file: csi-local-volume-release/scripts/ci/run_pats_localvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BIND_CONFIG: '{\"mount\":\"/var/vcap/store\"}'
+      BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
+      BROKER_USER: csi-localbroker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: free
+      CREATE_CONFIG: '{\"name\":\"csi-local-storage\",\"volume_capabilities\":[{\"mount\":{}}]}'
+      SERVICE_NAME: csilocalfs
+      TEST_MULTI_CELL: false
+      TEST_MOUNT_OPTIONS: false
 #### END CSI related jobs ############################################################################################
 
 #### START SMB related jobs ###########################################################################################
@@ -1853,379 +2229,6 @@ jobs:
       params:
         repository: updated-vars-store
         rebase: true
-
-- name: pats-csi-local
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: csi-local-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: diego-dev-release
-      passed: [ setup-cf-infrastructure ]
-      trigger: true
-    - get: diego-release
-    - get: csi-local-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-
-  - task: run-pats
-    file: csi-local-volume-release/scripts/ci/run_pats_localvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BIND_CONFIG: '{\"mount\":\"/var/vcap/store\"}'
-      BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
-      BROKER_USER: csi-localbroker
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: free
-      CREATE_CONFIG: '{\"name\":\"csi-local-storage\",\"volume_capabilities\":[{\"mount\":{}}]}'
-      SERVICE_NAME: csilocalfs
-      TEST_MULTI_CELL: false
-      TEST_MOUNT_OPTIONS: false
-
-- name: pats-isilon
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - create-isilon-volume
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - create-isilon-volume
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: true
-
-- name: pats-efs
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: efs-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: efs-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-    - get: diego-dev-release
-      passed: [ setup-cf-infrastructure ]
-      trigger: true
-    - get: diego-release
-
-  - task: run-pats
-    file: efs-volume-release/scripts/ci/run_pats_efsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: efs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://efs-broker.gorgophone.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      BROKER_PASSWORD: {{efs-broker-password}}
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: {{cf-username}}
-      PLAN_NAME: generalPurpose
-      SERVICE_NAME: efs
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      DEFAULT_TIMEOUT: 300
-
-- name: pats-nfs
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_READ_ONLY: true
-
-- name: pats-nfs-experimental
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs-experimental
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_READ_ONLY: true
-
-- name: pats-nfsv4-experimental
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs-experimental
-      CREATE_CONFIG: '{\"share\":\"fs-72911edb.efs.us-west-2.amazonaws.com/\",\"version\":\"4.1\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_READ_ONLY: true
-
-
-- name: pats-nfs-docker
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_READ_ONLY: true
-      TEST_DOCKER_PORA: true
-
-- name: pats-nfs-ldap
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: false
-      TEST_DOCKER_PORA: true
-
-- name: pats-nfs-ldap-experimental
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs-experimental
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: false
-      TEST_DOCKER_PORA: true
-
-- name: pats-nfs-pushed-broker
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: diego-dev-release
-      passed: [ setup-cf-infrastructure ]
-      trigger: true
-    - get: diego-release
-    - get: nfs-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_PASSWORD: foo
-      BROKER_URL: http://nfsbrokerpatsapp.gorgophone.cf-app.com
-      BROKER_USER: fooser
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      PUSHED_BROKER_NAME: nfsbrokerpatsapp
-      DB_DRIVER_NAME: mysql
-      DB_HOST: {{gorgophone-nfsbroker-mysql-host}}
-      DB_PORT: 3306
-      DB_NAME: nfsdb1
-      DB_USERNAME: {{gorgophone-nfsbroker-mysql-user}}
-      DB_PASSWORD: {{gorgophone-nfsbroker-mysql-password}}
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-
-- name: pats-local
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: diego-dev-release
-      passed: [ setup-cf-infrastructure ]
-      trigger: true
-    - get: diego-release
-    - get: local-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: local-volume-release/scripts/ci/run_pats_localvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: local-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://local-broker.gorgophone.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: free-local-dist
-      SERVICE_NAME: local-volume
-      TEST_MULTI_CELL: false
-      TEST_MOUNT_OPTIONS: false
 
 - name: pats-drats
   serial_groups:
