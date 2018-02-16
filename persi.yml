@@ -41,25 +41,25 @@ groups:
   - create-smb-volume-release
   - deploy-ecs-cluster
   - setup-cf-infrastructure
-  - deploy-ecs-broker-cf-deployment
-  - pats-nfs-cf-deployment
+  - deploy-ecs-broker
+  - pats-nfs
   - pats-nfs-experimental
   - pats-nfsv4-experimental
-  - pats-efs-cf-deployment
+  - pats-efs
   - create-isilon-volume
-  - pats-isilon-cf-deployment
-  - pats-nfs-docker-cf-deployment
-  - pats-nfs-ldap-cf-deployment
+  - pats-isilon
+  - pats-nfs-docker
+  - pats-nfs-ldap
   - pats-nfs-ldap-experimental
-  - pats-nfs-pushed-broker-cf-deployment
+  - pats-nfs-pushed-broker
   - pats-drats
   - pats-csi-local
   - pats-cifs-smb
   - deploy-ecs-cluster
-  - pats-ecs-cf-deployment
+  - pats-ecs
   - persi-load-test
-  - pats-local-cf-deployment
-  - pats-cephfs-cf-deployment
+  - pats-local
+  - pats-cephfs
 
 - name: csi
   jobs:
@@ -81,13 +81,13 @@ groups:
   - nfsdriver-certification-async-v4
   - create-openldap-release
   - create-nfs-volume-release
-  - pats-nfs-cf-deployment
+  - pats-nfs
   - pats-nfs-experimental
   - pats-nfsv4-experimental
-  - pats-nfs-docker-cf-deployment
-  - pats-nfs-ldap-cf-deployment
+  - pats-nfs-docker
+  - pats-nfs-ldap
   - pats-nfs-ldap-experimental
-  - pats-nfs-pushed-broker-cf-deployment
+  - pats-nfs-pushed-broker
   - setup-cf-infrastructure
   - pats-drats
 
@@ -97,7 +97,7 @@ groups:
   - efsbroker-unit
   - efsdriver-certification
   - create-efs-volume-release
-  - pats-efs-cf-deployment
+  - pats-efs
   - setup-cf-infrastructure
   - pats-drats
 
@@ -106,10 +106,10 @@ groups:
   - ecs-broker-unit
   - create-ecs-release
   - deploy-ecs-cluster
-  - deploy-ecs-broker-cf-deployment
+  - deploy-ecs-broker
   - setup-cf-infrastructure
   - ecs-lbats
-  - pats-ecs-cf-deployment
+  - pats-ecs
   - pats-drats
 
 - name: cephfs
@@ -119,7 +119,7 @@ groups:
   - cephdriver-certification
   - deploy-cephfs-cluster
   - create-cephfs-release
-  - pats-cephfs-cf-deployment
+  - pats-cephfs
   - setup-cf-infrastructure
   - pats-drats
 
@@ -140,7 +140,7 @@ groups:
   - localdriver-certification
   - localdriver-docker-certification
   - create-local-volume-release
-  - pats-local-cf-deployment
+  - pats-local
   - setup-cf-infrastructure
   - pats-drats
 
@@ -708,7 +708,7 @@ jobs:
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
     file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
-- name: pats-cephfs-cf-deployment
+- name: pats-cephfs
   serial_groups:
   - cephfs
   - gorgophone
@@ -899,11 +899,11 @@ jobs:
     - get: volume-release-tarball
       resource: nfs-volume-release-tarball
       passed:
-      - pats-nfs-cf-deployment
+      - pats-nfs
     - get: volume-release
       resource: nfs-volume-release
       passed:
-      - pats-nfs-cf-deployment
+      - pats-nfs
     - get: volume-version
       resource: nfs-volume-version
       resource: nfsvolume-version
@@ -1190,7 +1190,7 @@ jobs:
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
 
-- name: deploy-ecs-broker-cf-deployment
+- name: deploy-ecs-broker
   serial_groups:
   - ecs-deploy
   - gorgophone
@@ -1207,7 +1207,7 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params: {}
 
-- name: pats-ecs-cf-deployment
+- name: pats-ecs
   serial_groups:
   - gorgophone
   - ecs-deploy
@@ -1215,7 +1215,7 @@ jobs:
   - aggregate:
     - get: ecs-version
       passed:
-      - deploy-ecs-broker-cf-deployment
+      - deploy-ecs-broker
       trigger: true
     - get: nfs-volume-release
     - get: gorgophone-env-vars-store
@@ -1889,7 +1889,7 @@ jobs:
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
 
-- name: pats-isilon-cf-deployment
+- name: pats-isilon
   serial_groups:
   - gorgophone
   plan:
@@ -1921,7 +1921,7 @@ jobs:
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: true
 
-- name: pats-efs-cf-deployment
+- name: pats-efs
   serial_groups:
   - gorgophone
   plan:
@@ -1958,7 +1958,7 @@ jobs:
       TEST_MOUNT_OPTIONS: false
       DEFAULT_TIMEOUT: 300
 
-- name: pats-nfs-cf-deployment
+- name: pats-nfs
   serial_groups:
   - gorgophone
   plan:
@@ -2055,7 +2055,7 @@ jobs:
       TEST_READ_ONLY: true
 
 
-- name: pats-nfs-docker-cf-deployment
+- name: pats-nfs-docker
   serial_groups:
   - gorgophone
   plan:
@@ -2088,7 +2088,7 @@ jobs:
       TEST_READ_ONLY: true
       TEST_DOCKER_PORA: true
 
-- name: pats-nfs-ldap-cf-deployment
+- name: pats-nfs-ldap
   serial_groups:
   - gorgophone
   plan:
@@ -2154,7 +2154,7 @@ jobs:
       TEST_READ_ONLY: false
       TEST_DOCKER_PORA: true
 
-- name: pats-nfs-pushed-broker-cf-deployment
+- name: pats-nfs-pushed-broker
   serial_groups:
   - gorgophone
   plan:
@@ -2197,7 +2197,7 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
 
-- name: pats-local-cf-deployment
+- name: pats-local
   serial_groups:
   - gorgophone
   plan:
