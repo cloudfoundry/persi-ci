@@ -1205,7 +1205,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-experimental
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"abc123!\"}'
+      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
