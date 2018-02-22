@@ -2,10 +2,8 @@
 platform: windows
 
 inputs:
-  - name: diego-release
-  - name: persi-ci
-
-params: {}
+- name: diego-release
+- name: persi-ci
 
 run:
   path: powershell
