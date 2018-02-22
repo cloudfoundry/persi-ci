@@ -188,12 +188,6 @@ create_operation_file() {
     version: ${ECS_VERSION}
     url: ops-files/ecs.tgz
 - type: replace
-  path: /releases/name=openldap-release
-  value:
-    name: openldap-release
-    version: ${OPENLDAP_VERSION}
-    url: ops-files/openldap.tgz
-- type: replace
   path: /releases/name=cephfs
   value:
     name: cephfs
