@@ -14,7 +14,6 @@ inputs:
 - name: efs-tarball
 - name: csi-local-tarball
 - name: ecs-tarball
-- name: openldap-tarball
 - name: cephfs-tarball
 - name: local-tarball
 - name: smb-tarball
@@ -23,7 +22,6 @@ inputs:
 - name: efs-version
 - name: csi-local-version
 - name: ecs-version
-- name: openldap-version
 - name: cephfs-version
 - name: local-version
 - name: smb-version

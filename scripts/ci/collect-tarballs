@@ -26,11 +26,6 @@ collect_versions() {
     exit 1
   fi
 
-  if [ ! -d ${ROOT_DIR}/openldap-version ]; then
-    echo "[ERROR] openldap-version input is missing."
-    exit 1
-  fi
-
   if [ ! -d ${ROOT_DIR}/cephfs-version ]; then
     echo "[ERROR] cephfs-version input is missing."
     exit 1
@@ -48,7 +43,6 @@ collect_versions() {
   LOCAL_VERSION="$(cat local-version/number)"
   CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
   ECS_VERSION="$(cat ecs-version/number)"
-  OPENLDAP_VERSION="$(cat openldap-version/number)"
   CEPHFS_VERSION="$(cat cephfs-version/number)"
   SMB_VERSION="$(cat smb-version/number)"
 }
@@ -76,10 +70,6 @@ check_params() {
   fi
   if [ ! -d ${ROOT_DIR}/ecs-tarball ]; then
     echo "[ERROR] ecs-tarball input is missing."
-    exit 1
-  fi
-  if [ ! -d ${ROOT_DIR}/openldap-tarball ]; then
-    echo "[ERROR] openldap-tarball input is missing."
     exit 1
   fi
   if [ ! -d ${ROOT_DIR}/cephfs-tarball ]; then
@@ -114,10 +104,6 @@ check_params() {
     echo "[ERROR] ECS_VERSION is missing."
     exit 1
   fi
-  if [ -z "${OPENLDAP_VERSION}" ]; then
-    echo "[ERROR] OPENLDAP_VERSION is missing."
-    exit 1
-  fi
   if [ -z "${CEPHFS_VERSION}" ]; then
     echo "[ERROR] CEPHFS_VERSION is missing."
     exit 1
@@ -141,7 +127,6 @@ collect_tarballs() {
   cp ${ROOT_DIR}/efs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/efs.tgz
   cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
   cp ${ROOT_DIR}/ecs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/ecs.tgz
-  cp ${ROOT_DIR}/openldap-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/openldap.tgz
   cp ${ROOT_DIR}/local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/local.tgz
   cp ${ROOT_DIR}/cephfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/cephfs.tgz
   cp ${ROOT_DIR}/smb-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/smb.tgz
