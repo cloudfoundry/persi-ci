@@ -15,6 +15,7 @@ outputs:
 - name: generated-vars
 
 params:
+  LDAP_HOST:
   LDAP_SVC_USER:
   LDAP_SVC_PASS:
   LDAP_PORT:

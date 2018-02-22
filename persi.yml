@@ -2185,6 +2185,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      LDAP_HOST: "nfstestldapserver.service.cf.internal"
       LDAP_SVC_USER: {{ldap-svc-user}}
       LDAP_SVC_PASS: {{ldap-svc-pass}}
       LDAP_PORT: 389
