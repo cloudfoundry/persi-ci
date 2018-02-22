@@ -39,7 +39,6 @@ groups:
   - create-cephfs-release
   - create-diego-release
   - create-ecs-release
-  - create-openldap-release
   - create-smb-volume-release
   - deploy-ecs-cluster
   - setup-cf-infrastructure
@@ -81,7 +80,6 @@ groups:
   - nfsbroker-unit
   - nfsdriver-certification
   - nfsdriver-certification-async-v4
-  - create-openldap-release
   - create-nfs-volume-release
   - pats-nfs
   - pats-nfs-experimental
@@ -254,29 +252,6 @@ resources:
     branch: master
     uri: https://github.com/sahlberg/fuse-nfs.git
 #### END NFS resources ###############################################################################################
-
-#### OpenLDAP resources ###############################################################################################
-- name: openldap-release
-  type: git
-  source:
-    uri: https://github.com/EMC-Dojo/openldap-boshrelease.git
-- name: openldap-version
-  type: semver
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: openldap-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
-- name: openldap-release-tarball
-  type: s3
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: openldap-release-tarballs
-    regexp: openldap-release-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
-#### END OpenLDAP resources ###############################################################################################
 
 #### local volume resources ##########################################################################################
 - name: local-volume-release-tarball
@@ -1959,28 +1934,6 @@ jobs:
 
 #### END SMB related jobs ###########################################################################################
 
-#### START create openldap release ################################################################################
-- name: create-openldap-release
-  plan:
-  - aggregate:
-    - get: openldap-release
-      trigger: true
-    - get: persi-ci
-    - get: openldap-version
-      resource: openldap-version
-      params:
-        pre: rc
-  - put: openldap-version
-    resource: openldap-version
-    params:
-      file: openldap-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create_openldap_release.build.yml
-  - put: openldap-release-tarball
-    params:
-      file: created-openldap-release/openldap*.tgz
-#### END create openldap release ################################################################################
-
 #### START cf-deployment related jobs ################################################################################
 
 - name: bbl-destroy
@@ -2049,10 +2002,6 @@ jobs:
       passed: [ create-ecs-release ]
     - get: ecs-release
       passed: [ create-ecs-release ]
-    - get: openldap-release-tarball
-      passed: [ create-openldap-release ]
-    - get: openldap-version
-      passed: [ create-openldap-release ]
     - get: cephfs-bosh-release-tarball
       passed: [ create-cephfs-release ]
     - get: cephfs-bosh-release
@@ -2114,7 +2063,6 @@ jobs:
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: csi-local-volume-release-tarball
       ecs-tarball: ecs-release-tarball
-      openldap-tarball: openldap-release-tarball
       local-tarball: local-volume-release-tarball
       cephfs-tarball: cephfs-bosh-release-tarball
       smb-tarball: smb-volume-release-tarball
@@ -2123,7 +2071,6 @@ jobs:
       efs-version: efsvolume-version
       csi-local-version: csi-local-volume-version
       ecs-version: ecs-version
-      openldap-version: openldap-version
       cephfs-version: cephfs-version
       local-version: localvolume-version
       smb-version: smb-volume-version
@@ -2190,7 +2137,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz local.tgz csi-local.tgz ecs.tgz cephfs.tgz smb.tgz openldap.tgz"
+      NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz local.tgz csi-local.tgz ecs.tgz cephfs.tgz smb.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
