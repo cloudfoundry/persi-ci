@@ -5,6 +5,7 @@ groups:
 - name: gorgophone
   jobs:
   - volman-unit
+  - volman-unit-windows
   - volman-inigo
   - nfsdriver-unit
   - nfsbroker-unit
@@ -14,6 +15,7 @@ groups:
   - efsdriver-certification
   - csi-local-controller-plugin-unit
   - csi-local-node-plugin-unit
+  - csi-local-node-plugin-unit-windows
   - csi-broker-unit
   - csi-plugin-certification
   - certification-test-builds
@@ -1404,6 +1406,15 @@ jobs:
     - get: persi-ci
   - task: run-unit
     file: persi-ci/scripts/ci/run_volman_unit.build.yml
+
+- name: volman-unit-windows
+  plan:
+  - aggregate:
+    - get: diego-release
+      trigger: true
+    - get: persi-ci
+  - task: run-unit-windows
+    file: persi-ci/scripts/ci/run_volman_unit_windows.build.yml
 
 - name: volman-inigo
   plan:
