@@ -24,6 +24,7 @@ groups:
   - cifs-azurefilebroker-unit
   - ecs-broker-unit
   - localdriver-unit
+  - localdriver-unit-windows
   - localbroker-unit
   - localdriver-certification
   - localdriver-docker-certification
@@ -721,6 +722,13 @@ jobs:
     trigger: true
   - task: build
     file: local-volume-release/scripts/ci/run_driver_unit.build.yml
+
+- name: localdriver-unit-windows
+  plan:
+  - get: local-volume-release
+    trigger: true
+  - task: build
+    file: local-volume-release/scripts/ci/run_driver_unit_windows.build.yml
 
 - name: localbroker-unit
   plan:
