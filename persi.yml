@@ -2120,7 +2120,15 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-nfs-broker-backup.yml"
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-broker-backup.yml"
+  - task: collect-nfs-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: nfs-volume-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
