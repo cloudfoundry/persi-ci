@@ -27,6 +27,7 @@ groups:
   - localdriver-unit-windows
   - localbroker-unit
   - localdriver-certification
+  - localdriver-certification-windows
   - localdriver-docker-certification
   - cephfs-driver-unit
   - cephfs-broker-unit
@@ -139,7 +140,9 @@ groups:
   jobs:
   - localdriver-unit
   - localbroker-unit
+  - localdriver-unit-windows
   - localdriver-certification
+  - localdriver-certification-windows
   - localdriver-docker-certification
   - create-local-volume-release
   - pats-local
@@ -522,6 +525,7 @@ resources:
 - name: cf-deployment-develop
   type: git
   source:
+    branch: develop
     uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
@@ -747,6 +751,17 @@ jobs:
       trigger: true
   - task: build
     file: local-volume-release/scripts/ci/run_driver_cert.build.yml
+
+- name: localdriver-certification-windows
+  plan:
+  - aggregate:
+    - get: local-volume-release
+      passed:
+      - localdriver-unit-windows
+      trigger: true
+  - task: build
+    file: local-volume-release/scripts/ci/run_driver_cert_windows.build.yml
+
 - name: localdriver-docker-certification
   plan:
   - aggregate:
