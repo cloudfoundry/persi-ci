@@ -2,13 +2,13 @@
 platform: windows
 
 inputs:
-- name: diego-release
-- name: persi-ci
+  - name: diego-release
+  - name: persi-ci
 
 run:
   path: powershell
   args:
-    - "-ExecutionPolicy"
-    - "ByPass"
-    - "-File"
-    - "persi-ci/scripts/ci/run_volman_unit.ps1"
+  - "-ExecutionPolicy"
+  - "Bypass"
+  - "-File"
+  - "persi-ci/scripts/ci/run_volman_unit.ps1"
