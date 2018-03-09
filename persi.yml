@@ -1714,9 +1714,11 @@ jobs:
   plan:
   - aggregate:
     - get: persi-ci
-    - get: csi-version
+    - get: volume-version
+      resource: csi-version
     - get: csi-binaries
-    - get: csi-cert
+    - get: volume-release
+      resource: csi-cert
       passed:
       - certification-test-builds
 

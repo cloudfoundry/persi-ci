@@ -5,8 +5,8 @@ rootfs_uri: docker:///concourse/git-resource
 
 inputs:
 - name: persi-ci
-- name: csi-version
-- name: csi-cert
+- name: volume-version
+- name: volume-release
 
 outputs:
   - name: generated-release
