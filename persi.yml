@@ -2086,12 +2086,12 @@ jobs:
       LB_DOMAIN: gorgophone.cf-app.com
       OPS_FILES: bosh-opsfile/increase_bosh_persistent_disk.yml
     input_mapping:
-      env-repo: gorgophone-env-director-state
-      ops-files: gorgophone-env-director-state #placeholder since we don't use ops files here yet
+      bbl-state: gorgophone-env-director-state
+      bbl-config: gorgophone-env-director-state #placeholder since we don't use ops files here yet
     ensure:
       put: gorgophone-env-director-state
       params:
-        repository: updated-env-repo
+        repository: updated-bbl-state
         rebase: true
   - task: update-cloud-config
     file: persi-ci/scripts/ci/update_cloud_config.build.yml
