@@ -141,49 +141,49 @@ create_operation_file() {
   value:
     name: diego
     version: ${DIEGO_VERSION}
-    url: ops-files/diego.tgz
+    url: ../ops-files/diego.tgz
 - type: replace
   path: /releases/name=nfs-volume
   value:
     name: nfs-volume
     version: ${NFS_VERSION}
-    url: ops-files/nfs.tgz
+    url: ../ops-files/nfs.tgz
 - type: replace
   path: /releases/name=efs-volume
   value:
     name: efs-volume
     version: ${EFS_VERSION}
-    url: ops-files/efs.tgz
+    url: ../ops-files/efs.tgz
 - type: replace
   path: /releases/name=local-volume
   value:
     name: local-volume
     version: ${LOCAL_VERSION}
-    url: ops-files/local.tgz
+    url: ../ops-files/local.tgz
 - type: replace
   path: /releases/name=csi-local-volume
   value:
     name: csi-local-volume
     version: ${CSI_LOCAL_VERSION}
-    url: ops-files/csi-local.tgz
+    url: ../ops-files/csi-local.tgz
 - type: replace
   path: /releases/name=ecs-release
   value:
     name: ecs-release
     version: ${ECS_VERSION}
-    url: ops-files/ecs.tgz
+    url: ../ops-files/ecs.tgz
 - type: replace
   path: /releases/name=cephfs
   value:
     name: cephfs
     version: ${CEPHFS_VERSION}
-    url: ops-files/cephfs.tgz
+    url: ../ops-files/cephfs.tgz
 - type: replace
   path: /releases/name=smb-volume
   value:
     name: smb-volume
     version: ${SMB_VERSION}
-    url: ops-files/smb.tgz
+    url: ../ops-files/smb.tgz
 EOF
 }
 
