@@ -2004,7 +2004,7 @@ jobs:
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
     input_mapping:
-      env-repo: gorgophone-env-director-state
+      bbl-state: gorgophone-env-director-state
 
 - name: setup-cf-infrastructure
   serial_groups: [gorgophone]
@@ -2106,7 +2106,7 @@ jobs:
     file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
     input_mapping:
       cf-deployment: cf-deployment-develop
-      env-repo: gorgophone-env-director-state
+      bbl-state: gorgophone-env-director-state
     params:
       INFRASTRUCTURE: aws
   - task: collect-tarballs
@@ -2246,7 +2246,7 @@ jobs:
     input_mapping:
       cf-deployment: cf-deployment-develop
       vars-store: gorgophone-env-vars-store
-      env-repo: gorgophone-env-director-state
+      bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
