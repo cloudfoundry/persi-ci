@@ -1461,7 +1461,7 @@ jobs:
     - get: diego-ci
     - get: persi-ci
   - task: garden-runc-release
-    file: diego-ci/concourse/checkout_garden_runc.build.yml
+    file: diego-ci/concourse/checkout_garden.build.yml
   - task: routing-release
     file: diego-ci/concourse/checkout_routing.build.yml
     input_mapping:
