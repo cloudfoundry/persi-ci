@@ -218,7 +218,7 @@ resources:
   source:
     access_key_id: {{aws-access-key-id}}
     bucket: nfs-volume-release-tarballs
-    regexp: nfsvolume-(.*).tgz
+    regexp: nfs-volume-(.*).tgz
     secret_access_key: {{aws-secret-access-key}}
 - name: nfsvolume-version
   type: semver
@@ -268,7 +268,7 @@ resources:
   source:
     access_key_id: {{aws-access-key-id}}
     bucket: local-volume-release-tarballs
-    regexp: localvolume-(.*).tgz
+    regexp: local-volume-(.*).tgz
     secret_access_key: {{aws-secret-access-key}}
 - name: localvolume-version
   type: semver
@@ -292,7 +292,7 @@ resources:
   source:
     access_key_id: {{aws-access-key-id}}
     bucket: efs-volume-release-tarballs
-    regexp: efsvolume-(.*).tgz
+    regexp: efs-volume-(.*).tgz
     secret_access_key: {{aws-secret-access-key}}
 - name: efsvolume-version
   type: semver
@@ -503,7 +503,7 @@ resources:
   type: s3
   source:
     bucket: smb-volume-release-tarballs
-    regexp: smbvolume-(.*).tgz
+    regexp: smb-volume-(.*).tgz
     access_key_id: {{aws-access-key-id}}
     secret_access_key: {{aws-secret-access-key}}
 
