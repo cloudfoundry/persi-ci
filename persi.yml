@@ -35,6 +35,7 @@ groups:
   - cephdriver-certification
   - deploy-cephfs-cluster
   - cifs-smbdriver-certification
+  - cifs-smbdriver-certification-windows
   - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
@@ -134,6 +135,7 @@ groups:
   - cifs-azurefilebroker-unit
   - create-smb-volume-release
   - cifs-smbdriver-certification
+  - cifs-smbdriver-certification-windows
   - setup-cf-infrastructure
   - pats-cifs-smb
   - pats-drats
@@ -1878,6 +1880,24 @@ jobs:
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
     file: smb-volume-release/scripts/ci/run_driver_cert.build.yml
 
+- name: cifs-smbdriver-certification-windows
+#  serial_groups:
+#  - gorgophone
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: smb-volume-release
+#      passed:
+#      - setup-cf-infrastructure
+      trigger: true
+  - task: driver-cert
+    privileged: true
+    params:
+      smbhost: 10.0.16.23 #TODO, pulling it from bbl state like we do for linux
+      smbusername: {{smb_server_username}}
+      smbpassword: {{smb_server_password}}
+    file: smb-volume-release/scripts/ci/run_driver_cert_windows.build.yml
+
 - name: pats-cifs-smb
   serial_groups:
   - gorgophone
@@ -1886,6 +1906,7 @@ jobs:
     - get: smb-volume-release
       passed:
       - cifs-smbdriver-certification
+      - cifs-smbdriver-certification-windows
       trigger: true
     - get: smb-volume-release-tarball
       passed:
