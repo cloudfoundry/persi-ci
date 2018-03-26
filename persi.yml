@@ -1853,7 +1853,7 @@ jobs:
     file: smb-volume-release/scripts/ci/create_smb_volume_release.build.yml
   - put: smb-volume-release-tarball
     params:
-      file: created-smb-volume-release/smbvolume-*.tgz
+      file: created-smb-volume-release/smb-volume-*.tgz
 
 - name: cifs-smbdriver-certification
   serial_groups:
