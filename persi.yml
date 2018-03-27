@@ -1952,7 +1952,9 @@ jobs:
   - task: finalize-release
     file: persi-ci/scripts/ci/finalize_release.build.yml
     params:
+      RELEASE: smb-volume-release
       BASE_RELEASE_NAME: smb-volume
+      TARBALL: smb-volume-release-tarball
       GIT_USER: {{github-user}}
       GIT_EMAIL: {{github-email}}
       S3_ACCESS_KEY_ID: {{smbvolume-uploader_aws_ID}}
