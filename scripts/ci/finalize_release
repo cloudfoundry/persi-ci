@@ -19,10 +19,9 @@ echo "----- Copy private blobstore credentials into release"
 cat > ${RELEASE}/config/private.yml << EOF
 ---
 blobstore:
-  s3:
+  options:
     access_key_id: ${S3_ACCESS_KEY_ID}
     secret_access_key: ${S3_ACCESS_KEY}
-    bucket_name: ${S3_BUCKET_NAME}
 EOF
 
 FINAL_RELEASE_VERSION=$(cat ${VERSION}/number)
