@@ -626,7 +626,6 @@ jobs:
 - name: deploy-cephfs-cluster
   serial_groups:
   - cephfs
-  - gorgophone
   plan:
   - aggregate:
     - get: persi-ci
@@ -673,7 +672,8 @@ jobs:
       file: created-cephfs-bosh-release/cephfs-*.tgz
 
 - name: cephdriver-certification
-  serial_groups: [cephfs]
+  serial_groups:
+  - cephfs
   plan:
   - aggregate:
     - get: cephfs-bosh-release
@@ -698,7 +698,6 @@ jobs:
 - name: pats-cephfs
   serial_groups:
   - cephfs
-  - gorgophone
   plan:
   - aggregate:
     - get: cephfs-bosh-release
@@ -802,7 +801,7 @@ jobs:
 
 - name: pats-local
   serial_groups:
-  - gorgophone
+  - local
   plan:
   - aggregate:
     - get: diego-dev-release
@@ -831,7 +830,7 @@ jobs:
 
 - name: pats-local-windows
   serial_groups:
-  - gorgophone
+  - local
   plan:
   - aggregate:
     - get: diego-dev-release
@@ -876,7 +875,7 @@ jobs:
     file: nfs-volume-release/scripts/ci/run_broker_unit.build.yml
 - name: nfsdriver-certification
   serial_groups:
-  - nfs-test-server-deployment
+  - nfs-test-server
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -906,7 +905,7 @@ jobs:
       SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs
 - name: nfsdriver-certification-async-v4
   serial_groups:
-  - nfs-test-server-deployment
+  - nfs-test-server
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -1053,7 +1052,7 @@ jobs:
 
 - name: pats-nfs
   serial_groups:
-  - gorgophone
+  - nfs
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -1085,7 +1084,7 @@ jobs:
 
 - name: pats-nfs-experimental
   serial_groups:
-  - gorgophone
+  - nfs
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -1117,7 +1116,7 @@ jobs:
 
 - name: pats-nfsv4-experimental
   serial_groups:
-  - gorgophone
+  - nfs
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -1149,7 +1148,7 @@ jobs:
 
 - name: pats-nfs-docker
   serial_groups:
-  - gorgophone
+  - nfs
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -1182,7 +1181,7 @@ jobs:
 
 - name: pats-nfs-ldap
   serial_groups:
-  - gorgophone
+  - nfs
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -1215,7 +1214,7 @@ jobs:
 
 - name: pats-nfs-ldap-experimental
   serial_groups:
-  - gorgophone
+  - nfs
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -1248,7 +1247,7 @@ jobs:
 
 - name: pats-nfs-pushed-broker
   serial_groups:
-  - gorgophone
+  - nfs-pushed
   plan:
   - aggregate:
     - get: diego-dev-release
@@ -1293,6 +1292,8 @@ jobs:
 
 #### Isilon related jobs #############################################################################################
 - name: create-isilon-volume
+  serial_groups:
+  - isilon
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -1312,7 +1313,8 @@ jobs:
 
 - name: pats-isilon
   serial_groups:
-  - gorgophone
+  - nfs
+  - isilon
   plan:
   - aggregate:
     - get: nfs-volume-release
@@ -1392,7 +1394,7 @@ jobs:
 
 - name: pats-efs
   serial_groups:
-  - gorgophone
+  - efs
   plan:
   - aggregate:
     - get: efs-volume-release
@@ -1579,7 +1581,6 @@ jobs:
 - name: deploy-ecs-broker
   serial_groups:
   - ecs-deploy
-  - gorgophone
   plan:
   - aggregate:
     - get: persi-ci
@@ -1595,7 +1596,6 @@ jobs:
 
 - name: pats-ecs
   serial_groups:
-  - gorgophone
   - ecs-deploy
   plan:
   - aggregate:
@@ -1626,7 +1626,6 @@ jobs:
 
 - name: ecs-lbats
   serial_groups:
-  - gorgophone
   - ecs-deploy
   plan:
   - aggregate:
@@ -1773,7 +1772,7 @@ jobs:
 
 - name: pats-csi-local
   serial_groups:
-  - gorgophone
+  - csi-local
   plan:
   - aggregate:
     - get: csi-local-volume-release
@@ -1857,7 +1856,7 @@ jobs:
 
 - name: cifs-smbdriver-certification
   serial_groups:
-  - gorgophone
+  - smb
   plan:
   - aggregate:
     - get: persi-ci
@@ -1882,7 +1881,7 @@ jobs:
 
 - name: cifs-smbdriver-certification-windows
 #  serial_groups:
-#  - gorgophone
+#  - smb
   plan:
   - aggregate:
     - get: persi-ci
@@ -1900,7 +1899,7 @@ jobs:
 
 - name: pats-cifs-smb
   serial_groups:
-  - gorgophone
+  - smb
   plan:
   - aggregate:
     - get: smb-volume-release
@@ -2027,7 +2026,17 @@ jobs:
 #### START cf-deployment related jobs ################################################################################
 
 - name: bbl-destroy
-  serial_groups: [gorgophone]
+  serial_groups:
+  - gorgophone
+  - cephfs
+  - local
+  - nfs-test-server
+  - nfs
+  - nfs-pushed
+  - efs
+  - ecs-deploy
+  - csi-local
+  - smb
   plan:
   - aggregate:
     - get: cf-deployment-concourse-tasks
@@ -2041,7 +2050,17 @@ jobs:
       bbl-state: gorgophone-env-director-state
 
 - name: setup-cf-infrastructure
-  serial_groups: [gorgophone]
+  serial_groups:
+  - gorgophone
+  - cephfs
+  - local
+  - nfs-test-server
+  - nfs
+  - nfs-pushed
+  - efs
+  - ecs-deploy
+  - csi-local
+  - smb
   public: true
   build_logs_to_retain: 100
   plan:
@@ -2298,6 +2317,15 @@ jobs:
 - name: pats-drats
   serial_groups:
   - gorgophone
+  - cephfs
+  - local
+  - nfs-test-server
+  - nfs
+  - nfs-pushed
+  - efs
+  - ecs-deploy
+  - csi-local
+  - smb
   plan:
   - aggregate:
     - get: diego-dev-release
@@ -2358,6 +2386,15 @@ jobs:
 - name: persi-load-test
   serial_groups:
   - gorgophone
+  - cephfs
+  - local
+  - nfs-test-server
+  - nfs
+  - nfs-pushed
+  - efs
+  - ecs-deploy
+  - csi-local
+  - smb
   plan:
   - aggregate:
     - get: persi-ci
