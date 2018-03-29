@@ -1892,9 +1892,9 @@ jobs:
   - task: driver-cert
     privileged: true
     params:
-      smbhost: 10.0.16.23 #TODO, pulling it from bbl state like we do for linux
-      smbusername: {{smb_server_username}}
-      smbpassword: {{smb_server_password}}
+      smbremotepath: {{azure_remote_path}}
+      smbusername: {{azure_username}}
+      smbpassword: {{azure_password}}
     file: smb-volume-release/scripts/ci/run_driver_cert_windows.build.yml
 
 - name: pats-cifs-smb
