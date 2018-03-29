@@ -1247,7 +1247,7 @@ jobs:
 
 - name: pats-nfs-pushed-broker
   serial_groups:
-  - nfs-pushed
+  - nfs
   plan:
   - aggregate:
     - get: diego-dev-release
@@ -2032,7 +2032,6 @@ jobs:
   - local
   - nfs-test-server
   - nfs
-  - nfs-pushed
   - efs
   - ecs-deploy
   - csi-local
@@ -2056,7 +2055,6 @@ jobs:
   - local
   - nfs-test-server
   - nfs
-  - nfs-pushed
   - efs
   - ecs-deploy
   - csi-local
@@ -2321,7 +2319,6 @@ jobs:
   - local
   - nfs-test-server
   - nfs
-  - nfs-pushed
   - efs
   - ecs-deploy
   - csi-local
@@ -2390,7 +2387,6 @@ jobs:
   - local
   - nfs-test-server
   - nfs
-  - nfs-pushed
   - efs
   - ecs-deploy
   - csi-local
