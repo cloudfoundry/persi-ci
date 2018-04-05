@@ -36,14 +36,14 @@ pushd ${RELEASE}
   # idempotently create tarball in case later parts of shipit fail
   if [ -e "${RELEASE_YML}" ]; then
     echo "----- Release already created; making tarball..."
-    bosh -n create-release --tarball=$RELEASE_TGZ ${RELEASE_YML}
+    bosh -n create-release --tarball=$DEV_RELEASE_TARBALL ${RELEASE_YML}
   else
     echo "----- Set git identity"
     git config user.email "${GIT_EMAIL}"
     git config user.name "${GIT_USER}"
 
     echo "----- Create final release"
-    bosh -n finalize-release $RELEASE_TGZ --version=$FINAL_RELEASE_VERSION
+    bosh -n finalize-release $DEV_RELEASE_TARBALL --version=$FINAL_RELEASE_VERSION
 
     echo "----- Update master and develop branches on origin"
     git add -A
@@ -54,7 +54,7 @@ pushd ${RELEASE}
   fi
 
   # make tarball easier to reach by upstream things
-  mv $RELEASE_TGZ ../finalized-release/${BASE_RELEASE_NAME}-$FINAL_RELEASE_VERSION.tgz
+  cp $DEV_RELEASE_TARBALL ../finalized-release/${BASE_RELEASE_NAME}-$FINAL_RELEASE_VERSION.tgz
 popd
 
 cp -a ${RELEASE} finalized-release/
