@@ -13,6 +13,7 @@ inputs:
 - name: nfs-tarball
 - name: efs-tarball
 - name: csi-local-tarball
+- name: csi-plugins-tarball
 - name: ecs-tarball
 - name: cephfs-tarball
 - name: local-tarball
@@ -21,6 +22,7 @@ inputs:
 - name: nfs-version
 - name: efs-version
 - name: csi-local-version
+- name: csi-plugins-version
 - name: ecs-version
 - name: cephfs-version
 - name: local-version

@@ -21,6 +21,10 @@ collect_versions() {
     echo "[ERROR] csi-local-version input is missing."
     exit 1
   fi
+  if [ ! -d ${ROOT_DIR}/csi-plugins-version ]; then
+    echo "[ERROR] csi-plugins-version input is missing."
+    exit 1
+  fi
   if [ ! -d ${ROOT_DIR}/ecs-version ]; then
     echo "[ERROR] ecs-version input is missing."
     exit 1
@@ -42,6 +46,7 @@ collect_versions() {
   EFS_VERSION="$(cat efs-version/number)"
   LOCAL_VERSION="$(cat local-version/number)"
   CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
+  CSI_PLUGINS_VERSION="$(cat csi-plugins-version/number)"
   ECS_VERSION="$(cat ecs-version/number)"
   CEPHFS_VERSION="$(cat cephfs-version/number)"
   SMB_VERSION="$(cat smb-version/number)"
@@ -66,6 +71,10 @@ check_params() {
   fi
   if [ ! -d ${ROOT_DIR}/csi-local-tarball ]; then
     echo "[ERROR] csi-local-tarball input is missing."
+    exit 1
+  fi
+  if [ ! -d ${ROOT_DIR}/csi-plugins-tarball ]; then
+    echo "[ERROR] csi-plugins-tarball input is missing."
     exit 1
   fi
   if [ ! -d ${ROOT_DIR}/ecs-tarball ]; then
@@ -126,6 +135,7 @@ collect_tarballs() {
   cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
   cp ${ROOT_DIR}/efs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/efs.tgz
   cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
+  cp ${ROOT_DIR}/csi-plugins-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-plugins.tgz
   cp ${ROOT_DIR}/ecs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/ecs.tgz
   cp ${ROOT_DIR}/local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/local.tgz
   cp ${ROOT_DIR}/cephfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/cephfs.tgz
@@ -166,6 +176,12 @@ create_operation_file() {
     name: csi-local-volume
     version: ${CSI_LOCAL_VERSION}
     url: ../ops-files/csi-local.tgz
+- type: replace
+  path: /releases/name=csi-plugins
+  value:
+    name: csi-plugins
+    version: ${CSI_PLUGINS_VERSION}
+    url: ../ops-files/csi-plugins.tgz
 - type: replace
   path: /releases/name=ecs-release
   value:

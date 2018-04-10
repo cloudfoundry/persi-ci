@@ -40,6 +40,7 @@ groups:
   - create-nfs-volume-release
   - create-efs-volume-release
   - create-csi-local-volume-release
+  - create-csi-plugins-release
   - create-cephfs-release
   - create-diego-release
   - create-ecs-release
@@ -78,6 +79,7 @@ groups:
   - csi-broker-unit
   - pats-csi-local
   - create-csi-local-volume-release
+  - create-csi-plugins-release
   - setup-cf-infrastructure
   - pats-drats
 
@@ -466,12 +468,30 @@ resources:
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
 
+- name: csi-plugins-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: csi-plugins-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+
 - name: csi-local-volume-release-tarball
   type: s3
   source:
     access_key_id: {{aws-access-key-id}}
     bucket: csi-local-volume-release-tarballs
     regexp: csi-local-volume-(.*).tgz
+    secret_access_key: {{aws-secret-access-key}}
+
+- name: csi-plugins-release-tarball
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: csi-plugins-release-tarballs
+    regexp: csi-plugins-(.*).tgz
     secret_access_key: {{aws-secret-access-key}}
 
 - name: github-release-csi
@@ -485,7 +505,7 @@ resources:
 - name: csi-plugins-release
   type: git
   source:
-    uri: https://github.com/mariash/csi-plugins-release.git
+    uri: https://github.com/cloudfoundry/csi-plugins-release.git
 
 #### End CSI resources ###############################################################################################
 
@@ -1767,6 +1787,30 @@ jobs:
     params:
       bump: minor
 
+- name: create-csi-plugins-release
+  plan:
+  - aggregate:
+    - get: csi-plugins-release
+#      passed:
+#      - TODO: add unit and certification test
+      trigger: true
+    - get: csi-plugins-version
+      resource: csi-plugins-version
+      params:
+        pre: rc
+
+  - put: csi-plugins-version
+    resource: csi-plugins-version
+    params:
+      file: csi-plugins-version/number
+
+  - task: generate-release
+    file: csi-plugins-release/scripts/ci/create_release.build.yml
+
+  - put: csi-plugins-release-tarball
+    params:
+      file: created-plugins-release/csi*.tgz
+
 - name: create-csi-local-volume-release
   plan:
   - aggregate:
@@ -2161,6 +2205,13 @@ jobs:
       passed: [ create-csi-local-volume-release ]
     - get: csi-local-volume-version
       passed: [ create-csi-local-volume-release ]
+    - get: csi-plugins-release
+      passed: [ create-csi-plugins-release ]
+      trigger: true
+    - get: csi-plugins-release-tarball
+      passed: [ create-csi-plugins-release ]
+    - get: csi-plugins-version
+      passed: [ create-csi-plugins-release ]
     - get: ecs-release-tarball
       passed: [ create-ecs-release ]
     - get: ecs-version
@@ -2181,7 +2232,6 @@ jobs:
       trigger: true
     - get: smb-volume-version
       passed: [ create-smb-volume-release ]
-    - get: csi-plugins-release
 
   - task: setup-infrastructure
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
@@ -2228,6 +2278,7 @@ jobs:
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: csi-local-volume-release-tarball
+      csi-plugins-tarball: csi-plugins-release-tarball
       ecs-tarball: ecs-release-tarball
       local-tarball: local-volume-release-tarball
       cephfs-tarball: cephfs-bosh-release-tarball
@@ -2236,6 +2287,7 @@ jobs:
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
       csi-local-version: csi-local-volume-version
+      csi-plugins-version: csi-plugins-version
       ecs-version: ecs-version
       cephfs-version: cephfs-version
       local-version: localvolume-version
