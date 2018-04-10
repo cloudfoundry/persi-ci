@@ -47,6 +47,7 @@ groups:
   - deploy-ecs-cluster
   - setup-cf-infrastructure
   - deploy-ecs-broker
+  - deploy-nfs-broker
   - pats-nfs
   - pats-nfs-experimental
   - pats-nfsv4-experimental
@@ -95,6 +96,7 @@ groups:
   - pats-nfs-ldap-experimental
 #  - pats-nfs-pushed-broker
   - setup-cf-infrastructure
+  - deploy-nfs-broker
   - pats-drats
 
 - name: efs
