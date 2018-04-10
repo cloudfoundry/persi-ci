@@ -2024,8 +2024,11 @@ jobs:
       BROKER_USER: admin
       SERVICE_NAME: azurefile-service
       PLAN_NAME: Existing
-      CREATE_CONFIG: '{\"share\":\"{{azure_remote_path}}\"}'
-      BIND_CONFIG: '{\"username\":\"{{azure_username}}\",\"password\":\"{{azure_password}}\"}'
+#      CREATE_CONFIG: '{\"share\":\"{{azure_remote_path}}\"}'
+#      BIND_CONFIG: '{\"username\":\"{{azure_username}}\",\"password\":\"{{azure_password}}\"}'
+      AZURE_REMOTE_PATH: {{azure_remote_path}}
+      AZURE_USERNAME: {{azure_username}} 
+      AZURE_PASSWORD: {{azure_password}} 
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       TEST_MULTI_CELL: false
