@@ -60,6 +60,7 @@ groups:
   - pats-drats
   - pats-csi-local
   - pats-cifs-smb
+  - pats-cifs-smb-windows 
   - deploy-ecs-cluster
   - pats-ecs
   - persi-load-test
@@ -138,6 +139,7 @@ groups:
   - cifs-smbdriver-certification-windows
   - setup-cf-infrastructure
   - pats-cifs-smb
+  - pats-cifs-smb-windows 
   - pats-drats
 
 - name: local
@@ -1934,6 +1936,40 @@ jobs:
       SERVICE_NAME: azurefile-service
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
+
+- name: pats-cifs-smb-windows
+  serial_groups:
+  - smb
+  plan:
+  - aggregate:
+    - get: smb-volume-release
+      passed:
+      - cifs-smbdriver-certification
+      - cifs-smbdriver-certification-windows
+      trigger: true
+    - get: smb-volume-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+
+  - task: run-pats
+    file: smb-volume-release/scripts/ci/run_pats_smbvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: smb-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
+      BROKER_USER: admin
+      SERVICE_NAME: azurefile-service
+      PLAN_NAME: Existing
+      CREATE_CONFIG: '{\"share\":\"{{azure_remote_path}}\"}'
+      BIND_CONFIG: '{\"username\":\"{{azure_username}}\",\"password\":\"{{azure_password}}\"}'
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      TEST_MULTI_CELL: false
+      TEST_MOUNT_OPTIONS: false
+      TEST_WINDOWS_CELL: true
 
 - name: shipit-smb
   serial_groups:
