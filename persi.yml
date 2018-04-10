@@ -56,7 +56,7 @@ groups:
   - pats-nfs-docker
   - pats-nfs-ldap
   - pats-nfs-ldap-experimental
-  - pats-nfs-pushed-broker
+#  - pats-nfs-pushed-broker
   - pats-drats
   - pats-csi-local
   - pats-cifs-smb
@@ -93,7 +93,7 @@ groups:
   - pats-nfs-docker
   - pats-nfs-ldap
   - pats-nfs-ldap-experimental
-  - pats-nfs-pushed-broker
+#  - pats-nfs-pushed-broker
   - setup-cf-infrastructure
   - pats-drats
 
@@ -1056,6 +1056,21 @@ jobs:
     params:
       bump: major
 
+- name: deploy-nfs-broker
+  serial_groups:
+  - nfs
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+    - get: nfs-volume-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+  - task: run-broker-errand
+    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params: {}
 
 - name: pats-nfs
   serial_groups:
@@ -1064,7 +1079,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - setup-cf-infrastructure
+      - deploy-nfs-broker
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1096,7 +1111,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - setup-cf-infrastructure
+      - deploy-nfs-broker
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1128,7 +1143,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - setup-cf-infrastructure
+      - deploy-nfs-broker
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1160,7 +1175,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - setup-cf-infrastructure
+      - deploy-nfs-broker
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1193,7 +1208,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - setup-cf-infrastructure
+      - deploy-nfs-broker
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1226,7 +1241,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - setup-cf-infrastructure
+      - deploy-nfs-broker
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1252,48 +1267,48 @@ jobs:
       TEST_READ_ONLY: false
       TEST_DOCKER_PORA: true
 
-- name: pats-nfs-pushed-broker
-  serial_groups:
-  - nfs
-  plan:
-  - aggregate:
-    - get: diego-dev-release
-      passed: [ setup-cf-infrastructure ]
-      trigger: true
-    - get: diego-release
-    - get: nfs-volume-release
-      passed:
-      - setup-cf-infrastructure
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - setup-cf-infrastructure
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_PASSWORD: foo
-      BROKER_URL: http://nfsbrokerpatsapp.gorgophone.cf-app.com
-      BROKER_USER: fooser
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      PUSHED_BROKER_NAME: nfsbrokerpatsapp
-      DB_DRIVER_NAME: mysql
-      DB_HOST: {{gorgophone-nfsbroker-mysql-host}}
-      DB_PORT: 3306
-      DB_NAME: nfsdb1
-      DB_USERNAME: {{gorgophone-nfsbroker-mysql-user}}
-      DB_PASSWORD: {{gorgophone-nfsbroker-mysql-password}}
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
+#- name: pats-nfs-pushed-broker
+#  serial_groups:
+#  - nfs
+#  plan:
+#  - aggregate:
+#    - get: diego-dev-release
+#      passed: [ setup-cf-infrastructure ]
+#      trigger: true
+#    - get: diego-release
+#    - get: nfs-volume-release
+#      passed:
+#      - setup-cf-infrastructure
+#      trigger: true
+#    - get: nfs-volume-release-tarball
+#      passed:
+#      - setup-cf-infrastructure
+#    - get: gorgophone-env-vars-store
+#  - task: run-pats
+#    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+#    input_mapping:
+#      vars-store: gorgophone-env-vars-store
+#    params:
+#      APPLICATION_PATH: nfs-volume-release/assets/pora
+#      APPS_DOMAIN: gorgophone.cf-app.com
+#      BROKER_PASSWORD: foo
+#      BROKER_URL: http://nfsbrokerpatsapp.gorgophone.cf-app.com
+#      BROKER_USER: fooser
+#      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+#      CF_USERNAME: admin
+#      PLAN_NAME: Existing
+#      SERVICE_NAME: nfs
+#      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+#      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+#      PUSHED_BROKER_NAME: nfsbrokerpatsapp
+#      DB_DRIVER_NAME: mysql
+#      DB_HOST: {{gorgophone-nfsbroker-mysql-host}}
+#      DB_PORT: 3306
+#      DB_NAME: nfsdb1
+#      DB_USERNAME: {{gorgophone-nfsbroker-mysql-user}}
+#      DB_PASSWORD: {{gorgophone-nfsbroker-mysql-password}}
+#      TEST_MULTI_CELL: true
+#      TEST_MOUNT_OPTIONS: true
 
 #### END NFS #########################################################################################################
 
@@ -2238,7 +2253,7 @@ jobs:
       new-ops-files: nfs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-nfs-volume-service-experiment.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2355,7 +2370,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/experimental/windows2016-cell.yml operations/enable-nfs-volume-service.yml operations/enable-local-volume-service.yml operations/enable-local-volume-service-windows-cells.yml operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-smb-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/enable-nfs-broker-backup.yml operations/enable-azurefile-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml operations/update-releases.yml operations/test/add-datadog-firehose-nozzle.yml operations/add-csi-nfs-plugin.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/experimental/windows2016-cell.yml operations/enable-nfs-volume-service-experiment.yml operations/enable-local-volume-service.yml operations/enable-local-volume-service-windows-cells.yml operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-smb-test-server.yml operations/enable-csi-local-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/enable-nfs-broker-backup.yml operations/enable-azurefile-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml operations/update-releases.yml operations/test/add-datadog-firehose-nozzle.yml operations/add-csi-nfs-plugin.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
