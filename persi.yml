@@ -940,7 +940,6 @@ jobs:
     - get: nfs-volume-release
       passed:
       - create-nfs-volume-release
-      trigger: true
     - get: lib-nfs
       trigger: true
     - get: fuse-nfs
@@ -2004,9 +2003,6 @@ jobs:
   plan:
   - aggregate:
     - get: smb-volume-release
-      passed:
-      - cifs-smbdriver-certification
-      - cifs-smbdriver-certification-windows
       trigger: true
     - get: smb-volume-release-tarball
       passed:
@@ -2310,7 +2306,7 @@ jobs:
       new-ops-files: nfs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-nfs-volume-service-experiment.yml"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-nfs-volume-service-experiment.yml operations/set-nfs-ldap-test-mode.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2350,7 +2346,7 @@ jobs:
       new-ops-files: smb-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/deploy-smb-broker-and-install-driver.yml"
+      NEW_OPS_FILES: "operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/deploy-smb-broker-and-install-driver.yml operations/enable-smb-volume-service-windows.yml"
   - task: collect-csi-plugins-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2427,7 +2423,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/experimental/windows2016-cell.yml operations/enable-nfs-volume-service-experiment.yml operations/enable-local-volume-service.yml operations/enable-local-volume-service-windows-cells.yml operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-smb-test-server.yml operations/enable-csi-local-plugin.yml operations/add-csi-nfs-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/experimental/enable-backup-restore.yml operations/enable-nfs-broker-backup.yml operations/enable-azurefile-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml operations/update-releases.yml operations/test/add-datadog-firehose-nozzle.yml "
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/experimental/windows2016-cell.yml operations/enable-nfs-volume-service-experiment.yml operations/enable-local-volume-service.yml operations/enable-local-volume-service-windows-cells.yml operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-smb-test-server.yml operations/enable-csi-local-plugin.yml operations/add-csi-nfs-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/set-nfs-ldap-test-mode.yml operations/experimental/enable-backup-restore.yml operations/enable-nfs-broker-backup.yml operations/enable-azurefile-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml operations/enable-smb-volume-service-windows.yml operations/update-releases.yml operations/test/add-datadog-firehose-nozzle.yml "
     ensure:
       put: gorgophone-env-vars-store
       params:
