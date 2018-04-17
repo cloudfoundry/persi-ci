@@ -102,6 +102,8 @@ groups:
   - setup-cf-infrastructure
   - deploy-nfs-broker
   - pats-drats
+  - pats-isilon
+
 
 - name: efs
   jobs:
@@ -1365,10 +1367,8 @@ jobs:
     - get: nfs-volume-release
       passed:
       - create-isilon-volume
+      - deploy-nfs-broker
       trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - create-isilon-volume
     - get: gorgophone-env-vars-store
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
