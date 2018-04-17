@@ -1345,12 +1345,11 @@ jobs:
   plan:
   - aggregate:
     - get: nfs-volume-release
-    - get: nfs-volume-release-tarball
-    - get: deployments-persi
-    - get: gorgophone-env-director-state
       passed:
       - setup-cf-infrastructure
       trigger: true
+    - get: deployments-persi
+    - get: gorgophone-env-director-state
   - task: create-share
     params:
       BBL_IAAS: aws
