@@ -102,6 +102,7 @@ groups:
   - setup-cf-infrastructure
   - deploy-nfs-broker
   - pats-drats
+  - create-isilon-volume
   - pats-isilon
 
 
