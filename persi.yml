@@ -61,6 +61,7 @@ groups:
 #  - pats-nfs-pushed-broker
   - pats-drats
   - pats-csi-local
+  - pats-csi-nfs-uid
   - pats-csi-nfs
   - pats-cifs-smb
   - pats-cifs-smb-windows
@@ -79,6 +80,7 @@ groups:
   - csi-plugin-certification
   - csi-broker-unit
   - pats-csi-local
+  - pats-csi-nfs-uid
   - pats-csi-nfs
   - create-csi-local-volume-release
   - create-csi-plugins-release
@@ -1909,6 +1911,42 @@ jobs:
       SERVICE_NAME: csi-nfs
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
+
+- name: pats-csi-nfs-uid
+  serial_groups:
+  - csi-nfs
+  plan:
+  - aggregate:
+    - get: csi-plugins-release
+      passed:
+      - setup-cf-infrastructure
+      trigger: true
+    - get: diego-dev-release
+      passed: [ setup-cf-infrastructure ]
+      trigger: true
+    - get: diego-release
+    - get: csi-plugins-release-tarball
+      passed:
+      - setup-cf-infrastructure
+    - get: gorgophone-env-vars-store
+
+  - task: run-pats
+    file: csi-plugins-release/scripts/ci/run_pats_nfs.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      BROKER_URL: http://csi-nfsbroker.gorgophone.cf-app.com
+      BROKER_USER: csi-nfsbroker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: free
+      CREATE_CONFIG: '{\"name\":\"csi-nfs-storage\",\"volume_capabilities\":[{\"mount\":{}}],\"parameters\":{\"server\":\"nfstestserver.service.cf.internal\",\"share\":\"/export/users\"}}'
+      SERVICE_NAME: csi-nfs
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: false
+
 
 #### END CSI related jobs ############################################################################################
 
