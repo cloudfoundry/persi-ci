@@ -67,7 +67,6 @@ groups:
   - pats-cifs-smb-windows
   - deploy-ecs-cluster
   - pats-ecs
-  - persi-load-test
   - pats-local
   - pats-local-windows
   - pats-cephfs
@@ -125,7 +124,6 @@ groups:
   - deploy-ecs-cluster
   - deploy-ecs-broker
   - setup-cf-infrastructure
-  - ecs-lbats
   - pats-ecs
   - pats-drats
 
@@ -168,7 +166,6 @@ groups:
 
 - name: util
   jobs:
-  - persi-load-test
   - bbl-destroy
   - gorgophone-bosh-cleanup
 
@@ -421,19 +418,6 @@ resources:
   type: git
   source:
     uri: https://github.com/codedellemc/ecs-cf-service-broker
-- name: ecs-lite-ci
-  type: git
-  source:
-    uri: https://github.com/EMCECS/ecs-lite-ci
-    branch: master
-    username: {{ecs-lite-ci-user}}
-    password: {{ecs-lite-ci-password}}
-    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
-- name: ecs-load-balancer-tests
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/EMCECS/ecs-load-balancer-tests.git
 #### End ECS resources ###############################################################################################
 
 #### CSI resources ###################################################################################################
@@ -604,22 +588,6 @@ resources:
   source:
     api_token: {{pivnet-api-token}}
     product_slug: p-bosh-backup-and-restore
-
-- name: spring-music
-  type: s3
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: persi-assets
-    regexp: (.*).jar
-    secret_access_key: {{aws-secret-access-key}}
-    region_name: us-west-1
-
-- name: persistence-load-tests
-  type: git
-  source:
-    branch: master
-    uri: git@github.com:cloudfoundry/persistence-load-tests.git
-    private_key: {{deployments-persi-key}}
 
 #### End cf-deployment resources #####################################################################################
 
@@ -1671,30 +1639,6 @@ jobs:
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
 
-- name: ecs-lbats
-  serial_groups:
-  - ecs-deploy
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: ecs-lite-ci
-    - get: ecs-load-balancer-tests
-    - get: gorgophone-env-vars-store
-  - task: load-balancer-tests
-    tags: ["jumpbox"]
-    file: persi-ci/scripts/ci/run_lbats.build.yml
-    input_mapping:
-      gorgophone-env: gorgophone-env-vars-store
-    params:
-      ECS_MGMT_URL: https://10.0.31.252:4443
-      ECS_ADMIN_USER: {{ecs-user}}
-      ECS_ADMIN_PASSWORD: {{ecs-password}}
-      ECS_S3_URL: http://bosh-namespace.10.0.31.252.nip.io:9020
-      AWS_REGION: us-region-2
-      BUCKET: lbats-bucket
-      ECS_DEPLOYMENT: ecs
-      ECS_NODE_ID: ecs_servers
-
 #### END ECS ##########################################################################################################
 
 #### START CSI related jobs ###########################################################################################
@@ -2573,43 +2517,6 @@ jobs:
       CF_ADMIN_USERNAME: admin
       NFS_BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
       SMB_BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-
-- name: persi-load-test
-  serial_groups:
-  - gorgophone
-  - cephfs
-  - local
-  - nfs-test-server
-  - nfs
-  - efs
-  - ecs-deploy
-  - csi-local
-  - csi-nfs
-  - smb
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: gorgophone-env-vars-store
-    - get: persistence-load-tests
-    - get: spring-music
-  - task: run-persi-load-test
-    tags: ["jumpbox"]
-    file: persi-ci/scripts/ci/persi-load-test.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-      vars-store: gorgophone-env-vars-store
-    params:
-      CF_USERNAME: admin
-      DOMAIN_NAME: "gorgophone.cf-app.com"
-      NUM_OF_APPS: 10
-      CF_DEPLOYMENT: "cf"
-      SECONDS_OF_DOWNTIME: 120
-      MINUTES_OF_SLEEP: 10
       BBL_IAAS: aws
       BBL_AWS_REGION: us-west-2
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
