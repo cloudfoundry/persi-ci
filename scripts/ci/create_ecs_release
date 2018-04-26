@@ -3,7 +3,7 @@
 set -x -e
 
 version=`cat ecs-version/number`
-tarball_name=ecs-volume-$version.tgz
+tarball_name=ecs-release-$version.tgz
 pushd ecs-release
     bosh -n create-release --version=$version --force --tarball $tarball_name
     mv $tarball_name ../created-ecs-release/
