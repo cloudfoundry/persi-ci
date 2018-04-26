@@ -3,8 +3,8 @@
 set -x -e
 
 version=`cat ecs-version/number`
+tarball_name=efs-volume-$version.tgz
 pushd ecs-release
-
-bosh -n --parallel 10 create release --version $version --name ecs-release --force --with-tarball
-mv dev_releases/ecs-release/ecs-release-$version.tgz ../created-ecs-release/
+    bosh -n create-release --version=$version --force --tarball $tarball_name
+    mv $tarball_name ../created-ecs-release/
 popd
