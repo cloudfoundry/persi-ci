@@ -1787,7 +1787,7 @@ jobs:
 
 - name: pats-csi-local
   serial_groups:
-  - csi-local
+  - csi
   plan:
   - aggregate:
     - get: csi-local-volume-release
@@ -1822,7 +1822,7 @@ jobs:
 
 - name: pats-csi-nfs
   serial_groups:
-  - csi-nfs
+  - csi
   plan:
   - aggregate:
     - get: csi-plugins-release
@@ -1858,7 +1858,7 @@ jobs:
 
 - name: pats-csi-nfs-uid
   serial_groups:
-  - csi-nfs
+  - csi
   plan:
   - aggregate:
     - get: csi-plugins-release
@@ -2007,13 +2007,14 @@ jobs:
     params:
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BIND_CONFIG: '{\"username\":\"smbuser\",\"password\":\"sgi11tdadfigag14\"}'
       BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
       BROKER_USER: admin
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       PLAN_NAME: Existing
-      CREATE_CONFIG: '{\"share\":\"//smbtestserver.service.cf.internal/vol2\"}'
+      AZURE_REMOTE_PATH: {{azure_remote_path}}
+      AZURE_USERNAME: {{azure_username}}
+      AZURE_PASSWORD: {{azure_password}}
       SERVICE_NAME: azurefile-service
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
@@ -2041,11 +2042,9 @@ jobs:
       BROKER_USER: admin
       SERVICE_NAME: azurefile-service
       PLAN_NAME: Existing
-#      CREATE_CONFIG: '{\"share\":\"{{azure_remote_path}}\"}'
-#      BIND_CONFIG: '{\"username\":\"{{azure_username}}\",\"password\":\"{{azure_password}}\"}'
       AZURE_REMOTE_PATH: {{azure_remote_path}}
-      AZURE_USERNAME: {{azure_username}} 
-      AZURE_PASSWORD: {{azure_password}} 
+      AZURE_USERNAME: {{azure_username}}
+      AZURE_PASSWORD: {{azure_password}}
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       TEST_MULTI_CELL: false
