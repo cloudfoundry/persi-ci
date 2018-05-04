@@ -2042,9 +2042,9 @@ jobs:
       BROKER_USER: admin
       SERVICE_NAME: azurefile-service
       PLAN_NAME: Existing
-      AZURE_REMOTE_PATH: {{azure_remote_path}}
-      AZURE_USERNAME: {{azure_username}}
-      AZURE_PASSWORD: {{azure_password}}
+      AZURE_REMOTE_PATH: {{azure_remote_path_windows}}
+      AZURE_USERNAME: {{azure_username_windows}}
+      AZURE_PASSWORD: {{azure_password_windows}}
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       TEST_MULTI_CELL: false
