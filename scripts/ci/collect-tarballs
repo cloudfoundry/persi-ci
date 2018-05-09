@@ -17,8 +17,8 @@ collect_versions() {
     echo "[ERROR] local-version input is missing."
     exit 1
   fi
-  if [ ! -d ${root_dir}/csi-local-version ]; then
-    echo "[error] csi-local-version input is missing."
+  if [ ! -d ${ROOT_DIR}/csi-local-version ]; then
+    echo "[ERROR] csi-local-version input is missing."
     exit 1
   fi
   if [ ! -d ${ROOT_DIR}/csi-plugins-version ]; then

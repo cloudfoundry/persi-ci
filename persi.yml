@@ -2354,7 +2354,7 @@ jobs:
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: csi-local-volume-release-tarball
       csi-plugins-tarball: csi-plugins-release-tarball
-      mapfs-tarball: mapfs-tarball
+      mapfs-tarball: mapfs-release-tarball
       ecs-tarball: ecs-release-tarball
       local-tarball: local-volume-release-tarball
       cephfs-tarball: cephfs-bosh-release-tarball
