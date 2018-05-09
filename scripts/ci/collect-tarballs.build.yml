@@ -24,6 +24,7 @@ inputs:
 - name: efs-version
 - name: csi-local-version
 - name: csi-plugins-version
+- name: mapfs-version
 - name: ecs-version
 - name: cephfs-version
 - name: local-version
