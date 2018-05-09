@@ -14,6 +14,7 @@ inputs:
 - name: efs-tarball
 - name: csi-local-tarball
 - name: csi-plugins-tarball
+- name: mapfs-tarball
 - name: ecs-tarball
 - name: cephfs-tarball
 - name: local-tarball

@@ -17,12 +17,16 @@ collect_versions() {
     echo "[ERROR] local-version input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/csi-local-version ]; then
-    echo "[ERROR] csi-local-version input is missing."
+  if [ ! -d ${root_dir}/csi-local-version ]; then
+    echo "[error] csi-local-version input is missing."
     exit 1
   fi
   if [ ! -d ${ROOT_DIR}/csi-plugins-version ]; then
     echo "[ERROR] csi-plugins-version input is missing."
+    exit 1
+  fi
+  if [ ! -d ${ROOT_DIR}/mapfs-version ]; then
+    echo "[ERROR] mapfs-version input is missing."
     exit 1
   fi
   if [ ! -d ${ROOT_DIR}/ecs-version ]; then
@@ -47,6 +51,7 @@ collect_versions() {
   LOCAL_VERSION="$(cat local-version/number)"
   CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
   CSI_PLUGINS_VERSION="$(cat csi-plugins-version/number)"
+  MAPFS_VERSION="$(cat mapfs-version/number)"
   ECS_VERSION="$(cat ecs-version/number)"
   CEPHFS_VERSION="$(cat cephfs-version/number)"
   SMB_VERSION="$(cat smb-version/number)"
@@ -75,6 +80,10 @@ check_params() {
   fi
   if [ ! -d ${ROOT_DIR}/csi-plugins-tarball ]; then
     echo "[ERROR] csi-plugins-tarball input is missing."
+    exit 1
+  fi
+  if [ ! -d ${ROOT_DIR}/mapfs-tarball ]; then
+    echo "[ERROR] mapfs-tarball input is missing."
     exit 1
   fi
   if [ ! -d ${ROOT_DIR}/ecs-tarball ]; then
@@ -136,6 +145,7 @@ collect_tarballs() {
   cp ${ROOT_DIR}/efs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/efs.tgz
   cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
   cp ${ROOT_DIR}/csi-plugins-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-plugins.tgz
+  cp ${ROOT_DIR}/mapfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/mapfs.tgz
   cp ${ROOT_DIR}/ecs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/ecs.tgz
   cp ${ROOT_DIR}/local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/local.tgz
   cp ${ROOT_DIR}/cephfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/cephfs.tgz
@@ -182,6 +192,12 @@ create_operation_file() {
     name: csi-plugins
     version: ${CSI_PLUGINS_VERSION}
     url: ../ops-files/csi-plugins.tgz
+- type: replace
+  path: /releases/name=mapfs
+  value:
+    name: mapfs
+    version: ${MAPFS_VERSION}
+    url: ../ops-files/mapfs.tgz
 - type: replace
   path: /releases/name=ecs-release
   value:

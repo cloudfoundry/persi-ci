@@ -41,6 +41,7 @@ groups:
   - create-efs-volume-release
   - create-csi-local-volume-release
   - create-csi-plugins-release
+  - create-mapfs-release
   - create-cephfs-release
   - create-diego-release
   - create-ecs-release
@@ -83,6 +84,7 @@ groups:
   - pats-csi-nfs
   - create-csi-local-volume-release
   - create-csi-plugins-release
+  - create-mapfs-release
   - setup-cf-infrastructure
   - pats-drats
 
@@ -148,7 +150,7 @@ groups:
   - cifs-smbdriver-certification-windows
   - setup-cf-infrastructure
   - pats-cifs-smb
-  - pats-cifs-smb-windows 
+  - pats-cifs-smb-windows
   - pats-drats
 
 - name: local
@@ -469,6 +471,16 @@ resources:
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
 
+- name: mapfs-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: mapfs-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+
 - name: csi-local-volume-release-tarball
   type: s3
   source:
@@ -485,6 +497,14 @@ resources:
     regexp: csi-plugins-(.*).tgz
     secret_access_key: {{aws-secret-access-key}}
 
+- name: mapfs-release-tarball
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: mapfs-release-tarballs
+    regexp: mapfs-(.*).tgz
+    secret_access_key: {{aws-secret-access-key}}
+
 - name: github-release-csi
   type: github-release
   source:
@@ -497,6 +517,11 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/csi-plugins-release.git
+
+- name: mapfs-release
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/mapfs-release.git
 
 #### End CSI resources ###############################################################################################
 
@@ -1758,6 +1783,28 @@ jobs:
     params:
       file: created-plugins-release/csi*.tgz
 
+- name: create-mapfs-release
+  plan:
+  - aggregate:
+    - get: mapfs-release
+      trigger: true
+    - get: mapfs-version
+      resource: mapfs-version
+      params:
+        pre: rc
+
+  - put: mapfs-version
+    resource: mapfs-version
+    params:
+      file: mapfs-version/number
+
+  - task: generate-release
+    file: mapfs-release/scripts/ci/create_release.build.yml
+
+  - put: mapfs-release-tarball
+    params:
+      file: created-plugins-release/mapfs*.tgz
+
 - name: create-csi-local-volume-release
   plan:
   - aggregate:
@@ -2233,6 +2280,13 @@ jobs:
       passed: [ create-csi-plugins-release ]
     - get: csi-plugins-version
       passed: [ create-csi-plugins-release ]
+    - get: mapfs-release
+      passed: [ create-mapfs-release ]
+      trigger: true
+    - get: mapfs-release-tarball
+      passed: [ create-mapfs-release ]
+    - get: mapfs-version
+      passed: [ create-mapfs-release ]
     - get: ecs-release-tarball
       passed: [ create-ecs-release ]
     - get: ecs-version
@@ -2300,6 +2354,7 @@ jobs:
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: csi-local-volume-release-tarball
       csi-plugins-tarball: csi-plugins-release-tarball
+      mapfs-tarball: mapfs-tarball
       ecs-tarball: ecs-release-tarball
       local-tarball: local-volume-release-tarball
       cephfs-tarball: cephfs-bosh-release-tarball
@@ -2309,6 +2364,7 @@ jobs:
       efs-version: efsvolume-version
       csi-local-version: csi-local-volume-version
       csi-plugins-version: csi-plugins-version
+      mapfs-version: mapfs-version
       ecs-version: ecs-version
       cephfs-version: cephfs-version
       local-version: localvolume-version
@@ -2377,6 +2433,14 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/add-csi-nfs-plugin.yml"
+  - task: collect-mapfs-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: mapfs-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/add-mapfs.yml"
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2392,7 +2456,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz local.tgz csi-local.tgz csi-plugins.tgz ecs.tgz cephfs.tgz smb.tgz"
+      NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz local.tgz csi-local.tgz csi-plugins.tgz mapfs.tgz ecs.tgz cephfs.tgz smb.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
@@ -2445,7 +2509,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml cf-vars.yml efs-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/experimental/windows2016-cell.yml operations/enable-nfs-volume-service-experiment.yml operations/enable-local-volume-service.yml operations/enable-local-volume-service-windows-cells.yml operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-smb-test-server.yml operations/enable-csi-local-plugin.yml operations/add-csi-nfs-plugin.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/set-nfs-ldap-test-mode.yml operations/experimental/enable-backup-restore.yml operations/enable-nfs-broker-backup.yml operations/enable-azurefile-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml operations/enable-smb-volume-service-windows.yml operations/update-releases.yml operations/test/add-datadog-firehose-nozzle.yml "
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/experimental/windows2016-cell.yml operations/enable-nfs-volume-service-experiment.yml operations/enable-local-volume-service.yml operations/enable-local-volume-service-windows-cells.yml operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-smb-test-server.yml operations/enable-csi-local-plugin.yml operations/add-csi-nfs-plugin.yml operations/add-mapfs.yml operations/deploy-efs-broker-and-install-driver.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/set-nfs-ldap-test-mode.yml operations/experimental/enable-backup-restore.yml operations/enable-nfs-broker-backup.yml operations/enable-azurefile-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml operations/enable-smb-volume-service-windows.yml operations/update-releases.yml operations/test/add-datadog-firehose-nozzle.yml "
     ensure:
       put: gorgophone-env-vars-store
       params:
