@@ -1027,22 +1027,21 @@ jobs:
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
       BASE_RELEASE_NAME: nfs-volume
-  - aggregate:
-    - put: nfs-volume-release
-      params:
-        repository: finalized-release/volume-release
-        tag: volume-version/number
-        tag_prefix: v
-    - put: github-release-nfs
-      params:
-        commitish: generated-release/commitish
-        name: generated-release/name
-        tag: generated-release/version
-        globs: []
-        # - nfsvolume-final-release/*.tgz
-    - put: nfsvolume-version
-      params:
-        bump: patch
+  - put: nfs-volume-release
+    params:
+      repository: finalized-release/volume-release
+      tag: volume-version/number
+      tag_prefix: v
+  - put: github-release-nfs
+    params:
+      commitish: generated-release/commitish
+      name: generated-release/name
+      tag: generated-release/version
+      globs: []
+      # - nfsvolume-final-release/*.tgz
+  - put: nfsvolume-version
+    params:
+      bump: patch
 - name: manual-bump-nfs-patch
   serial_groups:
   - nfs-version
@@ -2142,22 +2141,20 @@ jobs:
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
       BASE_RELEASE_NAME: smb-volume
-  - aggregate:
-    - put: smb-volume-release
-      params:
-        repository: finalized-release/volume-release
-        tag: volume-version/number
-        tag_prefix: v
-    - put: github-release-smb
-      params:
-        commitish: generated-release/commitish
-        name: generated-release/name
-        tag: generated-release/version
-        globs: []
-        # - smbvolume-final-release/*.tgz
-    - put: smb-volume-version
-      params:
-        bump: patch
+  - put: smb-volume-release
+    params:
+      repository: finalized-release/volume-release
+      tag: volume-version/number
+      tag_prefix: v
+  - put: github-release-smb
+    params:
+      commitish: generated-release/commitish
+      name: generated-release/name
+      tag: generated-release/version
+      globs: []
+  - put: smb-volume-version
+    params:
+      bump: patch
 - name: manual-bump-smb-patch
   serial_groups:
   - smb-version
