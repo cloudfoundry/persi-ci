@@ -9,10 +9,11 @@ image_resource:
 
 inputs:
 - name: deployments-persi
+- name: persi-ci
 - name: cf-deployment-concourse-tasks
 
 outputs:
-- name: cf-deployments-concourse-tasks
+- name: cf-deployment-concourse-tasks
 
 params: {}
 
