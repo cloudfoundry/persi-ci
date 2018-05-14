@@ -1,7 +1,10 @@
 #!/bin/bash
 set -eux
 
-cp persi-ci/efs/shared-functions cf-deployment-concourse-tasks/shared-functions
+mkdir -p cf-deployment-concourse-tasks-patched
+cp -R cf-deployment-concourse-tasks/* cf-deployment-concourse-tasks-patched/
+
+cp persi-ci/efs/shared-functions cf-deployment-concourse-tasks-patched/shared-functions
 
 function main() {
   check_upload_stemcell_params

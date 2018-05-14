@@ -13,7 +13,7 @@ inputs:
 - name: cf-deployment-concourse-tasks
 
 outputs:
-- name: cf-deployment-concourse-tasks
+- name: cf-deployment-concourse-tasks-patched
 
 params: {}
 
