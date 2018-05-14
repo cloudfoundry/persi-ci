@@ -81,8 +81,8 @@ function commit_vars_store() {
 
 function setup_bosh_env_vars() {
   set +x
-  deployments-persi/persi-ci/deployments/bosh-lite-aws/setenv.sh
-  ssh -4 -D 5000 -fNC jumpbox@$BOSH_ENVIRONMENT -i jumpbox.key &
+  source deployments-persi/persi-ci/deployments/bosh-lite-aws/setenv.sh
+  ssh -4 -D 5000 -fNC jumpbox@$BOSH_ENVIRONMENT -i deployments-persi/persi-ci/deployments/bosh-lite-aws/jumpbox.key &
   set -x
 }
 
