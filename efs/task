@@ -1,0 +1,12 @@
+#!/bin/bash
+set -eux
+
+cp persi-ci/efs/shared-functions cf-deployment-concourse-tasks/shared-functions
+
+function main() {
+  check_upload_stemcell_params
+#  setup_bosh_env_vars 'bbl-state'
+  upload_stemcell
+}
+
+main
