@@ -5,3 +5,6 @@ mkdir -p cf-deployment-concourse-tasks-patched
 cp -R cf-deployment-concourse-tasks/* cf-deployment-concourse-tasks-patched/
 
 cp persi-ci/efs/shared-functions cf-deployment-concourse-tasks-patched/shared-functions
+
+mkdir -p cf-deployment-concourse-tasks-patched/bosh-lite-aws
+cp deployments-persi/persi-ci/deployments/bosh-lite-aws/* cf-deployment-concourse-tasks-patched/bosh-lite-aws/
