@@ -9,3 +9,5 @@ cp persi-ci/efs/shared-functions cf-deployment-concourse-tasks-patched/shared-fu
 mkdir -p cf-deployment-concourse-tasks-patched/bosh-lite-aws
 cp -rp deployments-persi/persi-ci/deployments/bosh-lite-aws/* cf-deployment-concourse-tasks-patched/bosh-lite-aws/
 chmod 600 cf-deployment-concourse-tasks-patched/bosh-lite-aws/jumpbox.key
+
+echo "teardown_bosh_env_vars" >> cf-deployment-concourse-tasks-patched/bosh-upload-stemcell-from-cf-deployment/task
