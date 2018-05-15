@@ -86,6 +86,10 @@ function setup_bosh_env_vars() {
   #set -x
 }
 
+function teardown_bosh_env_vars() {
+  pkill ssh || true
+}
+
 function bosh_interpolate() {
   set +u
   local root_dir

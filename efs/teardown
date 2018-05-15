@@ -1,0 +1,7 @@
+#!/bin/bash
+set -eux
+
+source cf-deployment-concourse-tasks/shared-functions
+
+teardown_bosh_env_vars
+
