@@ -80,10 +80,10 @@ function commit_vars_store() {
 }
 
 function setup_bosh_env_vars() {
-  set +x
+  #set +x
   source cf-deployment-concourse-tasks/bosh-lite-aws/setenv.sh
-  ssh -4 -D 5000 -fNC jumpbox@$BOSH_ENVIRONMENT -i cf-deployment-concourse-tasks/bosh-lite-aws/jumpbox.key &
-  set -x
+  ssh -4 -D 5000 -fNC jumpbox@$BOSH_ENVIRONMENT -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i cf-deployment-concourse-tasks/bosh-lite-aws/jumpbox.key &
+  #set -x
 }
 
 function bosh_interpolate() {
