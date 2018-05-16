@@ -33,7 +33,16 @@ inputs:
 outputs:
 - name: collected-tarballs
 
-params: {}
+params:
+- COLLECT_DIEGO_TARBALL: true
+- COLLECT_NFS_TARBALL: true
+- COLLECT_EFS_TARBALL: true
+- COLLECT_CSI_LOCAL_TARBALL: true
+- COLLECT_CSI_PLUGINS_TARBALL: true
+- COLLECT_ECS_TARBALL: true
+- COLLECT_LOCAL_TARBALL: true
+- COLLECT_CEPHFS_TARBALL: true
+- COLLECT_SMB_TARBALL: true
 
 run:
   path: persi-ci/scripts/ci/collect-tarballs

@@ -1,132 +1,148 @@
 #!/bin/bash -e
 
 collect_versions() {
-  if [ ! -d ${ROOT_DIR}/diego-version ]; then
-    echo "[ERROR] diego-version input is missing."
-    exit 1
+  if [ -z "COLLECT_DIEGO_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/diego-version ]; then
+        echo "[ERROR] diego-version input is missing."
+        exit 1
+      fi
+      DIEGO_VERSION="$(cat diego-version/number)"
   fi
-  if [ ! -d ${ROOT_DIR}/nfs-version ]; then
-    echo "[ERROR] nfs-version input is missing."
-    exit 1
+  if [ -z "COLLECT_NFS_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/nfs-version ]; then
+        echo "[ERROR] nfs-version input is missing."
+        exit 1
+      fi
+      NFS_VERSION="$(cat nfs-version/number)"
   fi
-  if [ ! -d ${ROOT_DIR}/efs-version ]; then
-    echo "[ERROR] efs-version input is missing."
-    exit 1
+  if [ -z "COLLECT_EFS_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/efs-version ]; then
+        echo "[ERROR] efs-version input is missing."
+        exit 1
+      fi
+      EFS_VERSION="$(cat efs-version/number)"
   fi
-  if [ ! -d ${ROOT_DIR}/local-version ]; then
-    echo "[ERROR] local-version input is missing."
-    exit 1
+  if [ -z "COLLECT_LOCAL_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/local-version ]; then
+        echo "[ERROR] local-version input is missing."
+        exit 1
+      fi
+      LOCAL_VERSION="$(cat local-version/number)"
   fi
-  if [ ! -d ${ROOT_DIR}/csi-local-version ]; then
-    echo "[ERROR] csi-local-version input is missing."
-    exit 1
+  if [ -z "COLLECT_CSI_LOCAL_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/csi-local-version ]; then
+        echo "[ERROR] csi-local-version input is missing."
+        exit 1
+      fi
+      CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
   fi
-  if [ ! -d ${ROOT_DIR}/csi-plugins-version ]; then
-    echo "[ERROR] csi-plugins-version input is missing."
-    exit 1
+  if [ -z "COLLECT_CSI_PLUGINS_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/csi-plugins-version ]; then
+        echo "[ERROR] csi-plugins-version input is missing."
+        exit 1
+      fi
+      CSI_PLUGINS_VERSION="$(cat csi-plugins-version/number)"
   fi
-  if [ ! -d ${ROOT_DIR}/mapfs-version ]; then
-    echo "[ERROR] mapfs-version input is missing."
-    exit 1
+  if [ -z "COLLECT_MAPFS_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/mapfs-version ]; then
+        echo "[ERROR] mapfs-version input is missing."
+        exit 1
+      fi
+      MAPFS_VERSION="$(cat mapfs-version/number)"
   fi
-  if [ ! -d ${ROOT_DIR}/ecs-version ]; then
-    echo "[ERROR] ecs-version input is missing."
-    exit 1
+  if [ -z "COLLECT_ECS_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/ecs-version ]; then
+        echo "[ERROR] ecs-version input is missing."
+        exit 1
+      fi
+      ECS_VERSION="$(cat ecs-version/number)"
   fi
-
-  if [ ! -d ${ROOT_DIR}/cephfs-version ]; then
-    echo "[ERROR] cephfs-version input is missing."
-    exit 1
+  if [ -z "COLLECT_CEPHFS_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/cephfs-version ]; then
+        echo "[ERROR] cephfs-version input is missing."
+        exit 1
+      fi
+      CEPHFS_VERSION="$(cat cephfs-version/number)"
   fi
-
-  if [ ! -d ${ROOT_DIR}/smb-version ]; then
-    echo "[ERROR] smb-version input is missing."
-    exit 1
+  if [ -z "COLLECT_SMB_TARBALL" ]; then
+      if [ ! -d ${ROOT_DIR}/smb-version ]; then
+        echo "[ERROR] smb-version input is missing."
+        exit 1
+      fi
+      SMB_VERSION="$(cat smb-version/number)"
   fi
-
-
-  DIEGO_VERSION="$(cat diego-version/number)"
-  NFS_VERSION="$(cat nfs-version/number)"
-  EFS_VERSION="$(cat efs-version/number)"
-  LOCAL_VERSION="$(cat local-version/number)"
-  CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
-  CSI_PLUGINS_VERSION="$(cat csi-plugins-version/number)"
-  MAPFS_VERSION="$(cat mapfs-version/number)"
-  ECS_VERSION="$(cat ecs-version/number)"
-  CEPHFS_VERSION="$(cat cephfs-version/number)"
-  SMB_VERSION="$(cat smb-version/number)"
 }
 
 check_params() {
-  if [ ! -d ${ROOT_DIR}/diego-tarball ]; then
+  if [ -z "COLLECT_DIEGO_TARBALL" -a ! -d ${ROOT_DIR}/diego-tarball ]; then
     echo "[ERROR] diego-tarball input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/nfs-tarball ]; then
+  if [ -z "COLLECT_NFS_TARBALL" -a ! -d ${ROOT_DIR}/nfs-tarball ]; then
     echo "[ERROR] nfs-tarball input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/efs-tarball ]; then
+  if [ -z "COLLECT_EFS_TARBALL" -a ! -d ${ROOT_DIR}/efs-tarball ]; then
     echo "[ERROR] efs-tarball input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/local-tarball ]; then
+  if [ -z "COLLECT_LOCAL_TARBALL" -a ! -d ${ROOT_DIR}/local-tarball ]; then
     echo "[ERROR] local-tarball input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/csi-local-tarball ]; then
+  if [ -z "COLLECT_CSI_LOCAL_TARBALL" -a ! -d ${ROOT_DIR}/csi-local-tarball ]; then
     echo "[ERROR] csi-local-tarball input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/csi-plugins-tarball ]; then
+  if [ -z "COLLECT_CSI_PLUGINS_TARBALL" -a ! -d ${ROOT_DIR}/csi-plugins-tarball ]; then
     echo "[ERROR] csi-plugins-tarball input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/mapfs-tarball ]; then
+  if [ -z "COLLECT_MAPFS_TARBALL" -a ! -d ${ROOT_DIR}/mapfs-tarball ]; then
     echo "[ERROR] mapfs-tarball input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/ecs-tarball ]; then
+  if [ -z "COLLECT_ECS_TARBALL" -a ! -d ${ROOT_DIR}/ecs-tarball ]; then
     echo "[ERROR] ecs-tarball input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/cephfs-tarball ]; then
+  if [ -z "COLLECT_CEPHFS_TARBALL" -a ! -d ${ROOT_DIR}/cephfs-tarball ]; then
     echo "[ERROR] cephfs-tarball input is missing."
     exit 1
   fi
-  if [ ! -d ${ROOT_DIR}/smb-tarball ]; then
+  if [ -z "COLLECT_SMB_TARBALL" -a ! -d ${ROOT_DIR}/smb-tarball ]; then
     echo "[ERROR] smb-tarball input is missing."
     exit 1
   fi
-  if [ -z "${DIEGO_VERSION}" ]; then
+  if [ -z "COLLECT_DIEGO_TARBALL" -a -z "${DIEGO_VERSION}" ]; then
     echo "[ERROR] DIEGO_VERSION is missing."
     exit 1
   fi
-  if [ -z "${NFS_VERSION}" ]; then
+  if [ -z "COLLECT_NFS_TARBALL" -a -z "${NFS_VERSION}" ]; then
     echo "[ERROR] NFS_VERSION is missing."
     exit 1
   fi
-  if [ -z "${EFS_VERSION}" ]; then
+  if [ -z "COLLECT_EFS_TARBALL" -a -z "${EFS_VERSION}" ]; then
     echo "[ERROR] EFS_VERSION is missing."
     exit 1
   fi
-  if [ -z "${LOCAL_VERSION}" ]; then
+  if [ -z "COLLECT_LOCAL_TARBALL" -a -z "${LOCAL_VERSION}" ]; then
     echo "[ERROR] LOCAL_VERSION is missing."
     exit 1
   fi
-  if [ -z "${CSI_LOCAL_VERSION}" ]; then
+  if [ -z "COLLECT_CSI_LOCAL_TARBALL" -a -z "${CSI_LOCAL_VERSION}" ]; then
     echo "[ERROR] CSI_LOCAL_VERSION is missing."
     exit 1
   fi
-  if [ -z "${ECS_VERSION}" ]; then
+  if [ -z "COLLECT_ECS_TARBALL" -a -z "${ECS_VERSION}" ]; then
     echo "[ERROR] ECS_VERSION is missing."
     exit 1
   fi
-  if [ -z "${CEPHFS_VERSION}" ]; then
+  if [ -z "COLLECT_CEPHFS_TARBALL" -a -z "${CEPHFS_VERSION}" ]; then
     echo "[ERROR] CEPHFS_VERSION is missing."
     exit 1
   fi
-  if [ -z "${SMB_VERSION}" ]; then
+  if [ -z "COLLECT_SMB_TARBALL" -a -z "${SMB_VERSION}" ]; then
     echo "[ERROR] SMB_VERSION is missing."
     exit 1
   fi
@@ -140,76 +156,134 @@ create_collection_directory() {
 
 # Copy tarballs to collection with easy names
 collect_tarballs() {
-  cp ${ROOT_DIR}/diego-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/diego.tgz
-  cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
-  cp ${ROOT_DIR}/efs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/efs.tgz
-  cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
-  cp ${ROOT_DIR}/csi-plugins-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-plugins.tgz
-  cp ${ROOT_DIR}/mapfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/mapfs.tgz
-  cp ${ROOT_DIR}/ecs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/ecs.tgz
-  cp ${ROOT_DIR}/local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/local.tgz
-  cp ${ROOT_DIR}/cephfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/cephfs.tgz
-  cp ${ROOT_DIR}/smb-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/smb.tgz
+  if [ -z "COLLECT_DIEGO_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/diego-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/diego.tgz
+  fi
+  if [ -z "COLLECT_NFS_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
+  fi
+  if [ -z "COLLECT_EFS_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/efs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/efs.tgz
+  fi
+  if [ -z "COLLECT_CSI_LOCAL_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
+  fi
+  if [ -z "COLLECT_CSI_PLUGINS_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/csi-plugins-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-plugins.tgz
+  fi
+  if [ -z "COLLECT_MAPFS_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/mapfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/mapfs.tgz
+  fi
+  if [ -z "COLLECT_ECS_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/ecs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/ecs.tgz
+  fi
+  if [ -z "COLLECT_LOCAL_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/local.tgz
+  fi
+  if [ -z "COLLECT_CEPHFS_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/cephfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/cephfs.tgz
+  fi
+  if [ -z "COLLECT_SMB_TARBALL" -a -z "${SMB_VERSION}" ]; then
+      cp ${ROOT_DIR}/smb-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/smb.tgz
+  fi
 }
 
 # Copy each new operation to collection
 create_operation_file() {
-    cat << EOF > ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
----
+    printf "---\n" > ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
+
+  if [ -z "COLLECT_DIEGO_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=diego
   value:
     name: diego
     version: ${DIEGO_VERSION}
     url: ../ops-files/diego.tgz
+EOF
+  fi
+  if [ -z "COLLECT_NFS_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=nfs-volume
   value:
     name: nfs-volume
     version: ${NFS_VERSION}
     url: ../ops-files/nfs.tgz
+EOF
+  fi
+  if [ -z "COLLECT_EFS_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=efs-volume
   value:
     name: efs-volume
     version: ${EFS_VERSION}
     url: ../ops-files/efs.tgz
+EOF
+  fi
+  if [ -z "COLLECT_LOCAL_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=local-volume
   value:
     name: local-volume
     version: ${LOCAL_VERSION}
     url: ../ops-files/local.tgz
+EOF
+  fi
+  if [ -z "COLLECT_CSI_LOCAL_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=csi-local-volume
   value:
     name: csi-local-volume
     version: ${CSI_LOCAL_VERSION}
     url: ../ops-files/csi-local.tgz
+EOF
+  fi
+  if [ -z "COLLECT_CSI_PLUGINS_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=csi-plugins
   value:
     name: csi-plugins
     version: ${CSI_PLUGINS_VERSION}
     url: ../ops-files/csi-plugins.tgz
+EOF
+  fi
+  if [ -z "COLLECT_MAPFS_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=mapfs
   value:
     name: mapfs
     version: ${MAPFS_VERSION}
     url: ../ops-files/mapfs.tgz
+EOF
+  fi
+  if [ -z "COLLECT_ECS_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=ecs-release
   value:
     name: ecs-release
     version: ${ECS_VERSION}
     url: ../ops-files/ecs.tgz
+EOF
+  fi
+  if [ -z "COLLECT_CEPHFS_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=cephfs
   value:
     name: cephfs
     version: ${CEPHFS_VERSION}
     url: ../ops-files/cephfs.tgz
+EOF
+  fi
+  if [ -z "COLLECT_SMB_TARBALL" ]; then
+    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace
   path: /releases/name=smb-volume
   value:
@@ -217,6 +291,7 @@ create_operation_file() {
     version: ${SMB_VERSION}
     url: ../ops-files/smb.tgz
 EOF
+  fi
 }
 
 main() {
