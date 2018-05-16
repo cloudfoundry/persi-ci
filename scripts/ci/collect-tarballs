@@ -190,7 +190,7 @@ collect_tarballs() {
 
 # Copy each new operation to collection
 create_operation_file() {
-    printf "---\n" > ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
+    echo -e "---" > ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 
   if [ -z "COLLECT_DIEGO_TARBALL" ]; then
     cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
