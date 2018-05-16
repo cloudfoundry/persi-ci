@@ -2031,9 +2031,9 @@ jobs:
   - task: driver-cert
     privileged: true
     params:
-      smbremotepath: {{azure_remote_path}}
-      smbusername: {{azure_username}}
-      smbpassword: {{azure_password}}
+      smbremotepath: {{azure_remote_path_windows}}
+      smbusername: {{azure_username_windows}}
+      smbpassword: {{azure_password_windows}}
     file: smb-volume-release/scripts/ci/run_driver_cert_windows.build.yml
 
 - name: pats-cifs-smb
