@@ -156,34 +156,34 @@ create_collection_directory() {
 
 # Copy tarballs to collection with easy names
 collect_tarballs() {
-  if [ "$COLLECT_DIEGO_TARBALL" = "true" -a -z "${DIEGO_VERSION}" ]; then
+  if [ "$COLLECT_DIEGO_TARBALL" = "true" -a -n "${DIEGO_VERSION}" ]; then
       cp ${ROOT_DIR}/diego-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/diego.tgz
   fi
-  if [ "$COLLECT_NFS_TARBALL" = "true" -a -z "${NFS_VERSION}" ]; then
+  if [ "$COLLECT_NFS_TARBALL" = "true" -a -n "${NFS_VERSION}" ]; then
       cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
   fi
-  if [ "$COLLECT_EFS_TARBALL" = "true" -a -z "${EFS_VERSION}" ]; then
+  if [ "$COLLECT_EFS_TARBALL" = "true" -a -n "${EFS_VERSION}" ]; then
       cp ${ROOT_DIR}/efs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/efs.tgz
   fi
-  if [ "$COLLECT_CSI_LOCAL_TARBALL" = "true" -a -z "${CSI_LOCAL_VERSION}" ]; then
+  if [ "$COLLECT_CSI_LOCAL_TARBALL" = "true" -a -n "${CSI_LOCAL_VERSION}" ]; then
       cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
   fi
-  if [ "$COLLECT_CSI_PLUGINS_TARBALL" = "true" -a -z "${CSI_PLUGINS_VERSION}" ]; then
+  if [ "$COLLECT_CSI_PLUGINS_TARBALL" = "true" -a -n "${CSI_PLUGINS_VERSION}" ]; then
       cp ${ROOT_DIR}/csi-plugins-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-plugins.tgz
   fi
-  if [ "$COLLECT_MAPFS_TARBALL" = "true" -a -z "${MAPFS_VERSION}" ]; then
+  if [ "$COLLECT_MAPFS_TARBALL" = "true" -a -n "${MAPFS_VERSION}" ]; then
       cp ${ROOT_DIR}/mapfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/mapfs.tgz
   fi
-  if [ "$COLLECT_ECS_TARBALL" = "true" -a -z "${ECS_VERSION}" ]; then
+  if [ "$COLLECT_ECS_TARBALL" = "true" -a -n "${ECS_VERSION}" ]; then
       cp ${ROOT_DIR}/ecs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/ecs.tgz
   fi
-  if [ "$COLLECT_LOCAL_TARBALL" = "true" -a -z "${LOCAL_VERSION}" ]; then
+  if [ "$COLLECT_LOCAL_TARBALL" = "true" -a -n "${LOCAL_VERSION}" ]; then
       cp ${ROOT_DIR}/local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/local.tgz
   fi
-  if [ "$COLLECT_CEPHFS_TARBALL" = "true" -a -z "${CEPHFS_VERSION}" ]; then
+  if [ "$COLLECT_CEPHFS_TARBALL" = "true" -a -n "${CEPHFS_VERSION}" ]; then
       cp ${ROOT_DIR}/cephfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/cephfs.tgz
   fi
-  if [ "$COLLECT_SMB_TARBALL" = "true" -a -z "${SMB_VERSION}" ]; then
+  if [ "$COLLECT_SMB_TARBALL" = "true" -a -n "${SMB_VERSION}" ]; then
       cp ${ROOT_DIR}/smb-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/smb.tgz
   fi
 }
