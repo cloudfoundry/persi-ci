@@ -15,6 +15,12 @@ outputs:
 - name: generated-vars
 
 params:
+  GENERATE_NFS_VARS: true
+  GENERATE_EFS_VARS: true
+  GENERATE_CEPHFS_VARS: true
+  GENERATE_SMB_VARS: true
+  GENERATE_ECS_BLOBSTORE_VARS: true
+  GENERATE_DATADOG_VARS: true
   LDAP_HOST:
   LDAP_SVC_USER:
   LDAP_SVC_PASS:
