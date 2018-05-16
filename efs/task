@@ -12,3 +12,4 @@ chmod 600 cf-deployment-concourse-tasks-patched/bosh-lite-aws/jumpbox.key
 
 printf "\n\nteardown_bosh_env_vars" >> cf-deployment-concourse-tasks-patched/bosh-upload-stemcell-from-cf-deployment/task
 printf "\n\nteardown_bosh_env_vars" >> cf-deployment-concourse-tasks/collect-ops-files/task
+printf "\n\nteardown_bosh_env_vars" >> cf-deployment-concourse-tasks/bosh-deploy/task
