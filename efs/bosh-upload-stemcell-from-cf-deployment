@@ -1,0 +1,10 @@
+#!/bin/bash
+set -eux
+
+source cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task
+source persi-ci/efs/shared-functions
+
+check_upload_stemcell_params
+setup_bosh_env_vars_with_ssh
+upload_stemcell
+teardown_bosh_env_vars

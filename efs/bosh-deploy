@@ -1,0 +1,18 @@
+#!/bin/bash
+set -eux
+
+source cf-deployment-concourse-tasks/bosh-deploy/task
+source persi-ci/efs/shared-functions
+
+if [ "$USE_VARS_STORE" == true ]; then
+  trap "commit_vars_store ${PWD}" EXIT
+fi
+
+check_input_params
+setup_bosh_env_vars_with_ssh
+if [ "$REGENERATE_VARS_STORE" == true ]; then
+    remove_vars_store
+fi
+bosh_interpolate
+bosh_deploy
+teardown_bosh_env_vars
