@@ -15,4 +15,4 @@ inputs:
 params: {}
 
 run:
-  path: persi-ci/efs/task
+  path: persi-ci/efs/bosh-deploy
