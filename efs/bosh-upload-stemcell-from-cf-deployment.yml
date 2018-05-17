@@ -12,9 +12,6 @@ inputs:
 - name: persi-ci
 - name: cf-deployment-concourse-tasks
 
-outputs:
-- name: cf-deployment-concourse-tasks-patched
-
 params: {}
 
 run:
