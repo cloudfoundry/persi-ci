@@ -2732,7 +2732,7 @@ jobs:
       AWS_AZ: us-west-2a,us-west-2b
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
   - task: bosh-deploy-cf
-    file: persi-ci/bosh-deploy/bosh-deploy.yml
+    file: persi-ci/efs/bosh-deploy.yml
     input_mapping:
       cf-deployment-concourse-tasks: cf-deployment-concourse-tasks
       cf-deployment: cf-deployment-develop
