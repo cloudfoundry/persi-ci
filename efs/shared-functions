@@ -2,7 +2,7 @@
 
 function setup_bosh_env_vars_with_ssh() {
   set +x
-  source deployments-persi/bosh-lite-aws/setenv.sh
+  source deployments-persi/persi-ci/deployments/bosh-lite-aws/setenv.sh
   ssh -4 -D 5000 -fNC jumpbox@$BOSH_ENVIRONMENT -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i deployments-persi/bosh-lite-aws/jumpbox.key &
   set -x
 }
