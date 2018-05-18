@@ -2991,7 +2991,6 @@ jobs:
   - task: add-tarballs
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
       base-ops-files: collected-ops-files
       new-ops-files: collected-tarballs
     params:
@@ -3000,7 +2999,6 @@ jobs:
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
-      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
       director-state: gorgophone-env-director-state
     params:
       GENERATE_NFS_VARS: false
