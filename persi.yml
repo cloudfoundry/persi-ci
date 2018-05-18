@@ -48,6 +48,7 @@ groups:
   - create-smb-volume-release
   - deploy-ecs-cluster
   - setup-cf-infrastructure
+  - setup-cf-infrastructure-gcp
   - setup-cf-infra-for-efs
   - deploy-ecs-broker
   - deploy-nfs-broker
@@ -609,15 +610,6 @@ resources:
     - deployment-vars.yml
 #   - datadog-deployment-vars.yml
 #   - rds-vars.yml
-
-- name: gorgophone-env-cf-efs-vars-store
-  type: git
-  source:
-    branch: master
-    uri: git@github.com:cloudfoundry/gorgophone-env.git
-    private_key: {{deployments-persi-key}}
-    paths:
-    - deployment-vars-cf-efs.yml
 
 - name: bbr-release
   type: pivnet
@@ -2228,6 +2220,297 @@ jobs:
     input_mapping:
       bbl-state: gorgophone-env-director-state
 
+- name: setup-cf-infrastructure-gcp
+  serial_groups:
+#  - gorgophone
+#  - cephfs
+#  - local
+#  - nfs-test-server
+#  - nfs
+#  - ecs-deploy
+#  - csi-local
+#  - csi-nfs
+#  - smb
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: gorgophone-env-director-state
+    - get: cf-deployment-develop
+      trigger: true
+    - get: gorgophone-env-vars-store
+    - get: persi-ci
+    - get: diego-dev-release
+      passed: [ create-diego-release ]
+      trigger: true
+    - get: diego-release
+    - get: diego-version
+      passed: [ create-diego-release ]
+    - get: nfs-volume-release
+      passed: [ create-nfs-volume-release ]
+    - get: nfs-volume-release-tarball
+      passed: [ create-nfs-volume-release ]
+      trigger: true
+    - get: nfsvolume-version
+      passed: [ create-nfs-volume-release ]
+#    - get: efs-volume-release
+#      passed: [ create-efs-volume-release ]
+#      trigger: true
+#    - get: efs-volume-release-tarball
+#      passed: [ create-efs-volume-release ]
+#    - get: efsvolume-version
+#      passed: [ create-efs-volume-release ]
+    - get: local-volume-release
+      passed: [ create-local-volume-release ]
+      trigger: true
+    - get: local-volume-release-tarball
+      passed: [ create-local-volume-release ]
+    - get: localvolume-version
+      passed: [ create-local-volume-release ]
+    - get: csi-local-volume-release
+      passed: [ create-csi-local-volume-release ]
+      trigger: true
+    - get: csi-local-volume-release-tarball
+      passed: [ create-csi-local-volume-release ]
+    - get: csi-local-volume-version
+      passed: [ create-csi-local-volume-release ]
+    - get: csi-plugins-release
+      passed: [ create-csi-plugins-release ]
+      trigger: true
+    - get: csi-plugins-release-tarball
+      passed: [ create-csi-plugins-release ]
+    - get: csi-plugins-version
+      passed: [ create-csi-plugins-release ]
+    - get: mapfs-release
+      passed: [ create-mapfs-release ]
+      trigger: true
+    - get: mapfs-release-tarball
+      passed: [ create-mapfs-release ]
+    - get: mapfs-version
+      passed: [ create-mapfs-release ]
+    - get: ecs-release-tarball
+      passed: [ create-ecs-release ]
+    - get: ecs-version
+      passed: [ create-ecs-release ]
+    - get: ecs-release
+      passed: [ create-ecs-release ]
+    - get: cephfs-bosh-release-tarball
+      passed: [ create-cephfs-release ]
+    - get: cephfs-bosh-release
+      passed: [ deploy-cephfs-cluster ]
+      trigger: true
+    - get: cephfs-version
+      passed: [ create-cephfs-release ]
+    - get: smb-volume-release
+      passed: [ create-smb-volume-release ]
+    - get: smb-volume-release-tarball
+      passed: [ create-smb-volume-release ]
+      trigger: true
+    - get: smb-volume-version
+      passed: [ create-smb-volume-release ]
+
+  - task: setup-infrastructure
+    file: cf-deployment-concourse-tasks/bbl-up/task.yml
+    params:
+      BBL_IAAS: gcp
+      BBL_GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
+      BBL_GCP_REGION: us-west1
+      BBL_LB_CERT: {{gorgophone_lbs_ssl_cert}}
+      BBL_LB_KEY: {{gorgophone_lbs_ssl_signing_key}}
+      BBL_ENV_NAME: bbl-env-victoria-2018-04-23t19-08z
+      LB_DOMAIN: gorgophone.cf-app.com
+      OPS_FILES: bosh-opsfile/increase_bosh_persistent_disk.yml
+      BBL_STATE_DIR: bbl-state-gcp
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      bbl-config: gorgophone-env-director-state #placeholder since we don't use ops files here yet
+    ensure:
+      put: gorgophone-env-director-state
+      params:
+        repository: updated-bbl-state
+        rebase: true
+  - task: update-cloud-config
+    file: persi-ci/scripts/ci/update_cloud_config.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: gcp
+      BBL_GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
+      BBL_GCP_REGION: us-west1
+      BBL_STATE_DIR: bbl-state-gcp
+  - task: bosh-upload-stemcell
+    file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
+    input_mapping:
+      cf-deployment: cf-deployment-develop
+      bbl-state: gorgophone-env-director-state
+    params:
+      INFRASTRUCTURE: gcp
+  - task: collect-tarballs
+    file: persi-ci/scripts/ci/collect-tarballs.build.yml
+    params: {}
+    input_mapping:
+      persi-ci: persi-ci
+      diego-tarball: diego-dev-release
+      nfs-tarball: nfs-volume-release-tarball
+      #TODO remove efs
+      efs-tarball: efs-volume-release-tarball
+      csi-local-tarball: csi-local-volume-release-tarball
+      csi-plugins-tarball: csi-plugins-release-tarball
+      mapfs-tarball: mapfs-release-tarball
+      ecs-tarball: ecs-release-tarball
+      local-tarball: local-volume-release-tarball
+      cephfs-tarball: cephfs-bosh-release-tarball
+      smb-tarball: smb-volume-release-tarball
+      diego-version: diego-version
+      nfs-version: nfsvolume-version
+      efs-version: efsvolume-version
+      csi-local-version: csi-local-volume-version
+      csi-plugins-version: csi-plugins-version
+      mapfs-version: mapfs-version
+      ecs-version: ecs-version
+      cephfs-version: cephfs-version
+      local-version: localvolume-version
+      smb-version: smb-volume-version
+  - task: collect-persi-ci-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment-develop
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-broker-backup.yml"
+  - task: collect-nfs-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: nfs-volume-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-nfs-volume-service-experiment.yml operations/set-nfs-ldap-test-mode.yml"
+  - task: collect-local-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: local-volume-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-local-volume-service.yml operations/enable-local-volume-service-windows-cells.yml"
+  - task: collect-ceph-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: cephfs-bosh-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/deploy-ceph-broker-and-install-driver.yml"
+  - task: collect-ecs-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: ecs-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/deploy-ecs-broker-errand.yml"
+  - task: collect-smb-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: smb-volume-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/deploy-smb-broker-and-install-driver.yml operations/enable-smb-volume-service-windows.yml"
+  - task: collect-csi-plugins-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: csi-plugins-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/add-csi-nfs-plugin.yml"
+  - task: collect-mapfs-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: mapfs-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/add-mapfs.yml"
+  - task: collect-tarball-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: collected-tarballs
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/update-releases.yml"
+  - task: add-tarballs
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: collected-tarballs
+    params:
+      BASE_OPS_FILE_DIR: "."
+      NEW_OPS_FILES: "diego.tgz nfs.tgz local.tgz csi-local.tgz csi-plugins.tgz mapfs.tgz ecs.tgz cephfs.tgz smb.tgz"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate_variables.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      LDAP_HOST: "nfstestldapserver.service.cf.internal"
+      LDAP_SVC_USER: {{ldap-svc-user}}
+      LDAP_SVC_PASS: {{ldap-svc-pass}}
+      LDAP_PORT: 389
+      LDAP_PROTO: tcp
+      LDAP_USER_FQDN: {{ldap-user-fqdn}}
+      ECS_PASSWORD: {{ecs-password}}
+      ECS_USERNAME: {{ecs-user}}
+      ECS_IP: 10.0.31.252
+      ECS_AWS_ID: {{ecs-blob-user}}
+      ECS_AWS_KEY: {{ecs-blob-key}}
+      S3_BLOBSTORE_ID: {{s3-blobstore-user}}
+      S3_BLOBSTORE_KEY: {{s3-blobstore-key}}
+      S3_BLOBSTORE_REGION: {{s3-blobstore-region}}
+      APP_PACKAGE_DIRECTORY_KEY: persi-cc-packages
+      BUILDPACK_DIRECTORY_KEY: persi-cc-buildpacks
+      DROPLET_DIRECTORY_KEY: persi-cc-droplets
+      RESOURCE_DIRECTORY_KEY: persi-cc-resources
+      AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
+      AWS_SECURITY_GROUP: sg-2ff60150,sg-2ff60150
+      AWS_SUBNET_ID: subnet-2bb4b763,subnet-5fa64526
+      AWS_AZ: us-west-2a,us-west-2b
+      DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
+      DATADOG_METRIC_PREFIX: gorgophone
+      CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
+      SMB_USERNAME: {{smb_server_username}}
+      SMB_PASSWORD: {{smb_server_password}}
+      BBL_IAAS: aws
+      BBL_AWS_REGION: us-west-2
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+
+  - task: bosh-deploy-cf
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+    input_mapping:
+      cf-deployment: cf-deployment-develop
+      vars-store: gorgophone-env-vars-store
+      bbl-state: gorgophone-env-director-state
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+    params:
+      MANIFEST_FILE: cf-deployment.yml
+      SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
+      VARS_STORE_FILE: deployment-vars.yml
+      VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
+      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/experimental/windows2016-cell.yml operations/experimental/migrate-cf-mysql-to-pxc.yml operations/enable-nfs-volume-service-experiment.yml operations/enable-local-volume-service.yml operations/enable-local-volume-service-windows-cells.yml  operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver.yml operations/enable-smb-test-server.yml operations/enable-csi-local-plugin.yml operations/add-csi-nfs-plugin.yml operations/add-mapfs.yml operations/deploy-ecs-broker-errand.yml operations/enable-nfs-ldap.yml operations/set-nfs-ldap-test-mode.yml operations/experimental/enable-backup-restore.yml operations/enable-nfs-broker-backup.yml operations/enable-azurefile-broker-backup.yml operations/deploy-ceph-broker-and-install-driver.yml operations/deploy-smb-broker-and-install-driver.yml operations/enable-smb-volume-service-windows.yml operations/update-releases.yml operations/test/add-datadog-firehose-nozzle.yml"
+    ensure:
+      put: gorgophone-env-vars-store
+      params:
+        repository: updated-vars-store
+        rebase: true
+
+
 - name: setup-cf-infrastructure
   serial_groups:
   - gorgophone
@@ -2357,17 +2640,7 @@ jobs:
       INFRASTRUCTURE: aws
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
-    params:
-      COLLECT_DIEGO_TARBALL: true
-      COLLECT_NFS_TARBALL: true
-      COLLECT_EFS_TARBALL: true
-      COLLECT_CSI_LOCAL_TARBALL: true
-      COLLECT_CSI_PLUGINS_TARBALL: true
-      COLLECT_ECS_TARBALL: true
-      COLLECT_MAPFS_TARBALL: true
-      COLLECT_LOCAL_TARBALL: true
-      COLLECT_CEPHFS_TARBALL: true
-      COLLECT_SMB_TARBALL: true
+    params: {}
     input_mapping:
       persi-ci: persi-ci
       diego-tarball: diego-dev-release
@@ -2550,7 +2823,6 @@ jobs:
     - get: gorgophone-env-director-state
     - get: cf-deployment-develop
       trigger: true
-    - get: gorgophone-env-cf-efs-vars-store
     - get: gorgophone-env-vars-store
     - get: persi-ci
     - get: diego-dev-release
@@ -2650,26 +2922,24 @@ jobs:
 #      BBL_AWS_REGION: us-west-2
 #      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
 #      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+  - task: mimic-bbl
+    file: persi-ci/efs/task.yml
+    input_mapping:
+      cf-deployment: cf-deployment-develop
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
     input_mapping:
+      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
       cf-deployment: cf-deployment-develop
       bbl-state: gorgophone-env-director-state
     params:
       INFRASTRUCTURE: bosh-lite
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
-    params:
-      COLLECT_DIEGO_TARBALL: true
-      COLLECT_NFS_TARBALL: false
-      COLLECT_EFS_TARBALL: true
-      COLLECT_CSI_LOCAL_TARBALL: false
-      COLLECT_CSI_PLUGINS_TARBALL: false
-      COLLECT_ECS_TARBALL: false
-      COLLECT_LOCAL_TARBALL: false
-      COLLECT_CEPHFS_TARBALL: false
-      COLLECT_SMB_TARBALL: false
+    params: {}
     input_mapping:
+      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
+      persi-ci: persi-ci
       diego-tarball: diego-dev-release
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
@@ -2690,9 +2960,19 @@ jobs:
       cephfs-version: cephfs-version
       local-version: localvolume-version
       smb-version: smb-volume-version
+#  - task: collect-persi-ci-ops-files
+#    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+#    input_mapping:
+#      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
+#      base-ops-files: cf-deployment-develop
+#      new-ops-files: persi-ci
+#    params:
+#      BASE_OPS_FILE_DIR: "operations"
+#      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml"
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
+      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
       base-ops-files: cf-deployment-develop
       new-ops-files: efs-volume-release
     params:
@@ -2701,6 +2981,7 @@ jobs:
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
+      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
       base-ops-files: collected-ops-files
       new-ops-files: collected-tarballs
     params:
@@ -2709,6 +2990,7 @@ jobs:
   - task: add-tarballs
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
+      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
       base-ops-files: collected-ops-files
       new-ops-files: collected-tarballs
     params:
@@ -2717,6 +2999,7 @@ jobs:
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
+      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
       director-state: gorgophone-env-director-state
     params:
       GENERATE_NFS_VARS: false
@@ -2731,26 +3014,26 @@ jobs:
       AWS_SUBNET_ID: subnet-2bb4b763,subnet-5fa64526
       AWS_AZ: us-west-2a,us-west-2b
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
-  - task: bosh-deploy-cf
-    file: persi-ci/efs/bosh-deploy.yml
-    input_mapping:
-      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks
-      cf-deployment: cf-deployment-develop
-      vars-store: gorgophone-env-cf-efs-vars-store
-      bbl-state: gorgophone-env-director-state
-      ops-files: collected-ops-files
-      vars-files: generated-vars
-    params:
-      MANIFEST_FILE: cf-deployment.yml
-      SYSTEM_DOMAIN: bosh-lite.cf-app.com # not used, this is a required by the task
-      VARS_STORE_FILE: deployment-vars-cf-efs.yml
-      VARS_FILES: "efs-vars.yml"
-      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml  operations/deploy-efs-broker-and-install-driver.yml operations/update-releases.yml"
-    ensure:
-      put: gorgophone-env-cf-efs-vars-store
-      params:
-        repository: updated-vars-store
-        rebase: true
+#  - task: bosh-deploy-cf
+#    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+#    input_mapping:
+#      cf-deployment-concourse-tasks: cf-deployment-concourse-tasks-patched
+#      cf-deployment: cf-deployment-develop
+#      vars-store: gorgophone-env-vars-store
+#      bbl-state: gorgophone-env-director-state
+#      ops-files: collected-ops-files
+#      vars-files: generated-vars
+#    params:
+#      MANIFEST_FILE: cf-deployment.yml
+#      SYSTEM_DOMAIN: bosh-lite.com # not used, this is a required by the task
+#      VARS_STORE_FILE: deployment-vars-bosh-lite.yml
+#      VARS_FILES: "efs-vars.yml"
+#      OPS_FILES: "operations/aws.yml operations/scale-to-one-az.yml operations/scale-up-routers-and-cells.yml operations/deploy-efs-broker-and-install-driver.yml .yml operations/update-releases.yml"
+#    ensure:
+#      put: gorgophone-env-vars-store
+#      params:
+#        repository: updated-vars-store
+#        rebase: true
 
 - name: pats-drats
   serial_groups:
