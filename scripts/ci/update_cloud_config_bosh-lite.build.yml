@@ -1,0 +1,16 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v5.2.0
+
+inputs:
+  - name: persi-ci
+  - name: deployments-persi
+
+params: {}
+
+run:
+  path: persi-ci/scripts/ci/update_cloud_config_bosh-lite.sh
