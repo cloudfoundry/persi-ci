@@ -9,6 +9,7 @@ image_resource:
 inputs:
   - name: persi-ci
   - name: deployments-persi
+  - name: bosh-deployment
 
 params: {}
 

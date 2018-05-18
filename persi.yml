@@ -201,6 +201,12 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry/persi-ci.git
+
+- name: bosh-deployment
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/bosh-deployment.git
 #### END Misc resources ###############################################################################################
 
 #### CEPH resources ###############################################################################################
@@ -2931,6 +2937,8 @@ jobs:
 #      BBL_AWS_REGION: us-west-2
 #      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
 #      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+  - task: update-cloud-config
+    file: persi-ci/scripts/ci/update_cloud_config_bosh-lite.build.yml
   - task: bosh-upload-stemcell
     file: persi-ci/efs/bosh-upload-stemcell-from-cf-deployment.yml
     input_mapping:
