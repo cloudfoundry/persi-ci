@@ -9,7 +9,7 @@ if [ "$USE_VARS_STORE" == true ]; then
 fi
 
 setup_bosh_env_vars_with_ssh
-SYSTEM_DOMAIN=${BOSH_ENVIRONMENT}.sslip.io
+export SYSTEM_DOMAIN=${BOSH_ENVIRONMENT}.sslip.io
 
 check_input_params
 if [ "$REGENERATE_VARS_STORE" == true ]; then
