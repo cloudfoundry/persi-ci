@@ -8,15 +8,14 @@ if [ "$USE_VARS_STORE" == true ]; then
   trap "commit_vars_store ${PWD}" EXIT
 fi
 
-check_input_params
 setup_bosh_env_vars_with_ssh
+SYSTEM_DOMAIN=${BOSH_ENVIRONMENT}.sslip.io
+
+check_input_params
 if [ "$REGENERATE_VARS_STORE" == true ]; then
     remove_vars_store
 fi
 
-SYSTEM_DOMAIN=${BOSH_ENVIRONMENT}.sslip.io
-
 bosh_interpolate
-
 bosh_deploy
 teardown_bosh_env_vars
