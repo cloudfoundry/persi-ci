@@ -2360,7 +2360,7 @@ jobs:
       cf-deployment: cf-deployment-develop
       bbl-state: gorgophone-env-director-state
     params:
-      INFRASTRUCTURE: gcp
+      INFRASTRUCTURE: google 
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params: {}
