@@ -2952,14 +2952,6 @@ jobs:
       cephfs-version: cephfs-version
       local-version: localvolume-version
       smb-version: smb-volume-version
-  - task: collect-cf-deployment-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: cf-deployment-develop
-      new-ops-files: persi-ci
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/bosh-lite.yml"
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
