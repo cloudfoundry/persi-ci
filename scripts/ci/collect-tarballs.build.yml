@@ -43,6 +43,7 @@ params:
 - COLLECT_LOCAL_TARBALL: true
 - COLLECT_CEPHFS_TARBALL: true
 - COLLECT_SMB_TARBALL: true
+- COLLECT_MAPFS_TARBALL: true
 
 run:
   path: persi-ci/scripts/ci/collect-tarballs
