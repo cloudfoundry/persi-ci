@@ -31,14 +31,6 @@ efs-broker-password: ${EFS_BROKER_PASSWORD}
 EOF
 }
 
-generate_bosh_lite_vars() {
-  source deployments-persi/persi-ci/deployments/bosh-lite-aws/setenv.sh
-    cat << EOF > ${ROOT_DIR}/generated-vars/bosh-lite-vars.yml
----
-system_domain: ${BOSH_ENVIRONMENT}.sslip.io
-EOF
-}
-
 generate_cf_vars() {
     cat << EOF > ${ROOT_DIR}/generated-vars/cf-vars.yml
 ---
@@ -99,9 +91,6 @@ main() {
   fi
   if [ "$GENERATE_EFS_VARS" = "true" ]; then
       generate_efs_vars
-  fi
-  if [ "$GENERATE_BOSH_LITE_VARS" = "true" ]; then
-      generate_bosh_lite_vars
   fi
   if [ "$GENERATE_ECS_BLOBSTORE_VARS" = "true" ]; then
       generate_cf_vars

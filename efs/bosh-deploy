@@ -13,6 +13,10 @@ setup_bosh_env_vars_with_ssh
 if [ "$REGENERATE_VARS_STORE" == true ]; then
     remove_vars_store
 fi
+
+SYSTEM_DOMAIN=${BOSH_ENVIRONMENT}.sslip.io
+
 bosh_interpolate
+
 bosh_deploy
 teardown_bosh_env_vars

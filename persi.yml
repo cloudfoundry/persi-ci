@@ -2986,7 +2986,6 @@ jobs:
     params:
       GENERATE_NFS_VARS: false
       GENERATE_EFS_VARS: true
-      GENERATE_BOSH_LITE_VARS: true
       GENERATE_CEPHFS_VARS: false
       GENERATE_SMB_VARS: false
       GENERATE_ECS_BLOBSTORE_VARS: false
@@ -3007,7 +3006,6 @@ jobs:
       vars-files: generated-vars
     params:
       MANIFEST_FILE: cf-deployment.yml
-      SYSTEM_DOMAIN: bosh-lite.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars-bosh-lite.yml
       VARS_FILES: "efs-vars.yml bosh-lite-vars.yml"
       OPS_FILES: "operations/aws.yml

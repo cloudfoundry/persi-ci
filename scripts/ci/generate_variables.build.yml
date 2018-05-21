@@ -10,7 +10,6 @@ image_resource:
 inputs:
 - name: persi-ci
 - name: director-state
-- name: deployments-persi
 
 outputs:
 - name: generated-vars
@@ -18,7 +17,6 @@ outputs:
 params:
   GENERATE_NFS_VARS: true
   GENERATE_EFS_VARS: true
-  GENERATE_BOSH_LITE_VARS: false
   GENERATE_CEPHFS_VARS: true
   GENERATE_SMB_VARS: true
   GENERATE_ECS_BLOBSTORE_VARS: true
