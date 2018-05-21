@@ -2237,7 +2237,7 @@ jobs:
 
 - name: setup-cf-infrastructure-gcp
   serial_groups:
-#  - gorgophone
+  - gcp
 #  - cephfs
 #  - local
 #  - nfs-test-server
@@ -2269,13 +2269,13 @@ jobs:
       trigger: true
     - get: nfsvolume-version
       passed: [ create-nfs-volume-release ]
-#    - get: efs-volume-release
-#      passed: [ create-efs-volume-release ]
-#      trigger: true
-#    - get: efs-volume-release-tarball
-#      passed: [ create-efs-volume-release ]
-#    - get: efsvolume-version
-#      passed: [ create-efs-volume-release ]
+    - get: efs-volume-release
+      passed: [ create-efs-volume-release ]
+      trigger: true
+    - get: efs-volume-release-tarball
+      passed: [ create-efs-volume-release ]
+    - get: efsvolume-version
+      passed: [ create-efs-volume-release ]
     - get: local-volume-release
       passed: [ create-local-volume-release ]
       trigger: true
@@ -2360,10 +2360,12 @@ jobs:
       cf-deployment: cf-deployment-develop
       bbl-state: gorgophone-env-director-state
     params:
-      INFRASTRUCTURE: google 
+      BBL_STATE_DIR: bbl-state-gcp
+      INFRASTRUCTURE: google
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
-    params: {}
+    params:
+      COLLECT_EFS_TARBALL: false
     input_mapping:
       persi-ci: persi-ci
       diego-tarball: diego-dev-release
@@ -2472,6 +2474,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      GENERATE_EFS_VARS: false
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
       LDAP_SVC_USER: {{ldap-svc-user}}
       LDAP_SVC_PASS: {{ldap-svc-pass}}
@@ -2514,6 +2517,7 @@ jobs:
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
+      BBL_STATE_DIR: bbl-state-gcp
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
@@ -2789,21 +2793,12 @@ jobs:
       BUILDPACK_DIRECTORY_KEY: persi-cc-buildpacks
       DROPLET_DIRECTORY_KEY: persi-cc-droplets
       RESOURCE_DIRECTORY_KEY: persi-cc-resources
-      AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-2ff60150,sg-2ff60150
-      AWS_SUBNET_ID: subnet-2bb4b763,subnet-5fa64526
-      AWS_AZ: us-west-2a,us-west-2b
-      EFS_BROKER_PASSWORD: {{efs-broker-password}}
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone
       CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
       SMB_USERNAME: {{smb_server_username}}
       SMB_PASSWORD: {{smb_server_password}}
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_IAAS: gcp
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
