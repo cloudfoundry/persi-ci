@@ -1458,6 +1458,7 @@ jobs:
   - efs
   plan:
   - aggregate:
+    - get: deployments-persi
     - get: efs-volume-release
       passed:
       - setup-cf-infrastructure
@@ -1472,17 +1473,14 @@ jobs:
     - get: diego-release
 
   - task: run-pats
-    file: efs-volume-release/scripts/ci/run_pats_efsvolume.build.yml
+    file: efs-volume-release/scripts/ci/run_pats_efsvolume_bosh_lite.build.yml
     input_mapping:
       vars-store: gorgophone-env-vars-store
     params:
       APPLICATION_PATH: efs-volume-release/assets/pora
-      APPS_DOMAIN: bosh-lite.com
       BROKER_PASSWORD: {{pats-broker-password}}
-      BROKER_URL: http://efs-broker.bosh-lite.com
       BROKER_USER: {{pats-broker-username}}
       BROKER_PASSWORD: {{efs-broker-password}}
-      CF_API_ENDPOINT: api.bosh-lite.com
       CF_USERNAME: {{cf-bosh-lite-username}}
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
@@ -3008,7 +3006,7 @@ jobs:
     params:
       MANIFEST_FILE: cf-deployment.yml
       VARS_STORE_FILE: deployment-vars-bosh-lite.yml
-      VARS_FILES: "efs-vars.yml bosh-lite-vars.yml"
+      VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/aws.yml
                   operations/bosh-lite.yml
                   operations/deploy-efs-broker-and-install-driver.yml
