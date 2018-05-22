@@ -11,7 +11,8 @@ inputs:
   - name: bbl-state  # - The Director's `bbl-state.json`
   - name: persi-ci
 
-params: {}
+params:
+  BBL_STATE_DIR: bbl-state
 
 run:
   path: persi-ci/scripts/ci/run_nfs_broker_errand.sh

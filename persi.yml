@@ -1108,7 +1108,8 @@ jobs:
     file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
-    params: {}
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
 
 - name: pats-nfs
   serial_groups:
