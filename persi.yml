@@ -1427,6 +1427,7 @@ jobs:
       - efsbroker-unit
       trigger: true
   - task: build
+    tags: ["jumpbox"]
     privileged: true
     file: efs-volume-release/scripts/ci/run_driver_cert.build.yml
 - name: create-efs-volume-release
