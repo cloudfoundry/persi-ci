@@ -1461,11 +1461,11 @@ jobs:
     - get: deployments-persi
     - get: efs-volume-release
       passed:
-      - setup-cf-infrastructure
+      - setup-cf-infra-for-efs
       trigger: true
     - get: efs-volume-release-tarball
       passed:
-      - setup-cf-infrastructure
+      - setup-cf-infra-for-efs
     - get: gorgophone-env-vars-store
     - get: diego-dev-release
       passed: [ setup-cf-infrastructure ]
