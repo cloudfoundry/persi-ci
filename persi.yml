@@ -1198,7 +1198,7 @@ jobs:
       CF_USERNAME: admin
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-experimental
-      CREATE_CONFIG: '{\"share\":\"fs-72911edb.efs.us-west-2.amazonaws.com/\",\"version\":\"4.1\"}'
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\",\"version\":\"4.1\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
