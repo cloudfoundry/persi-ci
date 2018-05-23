@@ -1646,7 +1646,8 @@ jobs:
     file: persi-ci/scripts/ci/run_ecs_broker_errand_cf_deployment.build.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
-    params: {}
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
 
 - name: pats-ecs
   serial_groups:

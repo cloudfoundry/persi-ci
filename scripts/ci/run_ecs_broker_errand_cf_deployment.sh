@@ -7,7 +7,7 @@ function finish {
 }
 trap finish EXIT
 
-bbl --state-dir bbl-state/bbl-state print-env > set-env.sh
+bbl --state-dir bbl-state/${BBL_STATE_DIR} print-env > set-env.sh
 source set-env.sh
 
 bosh -n -d cf run-errand ecs-broker-deploy
