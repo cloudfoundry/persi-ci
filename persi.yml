@@ -732,10 +732,8 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_STATE_DIR: bbl-state-gcp
+      BBL_IAAS: gcp
     file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
 - name: pats-cephfs
   serial_groups:
@@ -2380,7 +2378,7 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/use-ecs-blobstore.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-broker-backup.yml"
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-broker-backup.yml"
   - task: collect-nfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
