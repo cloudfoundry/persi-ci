@@ -2974,9 +2974,9 @@ jobs:
       GENERATE_DATADOG_VARS: false
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-2ff60150,sg-2ff60150
-      AWS_SUBNET_ID: subnet-2bb4b763,subnet-5fa64526
-      AWS_AZ: us-west-2a,us-west-2b
+      AWS_SECURITY_GROUP: sg-14180c6a
+      AWS_SUBNET_ID: subnet-3231a44b
+      AWS_AZ: us-west-2b
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
   - task: bosh-deploy-cf
     file: persi-ci/efs/bosh-deploy.yml
