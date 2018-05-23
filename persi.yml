@@ -1603,6 +1603,7 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
+      BBL_IAAS: gcp
 
 - name: gorgophone-bosh-cleanup
   serial_groups:
