@@ -3,7 +3,7 @@
 set -e -x -u
 
 mkdir -p bosh-env
-bbl --state-dir director-state/bbl-state print-env > bosh-env/set-env.sh
-bbl --state-dir director-state/bbl-state ssh-key > bosh-env/ssh-key
-bbl --state-dir director-state/bbl-state director-ca-cert > bosh-env/ca-cert.pem
+bbl --state-dir director-state/${BBL_STATE_DIR} print-env > bosh-env/set-env.sh
+bbl --state-dir director-state/${BBL_STATE_DIR} ssh-key > bosh-env/ssh-key
+bbl --state-dir director-state/${BBL_STATE_DIR} director-ca-cert > bosh-env/ca-cert.pem
 
