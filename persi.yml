@@ -1621,10 +1621,8 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_STATE_DIR: bbl-state-gcp
+      BBL_IAAS: gcp
 
 - name: deploy-ecs-broker
   serial_groups:
