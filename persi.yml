@@ -929,20 +929,17 @@ jobs:
     - get: lib-nfs
     - get: fuse-nfs
   - task: fuse-nfs-cert
-    tags: ["jumpbox"]
     privileged: true
     file: nfs-volume-release/scripts/ci/run_fuse_nfs_cert.build.yml
     params:
       FUSE_MOUNT: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050
       NFS_MOUNT: testnfsserver.gorgophone.cf-app.com:/export2/certs
   - task: driver-cert
-    tags: ["jumpbox"]
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
     params:
       SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs
   - task: experimental-driver-cert
-    tags: ["jumpbox"]
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_experimental.build.yml
     params:
