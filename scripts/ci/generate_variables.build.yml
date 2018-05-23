@@ -53,6 +53,7 @@ params:
   BBL_AWS_ACCESS_KEY_ID:
   BBL_AWS_SECRET_ACCESS_KEY:
   BBL_STATE_DIR: bbl-state
+  BBL_IAAS: aws
 
 run:
   path: persi-ci/scripts/ci/generate_variables

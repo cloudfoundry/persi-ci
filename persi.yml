@@ -2470,6 +2470,7 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
+      BBL_IAAS: gcp
       GENERATE_EFS_VARS: false
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
       LDAP_SVC_USER: {{ldap-svc-user}}
