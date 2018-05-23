@@ -729,7 +729,6 @@ jobs:
     - get: persi-ci
 
   - task: certification
-    tags: ["jumpbox"]
     privileged: true
     input_mapping:
       director-state: gorgophone-env-director-state
@@ -957,7 +956,6 @@ jobs:
     - get: fuse-nfs
       trigger: true
   - task: fuse-nfs-cert
-    tags: ["jumpbox"]
     privileged: true
     file: nfs-volume-release/scripts/ci/run_fuse_nfs_cert.build.yml
     input_mapping:
@@ -966,7 +964,6 @@ jobs:
       FUSE_MOUNT: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050&multithread=1
       NFS_MOUNT: testnfsserver.gorgophone.cf-app.com:/export2/certs
   - task: driver-cert
-    tags: ["jumpbox"]
     privileged: true
     file: nfs-volume-release/scripts/ci/run_driver_cert_tcp.build.yml
     input_mapping:
@@ -2013,7 +2010,6 @@ jobs:
       trigger: true
     - get: gorgophone-env-director-state
   - task: driver-cert
-    tags: ["jumpbox"]
     privileged: true
     input_mapping:
       director-state: gorgophone-env-director-state
@@ -3046,7 +3042,6 @@ jobs:
           tar -xvf bbr-release/bbr*.tar
           cp releases/bbr binary/
   - task: drats
-    tags: ["jumpbox"]
     file: persi-ci/scripts/ci/drats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
