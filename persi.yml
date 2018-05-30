@@ -2019,14 +2019,14 @@ jobs:
     file: smb-volume-release/scripts/ci/run_driver_cert.build.yml
 
 - name: cifs-smbdriver-certification-windows
-#  serial_groups:
-#  - smb
+  serial_groups:
+  - smb
   plan:
   - aggregate:
     - get: persi-ci
     - get: smb-volume-release
-#      passed:
-#      - setup-cf-infrastructure
+      passed:
+      - setup-cf-infrastructure
       trigger: true
   - task: driver-cert
     privileged: true
