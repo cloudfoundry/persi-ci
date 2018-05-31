@@ -117,9 +117,7 @@ groups:
   - efsdriver-certification
   - create-efs-volume-release
   - pats-efs
-  - setup-cf-infrastructure
   - setup-cf-infra-for-efs
-  - pats-drats
 
 - name: ecs
   jobs:
@@ -1457,9 +1455,8 @@ jobs:
       - setup-cf-infra-for-efs
     - get: gorgophone-env-for-efs-vars-store
     - get: diego-dev-release
-      passed: [ setup-cf-infrastructure ]
+      passed: [ setup-cf-infra-for-efs ]
       trigger: true
-    - get: diego-release
 
   - task: run-pats
     file: efs-volume-release/scripts/ci/run_pats_efsvolume_bosh_lite.build.yml
