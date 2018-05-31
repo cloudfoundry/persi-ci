@@ -2531,13 +2531,6 @@ jobs:
     - get: diego-release
     - get: diego-version
       passed: [ create-diego-release ]
-    - get: nfs-volume-release
-      passed: [ create-nfs-volume-release ]
-    - get: nfs-volume-release-tarball
-      passed: [ create-nfs-volume-release ]
-      trigger: true
-    - get: nfsvolume-version
-      passed: [ create-nfs-volume-release ]
     - get: efs-volume-release
       passed: [ create-efs-volume-release ]
       trigger: true
@@ -2545,54 +2538,12 @@ jobs:
       passed: [ create-efs-volume-release ]
     - get: efsvolume-version
       passed: [ create-efs-volume-release ]
-    - get: local-volume-release
-      passed: [ create-local-volume-release ]
-      trigger: true
-    - get: local-volume-release-tarball
-      passed: [ create-local-volume-release ]
-    - get: localvolume-version
-      passed: [ create-local-volume-release ]
-    - get: csi-local-volume-release
-      passed: [ create-csi-local-volume-release ]
-      trigger: true
-    - get: csi-local-volume-release-tarball
-      passed: [ create-csi-local-volume-release ]
-    - get: csi-local-volume-version
-      passed: [ create-csi-local-volume-release ]
-    - get: csi-plugins-release
-      passed: [ create-csi-plugins-release ]
-      trigger: true
-    - get: csi-plugins-release-tarball
-      passed: [ create-csi-plugins-release ]
-    - get: csi-plugins-version
-      passed: [ create-csi-plugins-release ]
     - get: mapfs-release
       passed: [ create-mapfs-release ]
-      trigger: true
     - get: mapfs-release-tarball
       passed: [ create-mapfs-release ]
     - get: mapfs-version
       passed: [ create-mapfs-release ]
-    - get: ecs-release-tarball
-      passed: [ create-ecs-release ]
-    - get: ecs-version
-      passed: [ create-ecs-release ]
-    - get: ecs-release
-      passed: [ create-ecs-release ]
-    - get: cephfs-bosh-release-tarball
-      passed: [ create-cephfs-release ]
-    - get: cephfs-bosh-release
-      passed: [ deploy-cephfs-cluster ]
-      trigger: true
-    - get: cephfs-version
-      passed: [ create-cephfs-release ]
-    - get: smb-volume-release
-      passed: [ create-smb-volume-release ]
-    - get: smb-volume-release-tarball
-      passed: [ create-smb-volume-release ]
-      trigger: true
-    - get: smb-volume-version
-      passed: [ create-smb-volume-release ]
   - task: update-cloud-config
     file: persi-ci/scripts/ci/update_cloud_config_bosh-lite.build.yml
   - task: bosh-upload-stemcell
@@ -2614,28 +2565,30 @@ jobs:
       COLLECT_LOCAL_TARBALL: false
       COLLECT_CEPHFS_TARBALL: false
       COLLECT_SMB_TARBALL: false
+    #this task requires a lot of inputs that we don't need for this instance--we're feeding in
+    #efsvolume-version as a dummy input because it is tiny and easy to copy
     input_mapping:
       persi-ci: persi-ci
       diego-tarball: diego-dev-release
-      nfs-tarball: nfs-volume-release-tarball
+      nfs-tarball: efsvolume-version #dummy
       efs-tarball: efs-volume-release-tarball
-      csi-local-tarball: csi-local-volume-release-tarball
-      csi-plugins-tarball: csi-plugins-release-tarball
+      csi-local-tarball: efsvolume-version #dummy
+      csi-plugins-tarball: efsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
-      ecs-tarball: ecs-release-tarball
-      local-tarball: local-volume-release-tarball
-      cephfs-tarball: cephfs-bosh-release-tarball
-      smb-tarball: smb-volume-release-tarball
+      ecs-tarball: efsvolume-version #dummy
+      local-tarball: efsvolume-version #dummy
+      cephfs-tarball: efsvolume-version #dummy
+      smb-tarball: efsvolume-version #dummy
       diego-version: diego-version
-      nfs-version: nfsvolume-version
+      nfs-version: efsvolume-version #dummy
       efs-version: efsvolume-version
-      csi-local-version: csi-local-volume-version
-      csi-plugins-version: csi-plugins-version
+      csi-local-version: efsvolume-version #dummy
+      csi-plugins-version: efsvolume-version #dummy
       mapfs-version: mapfs-version
-      ecs-version: ecs-version
-      cephfs-version: cephfs-version
-      local-version: localvolume-version
-      smb-version: smb-volume-version
+      ecs-version: efsvolume-version #dummy
+      cephfs-version: efsvolume-version #dummy
+      local-version: efsvolume-version #dummy
+      smb-version: efsvolume-version #dummy
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
