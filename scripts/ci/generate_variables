@@ -16,6 +16,10 @@ nfs-ldap-host: ${LDAP_HOST}
 nfs-ldap-port: ${LDAP_PORT}
 nfs-ldap-proto: ${LDAP_PROTO}
 nfs-ldap-fqdn: ${LDAP_USER_FQDN}
+nfs-test-ldap-server-ssl-active: ${LDAP_TEST_SERVER_SSL_ACTIVE}
+nfs-test-ldap-server-ca-cert: ${LDAP_TEST_SERVER_CA_CERT}
+nfs-test-ldap-server-cert: ${LDAP_TEST_SERVER_CERT}
+nfs-test-ldap-server-key: ${LDAP_TEST_SERVER_KEY}
 EOF
 }
 
@@ -90,16 +94,16 @@ main() {
     generate_nfs_vars
   fi
   if [ "$GENERATE_EFS_VARS" = "true" ]; then
-      generate_efs_vars
+    generate_efs_vars
   fi
   if [ "$GENERATE_ECS_BLOBSTORE_VARS" = "true" ]; then
-      generate_cf_vars
+    generate_cf_vars
   fi
   if [ "$GENERATE_DATADOG_VARS" = "true" ]; then
-      generate_datadog_vars
+    generate_datadog_vars
   fi
   if [ "$GENERATE_CEPHFS_VARS" = "true" ]; then
-      generate_cephfs_vars
+    generate_cephfs_vars
   fi
   if [ "$GENERATE_SMB_VARS" = "true" ]; then
     generate_smb_vars

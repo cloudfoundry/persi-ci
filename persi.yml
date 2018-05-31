@@ -2464,6 +2464,10 @@ jobs:
       LDAP_PORT: 389
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
+      LDAP_TEST_SERVER_SSL_ACTIVE: true
+      LDAP_TEST_SERVER_CA_CERT: {{ldap-test-server-ca-cert}}
+      LDAP_TEST_SERVER_CERT: {{ldap-test-server-cert}}
+      LDAP_TEST_SERVER_KEY: {{ldap-test-server-key}}
       ECS_PASSWORD: {{ecs-password}}
       ECS_USERNAME: {{ecs-user}}
       ECS_IP: 35.233.221.61
