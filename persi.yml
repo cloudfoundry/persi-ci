@@ -2012,10 +2012,8 @@ jobs:
     params:
       username: {{smb_server_username}}
       password: {{smb_server_password}}
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_STATE_DIR: bbl-state-gcp
+      BBL_IAAS: gcp
     file: smb-volume-release/scripts/ci/run_driver_cert.build.yml
 
 - name: cifs-smbdriver-certification-windows
