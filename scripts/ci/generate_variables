@@ -17,9 +17,12 @@ nfs-ldap-port: ${LDAP_PORT}
 nfs-ldap-proto: ${LDAP_PROTO}
 nfs-ldap-fqdn: ${LDAP_USER_FQDN}
 nfs-test-ldap-server-ssl-active: ${LDAP_TEST_SERVER_SSL_ACTIVE}
-nfs-test-ldap-server-ca-cert: ${LDAP_TEST_SERVER_CA_CERT}
-nfs-test-ldap-server-cert: ${LDAP_TEST_SERVER_CERT}
-nfs-test-ldap-server-key: ${LDAP_TEST_SERVER_KEY}
+nfs-test-ldap-server-ca-cert: |
+$(echo "${LDAP_TEST_SERVER_CA_CERT}" | while read line; do echo "  $line"; done)
+nfs-test-ldap-server-cert: |
+$(echo "${LDAP_TEST_SERVER_CERT}" | while read line; do echo "  $line"; done)
+nfs-test-ldap-server-key: |
+$(echo "${LDAP_TEST_SERVER_KEY}" | while read line; do echo "  $line"; done)
 EOF
 }
 
