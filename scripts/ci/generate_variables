@@ -16,6 +16,8 @@ nfs-ldap-host: ${LDAP_HOST}
 nfs-ldap-port: ${LDAP_PORT}
 nfs-ldap-proto: ${LDAP_PROTO}
 nfs-ldap-fqdn: ${LDAP_USER_FQDN}
+nfs-ldap-ca-cert: |
+$(echo "${LDAP_TEST_SERVER_CA_CERT}" | while read line; do echo "  $line"; done)
 nfs-test-ldap-server-ssl-active: ${LDAP_TEST_SERVER_SSL_ACTIVE}
 nfs-test-ldap-server-ca-cert: |
 $(echo "${LDAP_TEST_SERVER_CA_CERT}" | while read line; do echo "  $line"; done)
