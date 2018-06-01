@@ -169,7 +169,7 @@ groups:
 - name: util
   jobs:
   - bbl-destroy
-  - gorgophone-bosh-cleanup
+  - bosh-cleanups
 
 - name: release-nfs
   jobs:
@@ -1602,7 +1602,7 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp
       BBL_IAAS: gcp
 
-- name: gorgophone-bosh-cleanup
+- name: bosh-cleanups
   serial_groups:
   - gorgophone
   plan:
@@ -1611,13 +1611,17 @@ jobs:
       trigger: true
     - get: persi-ci
     - get: gorgophone-env-director-state
-  - task: bosh-cleanup
+    - get: deployments-persi
+  - task: bosh-cleanup-gorgophone
     file: persi-ci/scripts/ci/bosh_cleanup.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
       BBL_IAAS: gcp
+  - task: bosh-cleanup-boshlite
+    file: persi-ci/scripts/ci/boshlite_cleanup.build.yml
+    params: {}
 
 - name: deploy-ecs-broker
   serial_groups:
