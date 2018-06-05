@@ -2506,6 +2506,7 @@ jobs:
       operations/scale-up-routers-and-cells.yml 
       operations/experimental/use-bosh-dns.yml 
       operations/experimental/use-bosh-dns-for-containers.yml 
+      operations/experimental/secure-service-credentials.yml
       operations/experimental/windows2016-cell.yml 
       operations/enable-nfs-volume-service-experiment.yml 
       operations/enable-local-volume-service.yml 
