@@ -47,6 +47,7 @@ groups:
   - create-ecs-release
   - create-smb-volume-release
   - deploy-ecs-cluster
+  - bbl-up-gorgophone
   - setup-cf-infrastructure
   - setup-cf-infra-for-efs
   - deploy-ecs-broker
@@ -86,6 +87,7 @@ groups:
   - create-csi-local-volume-release
   - create-csi-plugins-release
   - create-mapfs-release
+  - bbl-up-gorgophone
   - setup-cf-infrastructure
   - pats-drats
 
@@ -102,7 +104,7 @@ groups:
   - pats-nfs-docker
   - pats-nfs-ldap
   - pats-nfs-ldap-experimental
-#  - pats-nfs-pushed-broker
+  - bbl-up-gorgophone
   - setup-cf-infrastructure
   - deploy-nfs-broker
   - pats-drats
@@ -125,6 +127,7 @@ groups:
   - create-ecs-release
   - deploy-ecs-cluster
   - deploy-ecs-broker
+  - bbl-up-gorgophone
   - setup-cf-infrastructure
   - pats-ecs
   - pats-drats
@@ -137,6 +140,7 @@ groups:
   - deploy-cephfs-cluster
   - create-cephfs-release
   - pats-cephfs
+  - bbl-up-gorgophone
   - setup-cf-infrastructure
   - pats-drats
 
@@ -148,6 +152,7 @@ groups:
   - create-smb-volume-release
   - cifs-smbdriver-certification
   - cifs-smbdriver-certification-windows
+  - bbl-up-gorgophone
   - setup-cf-infrastructure
   - pats-cifs-smb
   - pats-cifs-smb-windows
@@ -163,6 +168,7 @@ groups:
   - localdriver-docker-certification
   - create-local-volume-release
   - pats-local
+  - bbl-up-gorgophone
   - setup-cf-infrastructure
   - pats-drats
 
@@ -611,8 +617,6 @@ resources:
     private_key: {{deployments-persi-key}}
     paths:
     - deployment-vars.yml
-#   - datadog-deployment-vars.yml
-#   - rds-vars.yml
 
 - name: gorgophone-env-for-efs-vars-store
   type: git
@@ -638,10 +642,6 @@ resources:
 ###################################### RESOURCE_TYPES SECTION ########################################################
 ######################################################################################################################
 resource_types:
-- name: bosh-config
-  type: docker-image
-  source:
-    repository: dellemcdojo/bosh-config-resource
 - name: pivnet
   type: docker-image
   source:
@@ -1295,49 +1295,6 @@ jobs:
       TEST_READ_ONLY: false
       TEST_DOCKER_PORA: true
 
-#- name: pats-nfs-pushed-broker
-#  serial_groups:
-#  - nfs
-#  plan:
-#  - aggregate:
-#    - get: diego-dev-release
-#      passed: [ setup-cf-infrastructure ]
-#      trigger: true
-#    - get: diego-release
-#    - get: nfs-volume-release
-#      passed:
-#      - setup-cf-infrastructure
-#      trigger: true
-#    - get: nfs-volume-release-tarball
-#      passed:
-#      - setup-cf-infrastructure
-#    - get: gorgophone-env-vars-store
-#  - task: run-pats
-#    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
-#    input_mapping:
-#      vars-store: gorgophone-env-vars-store
-#    params:
-#      APPLICATION_PATH: nfs-volume-release/assets/pora
-#      APPS_DOMAIN: gorgophone.cf-app.com
-#      BROKER_PASSWORD: foo
-#      BROKER_URL: http://nfsbrokerpatsapp.gorgophone.cf-app.com
-#      BROKER_USER: fooser
-#      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-#      CF_USERNAME: admin
-#      PLAN_NAME: Existing
-#      SERVICE_NAME: nfs
-#      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-#      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-#      PUSHED_BROKER_NAME: nfsbrokerpatsapp
-#      DB_DRIVER_NAME: mysql
-#      DB_HOST: {{gorgophone-nfsbroker-mysql-host}}
-#      DB_PORT: 3306
-#      DB_NAME: nfsdb1
-#      DB_USERNAME: {{gorgophone-nfsbroker-mysql-user}}
-#      DB_PASSWORD: {{gorgophone-nfsbroker-mysql-password}}
-#      TEST_MULTI_CELL: true
-#      TEST_MOUNT_OPTIONS: true
-
 #### END NFS #########################################################################################################
 
 #### Isilon related jobs #############################################################################################
@@ -1840,7 +1797,7 @@ jobs:
 
 - name: pats-csi-local
   serial_groups:
-  - csi
+  - csi-local
   plan:
   - aggregate:
     - get: csi-local-volume-release
@@ -1875,7 +1832,7 @@ jobs:
 
 - name: pats-csi-nfs
   serial_groups:
-  - csi
+  - csi-nfs
   plan:
   - aggregate:
     - get: csi-plugins-release
@@ -1911,7 +1868,7 @@ jobs:
 
 - name: pats-csi-nfs-uid
   serial_groups:
-  - csi
+  - csi-nfs
   plan:
   - aggregate:
     - get: csi-plugins-release
@@ -2218,6 +2175,57 @@ jobs:
     input_mapping:
       bbl-state: gorgophone-env-director-state
 
+- name: bbl-up-gorgophone
+  serial_groups:
+  - cephfs
+  - local
+  - nfs-test-server
+  - nfs
+  - ecs-deploy
+  - csi-local
+  - csi-nfs
+  - smb
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: gorgophone-env-director-state
+    - get: cf-deployment-develop
+      trigger: true
+    - get: gorgophone-env-vars-store
+    - get: persi-ci
+
+  - task: setup-infrastructure
+    file: cf-deployment-concourse-tasks/bbl-up/task.yml
+    params:
+      BBL_IAAS: gcp
+      BBL_GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
+      BBL_GCP_REGION: us-west1
+      BBL_LB_CERT: {{gorgophone_lbs_ssl_cert}}
+      BBL_LB_KEY: {{gorgophone_lbs_ssl_signing_key}}
+      BBL_ENV_NAME: bbl-env-victoria-2018-04-23t19-08z
+      LB_DOMAIN: gorgophone.cf-app.com
+      OPS_FILES: bosh-opsfile/increase_bosh_persistent_disk.yml
+      BBL_STATE_DIR: bbl-state-gcp
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      bbl-config: gorgophone-env-director-state #placeholder since we don't use ops files here yet
+    ensure:
+      put: gorgophone-env-director-state
+      params:
+        repository: updated-bbl-state
+        rebase: true
+  - task: update-cloud-config
+    file: persi-ci/scripts/ci/update_cloud_config.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: gcp
+      BBL_GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
+      BBL_GCP_REGION: us-west1
+      BBL_STATE_DIR: bbl-state-gcp
+
 - name: setup-cf-infrastructure
   serial_groups:
   - cephfs
@@ -2235,6 +2243,7 @@ jobs:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment-develop
+      passed: [ bbl-up-gorgophone ]
       trigger: true
     - get: gorgophone-env-vars-store
     - get: persi-ci
@@ -2307,35 +2316,6 @@ jobs:
     - get: smb-volume-version
       passed: [ create-smb-volume-release ]
 
-  - task: setup-infrastructure
-    file: cf-deployment-concourse-tasks/bbl-up/task.yml
-    params:
-      BBL_IAAS: gcp
-      BBL_GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
-      BBL_GCP_REGION: us-west1
-      BBL_LB_CERT: {{gorgophone_lbs_ssl_cert}}
-      BBL_LB_KEY: {{gorgophone_lbs_ssl_signing_key}}
-      BBL_ENV_NAME: bbl-env-victoria-2018-04-23t19-08z
-      LB_DOMAIN: gorgophone.cf-app.com
-      OPS_FILES: bosh-opsfile/increase_bosh_persistent_disk.yml
-      BBL_STATE_DIR: bbl-state-gcp
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-      bbl-config: gorgophone-env-director-state #placeholder since we don't use ops files here yet
-    ensure:
-      put: gorgophone-env-director-state
-      params:
-        repository: updated-bbl-state
-        rebase: true
-  - task: update-cloud-config
-    file: persi-ci/scripts/ci/update_cloud_config.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_IAAS: gcp
-      BBL_GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
-      BBL_GCP_REGION: us-west1
-      BBL_STATE_DIR: bbl-state-gcp
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
     input_mapping:
@@ -2524,7 +2504,7 @@ jobs:
       operations/experimental/enable-backup-restore.yml 
       operations/enable-nfs-broker-backup.yml 
       operations/enable-azurefile-broker-backup.yml 
-      operations/deploy-ceph-broker-and-install-driver.yml 
+      operations/deploy-ceph-broker-and-install-driver.yml
       operations/deploy-smb-broker-and-install-driver.yml 
       operations/enable-smb-volume-service-windows.yml 
       operations/update-releases.yml 
