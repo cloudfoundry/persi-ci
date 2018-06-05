@@ -2386,7 +2386,7 @@ jobs:
       new-ops-files: nfs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver-tls.yml operations/enable-nfs-volume-service-experiment.yml operations/set-nfs-ldap-test-mode.yml"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver-tls.yml operations/enable-nfs-volume-service-experiment.yml operations/set-nfs-ldap-test-mode.yml operations/use-bosh-dns-for-nfs.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2505,7 +2505,8 @@ jobs:
       OPS_FILES: "operations/scale-to-one-az.yml 
       operations/scale-up-routers-and-cells.yml 
       operations/experimental/use-bosh-dns.yml 
-      operations/experimental/use-bosh-dns-for-containers.yml 
+      operations/experimental/use-bosh-dns-for-containers.yml
+      operations/use-bosh-dns-for-nfs.yml
       operations/experimental/secure-service-credentials.yml
       operations/experimental/windows2016-cell.yml 
       operations/enable-nfs-volume-service-experiment.yml 
