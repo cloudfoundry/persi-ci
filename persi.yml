@@ -61,7 +61,6 @@ groups:
   - pats-nfs-docker
   - pats-nfs-ldap
   - pats-nfs-ldap-experimental
-#  - pats-nfs-pushed-broker
   - pats-drats
   - pats-csi-local
   - pats-csi-nfs-uid
@@ -2398,7 +2397,7 @@ jobs:
       new-ops-files: smb-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/deploy-smb-broker-and-install-driver.yml operations/enable-smb-volume-service-windows.yml"
+      NEW_OPS_FILES: "operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/deploy-smb-broker-and-install-driver.yml operations/enable-smb-volume-service-windows.yml operations/use-bosh-dns-for-smb.yml"
   - task: collect-csi-plugins-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2487,6 +2486,7 @@ jobs:
       operations/experimental/use-bosh-dns.yml 
       operations/experimental/use-bosh-dns-for-containers.yml
       operations/use-bosh-dns-for-nfs.yml
+      operations/use-bosh-dns-for-smb.yml
       operations/experimental/secure-service-credentials.yml
       operations/experimental/windows2016-cell.yml 
       operations/enable-nfs-volume-service-experiment.yml 
