@@ -582,10 +582,16 @@ resources:
 #### End SMB resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
-- name: cf-deployment-develop
+#- name: cf-deployment-develop
+#  type: git
+#  source:
+#    branch: develop
+#    uri: https://github.com/cloudfoundry/cf-deployment.git
+
+- name: cf-deployment-master
   type: git
   source:
-    branch: develop
+    branch: master
     uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
@@ -2192,7 +2198,7 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment-develop
+    - get: cf-deployment-master
       trigger: true
     - get: gorgophone-env-vars-store
     - get: persi-ci
@@ -2243,7 +2249,7 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment-develop
+    - get: cf-deployment-master
       passed: [ bbl-up-gorgophone ]
       trigger: true
     - get: gorgophone-env-vars-store
@@ -2313,7 +2319,7 @@ jobs:
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
     input_mapping:
-      cf-deployment: cf-deployment-develop
+      cf-deployment: cf-deployment-master
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
@@ -2347,7 +2353,7 @@ jobs:
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment-develop
+      base-ops-files: cf-deployment-master
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -2464,7 +2470,7 @@ jobs:
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
-      cf-deployment: cf-deployment-develop
+      cf-deployment: cf-deployment-master
       vars-store: gorgophone-env-vars-store
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
@@ -2520,7 +2526,7 @@ jobs:
     - get: deployments-persi
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment-develop
+    - get: cf-deployment-master
       trigger: true
     - get: bosh-bootloader
     - get: gorgophone-env-for-efs-vars-store
@@ -2549,7 +2555,7 @@ jobs:
   - task: bosh-upload-stemcell
     file: persi-ci/efs/bosh-upload-stemcell-from-cf-deployment.yml
     input_mapping:
-      cf-deployment: cf-deployment-develop
+      cf-deployment: cf-deployment-master
       bbl-state: gorgophone-env-director-state
     params:
       INFRASTRUCTURE: bosh-lite
@@ -2592,7 +2598,7 @@ jobs:
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment-develop
+      base-ops-files: cf-deployment-master
       new-ops-files: efs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -2641,7 +2647,7 @@ jobs:
   - task: bosh-deploy-cf
     file: persi-ci/efs/bosh-deploy.yml
     input_mapping:
-      cf-deployment: cf-deployment-develop
+      cf-deployment: cf-deployment-master
       vars-store: gorgophone-env-for-efs-vars-store
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
