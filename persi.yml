@@ -2357,7 +2357,9 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml operations/enable-csi-local-plugin.yml operations/enable-nfs-broker-backup.yml"
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
+                      operations/enable-csi-local-plugin.yml
+                      operations/enable-nfs-broker-backup.yml"
   - task: collect-nfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2365,7 +2367,12 @@ jobs:
       new-ops-files: nfs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml operations/enable-nfs-test-ldapserver-tls.yml operations/enable-nfs-volume-service-experiment.yml operations/set-nfs-ldap-test-mode.yml operations/use-bosh-dns-for-nfs.yml"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml
+                      operations/enable-nfs-test-ldapserver-tls.yml
+                      operations/enable-nfs-volume-service-experiment.yml
+                      operations/set-nfs-ldap-test-mode.yml
+                      operations/use-bosh-dns-for-nfs.yml
+                      operations/use-pxc-for-nfs-broker.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2373,7 +2380,8 @@ jobs:
       new-ops-files: local-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-local-volume-service.yml operations/enable-local-volume-service-windows-cells.yml"
+      NEW_OPS_FILES: "operations/enable-local-volume-service.yml
+                      operations/enable-local-volume-service-windows-cells.yml"
   - task: collect-ceph-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2397,7 +2405,12 @@ jobs:
       new-ops-files: smb-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-smb-test-server.yml operations/enable-azurefile-broker-backup.yml operations/deploy-smb-broker-and-install-driver.yml operations/enable-smb-volume-service-windows.yml operations/use-bosh-dns-for-smb.yml"
+      NEW_OPS_FILES: "operations/enable-smb-test-server.yml
+                      operations/enable-azurefile-broker-backup.yml
+                      operations/deploy-smb-broker-and-install-driver.yml
+                      operations/enable-smb-volume-service-windows.yml
+                      operations/use-bosh-dns-for-smb.yml
+                      operations/use-pxc-for-smb-broker.yml"
   - task: collect-csi-plugins-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2429,7 +2442,15 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz local.tgz csi-local.tgz csi-plugins.tgz mapfs.tgz ecs.tgz cephfs.tgz smb.tgz"
+      NEW_OPS_FILES: "diego.tgz
+                      nfs.tgz
+                      local.tgz
+                      csi-local.tgz
+                      csi-plugins.tgz
+                      mapfs.tgz
+                      ecs.tgz
+                      cephfs.tgz
+                      smb.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
@@ -2482,33 +2503,37 @@ jobs:
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml 
-      operations/scale-up-routers-and-cells.yml 
-      operations/experimental/use-bosh-dns.yml 
-      operations/experimental/use-bosh-dns-for-containers.yml
-      operations/use-bosh-dns-for-nfs.yml
-      operations/use-bosh-dns-for-smb.yml
-      operations/experimental/secure-service-credentials.yml
-      operations/experimental/windows2016-cell.yml 
-      operations/enable-nfs-volume-service-experiment.yml 
-      operations/enable-local-volume-service.yml 
-      operations/enable-local-volume-service-windows-cells.yml 
-      operations/enable-nfs-test-server.yml
-      operations/enable-nfs-ldap.yml 
-      operations/enable-nfs-test-ldapserver-tls.yml
-      operations/enable-smb-test-server.yml 
-      operations/enable-csi-local-plugin.yml 
-      operations/add-csi-nfs-plugin.yml 
-      operations/add-mapfs.yml 
-      operations/deploy-ecs-broker-errand.yml 
-      operations/set-nfs-ldap-test-mode.yml 
-      operations/experimental/enable-backup-restore.yml 
-      operations/enable-nfs-broker-backup.yml 
-      operations/enable-azurefile-broker-backup.yml 
-      operations/deploy-ceph-broker-and-install-driver.yml
-      operations/deploy-smb-broker-and-install-driver.yml 
-      operations/enable-smb-volume-service-windows.yml 
-      operations/update-releases.yml 
-      operations/test/add-datadog-firehose-nozzle.yml"
+                  operations/scale-up-routers-and-cells.yml
+                  operations/experimental/use-bosh-dns.yml
+                  operations/experimental/use-bosh-dns-for-containers.yml
+                  operations/use-bosh-dns-for-nfs.yml
+                  operations/use-bosh-dns-for-smb.yml
+                  operations/experimental/secure-service-credentials.yml
+                  operations/experimental/windows2016-cell.yml
+                  operations/experimental/use-pxc.yml
+                  operations/experimental/migrate-cf-mysql-to-pxc.yml
+                  operations/enable-nfs-volume-service-experiment.yml
+                  operations/enable-local-volume-service.yml
+                  operations/enable-local-volume-service-windows-cells.yml
+                  operations/enable-nfs-test-server.yml
+                  operations/enable-nfs-ldap.yml
+                  operations/enable-nfs-test-ldapserver-tls.yml
+                  operations/enable-smb-test-server.yml
+                  operations/enable-csi-local-plugin.yml
+                  operations/add-csi-nfs-plugin.yml
+                  operations/add-mapfs.yml
+                  operations/deploy-ecs-broker-errand.yml
+                  operations/set-nfs-ldap-test-mode.yml
+                  operations/experimental/enable-backup-restore.yml
+                  operations/enable-nfs-broker-backup.yml
+                  operations/enable-azurefile-broker-backup.yml
+                  operations/deploy-ceph-broker-and-install-driver.yml
+                  operations/deploy-smb-broker-and-install-driver.yml
+                  operations/enable-smb-volume-service-windows.yml
+                  operations/update-releases.yml
+                  operations/test/add-datadog-firehose-nozzle.yml
+                  operations/use-pxc-for-nfs-broker.yml
+                  operations/use-pxc-for-smb-broker.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
