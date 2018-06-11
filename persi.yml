@@ -2510,8 +2510,7 @@ jobs:
                   operations/use-bosh-dns-for-smb.yml
                   operations/experimental/secure-service-credentials.yml
                   operations/experimental/windows2016-cell.yml
-                  operations/experimental/use-pxc.yml
-                  operations/experimental/migrate-cf-mysql-to-pxc.yml
+                  operations/experimental/secure-service-credentials-windows2016-cell.yml
                   operations/enable-nfs-volume-service-experiment.yml
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
@@ -2532,6 +2531,8 @@ jobs:
                   operations/enable-smb-volume-service-windows.yml
                   operations/update-releases.yml
                   operations/test/add-datadog-firehose-nozzle.yml
+                  operations/experimental/use-pxc.yml
+                  operations/experimental/secure-service-credentials-with-pxc-release.yml
                   operations/use-pxc-for-nfs-broker.yml
                   operations/use-pxc-for-smb-broker.yml"
     ensure:
