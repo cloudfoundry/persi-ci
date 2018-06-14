@@ -56,6 +56,7 @@ groups:
   - pats-nfs
   - pats-nfs-experimental
   - pats-nfsv4-experimental
+  - pats-nfs-credhub
   - pats-efs
   - create-isilon-volume
   - pats-isilon
@@ -104,6 +105,7 @@ groups:
   - pats-nfs-docker
   - pats-nfs-ldap
   - pats-nfs-ldap-experimental
+  - pats-nfs-credhub
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-nfs-broker
@@ -1159,6 +1161,38 @@ jobs:
       TEST_MOUNT_OPTIONS: true
       TEST_READ_ONLY: true
       TEST_MOUNT_FAIL_LOGGING: true
+
+- name: pats-nfs-credhub
+  serial_groups:
+  - nfs
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - deploy-nfs-broker-credhub
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - deploy-cf
+    - get: gorgophone-env-vars-store
+  - task: run-pats
+    file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
+    input_mapping:
+      vars-store: gorgophone-env-vars-store
+    params:
+      APPLICATION_PATH: nfs-volume-release/assets/pora
+      APPS_DOMAIN: gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs-credhub
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      TEST_MULTI_CELL: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_READ_ONLY: true
 
 - name: pats-nfs-experimental
   serial_groups:
