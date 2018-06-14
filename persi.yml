@@ -52,6 +52,7 @@ groups:
   - setup-cf-infra-for-efs
   - deploy-ecs-broker
   - deploy-nfs-broker
+  - deploy-nfs-broker-credhub
   - pats-nfs
   - pats-nfs-experimental
   - pats-nfsv4-experimental
@@ -106,6 +107,7 @@ groups:
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-nfs-broker
+  - deploy-nfs-broker-credhub
   - pats-drats
   - create-isilon-volume
   - pats-isilon
@@ -1101,6 +1103,27 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
+      ERRAND_NAME: nfsbrokerpush
+      INSTANCE_NAME: nfs-broker-push/first
+
+- name: deploy-nfs-broker-credhub
+  serial_groups:
+  - nfs
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+    - get: nfs-volume-release
+      passed: [ deploy-cf ]
+      trigger: true
+  - task: run-broker-errand
+    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      ERRAND_NAME: nfsbrokerpush
+      INSTANCE_NAME: nfs-broker-credhub-push/first
 
 - name: pats-nfs
   serial_groups:
@@ -2371,6 +2394,7 @@ jobs:
       NEW_OPS_FILES: "operations/enable-nfs-test-server.yml
                       operations/enable-nfs-test-ldapserver-tls.yml
                       operations/enable-nfs-volume-service-experiment.yml
+                      operations/enable-nfs-volume-service-credhub.yml
                       operations/set-nfs-ldap-test-mode.yml
                       operations/use-bosh-dns-for-nfs.yml
                       operations/use-pxc-for-nfs-broker.yml"
@@ -2503,7 +2527,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
-      OPS_FILES: "operations/scale-to-one-az.yml 
+      OPS_FILES: "operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
                   operations/xenial-diego-cells.yml
                   operations/experimental/use-bosh-dns.yml
@@ -2514,6 +2538,7 @@ jobs:
                   operations/experimental/windows2016-cell.yml
                   operations/experimental/secure-service-credentials-windows2016-cell.yml
                   operations/enable-nfs-volume-service-experiment.yml
+                  operations/enable-nfs-volume-service-credhub.yml
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
                   operations/enable-nfs-test-server.yml

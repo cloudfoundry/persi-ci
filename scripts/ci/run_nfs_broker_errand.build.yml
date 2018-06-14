@@ -13,6 +13,8 @@ inputs:
 
 params:
   BBL_STATE_DIR: bbl-state
+  ERRAND_NAME: nfsbrokerpush
+  INSTANCE_NAME:
 
 run:
   path: persi-ci/scripts/ci/run_nfs_broker_errand.sh

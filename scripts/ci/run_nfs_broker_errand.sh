@@ -10,4 +10,4 @@ trap finish EXIT
 bbl --state-dir bbl-state/${BBL_STATE_DIR} print-env > set-env.sh
 source set-env.sh
 
-bosh -n -d cf run-errand nfsbrokerpush
+bosh -n -d cf run-errand ${ERRAND_NAME} ${INSTANCE_NAME}
