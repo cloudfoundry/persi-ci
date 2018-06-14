@@ -2415,7 +2415,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
-                      operations/xenial-diego-cells.yml
                       operations/enable-csi-local-plugin.yml
                       operations/enable-nfs-broker-backup.yml"
   - task: collect-nfs-ops-files
@@ -2563,7 +2562,6 @@ jobs:
       VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
-                  operations/xenial-diego-cells.yml
                   operations/experimental/use-bosh-dns.yml
                   operations/experimental/use-bosh-dns-for-containers.yml
                   operations/use-bosh-dns-for-nfs.yml
