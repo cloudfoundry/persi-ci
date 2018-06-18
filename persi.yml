@@ -1182,8 +1182,9 @@ jobs:
     params:
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_URL: http://nfs-broker-credhub.gorgophone.cf-app.com
       BROKER_USER: nfs-broker
+      BROKER_PASSWORD_KEY: nfs-broker-credhub-password
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       PLAN_NAME: Existing
