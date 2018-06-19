@@ -7,3 +7,7 @@
 - type: replace
   path: /instance_groups/name=diego-cell/stemcell
   value: xenial
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/cephdriver/properties/-
+  value:
+    fuse_arg: --client-die-on-failed-remount=false
