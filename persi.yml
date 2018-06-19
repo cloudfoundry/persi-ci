@@ -2570,7 +2570,7 @@ jobs:
                   operations/use-bosh-dns-for-nfs.yml
                   operations/use-bosh-dns-for-smb.yml
                   operations/experimental/secure-service-credentials.yml
-                  operations/experimental/windows2016-cell.yml
+                  operations/windows2016-cell.yml
                   operations/experimental/secure-service-credentials-windows2016-cell.yml
                   operations/enable-nfs-volume-service-experiment.yml
                   operations/enable-nfs-volume-service-credhub.yml
@@ -2585,7 +2585,7 @@ jobs:
                   operations/add-mapfs.yml
                   operations/deploy-ecs-broker-errand.yml
                   operations/set-nfs-ldap-test-mode.yml
-                  operations/experimental/enable-backup-restore.yml
+                  operations/backup-and-restore/enable-backup-restore.yml
                   operations/enable-nfs-broker-backup.yml
                   operations/enable-azurefile-broker-backup.yml
                   operations/deploy-ceph-broker-and-install-driver.yml
