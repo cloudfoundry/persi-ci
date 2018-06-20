@@ -48,6 +48,7 @@ groups:
   - create-smb-volume-release
   - deploy-ecs-cluster
   - bbl-up-gorgophone
+  - cf-deployment-nightly
   - deploy-cf
   - setup-cf-infra-for-efs
   - deploy-ecs-broker
@@ -213,6 +214,14 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry/bosh-bootloader.git
+
+- name: nightly
+  type: time
+  source:
+    start: 12:00 AM
+    stop: 1:00 AM
+    location: America/Los_Angeles
+#### END Misc resources ###############################################################################################
 #### END Misc resources ###############################################################################################
 
 #### CEPH resources ###############################################################################################
@@ -2291,6 +2300,17 @@ jobs:
       BBL_GCP_REGION: us-west1
       BBL_STATE_DIR: bbl-state-gcp
 
+- name: cf-deployment-nightly
+  public: true
+  plan:
+  - get: nightly
+    trigger: true
+  - get: cf-deployment-master
+  - get: persi-ci
+  - task: noop
+    file: persi-ci/scripts/ci/noop.build.yml
+
+
 - name: deploy-cf
   serial_groups:
   - cephfs
@@ -2308,7 +2328,9 @@ jobs:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment-master
-      passed: [ bbl-up-gorgophone ]
+      passed:
+      - bbl-up-gorgophone
+      - cf-deployment-nightly
       trigger: true
     - get: gorgophone-env-vars-store
     - get: persi-ci
