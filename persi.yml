@@ -2564,7 +2564,6 @@ jobs:
       VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
-                  operations/xenial-diego-cells.yml
                   operations/experimental/use-bosh-dns.yml
                   operations/experimental/use-bosh-dns-for-containers.yml
                   operations/use-bosh-dns-for-nfs.yml
@@ -2589,6 +2588,7 @@ jobs:
                   operations/enable-nfs-broker-backup.yml
                   operations/enable-azurefile-broker-backup.yml
                   operations/deploy-ceph-broker-and-install-driver.yml
+                  operations/xenial-diego-cells.yml
                   operations/deploy-smb-broker-and-install-driver.yml
                   operations/enable-smb-volume-service-windows.yml
                   operations/update-releases.yml
