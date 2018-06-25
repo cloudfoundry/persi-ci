@@ -2721,7 +2721,7 @@ jobs:
       new-ops-files: efs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
+      NEW_OPS_FILES: "operations/deploy-efs-broker-and-nfs-driver.yml"
   - task: collect-mapfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2777,7 +2777,7 @@ jobs:
       VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/aws.yml
                   operations/bosh-lite.yml
-                  operations/deploy-efs-broker-and-install-driver.yml
+                  operations/deploy-efs-broker-and-nfs-driver.yml
                   operations/add-mapfs.yml
                   operations/update-releases.yml"
     ensure:
