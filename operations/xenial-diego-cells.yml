@@ -6,7 +6,7 @@
     version: 60
 - type: replace
   path: /instance_groups/name=diego-cell/stemcell
-  value: xenial
+  value: default
 - type: replace
   path: /instance_groups/name=diego-cell/jobs/name=cephdriver/properties/cephdriver?/fuse_args/-
   value: "--client-die-on-failed-remount=false"
