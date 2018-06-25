@@ -2452,6 +2452,8 @@ jobs:
                       operations/enable-nfs-test-ldapserver-tls.yml
                       operations/enable-nfs-volume-service-experiment.yml
                       operations/enable-nfs-volume-service-credhub.yml
+                      operations/migrate-nfsbroker-mysql-to-credhub.yml
+                      operations/test-nfsbroker-migration-to-credhub.yml
                       operations/set-nfs-ldap-test-mode.yml
                       operations/use-bosh-dns-for-nfs.yml
                       operations/use-pxc-for-nfs-broker.yml"
@@ -2595,6 +2597,8 @@ jobs:
                   operations/experimental/secure-service-credentials-windows2016-cell.yml
                   operations/enable-nfs-volume-service.yml
                   operations/enable-nfs-volume-service-credhub.yml
+                  operations/migrate-nfsbroker-mysql-to-credhub.yml
+                  operations/test-nfsbroker-migration-to-credhub.yml
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
                   operations/enable-nfs-test-server.yml
