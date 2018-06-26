@@ -2598,7 +2598,6 @@ jobs:
                   operations/enable-nfs-volume-service.yml
                   operations/enable-nfs-volume-service-credhub.yml
                   operations/migrate-nfsbroker-mysql-to-credhub.yml
-                  operations/test-nfsbroker-migration-to-credhub.yml
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
                   operations/enable-nfs-test-server.yml
@@ -2622,7 +2621,8 @@ jobs:
                   operations/experimental/use-pxc.yml
                   operations/experimental/secure-service-credentials-with-pxc-release.yml
                   operations/use-pxc-for-nfs-broker.yml
-                  operations/use-pxc-for-smb-broker.yml"
+                  operations/use-pxc-for-smb-broker.yml
+                  operations/test-nfsbroker-migration-to-credhub.yml"
     ensure:
       put: gorgophone-env-vars-store
       params:
