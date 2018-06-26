@@ -2664,11 +2664,6 @@ jobs:
       passed: [ create-mapfs-release ]
     - get: mapfs-version
       passed: [ create-mapfs-release ]
-    - get: nfs-volume-release-tarball
-      passed: [ create-nfs-volume-release ]
-      trigger: true
-    - get: nfsvolume-version
-      passed: [ create-nfs-volume-release ]
   - task: update-cloud-config
     file: persi-ci/scripts/ci/update_cloud_config_bosh-lite.build.yml
   - task: bosh-upload-stemcell
@@ -2682,7 +2677,7 @@ jobs:
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
       COLLECT_DIEGO_TARBALL: true
-      COLLECT_NFS_TARBALL: true
+      COLLECT_NFS_TARBALL: false
       COLLECT_EFS_TARBALL: true
       COLLECT_CSI_LOCAL_TARBALL: false
       COLLECT_CSI_PLUGINS_TARBALL: false
@@ -2695,7 +2690,7 @@ jobs:
     input_mapping:
       persi-ci: persi-ci
       diego-tarball: diego-dev-release
-      nfs-tarball: nfs-volume-release-tarball
+      nfs-tarball: efsvolume-version #dummy
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: efsvolume-version #dummy
       csi-plugins-tarball: efsvolume-version #dummy
@@ -2705,7 +2700,7 @@ jobs:
       cephfs-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
       diego-version: diego-version
-      nfs-version: nfsvolume-version
+      nfs-version: efsvolume-version #dummy
       efs-version: efsvolume-version
       csi-local-version: efsvolume-version #dummy
       csi-plugins-version: efsvolume-version #dummy
@@ -2721,7 +2716,7 @@ jobs:
       new-ops-files: efs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/deploy-efs-broker-and-nfs-driver.yml"
+      NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
   - task: collect-mapfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2745,7 +2740,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz efs.tgz nfs.tgz mapfs.tgz"
+      NEW_OPS_FILES: "diego.tgz efs.tgz mapfs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
@@ -2777,7 +2772,7 @@ jobs:
       VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/aws.yml
                   operations/bosh-lite.yml
-                  operations/deploy-efs-broker-and-nfs-driver.yml
+                  operations/deploy-efs-broker-and-install-driver.yml
                   operations/add-mapfs.yml
                   operations/update-releases.yml"
     ensure:
