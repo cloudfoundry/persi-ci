@@ -49,14 +49,14 @@ echo "Validating service access..."
 cf service-access | grep nfs-migration-test-mysql
 
 echo "Creating service..."
-cf create-service nfs-migration-test-mysql Existing nfs-migration-test-service -c "${CREATE_CONFIG}"
+cf create-service nfs-migration-test-mysql Existing nfs-migration-test-service -c ${CREATE_CONFIG}
 
 echo "Pushing app..."
 cd nfs-volume-release/src/code.cloudfoundry.org/persi-acceptance-tests/assets/dora
 cf push nfs-migration-test-app --no-start
 
 echo "Binding service..."
-cf bind-service nfs-migration-test-app nfs-migration-test-service -c "${BIND_CONFIG}"
+cf bind-service nfs-migration-test-app nfs-migration-test-service -c ${BIND_CONFIG}
 
 echo "Validating bound service..."
 cf services | grep nfs-migration-test-service | grep nfs-migration-test-app
