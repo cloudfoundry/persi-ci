@@ -7,5 +7,5 @@ source persi-ci/efs/shared-functions
 trap teardown_bosh_env_vars EXIT
 
 setup_bosh_env_vars_with_ssh
-bosh -n update-cloud-config bosh-bootloader/plan-patches/bosh-lite-gcp/cloud-config/cloud-config.yml
+bosh -n update-cloud-config persi/efs/cloud-config.yml
 teardown_bosh_env_vars
