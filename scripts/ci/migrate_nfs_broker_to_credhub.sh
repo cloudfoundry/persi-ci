@@ -2,6 +2,15 @@
 
 set -x -e
 
+function finish {
+    echo "Cleaning up..."
+    cf delete nfs-migration-test-app
+    cf delete-service nfs-migration-test-service
+    cf delete-service-broker nfs-broker-migration-test
+}
+trap finish EXIT
+
+
 bbl --state-dir bbl-state/${BBL_STATE_DIR} print-env > set-env.sh
 source set-env.sh
 
