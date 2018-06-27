@@ -1,0 +1,31 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v5.2.0
+
+inputs:
+  - name: bbl-state  # - The Director's `bbl-state.json`
+  - name: persi-acceptance-tests
+  - name: vars-store         # OPTIONAL - if a directory with a deployment-vars.yml file is provided here, then CF_PASSWORD and BROKER_PASSWORD may be omitted below
+  - name: nfs-volume-release
+
+params:
+  BBL_STATE_DIR: bbl-state
+  CF_API_ENDPOINT:
+  CF_USER:
+  CF_PASSWORD:
+  CF_ORG: migration-test-org
+  CF_SPACE: migration-test-space
+  SERVICE_BROKER_NAME: nfs-broker-migration-test
+  BROKER_USERNAME: nfs-broker
+  BROKER_PASSWORD_KEY: nfs-broker-password
+  BROKER_APP_URL:
+  CREATE_CONFIG:
+  BIND_CONFIG:
+
+run:
+  path: persi-ci/scripts/ci/migrate_nfs_broker_to_credhub.sh
