@@ -58,6 +58,9 @@ cf push nfs-migration-test-app --no-start
 echo "Binding service..."
 cf bind-service nfs-migration-test-app nfs-migration-test-service -c ${BIND_CONFIG}
 
+echo "Starting app..."
+cf start nfs-migration-test-app
+
 echo "Validating bound service..."
 cf services | grep nfs-migration-test-service | grep nfs-migration-test-app
 
