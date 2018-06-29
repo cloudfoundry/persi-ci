@@ -72,3 +72,9 @@ bosh -n -d cf run-errand nfs-broker-migration-test-credhub-push
 
 echo "Validating bound service..."
 cf services | grep nfs-migration-test-service | grep nfs-migration-test-app
+
+echo "Unbinding service..."
+cf unbind-service nfs-migration-test-app nfs-migration-test-service
+
+echo "Binding service..."
+cf bind-service nfs-migration-test-app nfs-migration-test-service -c ${BIND_CONFIG}
