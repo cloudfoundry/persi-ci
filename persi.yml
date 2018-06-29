@@ -2872,10 +2872,8 @@ jobs:
       CF_ADMIN_USERNAME: admin
       NFS_BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
       SMB_BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_STATE_DIR: bbl-state-gcp
+      BBL_IAAS: gcp
 
 #### END cf-deployment related jobs ##################################################################################
 
