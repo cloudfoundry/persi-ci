@@ -7,54 +7,14 @@ function finish {
 }
 trap finish EXIT
 
-source persi-ci/scripts/ci/bbl_get_bosh_env
-source bosh-env/set-env.sh
-
-export CA_CERT="$PWD/bosh-env/ca-cert.pem"
-#export BBR_PRIVATE_KEY=$(cat bosh-env/ssh-key)
-
-export CF_DEPLOYMENT_NAME=cf
-export CF_API_URL=${CF_API_URL}
-export CF_ADMIN_USERNAME=${CF_ADMIN_USERNAME}
-export BOSH_ENVIRONMENT=${BOSH_ENVIRONMENT}
-export BOSH_CLIENT=${BOSH_CLIENT}
-export BOSH_CLIENT_SECRET=${BOSH_CLIENT_SECRET}
-export BOSH_CERT_PATH=${CA_CERT}
-export BBR_BUILD_PATH=$(pwd)/binary/bbr
-export FOCUSED_SUITE_NAME="cf-nfsbroker|cf-smbbroker"
-export NFS_SERVICE_NAME
-export NFS_PLAN_NAME
-export NFS_BROKER_USER
-export NFS_BROKER_PASSWORD
-export NFS_BROKER_URL
-export SMB_SERVICE_NAME
-export SMB_PLAN_NAME
-export SMB_BROKER_USER
-export SMB_BROKER_PASSWORD
-export SMB_BROKER_URL
-
 # install bosh
 wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
 chmod +x bosh-cli-*
 mv bosh-cli-* /usr/local/bin/bosh-cli
 
-if [ -z "$CF_ADMIN_PASSWORD" ]; then
-    if [ -e "vars-store/deployment-vars.yml" ]; then
-        CF_ADMIN_PASSWORD=`grep cf_admin_password vars-store/deployment-vars.yml | awk  '{print $2}'`
-    fi
-fi
-
-if [ -z "$NFS_BROKER_PASSWORD" ]; then
-    if [ -e "vars-store/deployment-vars.yml" ]; then
-        NFS_BROKER_PASSWORD=`grep nfs-broker-password vars-store/deployment-vars.yml | awk  '{print $2}'`
-    fi
-fi
-
-if [ -z "$SMB_BROKER_PASSWORD" ]; then
-    if [ -e "vars-store/deployment-vars.yml" ]; then
-        SMB_BROKER_PASSWORD=`grep azurefile-broker-password vars-store/deployment-vars.yml | awk  '{print $2}'`
-    fi
-fi
+export FOCUSED_SUITE_NAME="cf-nfsbroker|cf-smbbroker"
+export CF_VARS_STORE_PATH="$PWD/vars-store/deployment-vars.yml"
+export BBL_ENV="$PWD/director-state/$BBL_STATE_DIR"
 
 # make a go project
 mkdir -p runme
@@ -70,11 +30,11 @@ pushd runme/
 
     mkdir -p src/github.com/cloudfoundry-incubator/
     pushd src/github.com/cloudfoundry-incubator/
-        git clone https://github.com/Kaixiang/disaster-recovery-acceptance-tests.git
+        git clone https://github.com/julian-hj/disaster-recovery-acceptance-tests.git
 
         # run drats
         pushd disaster-recovery-acceptance-tests/
-            scripts/_run_acceptance_tests.sh
+            scripts/run_acceptance_tests_with_bbl_env.sh
         popd
     popd
 popd
