@@ -15,6 +15,7 @@ mv bosh-cli-* /usr/local/bin/bosh-cli
 export FOCUSED_SUITE_NAME="cf-nfsbroker|cf-smbbroker"
 export CF_VARS_STORE_PATH="$PWD/vars-store/deployment-vars.yml"
 export BBL_ENV="$PWD/director-state/$BBL_STATE_DIR"
+export BBR_BUILD_PATH=$(pwd)/binary/bbr
 
 # make a go project
 mkdir -p runme
