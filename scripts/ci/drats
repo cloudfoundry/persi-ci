@@ -7,6 +7,9 @@ function finish {
 }
 trap finish EXIT
 
+source persi-ci/scripts/ci/bbl_get_bosh_env
+source bosh-env/set-env.sh
+
 # install bosh
 wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
 chmod +x bosh-cli-*
