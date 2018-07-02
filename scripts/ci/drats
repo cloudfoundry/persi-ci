@@ -34,7 +34,7 @@ pushd runme/
 
         # run drats
         pushd disaster-recovery-acceptance-tests/
-            scripts/run_acceptance_tests_with_bbl_env.sh
+            scripts/run_acceptance_tests_with_bbl_env.sh $BBL_ENV
         popd
     popd
 popd
