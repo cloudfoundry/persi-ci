@@ -1587,7 +1587,6 @@ jobs:
       - volman-unit
       - volman-inigo
     - get: persi-ci
-      trigger: true
     - get: version
       resource: diego-version
       params:
@@ -2816,7 +2815,6 @@ jobs:
   - local
   - nfs-test-server
   - nfs
-  - efs
   - ecs-deploy
   - csi-local
   - csi-nfs
