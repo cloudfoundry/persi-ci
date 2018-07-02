@@ -2658,7 +2658,6 @@ jobs:
 
 - name: setup-cf-infra-for-efs
   serial_groups:
-  - gorgophone
   - efs
   public: true
   build_logs_to_retain: 100
