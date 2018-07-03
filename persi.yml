@@ -2857,6 +2857,7 @@ jobs:
           tar -xvf bbr-release/bbr*.tar
           cp releases/bbr binary/
   - task: drats
+    privileged: true
     file: persi-ci/scripts/ci/drats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
