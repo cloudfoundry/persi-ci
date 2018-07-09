@@ -57,13 +57,6 @@ collect_versions() {
       fi
       ECS_VERSION="$(cat ecs-version/number)"
   fi
-  if [ "$COLLECT_CEPHFS_TARBALL" = "true" ]; then
-      if [ ! -d ${ROOT_DIR}/cephfs-version ]; then
-        echo "[ERROR] cephfs-version input is missing."
-        exit 1
-      fi
-      CEPHFS_VERSION="$(cat cephfs-version/number)"
-  fi
   if [ "$COLLECT_SMB_TARBALL" = "true" ]; then
       if [ ! -d ${ROOT_DIR}/smb-version ]; then
         echo "[ERROR] smb-version input is missing."
@@ -106,10 +99,6 @@ check_params() {
     echo "[ERROR] ecs-tarball input is missing."
     exit 1
   fi
-  if [ "$COLLECT_CEPHFS_TARBALL" = "true" -a ! -d ${ROOT_DIR}/cephfs-tarball ]; then
-    echo "[ERROR] cephfs-tarball input is missing."
-    exit 1
-  fi
   if [ "$COLLECT_SMB_TARBALL" = "true" -a ! -d ${ROOT_DIR}/smb-tarball ]; then
     echo "[ERROR] smb-tarball input is missing."
     exit 1
@@ -136,10 +125,6 @@ check_params() {
   fi
   if [ "$COLLECT_ECS_TARBALL" = "true" -a -z "${ECS_VERSION}" ]; then
     echo "[ERROR] ECS_VERSION is missing."
-    exit 1
-  fi
-  if [ "$COLLECT_CEPHFS_TARBALL" = "true" -a -z "${CEPHFS_VERSION}" ]; then
-    echo "[ERROR] CEPHFS_VERSION is missing."
     exit 1
   fi
   if [ "$COLLECT_SMB_TARBALL" = "true" -a -z "${SMB_VERSION}" ]; then
@@ -179,9 +164,6 @@ collect_tarballs() {
   fi
   if [ "$COLLECT_LOCAL_TARBALL" = "true" -a -n "${LOCAL_VERSION}" ]; then
       cp ${ROOT_DIR}/local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/local.tgz
-  fi
-  if [ "$COLLECT_CEPHFS_TARBALL" = "true" -a -n "${CEPHFS_VERSION}" ]; then
-      cp ${ROOT_DIR}/cephfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/cephfs.tgz
   fi
   if [ "$COLLECT_SMB_TARBALL" = "true" -a -n "${SMB_VERSION}" ]; then
       cp ${ROOT_DIR}/smb-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/smb.tgz
@@ -270,16 +252,6 @@ EOF
     name: ecs-release
     version: ${ECS_VERSION}
     url: ../ops-files/ecs.tgz
-EOF
-  fi
-  if [ "$COLLECT_CEPHFS_TARBALL" = "true" ]; then
-    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
-- type: replace
-  path: /releases/name=cephfs
-  value:
-    name: cephfs
-    version: ${CEPHFS_VERSION}
-    url: ../ops-files/cephfs.tgz
 EOF
   fi
   if [ "$COLLECT_SMB_TARBALL" = "true" ]; then

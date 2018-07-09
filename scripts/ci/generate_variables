@@ -60,20 +60,6 @@ traffic_controller_external_port: 4443
 EOF
 }
 
-generate_cephfs_vars() {
-  source persi-ci/scripts/ci/bbl_get_bosh_env
-  source bosh-env/set-env.sh
-  export CEPH_CLUSTER_IP=`bosh -d cephfs instances|grep cephfs|awk '{print $4}'`
-  export CEPHFS_MDS=${CEPH_CLUSTER_IP}:6789
-
-    cat << EOF > ${ROOT_DIR}/generated-vars/cephfs-vars.yml
----
-cephfs-mds: ${CEPHFS_MDS}
-cephfs-keyring: |
-`echo ${CEPHFS_KEYRING}|sed 's/^/  /'`
-EOF
-}
-
 generate_smb_vars() {
     cat << EOF > ${ROOT_DIR}/generated-vars/smb-vars.yml
 ---
@@ -97,9 +83,6 @@ main() {
   fi
   if [ "$GENERATE_DATADOG_VARS" = "true" ]; then
     generate_datadog_vars
-  fi
-  if [ "$GENERATE_CEPHFS_VARS" = "true" ]; then
-    generate_cephfs_vars
   fi
   if [ "$GENERATE_SMB_VARS" = "true" ]; then
     generate_smb_vars

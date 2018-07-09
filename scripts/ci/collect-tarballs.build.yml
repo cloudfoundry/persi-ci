@@ -16,7 +16,6 @@ inputs:
 - name: csi-plugins-tarball
 - name: mapfs-tarball
 - name: ecs-tarball
-- name: cephfs-tarball
 - name: local-tarball
 - name: smb-tarball
 - name: diego-version
@@ -26,7 +25,6 @@ inputs:
 - name: csi-plugins-version
 - name: mapfs-version
 - name: ecs-version
-- name: cephfs-version
 - name: local-version
 - name: smb-version
 
@@ -41,7 +39,6 @@ params:
   COLLECT_CSI_PLUGINS_TARBALL: true
   COLLECT_ECS_TARBALL: true
   COLLECT_LOCAL_TARBALL: true
-  COLLECT_CEPHFS_TARBALL: true
   COLLECT_SMB_TARBALL: true
   COLLECT_MAPFS_TARBALL: true
 

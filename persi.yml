@@ -30,10 +30,6 @@ groups:
   - localdriver-certification
   - localdriver-certification-windows
   - localdriver-docker-certification
-  - cephfs-driver-unit
-  - cephfs-broker-unit
-  - cephdriver-certification
-  - deploy-cephfs-cluster
   - cifs-smbdriver-certification
   - cifs-smbdriver-certification-windows
   - create-local-volume-release
@@ -42,7 +38,6 @@ groups:
   - create-csi-local-volume-release
   - create-csi-plugins-release
   - create-mapfs-release
-  - create-cephfs-release
   - create-diego-release
   - create-ecs-release
   - create-smb-volume-release
@@ -75,7 +70,6 @@ groups:
   - pats-ecs
   - pats-local
   - pats-local-windows
-  - pats-cephfs
 
 - name: csi
   jobs:
@@ -136,18 +130,6 @@ groups:
   - bbl-up-gorgophone
   - deploy-cf
   - pats-ecs
-  - pats-drats
-
-- name: cephfs
-  jobs:
-  - cephfs-driver-unit
-  - cephfs-broker-unit
-  - cephdriver-certification
-  - deploy-cephfs-cluster
-  - create-cephfs-release
-  - pats-cephfs
-  - bbl-up-gorgophone
-  - deploy-cf
   - pats-drats
 
 - name: cifs
@@ -224,31 +206,6 @@ resources:
     stop: 1:00 AM
     location: America/Los_Angeles
 #### END Misc resources ###############################################################################################
-#### END Misc resources ###############################################################################################
-
-#### CEPH resources ###############################################################################################
-- name: cephfs-bosh-release
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry-incubator/cephfs-bosh-release.git
-- name: cephfs-bosh-release-tarball
-  type: s3
-  source:
-    bucket: cephfs-bosh-release-tarballs
-    regexp: cephfs-(.*).tgz
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
-- name: cephfs-version
-  type: semver
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: cephfs-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
-#### END CEPH resources ###############################################################################################
 
 #### NFS resources ###############################################################################################
 - name: nfs-volume-release-tarball
@@ -671,116 +628,6 @@ resource_types:
 
 
 jobs:
-##### CEPH related jobs ################################################################################################
-- name: cephfs-driver-unit
-  plan:
-  - aggregate:
-    - get: cephfs-bosh-release
-      trigger: true
-  - task: build
-    file: cephfs-bosh-release/scripts/ci/run_cephdriver_unit.build.yml
-- name: cephfs-broker-unit
-  plan:
-  - aggregate:
-    - get: cephfs-bosh-release
-      trigger: true
-  - task: build
-    file: cephfs-bosh-release/scripts/ci/run_cephbroker_unit.build.yml
-
-- name: deploy-cephfs-cluster
-  serial_groups:
-  - cephfs
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: gorgophone-env
-    - get: cephfs-bosh-release
-      passed:
-      - create-cephfs-release
-      trigger: true
-    - get: cephfs-bosh-release-tarball
-
-  - task: bosh-deploy-cephfs
-    file: cephfs-bosh-release/scripts/ci/deploy-ceph.yml
-    input_mapping:
-      vars-store: gorgophone-env
-      director-state: gorgophone-env-director-state
-    params:
-      CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
-      BBL_STATE_DIR: bbl-state-gcp
-
-- name: create-cephfs-release
-  plan:
-  - aggregate:
-    - get: cephfs-bosh-release
-      passed:
-      - cephfs-broker-unit
-      - cephfs-driver-unit
-      trigger: true
-    - get: ceph-version
-      resource: cephfs-version
-      params:
-        pre: rc
-  - put: ceph-version
-    resource: cephfs-version
-    params:
-      file: ceph-version/number
-  - task: create-release
-    file: cephfs-bosh-release/scripts/ci/create_cephfs_release.build.yml
-  - put: cephfs-bosh-release-tarball
-    params:
-      file: created-cephfs-bosh-release/cephfs-*.tgz
-
-- name: cephdriver-certification
-  serial_groups:
-  - cephfs
-  plan:
-  - aggregate:
-    - get: cephfs-bosh-release
-      passed:
-      - deploy-cephfs-cluster
-      - cephfs-driver-unit
-      trigger: true
-    - get: gorgophone-env-director-state
-    - get: persi-ci
-
-  - task: certification
-    privileged: true
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-    file: cephfs-bosh-release/scripts/ci/run_driver_cert.build.yml
-- name: pats-cephfs
-  serial_groups:
-  - cephfs
-  plan:
-  - aggregate:
-    - get: cephfs-bosh-release
-      passed:
-      - cephdriver-certification
-      - deploy-cf
-      trigger: true
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: cephfs-bosh-release/scripts/ci/run_pats_ceph.build.yml
-    input_mapping:
-      vars-store: gorgophone-env-vars-store
-    params:
-      APPLICATION_PATH: cephfs-bosh-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://ceph-broker.gorgophone.cf-app.com
-      BROKER_USER: admin
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: ceph-plan
-      SERVICE_NAME: ceph-service
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-#### END CEPH #########################################################################################################
-
 #### Local Volume related jobs ########################################################################################
 - name: localdriver-unit
   plan:
@@ -2255,7 +2102,6 @@ jobs:
 - name: bbl-destroy
   serial_groups:
   - gorgophone
-  - cephfs
   - local
   - nfs-test-server
   - nfs
@@ -2278,7 +2124,6 @@ jobs:
 
 - name: bbl-up-gorgophone
   serial_groups:
-  - cephfs
   - local
   - nfs-test-server
   - nfs
@@ -2340,7 +2185,6 @@ jobs:
 
 - name: deploy-cf
   serial_groups:
-  - cephfs
   - local
   - nfs-test-server
   - nfs
@@ -2408,13 +2252,6 @@ jobs:
       passed: [ create-ecs-release ]
     - get: ecs-release
       passed: [ create-ecs-release ]
-    - get: cephfs-bosh-release-tarball
-      passed: [ create-cephfs-release ]
-    - get: cephfs-bosh-release
-      passed: [ deploy-cephfs-cluster ]
-      trigger: true
-    - get: cephfs-version
-      passed: [ create-cephfs-release ]
     - get: smb-volume-release
       passed: [ create-smb-volume-release ]
     - get: smb-volume-release-tarball
@@ -2445,7 +2282,6 @@ jobs:
       mapfs-tarball: mapfs-release-tarball
       ecs-tarball: ecs-release-tarball
       local-tarball: local-volume-release-tarball
-      cephfs-tarball: cephfs-bosh-release-tarball
       smb-tarball: smb-volume-release-tarball
       diego-version: diego-version
       nfs-version: nfsvolume-version
@@ -2454,7 +2290,6 @@ jobs:
       csi-plugins-version: csi-plugins-version
       mapfs-version: mapfs-version
       ecs-version: ecs-version
-      cephfs-version: cephfs-version
       local-version: localvolume-version
       smb-version: smb-volume-version
   - task: collect-persi-ci-ops-files
@@ -2493,14 +2328,6 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-local-volume-service.yml
                       operations/enable-local-volume-service-windows-cells.yml"
-  - task: collect-ceph-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: cephfs-bosh-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/deploy-ceph-broker-and-install-driver.yml"
   - task: collect-ecs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2560,7 +2387,6 @@ jobs:
                       csi-plugins.tgz
                       mapfs.tgz
                       ecs.tgz
-                      cephfs.tgz
                       smb.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
@@ -2595,7 +2421,6 @@ jobs:
       AWS_AZ: us-west-2a,us-west-2b
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone
-      CEPHFS_KEYRING: {{gorgophone-cephfs-keyring}}
       SMB_USERNAME: {{smb_server_username}}
       SMB_PASSWORD: {{smb_server_password}}
 
@@ -2612,7 +2437,7 @@ jobs:
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
-      VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml cephfs-vars.yml smb-vars.yml"
+      VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml smb-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
                   operations/experimental/use-bosh-dns.yml
@@ -2639,7 +2464,6 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/enable-nfs-broker-backup.yml
                   operations/enable-azurefile-broker-backup.yml
-                  operations/deploy-ceph-broker-and-install-driver.yml
                   operations/xenial-diego-cells.yml
                   operations/deploy-smb-broker-and-install-driver.yml
                   operations/enable-smb-volume-service-windows.yml
@@ -2709,7 +2533,6 @@ jobs:
       COLLECT_CSI_PLUGINS_TARBALL: false
       COLLECT_ECS_TARBALL: false
       COLLECT_LOCAL_TARBALL: false
-      COLLECT_CEPHFS_TARBALL: false
       COLLECT_SMB_TARBALL: false
     #this task requires a lot of inputs that we don't need for this instance--we're feeding in
     #efsvolume-version as a dummy input because it is tiny and easy to copy
@@ -2723,7 +2546,6 @@ jobs:
       mapfs-tarball: mapfs-release-tarball
       ecs-tarball: efsvolume-version #dummy
       local-tarball: efsvolume-version #dummy
-      cephfs-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
       diego-version: diego-version
       nfs-version: efsvolume-version #dummy
@@ -2732,7 +2554,6 @@ jobs:
       csi-plugins-version: efsvolume-version #dummy
       mapfs-version: mapfs-version
       ecs-version: efsvolume-version #dummy
-      cephfs-version: efsvolume-version #dummy
       local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
   - task: collect-efs-ops-files
@@ -2774,7 +2595,6 @@ jobs:
     params:
       GENERATE_NFS_VARS: false
       GENERATE_EFS_VARS: true
-      GENERATE_CEPHFS_VARS: false
       GENERATE_SMB_VARS: false
       GENERATE_ECS_BLOBSTORE_VARS: false
       GENERATE_DATADOG_VARS: false
@@ -2810,7 +2630,6 @@ jobs:
 - name: pats-drats
   serial_groups:
   - gorgophone
-  - cephfs
   - local
   - nfs-test-server
   - nfs
