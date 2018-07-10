@@ -179,6 +179,13 @@ groups:
   - manual-bump-smb-minor
   - manual-bump-smb-major
 
+- name: release-mapfs
+  jobs:
+  - shipit-mapfs
+  - manual-bump-mapfs-patch
+  - manual-bump-mapfs-minor
+  - manual-bump-mapfs-major
+
 ###################################### END GROUPS SECTION ############################################################
 
 ######################################################################################################################
@@ -454,16 +461,6 @@ resources:
     region_name: us-east-1
     secret_access_key: {{aws-secret-access-key}}
 
-- name: mapfs-version
-  type: semver
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: mapfs-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
-
 - name: csi-local-volume-release-tarball
   type: s3
   source:
@@ -480,14 +477,6 @@ resources:
     regexp: csi-plugins-(.*).tgz
     secret_access_key: {{aws-secret-access-key}}
 
-- name: mapfs-release-tarball
-  type: s3
-  source:
-    access_key_id: {{aws-access-key-id}}
-    bucket: mapfs-release-tarballs
-    regexp: mapfs-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
-
 - name: github-release-csi
   type: github-release
   source:
@@ -500,11 +489,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/csi-plugins-release.git
-
-- name: mapfs-release
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/mapfs-release.git
 
 #### End CSI resources ###############################################################################################
 
@@ -552,6 +536,41 @@ resources:
     access_token: {{github-release-token}}
 
 #### End SMB resources ###############################################################################################
+
+#### mapfs resources ###################################################################################################
+
+- name: mapfs-release-tarball
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: mapfs-release-tarballs
+    regexp: mapfs-(.*).tgz
+    secret_access_key: {{aws-secret-access-key}}
+- name: mapfs-version
+  type: semver
+  source:
+    access_key_id: {{aws-access-key-id}}
+    bucket: mapfs-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{aws-secret-access-key}}
+- name: mapfs-release
+  type: git
+  source:
+    username: {{github-user}}
+    password: {{github-password}}
+    branch: master
+    uri: https://github.com/cloudfoundry/mapfs-release.git
+- name: github-release-mapfs
+  type: github-release
+  source:
+    user: cloudfoundry
+    repository: mapfs-release
+    drafts: true
+    access_token: {{github-release-token}}
+
+#### End mapfs resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
 #- name: cf-deployment-develop
@@ -862,35 +881,31 @@ jobs:
   plan:
   - aggregate:
     - get: persi-ci
-    - get: volume-release-tarball
+    - get: release-tarball
       resource: nfs-volume-release-tarball
       passed:
       - pats-nfs
-    - get: volume-release
+    - get: release
       resource: nfs-volume-release
       passed:
       - pats-nfs
-    - get: volume-version
-      resource: nfs-volume-version
+    - get: version
       resource: nfsvolume-version
       params:
         bump: final
   - task: finalize-release
     file: persi-ci/scripts/ci/finalize_release.build.yml
     params:
-      RELEASE: nfs-volume-release
-      TARBALL: nfs-volume-release-tarball
       BASE_RELEASE_NAME: nfs-volume
       GIT_USER: {{github-user}}
       GIT_EMAIL: {{github-email}}
       S3_ACCESS_KEY_ID: {{nfsvolume-uploader_aws_ID}}
       S3_ACCESS_KEY: {{nfsvolume-uploader_aws_secret}}
-      S3_BUCKET_NAME: {{nfsvolume-uploader_s3_bucket}}
   - aggregate:
     - put: nfs-volume-version
       resource: nfsvolume-version
       params:
-        file: volume-version/number
+        file: version/number
     - put: nfsvolume-final-release
       params:
         file: finalized-release/nfs-volume-*.tgz
@@ -900,8 +915,8 @@ jobs:
       BASE_RELEASE_NAME: nfs-volume
   - put: nfs-volume-release
     params:
-      repository: finalized-release/volume-release
-      tag: volume-version/number
+      repository: finalized-release/release
+      tag: version/number
       tag_prefix: v
   - put: github-release-nfs
     params:
@@ -944,6 +959,89 @@ jobs:
     params:
       bump: final
   - put: nfsvolume-version
+    params:
+      bump: major
+
+- name: shipit-mapfs
+  serial_groups:
+  - mapfs-version
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: release-tarball
+      resource: mapfs-release-tarball
+      passed:
+      - pats-csi-nfs-uid
+    - get: release
+      resource: mapfs-release
+      passed:
+      - pats-csi-nfs-uid
+    - get: version
+      resource: mapfs-version
+      params:
+        bump: final
+  - task: finalize-release
+    file: persi-ci/scripts/ci/finalize_release.build.yml
+    params:
+      BASE_RELEASE_NAME: mapfs
+      GIT_USER: {{github-user}}
+      GIT_EMAIL: {{github-email}}
+      S3_ACCESS_KEY_ID: {{aws-access-key-id}}
+      S3_ACCESS_KEY: {{aws-secret-access-key}}
+  - aggregate:
+    - put: version
+      resource: mapfs-version
+      params:
+        file: version/number
+  - task: generate-release
+    file: persi-ci/scripts/ci/generate_github_release.build.yml
+    params:
+      BASE_RELEASE_NAME: mapfs
+  - put: mapfs-release
+    params:
+      repository: finalized-release/release
+      tag: version/number
+      tag_prefix: v
+  - put: github-release-mapfs
+    params:
+      commitish: generated-release/commitish
+      name: generated-release/name
+      tag: generated-release/version
+      globs: []
+  - put: mapfs-version
+    params:
+      bump: patch
+- name: manual-bump-mapfs-patch
+  serial_groups:
+  - mapfs-version
+  plan:
+  - get: version
+    resource: mapfs-version
+    params:
+      bump: final
+  - put: mapfs-version
+    params:
+      bump: patch
+- name: manual-bump-mapfs-minor
+  serial_groups:
+  - mapfs-version
+  plan:
+  - get: version
+    resource: mapfs-version
+    params:
+      bump: final
+  - put: mapfs-version
+    params:
+      bump: minor
+- name: manual-bump-mapfs-major
+  serial_groups:
+  - mapfs-version
+  plan:
+  - get: version
+    resource: mapfs-version
+    params:
+      bump: final
+  - put: mapfs-version
     params:
       bump: major
 
@@ -1828,6 +1926,12 @@ jobs:
     - get: csi-plugins-release-tarball
       passed:
       - deploy-cf
+    - get: mapfs-release
+      passed:
+      - deploy-cf
+    - get: mapfs-release-tarball
+      passed:
+      - deploy-cf
     - get: gorgophone-env-vars-store
 
   - task: run-pats
@@ -2012,34 +2116,31 @@ jobs:
   plan:
   - aggregate:
     - get: persi-ci
-    - get: volume-release-tarball
+    - get: release-tarball
       resource: smb-volume-release-tarball
       passed:
       - pats-cifs-smb
-    - get: volume-release
+    - get: release
       resource: smb-volume-release
       passed:
       - pats-cifs-smb
-    - get: volume-version
+    - get: version
       resource: smb-volume-version
       params:
         bump: final
   - task: finalize-release
     file: persi-ci/scripts/ci/finalize_release.build.yml
     params:
-      RELEASE: smb-volume-release
       BASE_RELEASE_NAME: smb-volume
-      TARBALL: smb-volume-release-tarball
       GIT_USER: {{github-user}}
       GIT_EMAIL: {{github-email}}
       S3_ACCESS_KEY_ID: {{smbvolume-uploader_aws_ID}}
       S3_ACCESS_KEY: {{smbvolume-uploader_aws_secret}}
-      S3_BUCKET_NAME: {{smbvolume-uploader_s3_bucket}}
   - aggregate:
     - put: smb-volume-version
       resource: smb-volume-version
       params:
-        file: volume-version/number
+        file: version/number
     - put: smbvolume-final-release
       params:
         file: finalized-release/smb-volume-*.tgz
@@ -2049,8 +2150,8 @@ jobs:
       BASE_RELEASE_NAME: smb-volume
   - put: smb-volume-release
     params:
-      repository: finalized-release/volume-release
-      tag: volume-version/number
+      repository: finalized-release/release
+      tag: version/number
       tag_prefix: v
   - put: github-release-smb
     params:

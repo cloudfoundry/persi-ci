@@ -5,9 +5,9 @@ rootfs_uri: docker:///cloudfoundry/diego-pipeline
 
 inputs:
   - name: persi-ci
-  - name: volume-release-tarball
-  - name: volume-release
-  - name: volume-version
+  - name: release-tarball
+  - name: release
+  - name: version
 
 outputs:
   - name: finalized-release
@@ -18,7 +18,6 @@ params:
   GIT_EMAIL: replace-me
   S3_ACCESS_KEY_ID: replace-me
   S3_ACCESS_KEY: replace-me
-  S3_BUCKET_NAME: replace-me
 
 run:
   path: persi-ci/scripts/ci/finalize_release
