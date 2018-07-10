@@ -1,0 +1,33 @@
+---
+#    go build -o $GOBIN/loopback example/loopback/main.go
+#    rm -rf /tmp/mnt1
+#    mkdir -p /tmp/src1
+#    echo foo > /tmp/src1/foo
+#    mkdir -p /tmp/mnt1
+#    nohup $GOBIN/loopback /tmp/mnt1/ /tmp/src1 --debug &
+#    sleep 3600
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v5.2.0
+
+
+inputs:
+- name: go-fuse-go
+  path: go
+
+run:
+  path: bash
+  args:
+  - -exc
+  - |
+    sudo apt-get update
+    sudo apt-get -y install fuse
+    export GOPATH=$PWD/go
+    export GOBIN=$GOPATH/bin
+    mkdir -p $GOBIN
+    cd go/src/github.com/hanwen/go-fuse
+    ginkgo -r fuse
