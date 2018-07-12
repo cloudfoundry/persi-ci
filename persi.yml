@@ -2061,7 +2061,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp
       ERRAND_NAME: azurefilebrokerpush
-      INSTANCE_NAME: azurefile-broker-push/first
+      INSTANCE_NAME: azurefilebrokerpush/first
 
 - name: pats-cifs-smb
   serial_groups:
