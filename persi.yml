@@ -2072,6 +2072,7 @@ jobs:
       passed:
       - cifs-smbdriver-certification
       - cifs-smbdriver-certification-windows
+      - deploy-azurefile-broker
       trigger: true
     - get: smb-volume-release-tarball
       passed:
@@ -2085,7 +2086,7 @@ jobs:
     params:
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
+      BROKER_URL: http://azurefilebroker.gorgophone.cf-app.com
       BROKER_USER: admin
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -2106,11 +2107,11 @@ jobs:
       trigger: true
       passed:
       - deploy-cf
+      - deploy-azurefile-broker
     - get: smb-volume-release-tarball
       passed:
       - deploy-cf
     - get: gorgophone-env-vars-store
-
   - task: run-pats
     file: smb-volume-release/scripts/ci/run_pats_smbvolume.build.yml
     input_mapping:
@@ -2118,7 +2119,7 @@ jobs:
     params:
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
+      BROKER_URL: http://azurefilebroker.gorgophone.cf-app.com
       BROKER_USER: admin
       SERVICE_NAME: azurefile-service
       PLAN_NAME: Existing
