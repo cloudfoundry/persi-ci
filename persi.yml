@@ -32,6 +32,7 @@ groups:
   - localdriver-docker-certification
   - cifs-smbdriver-certification
   - cifs-smbdriver-certification-windows
+  - deploy-azurefile-broker
   - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
@@ -142,6 +143,7 @@ groups:
   - cifs-smbdriver-certification-windows
   - bbl-up-gorgophone
   - deploy-cf
+  - deploy-azurefile-broker
   - pats-cifs-smb
   - pats-cifs-smb-windows
   - pats-drats
@@ -2041,6 +2043,25 @@ jobs:
       smbusername: {{azure_username_windows}}
       smbpassword: {{azure_password_windows}}
     file: smb-volume-release/scripts/ci/run_driver_cert_windows.build.yml
+
+- name: deploy-azurefile-broker
+  serial_groups:
+  - smb
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+    - get: smb-volume-release
+      passed: [ deploy-cf ]
+      trigger: true
+  - task: run-broker-errand
+    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      ERRAND_NAME: azurefilebrokerpush
+      INSTANCE_NAME: azurefile-broker-push/first
 
 - name: pats-cifs-smb
   serial_groups:
