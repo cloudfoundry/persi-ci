@@ -1,7 +1,7 @@
 - type: replace
   path: /instance_groups/-
   value:
-  - name: diego-cell-ldap
+    name: diego-cell-ldap
     azs: ((azs))
     instances: ((instances))
     jobs: ((jobs))
