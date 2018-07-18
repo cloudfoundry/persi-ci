@@ -6,4 +6,4 @@ cp -r base-ops-files/* collected-ops-files/
 
 bosh int cf-deployment/cf-deployment.yml --path /instance_groups/name=diego-cell > diego-cell-dup.yml
 
-bosh int base-ops-files/add-diego-cell-tagged.yml -l diego-cell-dup.yml > collected-ops-files/parsed-diego-cell-tagged.yml
+bosh int base-ops-files/operations/add-diego-cell-tagged.yml -l diego-cell-dup.yml > collected-ops-files/operations/parsed-diego-cell-tagged.yml
