@@ -1,0 +1,15 @@
+- type: replace
+  path: /instance_groups/-
+  value:
+  - name: diego-cell-ldap
+    azs: ((azs))
+    instances: ((instances))
+    jobs: ((jobs))
+    networks: ((networks))
+    stemcell: ((stemcell))
+    vm_extensions: ((vm_extensions))
+    vm_type: ((vm_type))
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=rep/properties/diego?/rep?/placement_tags?
+  value: ["ldap"]
+
