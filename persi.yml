@@ -2741,6 +2741,8 @@ jobs:
       VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/aws.yml
                   operations/bosh-lite.yml
+                  operations/experimental/use-bosh-dns.yml
+                  operations/experimental/use-bosh-dns-for-containers.yml
                   operations/deploy-efs-broker-and-install-driver.yml
                   operations/add-mapfs.yml
                   operations/update-releases.yml"
