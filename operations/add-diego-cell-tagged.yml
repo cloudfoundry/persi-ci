@@ -3,7 +3,7 @@
   value:
     name: diego-cell-ldap
     azs: ((azs))
-    instances: ((instances))
+    instances: 1
     jobs: ((jobs))
     networks: ((networks))
     stemcell: ((stemcell))
