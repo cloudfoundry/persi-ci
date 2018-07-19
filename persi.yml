@@ -1304,6 +1304,7 @@ jobs:
       SERVICE_NAME: nfs
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
+      DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
@@ -1338,6 +1339,7 @@ jobs:
       SERVICE_NAME: nfs-experimental
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
+      DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
