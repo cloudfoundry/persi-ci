@@ -1308,6 +1308,7 @@ jobs:
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
       TEST_DOCKER_PORA: true
+      TEST_ISOLATION_SEGMENT: ldap
 
 - name: pats-nfs-ldap-experimental
   serial_groups:
@@ -1341,6 +1342,7 @@ jobs:
       TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: false
       TEST_DOCKER_PORA: true
+      TEST_ISOLATION_SEGMENT: ldap
 
 #### END NFS #########################################################################################################
 
@@ -2424,7 +2426,7 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/xenial-diego-cells.yml
-                      operations/add-cell-for-ldap.yml
+                      operations/add-diego-cell-tagged.yml
                       operations/enable-csi-local-plugin.yml
                       operations/enable-nfs-broker-backup.yml"
   - task: collect-nfs-ops-files
@@ -2497,6 +2499,11 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/update-releases.yml"
+  - task: parse-diego-cell-ldap
+    file: persi-ci/scripts/ci/parse-diego-cell-tagged.build.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      cf-deployment: cf-deployment-master
   - task: add-tarballs
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2564,7 +2571,7 @@ jobs:
       VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml smb-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
-                  operations/add-cell-for-ldap.yml
+                  operations/parsed-diego-cell-tagged.yml
                   operations/experimental/use-bosh-dns.yml
                   operations/experimental/use-bosh-dns-for-containers.yml
                   operations/use-bosh-dns-for-nfs.yml
