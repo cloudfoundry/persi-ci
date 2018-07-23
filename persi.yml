@@ -1081,7 +1081,6 @@ jobs:
     - get: gorgophone-env-director-state
     - get: nfs-volume-release
       passed:
-      - deploy-cf
       - pats-nfs
       trigger: true
     - get: gorgophone-env-vars-store
