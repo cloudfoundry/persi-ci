@@ -1055,23 +1055,22 @@ jobs:
     - get: nfs-volume-release
       passed: [ deploy-cf ]
       trigger: true
-  - aggregate:
-    - task: run-broker-errand
-      file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
-      input_mapping:
-        bbl-state: gorgophone-env-director-state
-      params:
-        BBL_STATE_DIR: bbl-state-gcp
-        ERRAND_NAME: nfsbrokerpush
-        INSTANCE_NAME: nfs-broker-push/first
-    - task: run-credhub-broker-errand
-      file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
-      input_mapping:
-        bbl-state: gorgophone-env-director-state
-      params:
-        BBL_STATE_DIR: bbl-state-gcp
-        ERRAND_NAME: nfsbrokerpush
-        INSTANCE_NAME: nfs-broker-credhub-push/first
+  - task: run-broker-errand
+    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      ERRAND_NAME: nfsbrokerpush
+      INSTANCE_NAME: nfs-broker-push/first
+  - task: run-credhub-broker-errand
+    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      ERRAND_NAME: nfsbrokerpush
+      INSTANCE_NAME: nfs-broker-credhub-push/first
 
 - name: migrate-nfs-broker
   serial_groups:
