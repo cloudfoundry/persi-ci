@@ -48,8 +48,7 @@ groups:
   - deploy-cf
   - setup-cf-infra-for-efs
   - deploy-ecs-broker
-  - deploy-nfs-broker
-  - deploy-nfs-broker-credhub
+  - deploy-nfs-brokers
   - migrate-nfs-broker
   - pats-nfs
   - pats-nfs-experimental
@@ -105,8 +104,7 @@ groups:
   - pats-nfs-credhub
   - bbl-up-gorgophone
   - deploy-cf
-  - deploy-nfs-broker
-  - deploy-nfs-broker-credhub
+  - deploy-nfs-brokers
   - migrate-nfs-broker
   - pats-drats
   - create-isilon-volume
@@ -1047,7 +1045,7 @@ jobs:
     params:
       bump: major
 
-- name: deploy-nfs-broker
+- name: deploy-nfs-brokers
   serial_groups:
   - nfs
   plan:
@@ -1057,33 +1055,23 @@ jobs:
     - get: nfs-volume-release
       passed: [ deploy-cf ]
       trigger: true
-  - task: run-broker-errand
-    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: nfsbrokerpush
-      INSTANCE_NAME: nfs-broker-push/first
-
-- name: deploy-nfs-broker-credhub
-  serial_groups:
-  - nfs
-  plan:
   - aggregate:
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: nfs-volume-release
-      passed: [ deploy-cf ]
-      trigger: true
-  - task: run-broker-errand
-    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: nfsbrokerpush
-      INSTANCE_NAME: nfs-broker-credhub-push/first
+    - task: run-broker-errand
+      file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+      input_mapping:
+        bbl-state: gorgophone-env-director-state
+      params:
+        BBL_STATE_DIR: bbl-state-gcp
+        ERRAND_NAME: nfsbrokerpush
+        INSTANCE_NAME: nfs-broker-push/first
+    - task: run-credhub-broker-errand
+      file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+      input_mapping:
+        bbl-state: gorgophone-env-director-state
+      params:
+        BBL_STATE_DIR: bbl-state-gcp
+        ERRAND_NAME: nfsbrokerpush
+        INSTANCE_NAME: nfs-broker-credhub-push/first
 
 - name: migrate-nfs-broker
   serial_groups:
@@ -1093,7 +1081,9 @@ jobs:
     - get: persi-ci
     - get: gorgophone-env-director-state
     - get: nfs-volume-release
-      passed: [ deploy-cf ]
+      passed:
+      - deploy-cf
+      - pats-nfs
       trigger: true
     - get: gorgophone-env-vars-store
   - task: run-migration-test
@@ -1118,7 +1108,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-broker
+      - deploy-nfs-brokers
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1153,7 +1143,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-broker-credhub
+      - deploy-nfs-brokers
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1186,7 +1176,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-broker
+      - deploy-nfs-brokers
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1218,7 +1208,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-broker
+      - deploy-nfs-brokers
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1250,7 +1240,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-broker
+      - deploy-nfs-brokers
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1283,7 +1273,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-broker
+      - deploy-nfs-brokers
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1318,7 +1308,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-broker
+      - deploy-nfs-brokers
       trigger: true
     - get: nfs-volume-release-tarball
       passed:
@@ -1377,7 +1367,7 @@ jobs:
     - get: nfs-volume-release
       passed:
       - create-isilon-volume
-      - deploy-nfs-broker
+      - deploy-nfs-brokers
       trigger: true
     - get: gorgophone-env-vars-store
   - task: run-pats
