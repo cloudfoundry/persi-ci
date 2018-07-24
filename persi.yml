@@ -27,6 +27,7 @@ groups:
   - localdriver-unit
   - localdriver-unit-windows
   - localbroker-unit
+  - mapfs-unit
   - localdriver-certification
   - localdriver-certification-windows
   - localdriver-docker-certification
@@ -78,6 +79,7 @@ groups:
   - csi-local-node-plugin-unit-windows
   - csi-plugin-certification
   - csi-broker-unit
+  - mapfs-unit
   - pats-csi-local
   - pats-csi-nfs-uid
   - pats-csi-nfs
@@ -1787,10 +1789,19 @@ jobs:
     params:
       file: created-plugins-release/csi*.tgz
 
+- name: mapfs-unit
+  plan:
+  - get: mapfs-release
+    trigger: true
+  - task: run-unit
+    file: mapfs-release/scripts/ci/run_tests.build.yml
+
 - name: create-mapfs-release
   plan:
   - aggregate:
     - get: mapfs-release
+      passed:
+      - mapfs-unit
       trigger: true
     - get: mapfs-version
       resource: mapfs-version
