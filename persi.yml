@@ -2575,11 +2575,11 @@ jobs:
       VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml smb-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
-                  operations/parsed-diego-cell-tagged.yml
                   operations/experimental/use-bosh-dns.yml
                   operations/experimental/use-bosh-dns-for-containers.yml
                   operations/use-bosh-dns-for-nfs.yml
                   operations/use-bosh-dns-for-smb.yml
+                  operations/parsed-diego-cell-tagged.yml
                   operations/experimental/secure-service-credentials.yml
                   operations/windows2016-cell.yml
                   operations/experimental/secure-service-credentials-windows2016-cell.yml
