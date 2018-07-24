@@ -28,4 +28,7 @@
   path: /instance_groups/name=diego-cell-ldap/jobs/name=silk-daemon/consumes?
   value:
     vpa: {from: diego-cell-ldap-vpa}
+- type: replace
+  path: /addons?/jobs/name=bosh-dns/properties/aliases/_.cell.service.cf.internal?/-
+  value: _.diego-cell-ldap.default.cf.bosh
 
