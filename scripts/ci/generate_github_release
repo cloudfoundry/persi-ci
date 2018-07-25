@@ -5,9 +5,9 @@ source $(pwd)/persi-ci/scripts/ci/utils.sh
 check_param RELEASE
 check_param BASE_RELEASE_NAME
 
-version=$(cat volume-version/number)
+version=$(cat version/number)
 
-RELEASE=volume-release
+RELEASE=release
 
 ( cd ${RELEASE} && git rev-parse HEAD ) > generated-release/commitish
 echo "${BASE_RELEASE_NAME} v$version" > generated-release/name
