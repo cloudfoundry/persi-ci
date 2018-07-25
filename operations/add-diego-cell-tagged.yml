@@ -44,5 +44,8 @@
           ldap_proto: ((nfs-ldap-proto))
           ldap_user_fqdn: ((nfs-ldap-fqdn))
     release: nfs-volume
-
-
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=mapfs?
+  value:
+    name: mapfs
+    release: mapfs
