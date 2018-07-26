@@ -975,12 +975,12 @@ jobs:
     - get: persi-ci
     - get: release-tarball
       resource: mapfs-release-tarball
-      passed:
-      - pats-csi-nfs-uid
+#      passed:
+#      - pats-csi-nfs-uid
     - get: release
       resource: mapfs-release
-      passed:
-      - pats-csi-nfs-uid
+#      passed:
+#      - pats-csi-nfs-uid
     - get: version
       resource: mapfs-version
       params:
