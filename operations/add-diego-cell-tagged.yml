@@ -31,11 +31,11 @@
 - type: replace
   path: /addons/name=bosh-dns-aliases/jobs/name=bosh-dns-aliases/properties/aliases/domain=_.cell.service.cf.internal/targets/-
   value:
-    - query: '_'
-      instance_group: diego-cell-ldap
-      deployment: cf
-      network: default
-      domain: bosh
+    query: _
+    instance_group: diego-cell-ldap
+    deployment: cf
+    network: default
+    domain: bosh
 - type: replace
   path: /instance_groups/name=diego-cell-ldap/jobs/-
   value:
