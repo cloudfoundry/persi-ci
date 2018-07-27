@@ -31,7 +31,7 @@
 - type: replace
   path: /addons/name=bosh-dns-aliases/jobs/name=bosh-dns-aliases/properties/aliases/domain=_.cell.service.cf.internal/targets/-
   value:
-    query: _
+    query: '_'
     instance_group: diego-cell-ldap
     deployment: cf
     network: default
