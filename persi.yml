@@ -1116,12 +1116,15 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - deploy-cf
-    - get: gorgophone-env-vars-store
+    - get: persi-ci
+    - get: gorgophone-env-director-state
   - task: run-pats
     file: nfs-volume-release/scripts/ci/run_pats_nfsvolume.build.yml
     input_mapping:
-      vars-store: gorgophone-env-vars-store
+      director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp
+      BBL_IAAS: gcp
       APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
       BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
@@ -2575,8 +2578,6 @@ jobs:
       VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml smb-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
-                  operations/experimental/use-bosh-dns.yml
-                  operations/experimental/use-bosh-dns-for-containers.yml
                   operations/use-bosh-dns-for-nfs.yml
                   operations/use-bosh-dns-for-smb.yml
                   operations/experimental/secure-service-credentials.yml
@@ -2609,11 +2610,6 @@ jobs:
                   operations/use-pxc-for-nfs-broker.yml
                   operations/use-pxc-for-smb-broker.yml
                   operations/test-nfsbroker-migration-to-credhub.yml"
-    ensure:
-      put: gorgophone-env-vars-store
-      params:
-        repository: updated-vars-store
-        rebase: true
 
 - name: setup-cf-infra-for-efs
   serial_groups:
