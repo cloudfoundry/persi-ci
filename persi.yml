@@ -1099,7 +1099,6 @@ jobs:
     file: persi-ci/scripts/ci/migrate_nfs_broker_to_credhub.build.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
-      vars-store: gorgophone-env-vars-store
     params:
       BBL_STATE_DIR: bbl-state-gcp
       CF_API_ENDPOINT: api.gorgophone.cf-app.com

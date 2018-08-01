@@ -5,12 +5,11 @@ image_resource:
   type: docker-image
   source:
     repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
-    tag: v5.11.0
+    tag: v5.15.0
 
 inputs:
   - name: persi-ci
   - name: bbl-state  # - The Director's `bbl-state.json`
-  - name: vars-store         # OPTIONAL - if a directory with a deployment-vars.yml file is provided here, then CF_PASSWORD and BROKER_PASSWORD may be omitted below
   - name: nfs-volume-release
 
 params:
