@@ -47,7 +47,8 @@ groups:
   - bbl-up-gorgophone
   - cf-deployment-nightly
   - deploy-cf
-  - setup-cf-infra-for-efs
+  - bbl-up-boshlite-aws
+  - deploy-cf-efs
   - deploy-ecs-broker
   - deploy-nfs-brokers
   - migrate-nfs-broker
@@ -119,8 +120,9 @@ groups:
   - efsbroker-unit
   - efsdriver-certification
   - create-efs-volume-release
+  - bbl-up-boshlite-aws
+  - deploy-cf-efs
   - pats-efs
-  - setup-cf-infra-for-efs
 
 - name: ecs
   jobs:
@@ -312,6 +314,12 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
+
+- name: bosh-bootloader-pr
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/paulcwarren/bosh-bootloader
 #### END EFS resources ################################################################################################
 
 #### Diego resources ################################################################################################
@@ -1475,14 +1483,14 @@ jobs:
     - get: deployments-persi
     - get: efs-volume-release
       passed:
-      - setup-cf-infra-for-efs
+      - deploy-cf-efs
       trigger: true
     - get: efs-volume-release-tarball
       passed:
-      - setup-cf-infra-for-efs
+      - deploy-cf-efs
     - get: gorgophone-env-for-efs-vars-store
     - get: diego-dev-release
-      passed: [ setup-cf-infra-for-efs ]
+      passed: [ deploy-cf-efs ]
       trigger: true
 
   - task: run-pats
@@ -2641,7 +2649,7 @@ jobs:
                   operations/use-pxc-for-smb-broker.yml
                   operations/test-nfsbroker-migration-to-credhub.yml"
 
-- name: setup-cf-infra-for-efs
+- name: bbl-up-boshlite-aws
   serial_groups:
   - efs
   public: true
@@ -2649,9 +2657,48 @@ jobs:
   plan:
   - aggregate:
     - get: deployments-persi
+    - get: bosh-bootloader-pr
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment-master
+      passed:
+      - bbl-up-gorgophone
+      trigger: true
+    - get: gorgophone-env-for-efs-vars-store
+    - get: persi-ci
+  - task: setup-infrastructure
+    file: cf-deployment-concourse-tasks/bbl-up/task.yml
+    params:
+      BBL_STATE_DIR: bbl-state-boshlite-aws
+      BBL_IAAS: aws
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_AWS_REGION: us-west-2
+      SKIP_LB_CREATION: true
+      BBL_CONFIG_DIR: plan-patches/bosh-lite-aws
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      bbl-config: bosh-bootloader-pr
+    ensure:
+      put: gorgophone-env-director-state
+      params:
+        repository: updated-bbl-state
+        rebase: true
+
+- name: deploy-cf-efs
+  serial_groups:
+  - efs
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: deployments-persi
+    - get: bosh-bootloader-pr
+    - get: cf-deployment-concourse-tasks
+    - get: gorgophone-env-director-state
+    - get: cf-deployment-master
+      passed:
+      - bbl-up-boshlite-aws
       trigger: true
     - get: bosh-bootloader
     - get: gorgophone-env-for-efs-vars-store
@@ -2675,15 +2722,6 @@ jobs:
       passed: [ create-mapfs-release ]
     - get: mapfs-version
       passed: [ create-mapfs-release ]
-  - task: update-cloud-config
-    file: persi-ci/scripts/ci/update_cloud_config_bosh-lite.build.yml
-  - task: bosh-upload-stemcell
-    file: persi-ci/efs/bosh-upload-stemcell-from-cf-deployment.yml
-    input_mapping:
-      cf-deployment: cf-deployment-master
-      bbl-state: gorgophone-env-director-state
-    params:
-      INFRASTRUCTURE: bosh-lite
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -2765,8 +2803,9 @@ jobs:
       AWS_SUBNET_ID: subnet-3231a44b
       AWS_AZ: us-west-2b
       EFS_BROKER_PASSWORD: {{efs-broker-password}}
+
   - task: bosh-deploy-cf
-    file: persi-ci/efs/bosh-deploy.yml
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
       cf-deployment: cf-deployment-master
       vars-store: gorgophone-env-for-efs-vars-store
@@ -2774,13 +2813,13 @@ jobs:
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
+      BBL_STATE_DIR: bbl-state-boshlite-aws
       MANIFEST_FILE: cf-deployment.yml
+      SYSTEM_DOMAIN: bosh-lite.sslip.io # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars-bosh-lite.yml
       VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/aws.yml
                   operations/bosh-lite.yml
-                  operations/experimental/use-bosh-dns.yml
-                  operations/experimental/use-bosh-dns-for-containers.yml
                   operations/deploy-efs-broker-and-install-driver.yml
                   operations/add-mapfs.yml
                   operations/update-releases.yml"
