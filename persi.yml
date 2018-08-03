@@ -1653,9 +1653,13 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp
       BBL_IAAS: gcp
-  - task: bosh-cleanup-boshlite
-    file: persi-ci/scripts/ci/boshlite_cleanup.build.yml
-    params: {}
+  - task: bosh-cleanup-boshlite-aws
+    file: persi-ci/scripts/ci/bosh_cleanup.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-boshlite-aws
+      BBL_IAAS: bosh-lite
 
 - name: deploy-ecs-broker
   serial_groups:
