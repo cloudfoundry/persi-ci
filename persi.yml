@@ -624,15 +624,6 @@ resources:
     paths:
     - deployment-vars.yml
 
-- name: gorgophone-env-for-efs-vars-store
-  type: git
-  source:
-    branch: master
-    uri: git@github.com:cloudfoundry/gorgophone-env.git
-    private_key: {{deployments-persi-key}}
-    paths:
-    - deployment-vars-cf-efs.yml
-
 - name: bbr-release
   type: pivnet
   source:
@@ -2686,7 +2677,6 @@ jobs:
       passed:
       - bbl-up-gorgophone
       trigger: true
-    - get: gorgophone-env-for-efs-vars-store
     - get: persi-ci
   - task: setup-infrastructure
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
@@ -2723,7 +2713,6 @@ jobs:
       - bbl-up-boshlite-aws
       trigger: true
     - get: bosh-bootloader
-    - get: gorgophone-env-for-efs-vars-store
     - get: persi-ci
     - get: diego-dev-release
       passed: [ create-diego-release ]
@@ -2830,7 +2819,6 @@ jobs:
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
       cf-deployment: cf-deployment-master
-      vars-store: gorgophone-env-for-efs-vars-store
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
       vars-files: generated-vars
