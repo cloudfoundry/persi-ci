@@ -2825,7 +2825,6 @@ jobs:
       AWS_SECURITY_GROUP: sg-14180c6a
       AWS_SUBNET_ID: subnet-3231a44b
       AWS_AZ: us-west-2b
-      EFS_BROKER_PASSWORD: {{efs-broker-password}}
 
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml

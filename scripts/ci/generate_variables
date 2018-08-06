@@ -27,7 +27,6 @@ aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
 aws-subnet-ids: ${AWS_SUBNET_ID}
 aws-security-groups: ${AWS_SECURITY_GROUP}
 aws-azs: ${AWS_AZ}
-efs-broker-password: ${EFS_BROKER_PASSWORD}
 EOF
 }
 
