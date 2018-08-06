@@ -1488,20 +1488,19 @@ jobs:
     - get: efs-volume-release-tarball
       passed:
       - deploy-cf-efs
-    - get: gorgophone-env-for-efs-vars-store
     - get: diego-dev-release
       passed: [ deploy-cf-efs ]
       trigger: true
+    - get: gorgophone-env-director-state
 
   - task: run-pats
     file: efs-volume-release/scripts/ci/run_pats_efsvolume_bosh_lite.build.yml
     input_mapping:
-      vars-store: gorgophone-env-for-efs-vars-store
+      bbl-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-boshlite-aws
       APPLICATION_PATH: efs-volume-release/assets/pora
-      BROKER_PASSWORD: {{pats-broker-password}}
       BROKER_USER: {{pats-broker-username}}
-      BROKER_PASSWORD: {{efs-broker-password}}
       CF_USERNAME: {{cf-bosh-lite-username}}
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
@@ -2745,6 +2744,7 @@ jobs:
       COLLECT_ECS_TARBALL: false
       COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
+      COLLECT_MAPFS_TARBALL: false
     #this task requires a lot of inputs that we don't need for this instance--we're feeding in
     #efsvolume-version as a dummy input because it is tiny and easy to copy
     input_mapping:
@@ -2754,7 +2754,7 @@ jobs:
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: efsvolume-version #dummy
       csi-plugins-tarball: efsvolume-version #dummy
-      mapfs-tarball: mapfs-release-tarball
+      mapfs-tarball: mapfs-release-tarball #dummy
       ecs-tarball: efsvolume-version #dummy
       local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
@@ -2763,7 +2763,7 @@ jobs:
       efs-version: efsvolume-version
       csi-local-version: efsvolume-version #dummy
       csi-plugins-version: efsvolume-version #dummy
-      mapfs-version: mapfs-version
+      mapfs-version: mapfs-version #dummy
       ecs-version: efsvolume-version #dummy
       local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
@@ -2775,14 +2775,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
-  - task: collect-mapfs-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: mapfs-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/add-mapfs.yml"
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2798,7 +2790,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz efs.tgz mapfs.tgz"
+      NEW_OPS_FILES: "diego.tgz efs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
@@ -2833,13 +2825,7 @@ jobs:
       OPS_FILES: "operations/aws.yml
                   operations/bosh-lite.yml
                   operations/deploy-efs-broker-and-install-driver.yml
-                  operations/add-mapfs.yml
                   operations/update-releases.yml"
-    ensure:
-      put: gorgophone-env-for-efs-vars-store
-      params:
-        repository: updated-vars-store
-        rebase: true
 
 - name: pats-drats
   serial_groups:
