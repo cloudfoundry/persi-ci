@@ -659,6 +659,7 @@ resource_types:
 jobs:
 #### Local Volume related jobs ########################################################################################
 - name: localdriver-unit
+  public: true
   plan:
   - get: local-volume-release
     trigger: true
@@ -666,6 +667,7 @@ jobs:
     file: local-volume-release/scripts/ci/run_driver_unit.build.yml
 
 - name: localdriver-unit-windows
+  public: true
   plan:
   - get: local-volume-release
     trigger: true
@@ -673,6 +675,7 @@ jobs:
     file: local-volume-release/scripts/ci/run_driver_unit_windows.build.yml
 
 - name: localbroker-unit
+  public: true
   plan:
   - get: local-volume-release
     trigger: true
@@ -802,12 +805,14 @@ jobs:
 
 #### NFS related jobs #################################################################################################
 - name: nfsdriver-unit
+  public: true
   plan:
   - get: nfs-volume-release
     trigger: true
   - task: build
     file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
 - name: nfsbroker-unit
+  public: true
   plan:
   - get: nfs-volume-release
     trigger: true
@@ -1429,12 +1434,14 @@ jobs:
 
 #### EFS related jobs ################################################################################################
 - name: efsdriver-unit
+  public: true
   plan:
   - get: efs-volume-release
     trigger: true
   - task: build
     file: efs-volume-release/scripts/ci/run_driver_unit.build.yml
 - name: efsbroker-unit
+  public: true
   plan:
   - get: efs-volume-release
     trigger: true
@@ -1513,6 +1520,7 @@ jobs:
 
 #### CF related jobs ##################################################################################################
 - name: volman-unit
+  public: true
   plan:
   - aggregate:
     - get: diego-release
@@ -1522,6 +1530,7 @@ jobs:
     file: persi-ci/scripts/ci/run_volman_unit.build.yml
 
 - name: volman-unit-windows
+  public: true
   plan:
   - aggregate:
     - get: diego-release
@@ -1554,6 +1563,7 @@ jobs:
     file: persi-ci/scripts/ci/run_volman_inigo.build.yml
     params:
       DEFAULT_EVENTUALLY_TIMEOUT: 5m
+      GINKGO_PARALLEL: false
 
 - name: create-diego-release
   plan:
@@ -1602,6 +1612,7 @@ jobs:
       file: created-ecs-release/ecs*.tgz
 
 - name: ecs-broker-unit
+  public: true
   plan:
   - aggregate:
     - get: persi-ci
@@ -1711,6 +1722,7 @@ jobs:
 
 #### START CSI related jobs ###########################################################################################
 - name: csi-local-controller-plugin-unit
+  public: true
   plan:
   - aggregate:
     - get: csi-local-volume-release
@@ -1719,6 +1731,7 @@ jobs:
     file: csi-local-volume-release/scripts/ci/local-controller-plugin-unit.build.yml
 
 - name: csi-local-node-plugin-unit
+  public: true
   plan:
   - aggregate:
     - get: csi-local-volume-release
@@ -1727,6 +1740,7 @@ jobs:
     file: csi-local-volume-release/scripts/ci/local-node-plugin-unit.build.yml
 
 - name: csi-local-node-plugin-unit-windows
+  public: true
   plan:
   - aggregate:
     - get: csi-local-volume-release
@@ -1735,6 +1749,7 @@ jobs:
     file: csi-local-volume-release/scripts/ci/local-node-plugin-unit-windows.build.yml
 
 - name: csi-broker-unit
+  public: true
   plan:
   - aggregate:
     - get: csi-local-volume-release
@@ -1827,6 +1842,7 @@ jobs:
       file: created-plugins-release/csi*.tgz
 
 - name: mapfs-unit
+  public: true
   plan:
   - get: mapfs-release
     trigger: true
@@ -2008,6 +2024,7 @@ jobs:
 
 #### START SMB related jobs ###########################################################################################
 - name: cifs-smbdriver-unit
+  public: true
   plan:
   - aggregate:
     - get: smb-volume-release
@@ -2016,6 +2033,7 @@ jobs:
     file: smb-volume-release/scripts/ci/smbdriver-unit.build.yml
 
 - name: cifs-smbdriver-unit-windows
+  public: true
   plan:
   - aggregate:
     - get: smb-volume-release
@@ -2024,6 +2042,7 @@ jobs:
     file: smb-volume-release/scripts/ci/smbdriver-unit-windows.build.yml
 
 - name: cifs-azurefilebroker-unit
+  public: true
   plan:
   - aggregate:
     - get: smb-volume-release
