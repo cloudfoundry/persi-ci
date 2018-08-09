@@ -64,7 +64,6 @@ groups:
   - pats-nfs-ldap-experimental
   - pats-drats
   - pats-csi-local
-  - pats-csi-nfs-uid
   - pats-csi-nfs
   - pats-cifs-smb
   - pats-cifs-smb-windows
@@ -82,7 +81,6 @@ groups:
   - csi-broker-unit
   - mapfs-unit
   - pats-csi-local
-  - pats-csi-nfs-uid
   - pats-csi-nfs
   - create-csi-local-volume-release
   - create-csi-plugins-release
@@ -985,12 +983,12 @@ jobs:
     - get: persi-ci
     - get: release-tarball
       resource: mapfs-release-tarball
-#      passed:
-#      - pats-csi-nfs-uid
+      passed:
+      - pats-nfs-experimental
     - get: release
       resource: mapfs-release
-#      passed:
-#      - pats-csi-nfs-uid
+      passed:
+      - pats-nfs-experimental
     - get: version
       resource: mapfs-version
       params:
@@ -1197,6 +1195,12 @@ jobs:
       - deploy-nfs-brokers
       trigger: true
     - get: nfs-volume-release-tarball
+      passed:
+      - deploy-cf
+    - get: mapfs-release
+      passed:
+      - deploy-cf
+    - get: mapfs-release-tarball
       passed:
       - deploy-cf
     - get: persi-ci
@@ -1964,49 +1968,6 @@ jobs:
       CF_USERNAME: admin
       PLAN_NAME: free
       CREATE_CONFIG: '{\"name\":\"csi-nfs-storage\",\"volume_capabilities\":[{\"mount\":{}}],\"parameters\":{\"server\":\"nfstestserver.service.cf.internal\",\"share\":\"/export/users2000\"}}'
-      SERVICE_NAME: csi-nfs
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-
-- name: pats-csi-nfs-uid
-  serial_groups:
-  - csi-nfs
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: csi-plugins-release
-      passed: [ deploy-cf ]
-      trigger: true
-    - get: diego-dev-release
-      passed: [ deploy-cf ]
-      trigger: true
-    - get: diego-release
-    - get: csi-plugins-release-tarball
-      passed:
-      - deploy-cf
-    - get: mapfs-release
-      passed:
-      - deploy-cf
-    - get: mapfs-release-tarball
-      passed:
-      - deploy-cf
-    - get: gorgophone-env-director-state
-
-  - task: run-pats
-    file: csi-plugins-release/scripts/ci/run_pats_nfs.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      BROKER_URL: http://csi-nfsbroker.gorgophone.cf-app.com
-      BROKER_USER: csi-nfsbroker
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: free
-      CREATE_CONFIG: '{\"name\":\"csi-nfs-storage\",\"volume_capabilities\":[{\"mount\":{}}],\"parameters\":{\"server\":\"nfstestserver.service.cf.internal\",\"share\":\"/export/users\"}}'
       SERVICE_NAME: csi-nfs
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
