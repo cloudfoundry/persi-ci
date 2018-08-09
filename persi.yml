@@ -1509,7 +1509,7 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       DEFAULT_TIMEOUT: 300
-      ELASTIC_IP: 34.219.193.233
+      ELASTIC_IP: 34.217.44.253
 
 #### END EFS ##########################################################################################################
 
@@ -2773,8 +2773,8 @@ jobs:
       GENERATE_DATADOG_VARS: false
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-14180c6a
-      AWS_SUBNET_ID: subnet-3231a44b
+      AWS_SECURITY_GROUP: sg-854aa7f6
+      AWS_SUBNET_ID: subnet-08e7b271
       AWS_AZ: us-west-2b
 
   - task: bosh-deploy-cf
@@ -2787,7 +2787,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-boshlite-aws
       MANIFEST_FILE: cf-deployment.yml
-      SYSTEM_DOMAIN: 34.219.193.233.sslip.io
+      SYSTEM_DOMAIN: 34.217.44.253.sslip.io
       VARS_STORE_FILE: deployment-vars-bosh-lite.yml
       VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/aws.yml
