@@ -1,0 +1,2 @@
+lpass ls > /dev/null
+fly -t persi sp -c persi.yml -p persi --load-vars-from <(lpass show --note pipeline-secrets)
