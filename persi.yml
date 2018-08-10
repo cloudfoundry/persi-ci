@@ -1225,6 +1225,7 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
       TEST_READ_ONLY: true
+      TEST_MOUNT_FAIL_LOGGING: true
 
 - name: pats-nfsv4-experimental
   serial_groups:
