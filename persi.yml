@@ -2088,6 +2088,7 @@ jobs:
       passed:
       - deploy-cf
     - get: gorgophone-env-vars-store
+    - get: persi-ci
 
   - task: run-pats
     file: smb-volume-release/scripts/ci/run_pats_smbvolume.build.yml
@@ -2122,6 +2123,7 @@ jobs:
       passed:
       - deploy-cf
     - get: gorgophone-env-vars-store
+    - get: persi-ci
   - task: run-pats
     file: smb-volume-release/scripts/ci/run_pats_smbvolume.build.yml
     input_mapping:
