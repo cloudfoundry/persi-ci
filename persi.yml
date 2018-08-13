@@ -2095,6 +2095,8 @@ jobs:
     input_mapping:
       vars-store: gorgophone-env-vars-store
     params:
+      BBL_IAAS: gcp
+      BBL_STATE_DIR: bbl-state-gcp
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
       BROKER_URL: http://azurefilebroker.gorgophone.cf-app.com
@@ -2129,6 +2131,8 @@ jobs:
     input_mapping:
       vars-store: gorgophone-env-vars-store
     params:
+      BBL_IAAS: gcp
+      BBL_STATE_DIR: bbl-state-gcp
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
       BROKER_URL: http://azurefilebroker.gorgophone.cf-app.com
