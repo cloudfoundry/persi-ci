@@ -508,6 +508,18 @@ resources:
     password: {{github-password}}
     branch: master
     uri: https://github.com/cloudfoundry/smb-volume-release.git
+    ignore_paths:
+    - scripts
+
+- name: smb-volume-release-concourse-tasks
+  type: git
+  source:
+    username: {{github-user}}
+    password: {{github-password}}
+    branch: master
+    uri: https://github.com/cloudfoundry/smb-volume-release.git
+    paths:
+    - scripts
 
 - name: smb-volume-version
   type: semver
@@ -1968,32 +1980,36 @@ jobs:
   public: true
   plan:
   - aggregate:
+    - get: smb-volume-release-concourse-tasks
     - get: smb-volume-release
       trigger: true
   - task: smbdriver-unit
-    file: smb-volume-release/scripts/ci/smbdriver-unit.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/smbdriver-unit.build.yml
 
 - name: cifs-smbdriver-unit-windows
   public: true
   plan:
   - aggregate:
+    - get: smb-volume-release-concourse-tasks
     - get: smb-volume-release
       trigger: true
   - task: smbdriver-unit
-    file: smb-volume-release/scripts/ci/smbdriver-unit-windows.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/smbdriver-unit-windows.build.yml
 
 - name: cifs-azurefilebroker-unit
   public: true
   plan:
   - aggregate:
+    - get: smb-volume-release-concourse-tasks
     - get: smb-volume-release
       trigger: true
   - task: azurefilebroker-unit
-    file: smb-volume-release/scripts/ci/azurefilebroker-unit.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/azurefilebroker-unit.build.yml
 
 - name: create-smb-volume-release
   plan:
   - aggregate:
+    - get: smb-volume-release-concourse-tasks
     - get: smb-volume-release
       passed:
       - cifs-azurefilebroker-unit
@@ -2009,7 +2025,7 @@ jobs:
     params:
       file: smb-volume-version/number
   - task: create-release
-    file: smb-volume-release/scripts/ci/create_smb_volume_release.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/create_smb_volume_release.build.yml
   - put: smb-volume-release-tarball
     params:
       file: created-smb-volume-release/smb-volume-*.tgz
@@ -2020,6 +2036,7 @@ jobs:
   plan:
   - aggregate:
     - get: persi-ci
+    - get: smb-volume-release-concourse-tasks
     - get: smb-volume-release
       passed:
       - deploy-cf
@@ -2034,7 +2051,7 @@ jobs:
       password: {{smb_server_password}}
       BBL_STATE_DIR: bbl-state-gcp
       BBL_IAAS: gcp
-    file: smb-volume-release/scripts/ci/run_driver_cert.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
 
 - name: cifs-smbdriver-certification-windows
   serial_groups:
@@ -2042,6 +2059,7 @@ jobs:
   plan:
   - aggregate:
     - get: persi-ci
+    - get: smb-volume-release-concourse-tasks
     - get: smb-volume-release
       passed:
       - deploy-cf
@@ -2052,7 +2070,7 @@ jobs:
       smbremotepath: {{azure_remote_path_windows}}
       smbusername: {{azure_username_windows}}
       smbpassword: {{azure_password_windows}}
-    file: smb-volume-release/scripts/ci/run_driver_cert_windows.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert_windows.build.yml
 
 - name: deploy-azurefile-broker
   serial_groups:
@@ -2078,6 +2096,7 @@ jobs:
   - smb
   plan:
   - aggregate:
+    - get: smb-volume-release-concourse-tasks
     - get: smb-volume-release
       passed:
       - cifs-smbdriver-certification
@@ -2091,9 +2110,9 @@ jobs:
     - get: persi-ci
 
   - task: run-pats
-    file: smb-volume-release/scripts/ci/run_pats_smbvolume.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_pats_smbvolume.build.yml
     input_mapping:
-      vars-store: gorgophone-env-vars-store
+      director-state: gorgophone-env-vars-store
     params:
       BBL_IAAS: gcp
       BBL_STATE_DIR: bbl-state-gcp
@@ -2116,6 +2135,7 @@ jobs:
   - smb
   plan:
   - aggregate:
+    - get: smb-volume-release-concourse-tasks
     - get: smb-volume-release
       trigger: true
       passed:
@@ -2127,9 +2147,9 @@ jobs:
     - get: gorgophone-env-vars-store
     - get: persi-ci
   - task: run-pats
-    file: smb-volume-release/scripts/ci/run_pats_smbvolume.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_pats_smbvolume.build.yml
     input_mapping:
-      vars-store: gorgophone-env-vars-store
+      director-state: gorgophone-env-vars-store
     params:
       BBL_IAAS: gcp
       BBL_STATE_DIR: bbl-state-gcp
