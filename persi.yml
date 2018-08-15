@@ -1385,14 +1385,15 @@ jobs:
       passed:
       - deploy-cf
       trigger: true
+    - get: persi-ci
     - get: deployments-persi
     - get: gorgophone-env-director-state
   - task: create-share
+    input_mapping:
+      director-state: gorgophone-env-director-state
     params:
-      BBL_IAAS: aws
-      BBL_AWS_REGION: us-west-2
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_IAAS: gcp
+      BBL_STATE_DIR: bbl-state-gcp
     file: deployments-persi/persi-ci/deployments/isilon-volume/create-share.build.yml
 
 - name: pats-isilon
