@@ -313,11 +313,6 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
 
-- name: bosh-bootloader-pr
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/paulcwarren/bosh-bootloader
 #### END EFS resources ################################################################################################
 
 #### Diego resources ################################################################################################
@@ -2650,7 +2645,7 @@ jobs:
   plan:
   - aggregate:
     - get: deployments-persi
-    - get: bosh-bootloader-pr
+    - get: bosh-bootloader
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment-master
@@ -2670,7 +2665,7 @@ jobs:
       BBL_CONFIG_DIR: plan-patches/bosh-lite-aws
     input_mapping:
       bbl-state: gorgophone-env-director-state
-      bbl-config: bosh-bootloader-pr
+      bbl-config: bosh-bootloader
     ensure:
       put: gorgophone-env-director-state
       params:
@@ -2685,7 +2680,6 @@ jobs:
   plan:
   - aggregate:
     - get: deployments-persi
-    - get: bosh-bootloader-pr
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment-master
