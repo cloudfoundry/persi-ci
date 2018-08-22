@@ -18,7 +18,8 @@ mv bosh-cli-* /usr/local/bin/bosh-cli
 # install sshuttle
 sudo apt-get -y install sshuttle
 
-export FOCUSED_SUITE_NAME="cf-nfsbroker|cf-smbbroker"
+# export FOCUSED_SUITE_NAME="cf-nfsbroker|cf-smbbroker"
+export FOCUSED_SUITE_NAME="cf-nfsbroker"
 export CF_VARS_STORE_PATH="$PWD/vars-store/deployment-vars.yml"
 export BBL_ENV="$PWD/director-state/$BBL_STATE_DIR"
 export BBR_BUILD_PATH=$(pwd)/binary/bbr
@@ -47,7 +48,8 @@ pushd runme/
 
     mkdir -p src/github.com/cloudfoundry-incubator/
     pushd src/github.com/cloudfoundry-incubator/
-        git clone https://github.com/julian-hj/disaster-recovery-acceptance-tests.git
+#        git clone https://github.com/julian-hj/disaster-recovery-acceptance-tests.git
+        git clone https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
 
         # run drats
         pushd disaster-recovery-acceptance-tests/
