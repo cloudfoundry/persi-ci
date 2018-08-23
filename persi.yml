@@ -331,7 +331,7 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     branch: master
-    uri: https://github.com/cloudfoundry/efs-volume-release.git
+    uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
     paths:
     - scripts
 
