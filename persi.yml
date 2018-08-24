@@ -2549,7 +2549,6 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-smb-test-server.yml
                       operations/enable-azurefile-broker-backup.yml
-                      operations/enable-smb-volume-service.yml
                       operations/enable-smb-volume-service-windows.yml
                       operations/use-bosh-dns-for-smb.yml
                       operations/use-pxc-for-smb-broker.yml"
@@ -2673,7 +2672,7 @@ jobs:
                   operations/enable-nfs-broker-backup.yml
                   operations/enable-azurefile-broker-backup.yml
                   operations/xenial-diego-cells.yml
-                  operations/enable-smb-volume-service.yml
+                  operations/experimental/enable-smb-volume-service.yml
                   operations/enable-smb-volume-service-windows.yml
                   operations/update-releases.yml
                   operations/experimental/use-pxc.yml
