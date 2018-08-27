@@ -1808,6 +1808,7 @@ jobs:
     - get: csi-cert
       trigger: true
   - task: csi-plugin-certification
+    privileged: true
     file: csi-local-volume-release/scripts/ci/csi-plugin-certification.build.yml
 
 - name: certification-test-builds
