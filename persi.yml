@@ -619,8 +619,8 @@ resources:
 - name: cf-deployment-master
   type: git
   source:
-    branch: cf-cli-release-register-broker
-    uri: https://github.com/mariash/cf-deployment.git
+    branch: master
+    uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
   type: git
