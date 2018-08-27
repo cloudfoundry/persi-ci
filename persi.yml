@@ -2679,7 +2679,9 @@ jobs:
                   operations/experimental/secure-service-credentials-with-pxc-release.yml
                   operations/use-pxc-for-nfs-broker.yml
                   operations/use-pxc-for-smb-broker.yml
-                  operations/test-nfsbroker-migration-to-credhub.yml"
+                  operations/test-nfsbroker-migration-to-credhub.yml
+                  operations/cflinuxfs3.yml
+                  operations/add-cflinuxfs3-buildpacks.yml"
 
 - name: bbl-up-boshlite-aws
   serial_groups:
