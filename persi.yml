@@ -651,11 +651,18 @@ resources:
     paths:
     - deployment-vars.yml
 
-- name: bbr-release
-  type: pivnet
+- name: bbr-binary-release
+  type: github-release
   source:
-    api_token: {{pivnet-api-token}}
-    product_slug: p-bosh-backup-and-restore
+    owner: cloudfoundry-incubator
+    repository: bosh-backup-and-restore
+    access_token: {{github-release-token}}
+
+- name: disaster-recovery-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
+    branch: master
 
 #### End cf-deployment resources #####################################################################################
 
@@ -2854,6 +2861,7 @@ jobs:
                   operations/update-releases.yml"
 
 - name: pats-drats
+  serial: true
   serial_groups:
   - gorgophone
   - local
@@ -2866,13 +2874,9 @@ jobs:
   plan:
   - aggregate:
     - get: diego-dev-release
-      passed: [ deploy-cf ]
+      passed:
+      - deploy-cf
       trigger: true
-    - get: diego-release
-    - get: persi-ci
-    - get: bbr-release
-    - get: gorgophone-env-director-state
-    - get: gorgophone-env-vars-store
     - get: nfs-volume-release
       passed:
       - deploy-cf
@@ -2881,42 +2885,24 @@ jobs:
       passed:
       - deploy-cf
       trigger: true
-
-  - task: extract-binary
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: cloudfoundrylondon/bbr-pipeline
-          tag: release-candidate
-      inputs:
-      - name: bbr-release
-      outputs:
-      - name: binary
-      run:
-        path: sh
-        args:
-        - -c
-        - |
-          tar -xvf bbr-release/bbr*.tar
-          cp releases/bbr binary/
-  - task: drats
-    privileged: true
-    file: persi-ci/scripts/ci/drats.build.yml
+    - get: bbr-binary-release
+    - get: disaster-recovery-acceptance-tests
+    - get: gorgophone-env-director-state
+  - task: create-integration-config
+    file: disaster-recovery-acceptance-tests/ci/credhub-compatible/update-integration-config/task.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
-      persi-ci: persi-ci
-      binary: binary
-      nfs-volume-release: nfs-volume-release
-      vars-store: gorgophone-env-vars-store
+      bbl-state: gorgophone-env-director-state
+      integration-configs: disaster-recovery-acceptance-tests
     params:
-      CF_API_URL: https://api.gorgophone.cf-app.com
-      CF_ADMIN_USERNAME: admin
-      NFS_BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      SMB_BROKER_URL: http://azurefile-broker.gorgophone.cf-app.com
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
+      SYSTEM_DOMAIN: gorgophone.cf-app.com
+  - task: acceptance-tests
+    file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
+    privileged: true
+    input_mapping:
+      drats-integration-config: updated-integration-configs
+    params:
+      CONFIG_FILE_PATH: ci/integration_config.json
 
 #### END cf-deployment related jobs ##################################################################################
 
