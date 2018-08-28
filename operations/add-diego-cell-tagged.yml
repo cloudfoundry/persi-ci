@@ -21,11 +21,19 @@
   value:
     vpa: {from: diego-cell-vpa}
 - type: replace
+  path: /instance_groups/name=diego-cell/jobs/name=silk-cni/consumes?
+  value:
+    vpa: {from: diego-cell-vpa}
+- type: replace
   path: /instance_groups/name=diego-cell-ldap/jobs/name=vxlan-policy-agent/provides?
   value:
     vpa: {as: diego-cell-ldap-vpa}
 - type: replace
   path: /instance_groups/name=diego-cell-ldap/jobs/name=silk-daemon/consumes?
+  value:
+    vpa: {from: diego-cell-ldap-vpa}
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=silk-cni/consumes?
   value:
     vpa: {from: diego-cell-ldap-vpa}
 - type: replace
