@@ -1715,7 +1715,7 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-boshlite-aws
-      BBL_IAAS: bosh-lite
+      BBL_IAAS: aws
 
 - name: deploy-ecs-broker
   serial_groups:
