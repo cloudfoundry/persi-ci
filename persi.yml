@@ -2363,11 +2363,11 @@ jobs:
       BBL_LB_KEY: {{gorgophone_lbs_ssl_signing_key}}
       BBL_ENV_NAME: bbl-env-victoria-2018-04-23t19-08z
       LB_DOMAIN: gorgophone.cf-app.com
-      OPS_FILES: bosh-opsfile/increase_bosh_persistent_disk.yml
       BBL_STATE_DIR: bbl-state-gcp
+      BBL_CONFIG_DIR: operations/bosh-gcp
     input_mapping:
       bbl-state: gorgophone-env-director-state
-      bbl-config: gorgophone-env-director-state #placeholder since we don't use ops files here yet
+      bbl-config: persi-ci
     ensure:
       put: gorgophone-env-director-state
       params:
