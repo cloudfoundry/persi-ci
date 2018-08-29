@@ -2895,6 +2895,7 @@ jobs:
       integration-configs: disaster-recovery-acceptance-tests
     params:
       BBL_STATE_DIR: bbl-state-gcp
+      INCLUDE_NFS_BROKER_TESTCASE: true
       SYSTEM_DOMAIN: gorgophone.cf-app.com
   - task: acceptance-tests
     file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
