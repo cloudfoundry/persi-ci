@@ -2513,8 +2513,7 @@ jobs:
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/xenial-diego-cells.yml
                       operations/add-diego-cell-tagged.yml
-                      operations/enable-csi-local-plugin.yml
-                      operations/enable-nfs-broker-backup.yml"
+                      operations/enable-csi-local-plugin.yml"
   - task: collect-nfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2677,7 +2676,7 @@ jobs:
                   operations/deploy-ecs-broker-errand.yml
                   operations/set-nfs-ldap-test-mode.yml
                   operations/backup-and-restore/enable-backup-restore.yml
-                  operations/enable-nfs-broker-backup.yml
+                  operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/enable-azurefile-broker-backup.yml
                   operations/xenial-diego-cells.yml
                   operations/experimental/enable-smb-volume-service.yml
