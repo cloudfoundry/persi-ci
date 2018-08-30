@@ -2513,7 +2513,8 @@ jobs:
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/xenial-diego-cells.yml
                       operations/add-diego-cell-tagged.yml
-                      operations/enable-csi-local-plugin.yml"
+                      operations/enable-csi-local-plugin.yml
+                      operations/set-credhub-ca-on-cflinuxfs3.yml"
   - task: collect-nfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2687,7 +2688,8 @@ jobs:
                   operations/use-pxc-for-nfs-broker.yml
                   operations/use-pxc-for-smb-broker.yml
                   operations/test-nfsbroker-migration-to-credhub.yml
-                  operations/experimental/add-cflinuxfs3.yml"
+                  operations/experimental/add-cflinuxfs3.yml
+                  operations/set-credhub-ca-on-cflinuxfs3.yml"
 
 - name: bbl-up-boshlite-aws
   serial_groups:
