@@ -2884,7 +2884,7 @@ jobs:
       trigger: true
     - get: smb-volume-release
       passed:
-      - deploy-cf
+      - deploy-azurefile-broker
       trigger: true
     - get: bbr-binary-release
     - get: disaster-recovery-acceptance-tests
