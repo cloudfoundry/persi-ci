@@ -2689,7 +2689,8 @@ jobs:
                   operations/use-pxc-for-smb-broker.yml
                   operations/test-nfsbroker-migration-to-credhub.yml
                   operations/experimental/add-cflinuxfs3.yml
-                  operations/set-credhub-ca-on-cflinuxfs3.yml"
+                  operations/set-credhub-ca-on-cflinuxfs3.yml
+                  operations/enable-privileged-container-support.yml"
 
 - name: bbl-up-boshlite-aws
   serial_groups:
