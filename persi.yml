@@ -2878,7 +2878,7 @@ jobs:
       trigger: true
     - get: nfs-volume-release
       passed:
-      - deploy-cf
+      - deploy-nfs-brokers
       trigger: true
     - get: smb-volume-release
       passed:
