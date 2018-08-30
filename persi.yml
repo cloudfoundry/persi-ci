@@ -2557,6 +2557,7 @@ jobs:
       NEW_OPS_FILES: "operations/enable-smb-test-server.yml
                       operations/enable-azurefile-broker-backup.yml
                       operations/enable-smb-volume-service-windows.yml
+                      operations/enable-backup-restore-smb-broker.yml
                       operations/use-bosh-dns-for-smb.yml
                       operations/use-pxc-for-smb-broker.yml"
   - task: collect-csi-plugins-ops-files
@@ -2677,6 +2678,7 @@ jobs:
                   operations/set-nfs-ldap-test-mode.yml
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
+                  operations/enable-backup-restore-smb-broker.yml
                   operations/enable-azurefile-broker-backup.yml
                   operations/xenial-diego-cells.yml
                   operations/experimental/enable-smb-volume-service.yml
