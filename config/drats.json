@@ -1,0 +1,6 @@
+{
+  "nfs_create_service_broker": true,
+  "smb_create_service_broker": true,
+  "include_cf-nfsbroker": true,
+  "include_cf-smbbroker": true
+}

@@ -2859,17 +2859,14 @@ jobs:
     - get: bbr-binary-release
     - get: disaster-recovery-acceptance-tests
     - get: gorgophone-env-director-state
-  - task: create-integration-config
+  - task: update-integration-config
     file: disaster-recovery-acceptance-tests/ci/credhub-compatible/update-integration-config/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
-      integration-configs: disaster-recovery-acceptance-tests
+      integration-configs: persi-ci
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      INCLUDE_NFS_BROKER_TESTCASE: true
-      NFS_CREATE_SERVICE_BROKER: true
-      INCLUDE_SMB_BROKER_TESTCASE: true
-      SMB_CREATE_SERVICE_BROKER: true
+      INTEGRATION_CONFIG_FILE_PATH: config/drats.json
       SYSTEM_DOMAIN: gorgophone.cf-app.com
   - task: acceptance-tests
     file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
@@ -2877,7 +2874,7 @@ jobs:
     input_mapping:
       drats-integration-config: updated-integration-configs
     params:
-      CONFIG_FILE_PATH: ci/integration_config.json
+      CONFIG_FILE_PATH: config/drats.json
 
 #### END cf-deployment related jobs ##################################################################################
 
