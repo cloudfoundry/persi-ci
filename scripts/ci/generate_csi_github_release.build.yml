@@ -1,7 +1,11 @@
 ---
 platform: linux
 
-rootfs_uri: docker:///concourse/git-resource
+image_resource:
+  type: docker-image
+  source:
+    repository: concourse/git-resource
+    tag: latest
 
 inputs:
 - name: persi-ci
