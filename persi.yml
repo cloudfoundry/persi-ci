@@ -451,6 +451,15 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/csi-local-volume-release.git
+    ignore_paths:
+    - scripts
+
+- name: csi-local-volume-release-concourse-tasks
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/csi-local-volume-release.git
+    paths:
+    - scripts
 
 - name: csi-cert
   type: git
@@ -1787,8 +1796,9 @@ jobs:
   - aggregate:
     - get: csi-local-volume-release
       trigger: true
+    - get: csi-local-volume-release-concourse-tasks
   - task: local-controller-plugin-unit
-    file: csi-local-volume-release/scripts/ci/local-controller-plugin-unit.build.yml
+    file: csi-local-volume-release-concourse-tasks/scripts/ci/local-controller-plugin-unit.build.yml
 
 - name: csi-local-node-plugin-unit
   public: true
@@ -1796,8 +1806,9 @@ jobs:
   - aggregate:
     - get: csi-local-volume-release
       trigger: true
+    - get: csi-local-volume-release-concourse-tasks
   - task: local-node-plugin-unit
-    file: csi-local-volume-release/scripts/ci/local-node-plugin-unit.build.yml
+    file: csi-local-volume-release-concourse-tasks/scripts/ci/local-node-plugin-unit.build.yml
 
 - name: csi-local-node-plugin-unit-windows
   public: true
@@ -1805,8 +1816,9 @@ jobs:
   - aggregate:
     - get: csi-local-volume-release
       trigger: true
+    - get: csi-local-volume-release-concourse-tasks
   - task: local-node-plugin-unit-windows
-    file: csi-local-volume-release/scripts/ci/local-node-plugin-unit-windows.build.yml
+    file: csi-local-volume-release-concourse-tasks/scripts/ci/local-node-plugin-unit-windows.build.yml
 
 - name: csi-broker-unit
   public: true
@@ -1814,8 +1826,9 @@ jobs:
   - aggregate:
     - get: csi-local-volume-release
       trigger: true
+    - get: csi-local-volume-release-concourse-tasks
   - task: csi-broker-unit
-    file: csi-local-volume-release/scripts/ci/csi-broker-unit.build.yml
+    file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-broker-unit.build.yml
 
 - name: csi-plugin-certification
   plan:
@@ -1827,9 +1840,10 @@ jobs:
       trigger: true
     - get: csi-cert
       trigger: true
+    - get: csi-local-volume-release-concourse-tasks
   - task: csi-plugin-certification
     privileged: true
-    file: csi-local-volume-release/scripts/ci/csi-plugin-certification.build.yml
+    file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-plugin-certification.build.yml
 
 - name: certification-test-builds
   plan:
@@ -1946,6 +1960,7 @@ jobs:
       resource: csi-local-volume-version
       params:
         pre: rc
+    - get: csi-local-volume-release-concourse-tasks
 
   - put: csi-local-version
     resource: csi-local-volume-version
@@ -1953,7 +1968,7 @@ jobs:
       file: csi-local-version/number
 
   - task: generate-release
-    file: csi-local-volume-release/scripts/ci/create_release.build.yml
+    file: csi-local-volume-release-concourse-tasks/scripts/ci/create_release.build.yml
 
   - put: csi-local-volume-release-tarball
     params:
@@ -1977,9 +1992,10 @@ jobs:
       - deploy-cf
     - get: persi-ci
     - get: gorgophone-env-director-state
+    - get: csi-local-volume-release-concourse-tasks
 
   - task: run-pats
-    file: csi-local-volume-release/scripts/ci/run_pats_localvolume.build.yml
+    file: csi-local-volume-release-concourse-tasks/scripts/ci/run_pats_localvolume.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
