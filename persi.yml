@@ -610,17 +610,11 @@ resources:
 #### End mapfs resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
-#- name: cf-deployment-develop
-#  type: git
-#  source:
-#    branch: develop
-#    uri: https://github.com/cloudfoundry/cf-deployment.git
-
-- name: cf-deployment-master
+- name: cf-deployment
   type: git
   source:
-    branch: master
-    uri: https://github.com/cloudfoundry/cf-deployment.git
+    branch: add-smb-broker-bbr-ops-file
+    uri: https://github.com/davewalter/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
   type: git
@@ -662,7 +656,7 @@ resources:
   type: git
   source:
     uri: https://github.com/davewalter/disaster-recovery-acceptance-tests.git
-    branch: fix-nfs-broker-registration-tolerance
+    branch: add-smb-service-broker-testcase
 
 #### End cf-deployment resources #####################################################################################
 
@@ -2348,7 +2342,7 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment-master
+    - get: cf-deployment
       trigger: true
     - get: gorgophone-env-vars-store
     - get: persi-ci
@@ -2388,7 +2382,7 @@ jobs:
   plan:
   - get: nightly
     trigger: true
-  - get: cf-deployment-master
+  - get: cf-deployment
   - get: persi-ci
   - task: noop
     file: persi-ci/scripts/ci/noop.build.yml
@@ -2409,7 +2403,7 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment-master
+    - get: cf-deployment
       passed:
       - bbl-up-gorgophone
       - cf-deployment-nightly
@@ -2497,7 +2491,7 @@ jobs:
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment-master
+      base-ops-files: cf-deployment
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -2569,7 +2563,6 @@ jobs:
     file: persi-ci/scripts/ci/parse-diego-cell-tagged.build.yml
     input_mapping:
       base-ops-files: collected-ops-files
-      cf-deployment: cf-deployment-master
   - task: add-tarballs
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2623,7 +2616,6 @@ jobs:
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
     input_mapping:
-      cf-deployment: cf-deployment-master
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
     params:
@@ -2632,7 +2624,6 @@ jobs:
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
-      cf-deployment: cf-deployment-master
       vars-store: gorgophone-env-vars-store
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
@@ -2687,7 +2678,7 @@ jobs:
     - get: bosh-bootloader
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment-master
+    - get: cf-deployment
       passed:
       - bbl-up-gorgophone
       trigger: true
@@ -2721,7 +2712,7 @@ jobs:
     - get: deployments-persi
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment-master
+    - get: cf-deployment
       passed:
       - bbl-up-boshlite-aws
       trigger: true
@@ -2783,7 +2774,7 @@ jobs:
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment-master
+      base-ops-files: cf-deployment
       new-ops-files: efs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -2822,7 +2813,6 @@ jobs:
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
     input_mapping:
-      cf-deployment: cf-deployment-master
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-boshlite-aws
@@ -2830,7 +2820,6 @@ jobs:
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
-      cf-deployment: cf-deployment-master
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
       vars-files: generated-vars
@@ -2882,6 +2871,8 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp
       INCLUDE_NFS_BROKER_TESTCASE: true
       NFS_CREATE_SERVICE_BROKER: true
+      INCLUDE_SMB_BROKER_TESTCASE: true
+      SMB_CREATE_SERVICE_BROKER: true
       SYSTEM_DOMAIN: gorgophone.cf-app.com
   - task: acceptance-tests
     file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
