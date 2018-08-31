@@ -2859,6 +2859,7 @@ jobs:
     - get: bbr-binary-release
     - get: disaster-recovery-acceptance-tests
     - get: gorgophone-env-director-state
+    - get: persi-ci
   - task: update-integration-config
     file: disaster-recovery-acceptance-tests/ci/credhub-compatible/update-integration-config/task.yml
     input_mapping:
