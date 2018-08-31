@@ -2470,15 +2470,6 @@ jobs:
       trigger: true
     - get: smb-volume-version
       passed: [ create-smb-volume-release ]
-
-  - task: bosh-upload-stemcell
-    file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
-    input_mapping:
-      cf-deployment: cf-deployment-master
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      INFRASTRUCTURE: google
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -2629,7 +2620,15 @@ jobs:
       DATADOG_METRIC_PREFIX: gorgophone
       SMB_USERNAME: {{smb_server_username}}
       SMB_PASSWORD: {{smb_server_password}}
-
+  - task: bosh-upload-stemcell
+    file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
+    input_mapping:
+      cf-deployment: cf-deployment-master
+      bbl-state: gorgophone-env-director-state
+      ops-files: collected-ops-files
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      OPS_FILES: operations/experimental/use-xenial-stemcell.yml
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
@@ -2747,14 +2746,6 @@ jobs:
       passed: [ create-mapfs-release ]
     - get: mapfs-version
       passed: [ create-mapfs-release ]
-  - task: bosh-upload-stemcell
-    file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
-    input_mapping:
-      cf-deployment: cf-deployment-master
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-boshlite-aws
-      INFRASTRUCTURE: bosh-lite
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -2828,7 +2819,14 @@ jobs:
       AWS_SECURITY_GROUP: sg-854aa7f6
       AWS_SUBNET_ID: subnet-08e7b271
       AWS_AZ: us-west-2b
-
+  - task: bosh-upload-stemcell
+    file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
+    input_mapping:
+      cf-deployment: cf-deployment-master
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-boshlite-aws
+      INFRASTRUCTURE: bosh-lite
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
