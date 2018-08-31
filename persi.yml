@@ -299,6 +299,15 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry/local-volume-release.git
+    ignore_paths:
+    - scripts
+- name: local-volume-release-concourse-tasks
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/local-volume-release.git
+    paths:
+    - scripts
 #### END local volume resources ######################################################################################
 
 #### EFS resources ################################################################################################
@@ -680,26 +689,32 @@ jobs:
 - name: localdriver-unit
   public: true
   plan:
-  - get: local-volume-release
-    trigger: true
+  - aggregate:
+    - get: local-volume-release-concourse-tasks
+    - get: local-volume-release
+      trigger: true
   - task: build
-    file: local-volume-release/scripts/ci/run_driver_unit.build.yml
+    file: local-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
 
 - name: localdriver-unit-windows
   public: true
   plan:
-  - get: local-volume-release
-    trigger: true
+  - aggregate:
+    - get: local-volume-release-concourse-tasks
+    - get: local-volume-release
+      trigger: true
   - task: build
-    file: local-volume-release/scripts/ci/run_driver_unit_windows.build.yml
+    file: local-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
 
 - name: localbroker-unit
   public: true
   plan:
-  - get: local-volume-release
-    trigger: true
+  - aggregate:
+    - get: local-volume-release-concourse-tasks
+    - get: local-volume-release
+      trigger: true
   - task: build
-    file: local-volume-release/scripts/ci/run_broker_unit.build.yml
+    file: local-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
 
 - name: localdriver-certification
   plan:
@@ -708,8 +723,9 @@ jobs:
       passed:
       - localdriver-unit
       trigger: true
+    - get: local-volume-release-concourse-tasks
   - task: build
-    file: local-volume-release/scripts/ci/run_driver_cert.build.yml
+    file: local-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
 
 - name: localdriver-certification-windows
   plan:
@@ -718,8 +734,9 @@ jobs:
       passed:
       - localdriver-unit-windows
       trigger: true
+    - get: local-volume-release-concourse-tasks
   - task: build
-    file: local-volume-release/scripts/ci/run_driver_cert_windows.build.yml
+    file: local-volume-release-concourse-tasks/scripts/ci/run_driver_cert_windows.build.yml
 
 - name: localdriver-docker-certification
   plan:
@@ -728,9 +745,10 @@ jobs:
       passed:
       - localdriver-unit
       trigger: true
+    - get: local-volume-release-concourse-tasks
   - task: build
     privileged: true
-    file: local-volume-release/scripts/ci/run_docker_cert.build.yml
+    file: local-volume-release-concourse-tasks/scripts/ci/run_docker_cert.build.yml
 
 - name: create-local-volume-release
   plan:
@@ -745,12 +763,13 @@ jobs:
       resource: localvolume-version
       params:
         pre: rc
+    - get: local-volume-release-concourse-tasks
   - put: local-volume-version
     resource: localvolume-version
     params:
       file: local-volume-version/number
   - task: create-release
-    file: local-volume-release/scripts/ci/create_local_volume_release.build.yml
+    file: local-volume-release-concourse-tasks/scripts/ci/create_local_volume_release.build.yml
   - put: local-volume-release-tarball
     params:
       file: created-local-volume-release/local*.tgz
@@ -770,8 +789,9 @@ jobs:
       trigger: true
     - get: persi-ci
     - get: gorgophone-env-director-state
+    - get: local-volume-release-concourse-tasks
   - task: run-pats
-    file: local-volume-release/scripts/ci/run_pats_localvolume.build.yml
+    file: local-volume-release-concourse-tasks/scripts/ci/run_pats_localvolume.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
@@ -802,8 +822,9 @@ jobs:
       trigger: true
     - get: persi-ci
     - get: gorgophone-env-director-state
+    - get: local-volume-release-concourse-tasks
   - task: run-pats
-    file: local-volume-release/scripts/ci/run_pats_localvolume.build.yml
+    file: local-volume-release-concourse-tasks/scripts/ci/run_pats_localvolume.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
