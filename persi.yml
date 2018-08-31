@@ -2511,7 +2511,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
-                      operations/xenial-diego-cells.yml
                       operations/add-diego-cell-tagged.yml
                       operations/enable-csi-local-plugin.yml"
   - task: collect-nfs-ops-files
@@ -2676,7 +2675,7 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/enable-backup-restore-smb-broker.yml
-                  operations/xenial-diego-cells.yml
+                  operations/experimental/use-xenial-stemcell.yml
                   operations/experimental/enable-smb-volume-service.yml
                   operations/enable-smb-volume-service-windows.yml
                   operations/update-releases.yml
