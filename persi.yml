@@ -2513,8 +2513,7 @@ jobs:
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/xenial-diego-cells.yml
                       operations/add-diego-cell-tagged.yml
-                      operations/enable-csi-local-plugin.yml
-                      operations/set-credhub-ca-on-cflinuxfs3.yml"
+                      operations/enable-csi-local-plugin.yml"
   - task: collect-nfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2658,9 +2657,7 @@ jobs:
                   operations/scale-up-routers-and-cells.yml
                   operations/use-bosh-dns-for-nfs.yml
                   operations/use-bosh-dns-for-smb.yml
-                  operations/experimental/secure-service-credentials.yml
                   operations/windows2016-cell.yml
-                  operations/experimental/secure-service-credentials-windows2016-cell.yml
                   operations/enable-nfs-volume-service.yml
                   operations/enable-nfs-volume-service-credhub.yml
                   operations/migrate-nfsbroker-mysql-to-credhub.yml
@@ -2684,12 +2681,10 @@ jobs:
                   operations/enable-smb-volume-service-windows.yml
                   operations/update-releases.yml
                   operations/experimental/use-pxc.yml
-                  operations/experimental/secure-service-credentials-with-pxc-release.yml
                   operations/use-pxc-for-nfs-broker.yml
                   operations/use-pxc-for-smb-broker.yml
                   operations/test-nfsbroker-migration-to-credhub.yml
                   operations/experimental/add-cflinuxfs3.yml
-                  operations/set-credhub-ca-on-cflinuxfs3.yml
                   operations/enable-privileged-container-support.yml"
 
 - name: bbl-up-boshlite-aws
