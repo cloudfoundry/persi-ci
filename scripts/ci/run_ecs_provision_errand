@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -x -e
-
-persi-ci/scripts/ci/bosh_setup
-bosh -d deployments-persi/ecs-manifest.yml -n --parallel 10 run errand ecs_prov_errand
