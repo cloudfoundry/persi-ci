@@ -1135,6 +1135,9 @@ jobs:
     - get: nfs-volume-release
       passed: [ deploy-cf ]
       trigger: true
+    - get: cf-deployment
+      passed: [ deploy-cf ]
+      trigger: true
   - task: run-broker-errand
     file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
     input_mapping:
@@ -1749,6 +1752,9 @@ jobs:
     - get: ecs-version
       passed: [ deploy-cf ]
       trigger: true
+    - get: cf-deployment
+      passed: [ deploy-cf ]
+      trigger: true
   - task: run-broker-errand
     file: persi-ci/scripts/ci/run_ecs_broker_errand_cf_deployment.build.yml
     input_mapping:
@@ -2159,6 +2165,9 @@ jobs:
     - get: persi-ci
     - get: gorgophone-env-director-state
     - get: smb-volume-release
+      passed: [ deploy-cf ]
+      trigger: true
+    - get: cf-deployment
       passed: [ deploy-cf ]
       trigger: true
   - task: run-broker-errand
