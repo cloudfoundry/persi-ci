@@ -45,7 +45,7 @@
     network: default
     domain: bosh
 - type: replace
-  path: /instance_groups/name=diego-cell/jobs/-
+  path: /instance_groups/name=diego-cell/jobs/name=nfsv3driver
   value:
     name: nfsv3driver
     properties:
