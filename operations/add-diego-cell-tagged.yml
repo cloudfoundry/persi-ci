@@ -37,6 +37,22 @@
   value:
     vpa: {from: diego-cell-ldap-vpa}
 - type: replace
+  path: /instance_groups/name=diego-cell/jobs/name=mapfs/provides?
+  value:
+    vpa: {as: diego-cell-mapfs}
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/name=nfsv3driver/consumes?
+  value:
+    vpa: {from: diego-cell-mapfs}
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=mapfs/provides?
+  value:
+    vpa: {as: diego-cell-ldap-mapfs}
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=nfsv3driver/consumes?
+  value:
+    vpa: {from: diego-cell-ldap-mapfs}
+- type: replace
   path: /addons/name=bosh-dns-aliases/jobs/name=bosh-dns-aliases/properties/aliases/domain=_.cell.service.cf.internal/targets/-
   value:
     query: '_'
