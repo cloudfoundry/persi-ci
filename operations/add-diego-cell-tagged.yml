@@ -13,46 +13,6 @@
   path: /instance_groups/name=diego-cell-ldap/jobs/name=rep/properties/diego?/rep?/placement_tags?
   value: ["ldap"]
 - type: replace
-  path: /instance_groups/name=diego-cell/jobs/name=vxlan-policy-agent/provides?
-  value:
-    vpa: {as: diego-cell-vpa}
-- type: replace
-  path: /instance_groups/name=diego-cell/jobs/name=silk-daemon/consumes?
-  value:
-    vpa: {from: diego-cell-vpa}
-- type: replace
-  path: /instance_groups/name=diego-cell/jobs/name=silk-cni/consumes?
-  value:
-    vpa: {from: diego-cell-vpa}
-- type: replace
-  path: /instance_groups/name=diego-cell-ldap/jobs/name=vxlan-policy-agent/provides?
-  value:
-    vpa: {as: diego-cell-ldap-vpa}
-- type: replace
-  path: /instance_groups/name=diego-cell-ldap/jobs/name=silk-daemon/consumes?
-  value:
-    vpa: {from: diego-cell-ldap-vpa}
-- type: replace
-  path: /instance_groups/name=diego-cell-ldap/jobs/name=silk-cni/consumes?
-  value:
-    vpa: {from: diego-cell-ldap-vpa}
-- type: replace
-  path: /instance_groups/name=diego-cell/jobs/name=mapfs/provides?
-  value:
-    vpa: {as: diego-cell-mapfs}
-- type: replace
-  path: /instance_groups/name=diego-cell/jobs/name=nfsv3driver/consumes?
-  value:
-    vpa: {from: diego-cell-mapfs}
-- type: replace
-  path: /instance_groups/name=diego-cell-ldap/jobs/name=mapfs/provides?
-  value:
-    vpa: {as: diego-cell-ldap-mapfs}
-- type: replace
-  path: /instance_groups/name=diego-cell-ldap/jobs/name=nfsv3driver/consumes?
-  value:
-    vpa: {from: diego-cell-ldap-mapfs}
-- type: replace
   path: /addons/name=bosh-dns-aliases/jobs/name=bosh-dns-aliases/properties/aliases/domain=_.cell.service.cf.internal/targets/-
   value:
     query: '_'
@@ -94,3 +54,43 @@
   value:
     name: mapfs
     release: mapfs
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/name=vxlan-policy-agent/provides?
+  value:
+    vpa: {as: diego-cell-vpa}
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/name=silk-daemon/consumes?
+  value:
+    vpa: {from: diego-cell-vpa}
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/name=silk-cni/consumes?
+  value:
+    vpa: {from: diego-cell-vpa}
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=vxlan-policy-agent/provides?
+  value:
+    vpa: {as: diego-cell-ldap-vpa}
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=silk-daemon/consumes?
+  value:
+    vpa: {from: diego-cell-ldap-vpa}
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=silk-cni/consumes?
+  value:
+    vpa: {from: diego-cell-ldap-vpa}
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/name=mapfs/provides?
+  value:
+    vpa: {as: diego-cell-mapfs}
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/name=nfsv3driver/consumes?
+  value:
+    vpa: {from: diego-cell-mapfs}
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=mapfs/provides?
+  value:
+    vpa: {as: diego-cell-ldap-mapfs}
+- type: replace
+  path: /instance_groups/name=diego-cell-ldap/jobs/name=nfsv3driver/consumes?
+  value:
+    vpa: {from: diego-cell-ldap-mapfs}
