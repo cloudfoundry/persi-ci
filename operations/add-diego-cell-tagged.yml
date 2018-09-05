@@ -81,16 +81,16 @@
 - type: replace
   path: /instance_groups/name=diego-cell/jobs/name=mapfs/provides?
   value:
-    vpa: {as: diego-cell-mapfs}
+    mapfs: {as: diego-cell-mapfs}
 - type: replace
   path: /instance_groups/name=diego-cell/jobs/name=nfsv3driver/consumes?
   value:
-    vpa: {from: diego-cell-mapfs}
+    mapfs: {from: diego-cell-mapfs}
 - type: replace
   path: /instance_groups/name=diego-cell-ldap/jobs/name=mapfs/provides?
   value:
-    vpa: {as: diego-cell-ldap-mapfs}
+    mapfs: {as: diego-cell-ldap-mapfs}
 - type: replace
   path: /instance_groups/name=diego-cell-ldap/jobs/name=nfsv3driver/consumes?
   value:
-    vpa: {from: diego-cell-ldap-mapfs}
+    mapfs: {from: diego-cell-ldap-mapfs}
