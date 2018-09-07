@@ -158,6 +158,7 @@ groups:
   - localdriver-docker-certification
   - create-local-volume-release
   - pats-local
+  - pats-local-windows
   - bbl-up-gorgophone
   - deploy-cf
   - pats-drats
