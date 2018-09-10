@@ -2682,7 +2682,9 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml smb-vars.yml"
-      OPS_FILES: "operations/scale-to-one-az.yml
+      OPS_FILES: "operations/experimental/use-xenial-stemcell.yml
+                  operations/experimental/use-compiled-releases-xenial-stemcell.yml
+                  operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
                   operations/use-bosh-dns-for-nfs.yml
                   operations/use-bosh-dns-for-smb.yml
@@ -2704,7 +2706,6 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/enable-backup-restore-smb-broker.yml
-                  operations/experimental/use-xenial-stemcell.yml
                   operations/experimental/enable-smb-volume-service.yml
                   operations/enable-smb-volume-service-windows.yml
                   operations/update-releases.yml
