@@ -2661,7 +2661,7 @@ jobs:
       DATADOG_METRIC_PREFIX: gorgophone
       SMB_USERNAME: {{smb_server_username}}
       SMB_PASSWORD: {{smb_server_password}}
-  - task: bosh-upload-stemcell
+  - task: bosh-upload-xenial-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
@@ -2669,6 +2669,14 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp
       OPS_FILES: operations/experimental/use-xenial-stemcell.yml
+  - task: bosh-upload-windows-stemcell
+    file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      ops-files: collected-ops-files
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      OPS_FILES: operations/windows2016-cell.yml
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
