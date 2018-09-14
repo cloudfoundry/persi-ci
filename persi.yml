@@ -384,15 +384,15 @@ resources:
 - name: diego-release
   type: git
   source:
-    branch: update-for-csi-0-3-spec
+    branch: develop
     fetch:
-    - master
+    - develop
     ignore_paths:
     - dev_releases
     - git-hooks
     - releases
     - .final_builds
-    uri: https://github.com/davewalter/diego-release
+    uri: https://github.com/cloudfoundry/diego-release
 - name: routing-release
   type: git
   source:
