@@ -632,8 +632,8 @@ resources:
 - name: cf-deployment
   type: git
   source:
-    branch: add-smb-broker-bbr-ops-file
-    uri: https://github.com/davewalter/cf-deployment.git
+    branch: develop
+    uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
   type: git
