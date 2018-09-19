@@ -632,7 +632,7 @@ resources:
 - name: cf-deployment
   type: git
   source:
-    branch: smb-broker-bbr-plus-pr-592
+    branch: add-smb-broker-bbr-ops-file
     uri: https://github.com/davewalter/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
