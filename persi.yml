@@ -2586,7 +2586,6 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-smb-test-server.yml
                       operations/enable-smb-volume-service-windows.yml
-                      operations/enable-backup-restore-smb-broker.yml
                       operations/use-bosh-dns-for-smb.yml
                       operations/use-pxc-for-smb-broker.yml"
   - task: collect-csi-plugins-ops-files
@@ -2711,7 +2710,7 @@ jobs:
                   operations/set-nfs-ldap-test-mode.yml
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
-                  operations/enable-backup-restore-smb-broker.yml
+                  operations/backup-and-restore/enable-backup-restore-smb-broker.yml
                   operations/experimental/enable-smb-volume-service.yml
                   operations/enable-smb-volume-service-windows.yml
                   operations/update-releases.yml
