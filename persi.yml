@@ -2544,8 +2544,7 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/add-diego-cell-tagged.yml
-                      operations/enable-csi-local-plugin.yml
-                      operations/windows2016-cell.yml"
+                      operations/enable-csi-local-plugin.yml"
   - task: collect-nfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
