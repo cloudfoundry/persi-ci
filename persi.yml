@@ -2693,6 +2693,7 @@ jobs:
                   operations/use-bosh-dns-for-nfs.yml
                   operations/use-bosh-dns-for-smb.yml
                   operations/windows2016-cell.yml
+                  operations/experimental/use-compiled-releases-xenial-stemcell-windows2016-cell.yml
                   operations/enable-nfs-volume-service.yml
                   operations/experimental/enable-nfs-volume-service-credhub.yml
                   operations/experimental/migrate-nfsbroker-mysql-to-credhub.yml
