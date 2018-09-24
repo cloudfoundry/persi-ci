@@ -2664,7 +2664,6 @@ jobs:
       ops-files: collected-ops-files
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      OPS_FILES: operations/experimental/use-xenial-stemcell.yml
   - task: bosh-upload-windows-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
     input_mapping:
@@ -2686,14 +2685,13 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_STORE_FILE: deployment-vars.yml
       VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml smb-vars.yml"
-      OPS_FILES: "operations/experimental/use-xenial-stemcell.yml
-                  operations/experimental/use-compiled-releases-xenial-stemcell.yml
+      OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
                   operations/use-bosh-dns-for-nfs.yml
                   operations/use-bosh-dns-for-smb.yml
                   operations/windows2016-cell.yml
-                  operations/experimental/use-compiled-releases-xenial-stemcell-windows2016-cell.yml
+                  operations/experimental/use-compiled-releases-windows.yml
                   operations/enable-nfs-volume-service.yml
                   operations/experimental/enable-nfs-volume-service-credhub.yml
                   operations/experimental/migrate-nfsbroker-mysql-to-credhub.yml
