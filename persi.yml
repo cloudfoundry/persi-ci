@@ -2649,8 +2649,8 @@ jobs:
       BUILDPACK_DIRECTORY_KEY: persi-cc-buildpacks
       DROPLET_DIRECTORY_KEY: persi-cc-droplets
       RESOURCE_DIRECTORY_KEY: persi-cc-resources
-      NFSTESTSERVER_STATIC_IP: 10.0.1.19
-      NFSTESTLDAPSERVER_STATIC_IP: 10.0.1.20
+      NFSTESTSERVER_STATIC_IP: 10.0.255.1
+      NFSTESTLDAPSERVER_STATIC_IP: 10.0.255.2
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
       AWS_SECURITY_GROUP: sg-2ff60150,sg-2ff60150
