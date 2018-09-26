@@ -888,18 +888,18 @@ jobs:
     privileged: true
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_fuse_nfs_cert.build.yml
     params:
-      FUSE_MOUNT: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050
-      NFS_MOUNT: testnfsserver.gorgophone.cf-app.com:/export2/certs
+      FUSE_MOUNT: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050
+      NFS_MOUNT: nfstestserver.gorgophone.cf-app.com:/export2/certs
   - task: driver-cert
     privileged: true
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_tcp.build.yml
     params:
-      SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs
+      SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs
   - task: experimental-driver-cert
     privileged: true
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_experimental.build.yml
     params:
-      SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs
+      SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs
 - name: nfsdriver-certification-async-v4
   serial_groups:
   - nfs-test-server
@@ -919,15 +919,15 @@ jobs:
     input_mapping:
       fuse-nfs: fuse-nfs
     params:
-      FUSE_MOUNT: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050&multithread=1
-      NFS_MOUNT: testnfsserver.gorgophone.cf-app.com:/export2/certs
+      FUSE_MOUNT: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050&multithread=1
+      NFS_MOUNT: nfstestserver.gorgophone.cf-app.com:/export2/certs
   - task: driver-cert
     privileged: true
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_tcp.build.yml
     input_mapping:
       fuse-nfs: fuse-nfs
     params:
-      SOURCE: nfs://testnfsserver.gorgophone.cf-app.com/export2/certs?version=4
+      SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?version=4
       MULTITHREAD: 1
 - name: create-nfs-volume-release
   serial_groups:
@@ -2544,7 +2544,8 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/add-diego-cell-tagged.yml
-                      operations/enable-csi-local-plugin.yml"
+                      operations/enable-csi-local-plugin.yml
+                      operations/add-static-ip-to-nfstestserver.yml"
   - task: collect-nfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2648,6 +2649,8 @@ jobs:
       BUILDPACK_DIRECTORY_KEY: persi-cc-buildpacks
       DROPLET_DIRECTORY_KEY: persi-cc-droplets
       RESOURCE_DIRECTORY_KEY: persi-cc-resources
+      NFSTESTSERVER_STATIC_IP: 10.0.1.19
+      NFSTESTLDAPSERVER_STATIC_IP: 10.0.1.20
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
       AWS_SECURITY_GROUP: sg-2ff60150,sg-2ff60150
@@ -2703,6 +2706,7 @@ jobs:
                   operations/parsed-diego-cell-tagged.yml
                   operations/enable-smb-test-server.yml
                   operations/enable-csi-local-plugin.yml
+                  operations/add-static-ip-to-nfstestserver.yml
                   operations/add-csi-nfs-plugin.yml
                   operations/deploy-ecs-broker-errand.yml
                   operations/set-nfs-ldap-test-mode.yml

@@ -1,0 +1,7 @@
+---
+- type: replace
+  path: /instance_groups/name=nfstestserver/networks/name=default/static_ips?
+  value: ((nfstestserver_static_ips))
+- type: replace
+  path: /instance_groups/name=nfstestldapserver/networks/name=default/static_ips?
+  value: ((nfstestldapserver_static_ips))

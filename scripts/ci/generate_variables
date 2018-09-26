@@ -47,6 +47,9 @@ app_package_directory_key: ${APP_PACKAGE_DIRECTORY_KEY}
 buildpack_directory_key: ${BUILDPACK_DIRECTORY_KEY}
 droplet_directory_key: ${DROPLET_DIRECTORY_KEY}
 resource_directory_key: ${RESOURCE_DIRECTORY_KEY}
+
+nfstestserver_static_ips: ${NFSTESTSERVER_STATIC_IP}
+nfstestldapserver_static_ips: ${NFSTESTLDAPSERVER_STATIC_IP}
 EOF
 }
 
