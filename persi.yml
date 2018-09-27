@@ -1463,8 +1463,8 @@ jobs:
       CF_USERNAME: admin
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       APPS_DOMAIN: gorgophone.cf-app.com
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
 
 #### END NFS #########################################################################################################
 
