@@ -71,6 +71,7 @@ groups:
   - pats-ecs
   - pats-local
   - pats-local-windows
+  - background-load-test
 
 - name: csi
   jobs:
