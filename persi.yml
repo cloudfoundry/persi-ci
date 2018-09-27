@@ -110,7 +110,7 @@ groups:
   - pats-drats
   - create-isilon-volume
   - pats-isilon
-
+  - background-load-test
 
 - name: efs
   jobs:
@@ -1439,6 +1439,26 @@ jobs:
       TEST_READ_ONLY: false
       TEST_DOCKER_PORA: true
       TEST_ISOLATION_SEGMENT: ldap
+
+- name: background-load-test
+  serial_groups:
+  - nfs
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: persi-acceptance-tests
+    - get: gorgophone-env-director-state
+  - task: run-test
+    file: persi-ci/scripts/ci/run_background_load_test.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      CF_USERNAME: admin
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      APPS_DOMAIN: gorgophone.cf-app.com
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
 
 #### END NFS #########################################################################################################
 
