@@ -1452,6 +1452,8 @@ jobs:
   - nfs
   plan:
   - aggregate:
+    - get: nightly
+      trigger: true
     - get: persi-ci
     - get: persi-acceptance-tests
     - get: gorgophone-env-director-state
