@@ -74,8 +74,11 @@ while [ ${counter} -lt ${ITERATION_COUNT} ]; do
   cf app "${APP_NAME}"
 
   echo "Checking for errors..."
+  set +e
   cf logs "${APP_NAME}" --recent | grep waiting
-  if [ $? -eq 0 ]; then
+  rv=$?
+  set -e
+  if [ ${rv} -eq 0 ]; then
       echo
       echo "Test failed."
       exit 1
