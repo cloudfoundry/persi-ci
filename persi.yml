@@ -203,6 +203,12 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/persi-ci.git
 
+- name: persi-acceptance-tests
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/persi-acceptance-tests.git
+
 - name: bosh-bootloader
   type: git
   source:
