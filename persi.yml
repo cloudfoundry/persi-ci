@@ -53,15 +53,14 @@ groups:
   - deploy-nfs-brokers
   - migrate-nfs-broker
   - pats-nfs
-  - pats-nfs-experimental
-  - pats-nfsv4-experimental
   - pats-nfs-credhub
   - pats-efs
   - create-isilon-volume
   - pats-isilon
   - pats-nfs-docker
   - pats-nfs-ldap
-  - pats-nfs-ldap-experimental
+  - pats-nfs-legacy
+  - pats-nfs-ldap-legacy
   - pats-drats
   - pats-csi-local
   - pats-csi-nfs
@@ -98,11 +97,10 @@ groups:
   - nfsdriver-certification-async-v4
   - create-nfs-volume-release
   - pats-nfs
-  - pats-nfs-experimental
-  - pats-nfsv4-experimental
   - pats-nfs-docker
   - pats-nfs-ldap
-  - pats-nfs-ldap-experimental
+  - pats-nfs-legacy
+  - pats-nfs-ldap-legacy
   - pats-nfs-credhub
   - bbl-up-gorgophone
   - deploy-cf
@@ -1261,7 +1259,7 @@ jobs:
       TEST_MOUNT_OPTIONS: true
       TEST_READ_ONLY: true
 
-- name: pats-nfs-experimental
+- name: pats-nfs-legacy
   serial_groups:
   - nfs
   plan:
@@ -1294,7 +1292,7 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       PLAN_NAME: Existing
-      SERVICE_NAME: nfs-experimental
+      SERVICE_NAME: nfs-legacy
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
@@ -1303,40 +1301,6 @@ jobs:
       TEST_MOUNT_OPTIONS: true
       TEST_READ_ONLY: true
       TEST_MOUNT_FAIL_LOGGING: true
-
-- name: pats-nfsv4-experimental
-  serial_groups:
-  - nfs
-  plan:
-  - aggregate:
-    - get: nfs-volume-release-concourse-tasks
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-brokers
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-cf
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-  - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats_nfsvolume.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-      APPLICATION_PATH: nfs-volume-release/assets/pora
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs-experimental
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\",\"version\":\"4.1\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_READ_ONLY: true
 
 - name: pats-nfs-docker
   serial_groups:
@@ -1410,7 +1374,7 @@ jobs:
       TEST_DOCKER_PORA: true
       TEST_ISOLATION_SEGMENT: ldap
 
-- name: pats-nfs-ldap-experimental
+- name: pats-nfs-ldap-legacy
   serial_groups:
   - nfs
   plan:
@@ -1437,7 +1401,7 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       PLAN_NAME: Existing
-      SERVICE_NAME: nfs-experimental
+      SERVICE_NAME: nfs-legacy
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
       DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
