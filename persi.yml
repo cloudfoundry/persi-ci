@@ -2552,7 +2552,8 @@ jobs:
                       operations/test-nfsbroker-migration-to-credhub.yml
                       operations/set-nfs-ldap-test-mode.yml
                       operations/use-bosh-dns-for-nfs.yml
-                      operations/use-pxc-for-nfs-broker.yml"
+                      operations/use-pxc-for-nfs-broker.yml
+                      operations/enable-nfs-volume-service-credhub.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2689,7 +2690,7 @@ jobs:
                   operations/windows2016-cell.yml
                   operations/experimental/use-compiled-releases-windows.yml
                   operations/enable-nfs-volume-service.yml
-                  operations/experimental/enable-nfs-volume-service-credhub.yml
+                  operations/enable-nfs-volume-service-credhub.yml
                   operations/experimental/migrate-nfsbroker-mysql-to-credhub.yml
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
