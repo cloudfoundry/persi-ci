@@ -1057,11 +1057,11 @@ jobs:
     - get: release-tarball
       resource: mapfs-release-tarball
       passed:
-      - pats-nfs-experimental
+      - pats-nfs-legacy
     - get: release
       resource: mapfs-release
       passed:
-      - pats-nfs-experimental
+      - pats-nfs-legacy
     - get: version
       resource: mapfs-version
       params:
@@ -1579,7 +1579,7 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       DEFAULT_TIMEOUT: 300
-      ELASTIC_IP: 54.218.56.40
+      ELASTIC_IP: 34.213.225.99
 
 #### END EFS ##########################################################################################################
 
@@ -2874,7 +2874,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-boshlite-aws
       MANIFEST_FILE: cf-deployment.yml
-      SYSTEM_DOMAIN: 54.218.56.40.sslip.io
+      SYSTEM_DOMAIN: 34.213.225.99.sslip.io
       VARS_STORE_FILE: deployment-vars-bosh-lite.yml
       VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/aws.yml
