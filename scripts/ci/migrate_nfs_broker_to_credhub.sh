@@ -4,6 +4,7 @@ set -x -e
 
 function finish {
     echo "Cleaning up..."
+    set +x
     cf delete nfs-migration-test-app -f
     cf delete-service nfs-migration-test-service -f
     cf delete-service-broker nfs-broker-migration-test -f
