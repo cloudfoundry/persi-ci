@@ -23,6 +23,8 @@ groups:
   - cifs-smbdriver-unit
   - cifs-smbdriver-unit-windows
   - cifs-azurefilebroker-unit
+  - cifs-smbbroker-unit
+  - cifs-existingvolumebroker-unit
   - ecs-broker-unit
   - localdriver-unit
   - localdriver-unit-windows
@@ -137,6 +139,8 @@ groups:
   - cifs-smbdriver-unit
   - cifs-smbdriver-unit-windows
   - cifs-azurefilebroker-unit
+  - cifs-smbbroker-unit
+  - cifs-existingvolumebroker-unit
   - create-smb-volume-release
   - cifs-smbdriver-certification
   - cifs-smbdriver-certification-windows
@@ -2065,7 +2069,9 @@ jobs:
     - get: smb-volume-release
       trigger: true
   - task: smbdriver-unit
-    file: smb-volume-release-concourse-tasks/scripts/ci/smbdriver-unit.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
+    params:
+      SUBMODULE_NAME: smbdriver
 
 - name: cifs-smbdriver-unit-windows
   public: true
@@ -2085,7 +2091,33 @@ jobs:
     - get: smb-volume-release
       trigger: true
   - task: azurefilebroker-unit
-    file: smb-volume-release-concourse-tasks/scripts/ci/azurefilebroker-unit.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
+    params:
+      SUBMODULE_NAME: azurefilebroker
+
+- name: cifs-smbbroker-unit
+  public: true
+  plan:
+  - aggregate:
+    - get: smb-volume-release-concourse-tasks
+    - get: smb-volume-release
+      trigger: true
+  - task: smbbroker-unit
+    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
+    params:
+      SUBMODULE_NAME: smbbroker
+
+- name: cifs-existingvolumebroker-unit
+  public: true
+  plan:
+  - aggregate:
+    - get: smb-volume-release-concourse-tasks
+    - get: smb-volume-release
+      trigger: true
+  - task: existingvolumebroker-unit
+    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
+    params:
+      SUBMODULE_NAME: existingvolumebroker
 
 - name: create-smb-volume-release
   plan:
@@ -2094,6 +2126,8 @@ jobs:
     - get: smb-volume-release
       passed:
       - cifs-azurefilebroker-unit
+      - cifs-smbbroker-unit
+      - cifs-existingvolumebroker-unit
       - cifs-smbdriver-unit
       - cifs-smbdriver-unit-windows
       trigger: true
