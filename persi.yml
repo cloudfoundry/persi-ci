@@ -2749,6 +2749,12 @@ jobs:
                   operations/use-pxc-for-smb-broker.yml
                   operations/test-nfsbroker-migration-to-credhub.yml
                   operations/experimental/add-cflinuxfs3.yml"
+  - task: bosh-cleanup
+    file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
 
 - name: bbl-up-boshlite-aws
   serial_groups:
@@ -2916,6 +2922,12 @@ jobs:
                   operations/bosh-lite.yml
                   operations/deploy-efs-broker-and-install-driver.yml
                   operations/update-releases.yml"
+  - task: bosh-cleanup
+    file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-boshlite-aws
 
 - name: pats-drats
   serial: true
