@@ -169,7 +169,6 @@ groups:
 - name: util
   jobs:
   - bbl-destroy
-  - bosh-cleanups
 
 - name: release-nfs
   jobs:
@@ -419,14 +418,6 @@ resources:
   source:
     private_key: {{deployments-persi-key}}
     uri: git@github.com:cloudfoundry/deployments-persi.git
-
-- name: night
-  type: time
-  source:
-    start: 12:00 PM
-    stop: 1:00 PM
-    location: America/Los_Angeles
-
 #### End Persi resources ################################################################################################
 
 #### ECS resources ###################################################################################################
@@ -1715,31 +1706,6 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp
       BBL_IAAS: gcp
-
-- name: bosh-cleanups
-  serial_groups:
-  - gorgophone
-  plan:
-  - aggregate:
-    - get: night
-      trigger: true
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: deployments-persi
-  - task: bosh-cleanup-gorgophone
-    file: persi-ci/scripts/ci/bosh_cleanup.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-  - task: bosh-cleanup-boshlite-aws
-    file: persi-ci/scripts/ci/bosh_cleanup.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-boshlite-aws
-      BBL_IAAS: aws
 
 - name: deploy-ecs-broker
   serial_groups:
