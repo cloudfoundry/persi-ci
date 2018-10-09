@@ -2382,8 +2382,8 @@ jobs:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment
-      passed:
-      - cf-deployment-nightly
+#      passed:
+#      - cf-deployment-nightly
       trigger: true
     - get: gorgophone-env-vars-store
     - get: persi-ci
