@@ -2209,7 +2209,7 @@ jobs:
       SMB_REMOTE_PATH: {{smb_remote_path}}
       SMB_USERNAME: {{smb_username}}
       SMB_PASSWORD: {{smb_password}}
-      SERVICE_NAME: smb-service
+      SERVICE_NAME: smb
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
       TEST_WINDOWS_CELL: false
@@ -2239,7 +2239,7 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      SERVICE_NAME: smb-service
+      SERVICE_NAME: smb
       PLAN_NAME: Existing
       SMB_REMOTE_PATH: {{smb_remote_path_windows}}
       SMB_USERNAME: {{smb_username_windows}}
