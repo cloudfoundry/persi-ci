@@ -2579,9 +2579,9 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-smb-test-server.yml
+                      operations/enable-smb-volume-service.yml
                       operations/enable-smb-volume-service-windows.yml
-                      operations/use-bosh-dns-for-smb.yml
-                      operations/use-pxc-for-smb-broker.yml"
+                      operations/use-bosh-dns-for-smb.yml"
   - task: collect-csi-plugins-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2707,12 +2707,11 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/backup-and-restore/enable-backup-restore-smb-broker.yml
-                  operations/experimental/enable-smb-volume-service.yml
+                  operations/enable-smb-volume-service.yml
                   operations/enable-smb-volume-service-windows.yml
                   operations/update-releases.yml
                   operations/experimental/use-pxc.yml
                   operations/use-pxc-for-nfs-broker.yml
-                  operations/use-pxc-for-smb-broker.yml
                   operations/test-nfsbroker-migration-to-credhub.yml
                   operations/experimental/add-cflinuxfs3.yml"
   - task: bosh-cleanup
