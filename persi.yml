@@ -2148,9 +2148,9 @@ jobs:
   - task: driver-cert
     privileged: true
     params:
-      smbremotepath: {{azure_remote_path_windows}}
-      smbusername: {{azure_username_windows}}
-      smbpassword: {{azure_password_windows}}
+      smbremotepath: {{smb_remote_path_windows}}
+      smbusername: {{smb_username_windows}}
+      smbpassword: {{smb_password_windows}}
     file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert_windows.build.yml
 
 - name: deploy-smb-broker
@@ -2203,17 +2203,16 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://azurefilebroker.gorgophone.cf-app.com
-      BROKER_USER: admin
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       PLAN_NAME: Existing
-      AZURE_REMOTE_PATH: {{azure_remote_path}}
-      AZURE_USERNAME: {{azure_username}}
-      AZURE_PASSWORD: {{azure_password}}
-      SERVICE_NAME: azurefile-service
+      SMB_REMOTE_PATH: {{smb_remote_path}}
+      SMB_USERNAME: {{smb_username}}
+      SMB_PASSWORD: {{smb_password}}
+      SERVICE_NAME: smb-service
       TEST_MULTI_CELL: false
       TEST_MOUNT_OPTIONS: false
+      TEST_WINDOWS_CELL: false
 
 - name: pats-cifs-smb-windows
   serial_groups:
@@ -2240,13 +2239,11 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp
       APPLICATION_PATH: smb-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://azurefilebroker.gorgophone.cf-app.com
-      BROKER_USER: admin
-      SERVICE_NAME: azurefile-service
+      SERVICE_NAME: smb-service
       PLAN_NAME: Existing
-      AZURE_REMOTE_PATH: {{azure_remote_path_windows}}
-      AZURE_USERNAME: {{azure_username_windows}}
-      AZURE_PASSWORD: {{azure_password_windows}}
+      SMB_REMOTE_PATH: {{smb_remote_path_windows}}
+      SMB_USERNAME: {{smb_username_windows}}
+      SMB_PASSWORD: {{smb_password_windows}}
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       TEST_MULTI_CELL: false
