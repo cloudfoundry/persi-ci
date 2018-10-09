@@ -35,7 +35,7 @@ groups:
   - localdriver-docker-certification
   - cifs-smbdriver-certification
   - cifs-smbdriver-certification-windows
-  - deploy-azurefile-broker
+  - deploy-smb-broker
   - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
@@ -146,7 +146,7 @@ groups:
   - cifs-smbdriver-certification-windows
   - bbl-up-gorgophone
   - deploy-cf
-  - deploy-azurefile-broker
+  - deploy-smb-broker
   - pats-cifs-smb
   - pats-cifs-smb-windows
   - pats-drats
@@ -2153,7 +2153,7 @@ jobs:
       smbpassword: {{azure_password_windows}}
     file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert_windows.build.yml
 
-- name: deploy-azurefile-broker
+- name: deploy-smb-broker
   serial_groups:
   - smb
   - errands
@@ -2173,8 +2173,8 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: azurefilebrokerpush
-      INSTANCE_NAME: azurefilebrokerpush/first
+      ERRAND_NAME: smbbrokerpush
+      INSTANCE_NAME: smb-broker-push/first
 
 - name: pats-cifs-smb
   serial_groups:
@@ -2186,7 +2186,7 @@ jobs:
       passed:
       - cifs-smbdriver-certification
       - cifs-smbdriver-certification-windows
-      - deploy-azurefile-broker
+      - deploy-smb-broker
       trigger: true
     - get: smb-volume-release-tarball
       passed:
@@ -2225,7 +2225,7 @@ jobs:
       trigger: true
       passed:
       - deploy-cf
-      - deploy-azurefile-broker
+      - deploy-smb-broker
     - get: smb-volume-release-tarball
       passed:
       - deploy-cf
@@ -2917,7 +2917,7 @@ jobs:
       trigger: true
     - get: smb-volume-release
       passed:
-      - deploy-azurefile-broker
+      - deploy-smb-broker
       trigger: true
     - get: bbr-binary-release
     - get: disaster-recovery-acceptance-tests
