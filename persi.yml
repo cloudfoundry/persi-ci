@@ -265,8 +265,6 @@ resources:
     password: {{github-password}}
     branch: master
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
-    paths:
-    - scripts
 - name: github-release-nfs
   type: github-release
   source:
@@ -315,8 +313,6 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry/local-volume-release.git
-    paths:
-    - scripts
 #### END local volume resources ######################################################################################
 
 #### EFS resources ################################################################################################
@@ -350,8 +346,6 @@ resources:
     password: {{github-password}}
     branch: master
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
-    paths:
-    - scripts
 
 #### END EFS resources ################################################################################################
 
@@ -459,8 +453,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/csi-local-volume-release.git
-    paths:
-    - scripts
 
 - name: csi-cert
   type: git
@@ -554,8 +546,6 @@ resources:
     password: {{github-password}}
     branch: master
     uri: https://github.com/cloudfoundry/smb-volume-release.git
-    paths:
-    - scripts
 
 - name: smb-volume-version
   type: semver
