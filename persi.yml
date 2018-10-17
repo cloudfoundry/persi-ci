@@ -63,6 +63,7 @@ groups:
   - pats-nfs-ldap
   - pats-nfs-legacy
   - pats-nfs-ldap-legacy
+  - cats-nfs
   - pats-drats
   - pats-csi-local
   - pats-csi-nfs
@@ -104,6 +105,7 @@ groups:
   - pats-nfs-legacy
   - pats-nfs-ldap-legacy
   - pats-nfs-credhub
+  - cats-nfs
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-nfs-brokers
@@ -210,6 +212,12 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry/persi-acceptance-tests.git
+
+- name: cf-acceptance-tests
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/mariash/cf-acceptance-tests.git
 
 - name: bosh-bootloader
   type: git
@@ -1395,6 +1403,32 @@ jobs:
       TEST_READ_ONLY: false
       TEST_DOCKER_PORA: true
       TEST_ISOLATION_SEGMENT: ldap
+
+- name: cats-nfs
+  serial_groups:
+  - nfs
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - deploy-nfs-brokers
+      trigger: true
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+    - get: cf-acceptance-tests
+  - task: run-cats
+    file: persi-ci/scripts/ci/run_cats.build.yml
+    input_mapping:
+      bosh-env: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      BBL_IAAS: gcp
+      APPS_DOMAIN: gorgophone.cf-app.com
+      CF_USERNAME: admin
+      SERVICE_NAME: nfs
+      PLAN_NAME: Existing
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
 
 - name: background-load-test
   serial_groups:
