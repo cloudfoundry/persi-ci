@@ -1419,7 +1419,7 @@ jobs:
   - task: run-cats
     file: persi-ci/scripts/ci/run_cats.build.yml
     input_mapping:
-      bosh-env: gorgophone-env-director-state
+      director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
       BBL_IAAS: gcp

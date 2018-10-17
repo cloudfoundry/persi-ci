@@ -9,7 +9,7 @@ image_resource:
 
 inputs:
   - name: persi-ci
-  - name: bosh-env
+  - name: director-state
   - name: cf-acceptance-tests
     path: src/github.com/cloudfoundry/cf-acceptance-tests
 
