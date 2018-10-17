@@ -4,8 +4,8 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: cloudfoundry/diego-units-ci
-    tag: latest
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v5.15.0
 
 inputs:
   - name: persi-ci
