@@ -2901,7 +2901,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-boshlite-aws
       MANIFEST_FILE: cf-deployment.yml
-      SYSTEM_DOMAIN: 34.213.225.99.sslip.io
+      SYSTEM_DOMAIN: 54.184.106.177.sslip.io
       VARS_STORE_FILE: deployment-vars-bosh-lite.yml
       VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/aws.yml
