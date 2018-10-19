@@ -1598,7 +1598,7 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: false
       DEFAULT_TIMEOUT: 300
-      ELASTIC_IP: 34.213.225.99
+      ELASTIC_IP: 54.184.106.177
 
 #### END EFS ##########################################################################################################
 
