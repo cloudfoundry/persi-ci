@@ -49,6 +49,7 @@ droplet_directory_key: ${DROPLET_DIRECTORY_KEY}
 resource_directory_key: ${RESOURCE_DIRECTORY_KEY}
 
 nfstestserver_static_ips: ${NFSTESTSERVER_STATIC_IP}
+nfstestserver_two_static_ips: ${NFSTESTSERVER_TWO_STATIC_IP}
 nfstestldapserver_static_ips: ${NFSTESTLDAPSERVER_STATIC_IP}
 EOF
 }

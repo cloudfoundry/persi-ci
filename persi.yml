@@ -2559,7 +2559,8 @@ jobs:
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/add-diego-cell-tagged.yml
                       operations/enable-csi-local-plugin.yml
-                      operations/add-static-ip-to-nfstestserver.yml"
+                      operations/enable-nfs-test-server-two.yml
+                      operations/add-static-ips-to-nfstestservers.yml"
   - task: collect-nfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2665,6 +2666,7 @@ jobs:
       DROPLET_DIRECTORY_KEY: persi-cc-droplets
       RESOURCE_DIRECTORY_KEY: persi-cc-resources
       NFSTESTSERVER_STATIC_IP: 10.0.255.1
+      NFSTESTSERVER_TWO_STATIC_IP: 10.0.255.3
       NFSTESTLDAPSERVER_STATIC_IP: 10.0.255.2
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
@@ -2713,6 +2715,7 @@ jobs:
                   operations/enable-nfs-volume-service.yml
                   operations/enable-nfs-volume-service-credhub.yml
                   operations/experimental/migrate-nfsbroker-mysql-to-credhub.yml
+                  operations/enable-nfs-test-server-two.yml
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
                   operations/enable-nfs-test-server.yml
@@ -2721,7 +2724,7 @@ jobs:
                   operations/parsed-diego-cell-tagged.yml
                   operations/enable-smb-test-server.yml
                   operations/enable-csi-local-plugin.yml
-                  operations/add-static-ip-to-nfstestserver.yml
+                  operations/add-static-ips-to-nfstestservers.yml
                   operations/add-csi-nfs-plugin.yml
                   operations/deploy-ecs-broker-errand.yml
                   operations/set-nfs-ldap-test-mode.yml
