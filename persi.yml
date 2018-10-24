@@ -1211,12 +1211,15 @@ jobs:
       SERVICE_NAME: nfs
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
+      CREATE_LAZY_UNMOUNT_CONFIG: '{\"share\":\"nfstestservertwo.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      LAZY_UNMOUNT_VM_INSTANCE: nfstestservertwo
       TEST_MULTI_CELL: true
       TEST_MOUNT_OPTIONS: true
       TEST_READ_ONLY: true
       TEST_MOUNT_FAIL_LOGGING: true
+      TEST_LAZY_UNMOUNT: true
 
 - name: pats-nfs-credhub
   serial_groups:
