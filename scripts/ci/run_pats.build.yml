@@ -1,0 +1,30 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v5.15.0
+
+inputs:
+- name: director-state
+- name: nfs-volume-release-concourse-tasks
+- name: nfs-volume-release
+- name: pats-config
+- name: persi-ci
+
+params:
+  BBL_IAAS: gcp
+  BBL_STATE_DIR: bbl-state-gcp
+  CONFIG_FILE_PATH: pats-config/pats.json
+  PARALLEL_NODES:
+  RELEASE_DIR:
+  TEST_DOCKER_PORA: false
+  TEST_LAZY_UNMOUNT: true
+  TEST_MOUNT_FAIL_LOGGING: true
+  TEST_MOUNT_OPTIONS: true
+  TEST_MULTI_CELL: true
+  TEST_READ_ONLY: true
+run:
+  path: nfs-volume-release-concourse-tasks/scripts/ci/run_pats
