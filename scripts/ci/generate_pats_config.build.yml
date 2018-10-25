@@ -30,13 +30,7 @@ params:
   LAZY_UNMOUNT_VM_INSTANCE:
   PLAN_NAME: replace-me
   SERVICE_NAME: replace-me
-  TEST_DOCKER_PORA: false
   TEST_ISOLATION_SEGMENT:
-  TEST_LAZY_UNMOUNT: false
-  TEST_MOUNT_FAIL_LOGGING: false
-  TEST_MOUNT_OPTIONS: false
-  TEST_MULTI_CELL: false
-  TEST_READ_ONLY: false
 
 run:
   path: persi-ci/scripts/ci/generate_pats_config.sh
