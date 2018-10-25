@@ -1196,30 +1196,31 @@ jobs:
       - deploy-cf
     - get: persi-ci
     - get: gorgophone-env-director-state
-  - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats_nfsvolume.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-      APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      CREATE_LAZY_UNMOUNT_CONFIG: '{\"share\":\"nfstestservertwo.service.cf.internal/export/users\"}'
+      LAZY_UNMOUNT_VM_INSTANCE: nfstestservertwo
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
-      CREATE_LAZY_UNMOUNT_CONFIG: '{\"share\":\"nfstestservertwo.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      LAZY_UNMOUNT_VM_INSTANCE: nfstestservertwo
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_READ_ONLY: true
-      TEST_MOUNT_FAIL_LOGGING: true
+  - task: run-pats
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    params:
       TEST_LAZY_UNMOUNT: true
+      TEST_MOUNT_FAIL_LOGGING: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_MULTI_CELL: true
+      TEST_READ_ONLY: true
 
 - name: pats-nfs-credhub
   serial_groups:
@@ -1236,23 +1237,24 @@ jobs:
       - deploy-cf
     - get: persi-ci
     - get: gorgophone-env-director-state
-  - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats_nfsvolume.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-      APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
+      BBL_STATE_DIR: bbl-state-gcp
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-credhub
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
+  - task: run-pats
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    params:
       TEST_MOUNT_OPTIONS: true
+      TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 
 - name: pats-nfs-legacy
@@ -1276,27 +1278,28 @@ jobs:
       - deploy-cf
     - get: persi-ci
     - get: gorgophone-env-director-state
-  - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats_nfsvolume.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-      APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-legacy
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_READ_ONLY: true
+  - task: run-pats
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    params:
       TEST_MOUNT_FAIL_LOGGING: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_MULTI_CELL: true
+      TEST_READ_ONLY: true
 
 - name: pats-nfs-docker
   serial_groups:
@@ -1313,25 +1316,26 @@ jobs:
       - deploy-cf
     - get: persi-ci
     - get: gorgophone-env-director-state
-  - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats_nfsvolume.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-      APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_READ_ONLY: true
+  - task: run-pats
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    params:
       TEST_DOCKER_PORA: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_MULTI_CELL: true
+      TEST_READ_ONLY: true
 
 - name: pats-nfs-ldap
   serial_groups:
@@ -1348,27 +1352,26 @@ jobs:
       - deploy-cf
     - get: persi-ci
     - get: gorgophone-env-director-state
-  - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats_nfsvolume.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-      APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
-      DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: false
-      TEST_DOCKER_PORA: true
       TEST_ISOLATION_SEGMENT: ldap
+  - task: run-pats
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    params:
+      TEST_DOCKER_PORA: true
+      TEST_MULTI_CELL: true
 
 - name: pats-nfs-ldap-legacy
   serial_groups:
@@ -1385,27 +1388,26 @@ jobs:
       - deploy-cf
     - get: persi-ci
     - get: gorgophone-env-director-state
-  - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats_nfsvolume.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
-      APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-legacy
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
-      DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: false
-      TEST_DOCKER_PORA: true
       TEST_ISOLATION_SEGMENT: ldap
+  - task: run-pats
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    params:
+      TEST_DOCKER_PORA: true
+      TEST_MULTI_CELL: true
 
 - name: cats-nfs
   serial_groups:
@@ -1491,26 +1493,26 @@ jobs:
       - create-isilon-volume
       - deploy-nfs-brokers
       trigger: true
-    - get: gorgophone-env-vars-store
-  - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats_nfsvolume.build.yml
+    - get: gorgophone-env-director-state
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
-      director-state: gorgophone-env-vars-store
+      director-state: gorgophone-env-director-state
     params:
-      BBL_IAAS: gcp
       BBL_STATE_DIR: bbl-state-gcp
-      APPLICATION_PATH: nfs-volume-release/assets/pora
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
+      BROKER_USER: nfs-broker
+      CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+  - task: run-pats
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    params:
       TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
       TEST_READ_ONLY: true
 #### END Isilon ######################################################################################################
 
