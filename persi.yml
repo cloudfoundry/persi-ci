@@ -237,19 +237,19 @@ resources:
 - name: nfs-volume-release-tarball
   type: s3
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{nfsvolume-uploader_aws_ID}}
     bucket: nfs-volume-release-tarballs
     regexp: nfs-volume-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{nfsvolume-uploader_aws_secret}}
 - name: nfsvolume-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{nfsvolume-uploader_aws_ID}}
     bucket: nfsvolume-release-versions
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{nfsvolume-uploader_aws_secret}}
 - name: nfsvolume-final-release
   type: s3
   source:
@@ -296,19 +296,19 @@ resources:
 - name: local-volume-release-tarball
   type: s3
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{localvolume-uploader_aws_ID}}
     bucket: local-volume-release-tarballs
     regexp: local-volume-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{localvolume-uploader_aws_secret}}
 - name: localvolume-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{localvolume-uploader_aws_ID}}
     bucket: localvolume-release-versions
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{localvolume-uploader_aws_secret}}
 - name: local-volume-release
   type: git
   source:
@@ -327,19 +327,19 @@ resources:
 - name: efs-volume-release-tarball
   type: s3
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{efsvolume-uploader_aws_ID}}
     bucket: efs-volume-release-tarballs
     regexp: efs-volume-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{efsvolume-uploader_aws_secret}}
 - name: efsvolume-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{efsvolume-uploader_aws_ID}}
     bucket: efsvolume-release-versions
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{efsvolume-uploader_aws_secret}}
 - name: efs-volume-release
   type: git
   source:
@@ -470,56 +470,56 @@ resources:
 - name: csi-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{csivolume-uploader_aws_ID}}
     bucket: csi-versions
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{csivolume-uploader_aws_secret}}
 
 - name: csi-binaries
   type: s3
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{csivolume-uploader_aws_ID}}
     versioned_file: csi-cert.test.tgz
     bucket: csi-binaries
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{csivolume-uploader_aws_secret}}
 
 - name: csi-local-volume-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{csivolume-uploader_aws_ID}}
     bucket: csi-local-volume-versions
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{csivolume-uploader_aws_secret}}
 
 - name: csi-plugins-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{csiplugins-uploader_aws_ID}}
     bucket: csi-plugins-versions
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{csiplugins-uploader_aws_secret}}
 
 - name: csi-local-volume-release-tarball
   type: s3
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{csivolume-uploader_aws_ID}}
     bucket: csi-local-volume-release-tarballs
     regexp: csi-local-volume-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{csivolume-uploader_aws_secret}}
 
 - name: csi-plugins-release-tarball
   type: s3
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{csiplugins-uploader_aws_ID}}
     bucket: csi-plugins-release-tarballs
     regexp: csi-plugins-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{csiplugins-uploader_aws_secret}}
 
 - name: github-release-csi
   type: github-release
@@ -570,8 +570,8 @@ resources:
   source:
     bucket: smb-volume-release-tarballs
     regexp: smb-volume-(.*).tgz
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    access_key_id: {{smbvolume-uploader_aws_ID}}
+    secret_access_key: {{smbvolume-uploader_aws_secret}}
 
 - name: smbvolume-final-release
   type: s3
