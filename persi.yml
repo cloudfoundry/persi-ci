@@ -1214,8 +1214,11 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
   - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
     params:
+      RELEASE_DIR: nfs-volume-release
       TEST_LAZY_UNMOUNT: true
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
@@ -1251,8 +1254,11 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-credhub
   - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
     params:
+      RELEASE_DIR: nfs-volume-release
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
@@ -1294,8 +1300,11 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-legacy
   - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
     params:
+      RELEASE_DIR: nfs-volume-release
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -1330,8 +1339,11 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
   - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
     params:
+      RELEASE_DIR: nfs-volume-release
       TEST_DOCKER_PORA: true
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -1368,8 +1380,11 @@ jobs:
       SERVICE_NAME: nfs
       TEST_ISOLATION_SEGMENT: ldap
   - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
     params:
+      RELEASE_DIR: nfs-volume-release
       TEST_DOCKER_PORA: true
       TEST_MULTI_CELL: true
 
@@ -1404,8 +1419,11 @@ jobs:
       SERVICE_NAME: nfs-legacy
       TEST_ISOLATION_SEGMENT: ldap
   - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
     params:
+      RELEASE_DIR: nfs-volume-release
       TEST_DOCKER_PORA: true
       TEST_MULTI_CELL: true
 
@@ -1510,8 +1528,11 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
   - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
     params:
+      RELEASE_DIR: nfs-volume-release
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 #### END Isilon ######################################################################################################
