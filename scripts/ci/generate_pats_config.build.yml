@@ -1,0 +1,42 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: latest
+
+inputs:
+- name: persi-ci
+- name: director-state
+
+outputs:
+- name: pats-config
+
+params:
+  BBL_STATE_DIR:
+
+  APPS_DOMAIN: replace-me
+  CF_API_ENDPOINT: replace-me
+  CF_USERNAME: replace-me
+
+  BIND_BOGUS_CONFIG:
+  BIND_CONFIG: replace-me
+  CREATE_BOGUS_CONFIG:
+  CREATE_CONFIG: replace-me
+  CREATE_LAZY_UNMOUNT_CONFIG:
+  DISALLOWED_LDAP_BIND_CONFIG:
+  LAZY_UNMOUNT_VM_INSTANCE:
+  PLAN_NAME: replace-me
+  SERVICE_NAME: replace-me
+  TEST_DOCKER_PORA: false
+  TEST_ISOLATION_SEGMENT:
+  TEST_LAZY_UNMOUNT: false
+  TEST_MOUNT_FAIL_LOGGING: false
+  TEST_MOUNT_OPTIONS: false
+  TEST_MULTI_CELL: false
+  TEST_READ_ONLY: false
+
+run:
+  path: persi-ci/scripts/ci/generate_pats_config.sh
