@@ -40,6 +40,9 @@ function write_config_to_file() {
 
   "bind_bogus_config": "${BIND_BOGUS_CONFIG}",
   "bind_config": "${BIND_CONFIG}",
+  "broker_password": "$(get_password_from_credhub "${BROKER_PASSWORD_KEY}")",
+  "broker_url": "${BROKER_URL}",
+  "broker_user": "${BROKER_USER}",
   "create_bogus_config": "${CREATE_BOGUS_CONFIG}",
   "create_config": "${CREATE_CONFIG}",
   "create_lazy_unmount_config": "${CREATE_LAZY_UNMOUNT_CONFIG}",
