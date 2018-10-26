@@ -27,8 +27,8 @@ function validate_required_params() {
 }
 
 function write_config_to_file() {
-  CONFIG="pats-config/pats.json"
-  cat << EOF > ${CONFIG}
+  CONFIG_FILE="pats-config/pats.json"
+  cat << EOF > ${CONFIG_FILE}
 {
   "admin_password": "$(get_password_from_credhub cf_admin_password)",
   "admin_user": "${CF_USERNAME}",
@@ -40,7 +40,6 @@ function write_config_to_file() {
 
   "bind_bogus_config": "${BIND_BOGUS_CONFIG}",
   "bind_config": "${BIND_CONFIG}",
-  "broker_password": "$(get_password_from_credhub "${BROKER_PASSWORD_KEY}")",
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
   "create_bogus_config": "${CREATE_BOGUS_CONFIG}",
@@ -53,6 +52,12 @@ function write_config_to_file() {
   "service_name": "${SERVICE_NAME}"
 }
 EOF
+
+  if [[ -n "${BROKER_PASSWORD_KEY}" ]]; then
+    broker_password="$(get_password_from_credhub "${BROKER_PASSWORD_KEY}")"
+    new_config=$(cat "${CONFIG_FILE}" | jq ".broker_password=\"${broker_password}\"")
+    echo "${new_config}" > "${CONFIG_FILE}"
+  fi
 }
 
 scripts_path="$(dirname $0)"
