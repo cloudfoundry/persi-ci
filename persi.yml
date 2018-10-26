@@ -1186,7 +1186,6 @@ jobs:
   - nfs
   plan:
   - aggregate:
-    - get: nfs-volume-release-concourse-tasks
     - get: nfs-volume-release
       passed:
       - deploy-nfs-brokers
@@ -1230,7 +1229,6 @@ jobs:
   - nfs
   plan:
   - aggregate:
-    - get: nfs-volume-release-concourse-tasks
     - get: nfs-volume-release
       passed:
       - deploy-nfs-brokers
@@ -1268,7 +1266,6 @@ jobs:
   - nfs
   plan:
   - aggregate:
-    - get: nfs-volume-release-concourse-tasks
     - get: nfs-volume-release
       passed:
       - deploy-nfs-brokers
@@ -1315,7 +1312,6 @@ jobs:
   - nfs
   plan:
   - aggregate:
-    - get: nfs-volume-release-concourse-tasks
     - get: nfs-volume-release
       passed:
       - deploy-nfs-brokers
@@ -1354,7 +1350,6 @@ jobs:
   - nfs
   plan:
   - aggregate:
-    - get: nfs-volume-release-concourse-tasks
     - get: nfs-volume-release
       passed:
       - deploy-nfs-brokers
@@ -1393,7 +1388,6 @@ jobs:
   - nfs
   plan:
   - aggregate:
-    - get: nfs-volume-release-concourse-tasks
     - get: nfs-volume-release
       passed:
       - deploy-nfs-brokers
@@ -1504,7 +1498,6 @@ jobs:
   - isilon
   plan:
   - aggregate:
-    - get: nfs-volume-release-concourse-tasks
     - get: persi-ci
     - get: nfs-volume-release
       passed:
