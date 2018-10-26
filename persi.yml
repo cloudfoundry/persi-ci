@@ -430,19 +430,19 @@ resources:
 - name: ecs-release-tarball
   type: s3
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{ecs-uploader_aws_ID}}
     bucket: ecs-release-tarballs
     regexp: ecs-release-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{ecs-uploader_aws_secret}}
 - name: ecs-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{ecs-uploader_aws_ID}}
     bucket: ecs-release-versions
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{ecs-uploader_aws_secret}}
 - name: ecs-cf-service-broker
   type: git
   source:
