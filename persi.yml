@@ -1216,8 +1216,8 @@ jobs:
     file: persi-ci/scripts/ci/run_pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+      release: nfs-volume-release
     params:
-      RELEASE_DIR: nfs-volume-release
       TEST_LAZY_UNMOUNT: true
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
@@ -1255,8 +1255,8 @@ jobs:
     file: persi-ci/scripts/ci/run_pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+      release: nfs-volume-release
     params:
-      RELEASE_DIR: nfs-volume-release
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
@@ -1300,8 +1300,8 @@ jobs:
     file: persi-ci/scripts/ci/run_pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+      release: nfs-volume-release
     params:
-      RELEASE_DIR: nfs-volume-release
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -1338,8 +1338,8 @@ jobs:
     file: persi-ci/scripts/ci/run_pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+      release: nfs-volume-release
     params:
-      RELEASE_DIR: nfs-volume-release
       TEST_DOCKER_PORA: true
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -1378,8 +1378,8 @@ jobs:
     file: persi-ci/scripts/ci/run_pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+      release: nfs-volume-release
     params:
-      RELEASE_DIR: nfs-volume-release
       TEST_DOCKER_PORA: true
       TEST_MULTI_CELL: true
 
@@ -1416,8 +1416,8 @@ jobs:
     file: persi-ci/scripts/ci/run_pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+      release: nfs-volume-release
     params:
-      RELEASE_DIR: nfs-volume-release
       TEST_DOCKER_PORA: true
       TEST_MULTI_CELL: true
 
@@ -1524,11 +1524,12 @@ jobs:
     file: persi-ci/scripts/ci/run_pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+      release: nfs-volume-release
     params:
-      RELEASE_DIR: nfs-volume-release
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 #### END Isilon ######################################################################################################
+
 
 #### EFS related jobs ################################################################################################
 - name: efsdriver-unit
