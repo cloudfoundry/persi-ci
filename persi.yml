@@ -1515,8 +1515,6 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      BROKER_URL: http://nfs-broker.gorgophone.cf-app.com
-      BROKER_USER: nfs-broker
       CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
