@@ -22,8 +22,6 @@ function validate_required_params() {
   check_param CF_USERNAME
 
   # Required PATs config fields
-  check_param BIND_CONFIG
-  check_param CREATE_CONFIG
   check_param PLAN_NAME
   check_param SERVICE_NAME
 }
