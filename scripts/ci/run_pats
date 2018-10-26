@@ -19,7 +19,7 @@ ${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env
 source bosh-env/set-env.sh
 set -x
 
-pushd "${RELEASE_DIR}"
+pushd release
   export GOPATH="${PWD}"
   export PATH="${GOPATH}/bin:${PATH}"
 

@@ -9,8 +9,7 @@ image_resource:
 
 inputs:
 - name: director-state
-- name: nfs-volume-release-concourse-tasks
-- name: nfs-volume-release
+- name: release
 - name: pats-config
 - name: persi-ci
 
@@ -19,7 +18,6 @@ params:
   BBL_STATE_DIR: bbl-state-gcp
   CONFIG_FILE_PATH: pats-config/pats.json
   PARALLEL_NODES:
-  RELEASE_DIR:
   TEST_DOCKER_PORA: false
   TEST_LAZY_UNMOUNT: false
   TEST_MOUNT_FAIL_LOGGING: false
@@ -27,4 +25,4 @@ params:
   TEST_MULTI_CELL: false
   TEST_READ_ONLY: false
 run:
-  path: nfs-volume-release-concourse-tasks/scripts/ci/run_pats
+  path: persi-ci/scripts/ci/run_pats
