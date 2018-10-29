@@ -361,19 +361,19 @@ resources:
 - name: diego-dev-release
   type: s3
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{diego-uploader_aws_ID}}
     bucket: persi-diego-dev-releases
     regexp: diego-0\.1476\.1-dev\.(\d+)\.tgz
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{diego-uploader_aws_secret}}
 - name: diego-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{diego-uploader_aws_ID}}
     bucket: persi-diego-release-versions
     initial_version: 9999.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{diego-uploader_aws_secret}}
 - name: garden-runc-release-tarball
   type: bosh-io-release
   source:
@@ -558,12 +558,12 @@ resources:
 - name: smb-volume-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{smbvolume-uploader_aws_ID}}
     bucket: smb-volume-release-versions
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{smbvolume-uploader_aws_secret}}
 
 - name: smb-volume-release-tarball
   type: s3
@@ -596,19 +596,19 @@ resources:
 - name: mapfs-release-tarball
   type: s3
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{mapfs-uploader_aws_ID}}
     bucket: mapfs-release-tarballs
     regexp: mapfs-(.*).tgz
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{mapfs-uploader_aws_secret}}
 - name: mapfs-version
   type: semver
   source:
-    access_key_id: {{aws-access-key-id}}
+    access_key_id: {{mapfs-uploader_aws_ID}}
     bucket: mapfs-versions
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{aws-secret-access-key}}
+    secret_access_key: {{mapfs-uploader_aws_secret}}
 - name: mapfs-release
   type: git
   source:
@@ -1065,8 +1065,8 @@ jobs:
       BASE_RELEASE_NAME: mapfs
       GIT_USER: {{github-user}}
       GIT_EMAIL: {{github-email}}
-      S3_ACCESS_KEY_ID: {{aws-access-key-id}}
-      S3_ACCESS_KEY: {{aws-secret-access-key}}
+      S3_ACCESS_KEY_ID: {{mapfs-uploader_aws_ID}}
+      S3_ACCESS_KEY: {{mapfs-uploader_aws_secret}}
   - aggregate:
     - put: version
       resource: mapfs-version
