@@ -34,6 +34,7 @@ function write_config_to_file() {
   "admin_user": "${CF_USERNAME}",
   "api": "${CF_API_ENDPOINT}",
   "apps_domain": "${APPS_DOMAIN}",
+  "artifacts_directory": "",
   "default_timeout": 30,
   "name_prefix": "$(openssl rand -hex 3)",
   "skip_ssl_validation": true,
