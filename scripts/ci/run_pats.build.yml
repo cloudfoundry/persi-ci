@@ -24,5 +24,6 @@ params:
   TEST_MOUNT_OPTIONS: false
   TEST_MULTI_CELL: false
   TEST_READ_ONLY: false
+  TEST_WINDOWS_CELL: false
 run:
   path: persi-ci/scripts/ci/run_pats
