@@ -19,6 +19,8 @@ function validate_required_params() {
 }
 
 function write_config_to_file() {
+  # This config file contains fields from both the standard CATs config AND
+  # the PATs config structs.
   CONFIG_FILE="pats-config/pats.json"
   cat << EOF > ${CONFIG_FILE}
 {
@@ -27,7 +29,7 @@ function write_config_to_file() {
   "api": "${CF_API_ENDPOINT}",
   "apps_domain": "${APPS_DOMAIN}",
   "artifacts_directory": "",
-  "default_timeout": 30,
+  "default_timeout": ${DEFAULT_TIMEOUT},
   "name_prefix": "$(openssl rand -hex 3)",
   "skip_ssl_validation": true,
 
@@ -55,9 +57,6 @@ EOF
 
 scripts_path="$(dirname $0)"
 source "${scripts_path}/utils.sh"
-
-# This config file contains fields from both the standard CATs config AND
-# the PATs config structs.
 
 set +x
 ${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env
