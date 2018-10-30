@@ -1,18 +1,10 @@
 #!/usr/bin/env bash
 
-set -e -x
+set -ex
 
 function get_password_from_credhub() {
   local bosh_manifest_password_variable_name=$1
   credhub find -j -n "${bosh_manifest_password_variable_name}" | jq -r .credentials[].name | xargs credhub get -j -n | jq -r .value
-}
-
-function setup_bosh_env_vars() {
-  set +x
-  pushd "director-state/${BBL_STATE_DIR}"
-    eval "$(bbl print-env)"
-  popd
-  set -x
 }
 
 function validate_required_params() {
@@ -67,6 +59,10 @@ source "${scripts_path}/utils.sh"
 # This config file contains fields from both the standard CATs config AND
 # the PATs config structs.
 
-setup_bosh_env_vars
+set +x
+${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env
+source bosh-env/set-env.sh
+set -x
+
 validate_required_params
 write_config_to_file
