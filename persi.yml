@@ -8,6 +8,7 @@ groups:
   - volman-unit-windows
   - volman-inigo
   - nfsdriver-unit
+  - nfsdriver-unit-windows
   - nfsbroker-unit
   - nfsdriver-certification
   - efsdriver-unit
@@ -97,6 +98,7 @@ groups:
 - name: nfs
   jobs:
   - nfsdriver-unit
+  - nfsdriver-unit-windows
   - nfsbroker-unit
   - nfsdriver-certification
   - nfsdriver-certification-async-v4
@@ -866,6 +868,17 @@ jobs:
       trigger: true
   - task: build
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
+
+- name: nfsdriver-unit-windows
+  public: true
+  plan:
+  - aggregate:
+    - get: nfs-volume-release-concourse-tasks
+    - get: nfs-volume-release
+      trigger: true
+  - task: build
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
+
 - name: nfsbroker-unit
   public: true
   plan:
@@ -941,6 +954,7 @@ jobs:
     - get: nfs-volume-release
       passed:
       - nfsdriver-unit
+      - nfsdriver-unit-windows
       - nfsbroker-unit
       trigger: true
     - get: nfs-volume-version
