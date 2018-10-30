@@ -790,30 +790,31 @@ jobs:
     - get: diego-dev-release
       passed: [ deploy-cf ]
       trigger: true
-    - get: diego-release
     - get: local-volume-release
       passed:
       - deploy-cf
       trigger: true
     - get: persi-ci
     - get: gorgophone-env-director-state
-    - get: local-volume-release-concourse-tasks
-  - task: run-pats
-    file: local-volume-release-concourse-tasks/scripts/ci/run_pats_localvolume.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://local-broker.gorgophone.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      BROKER_PASSWORD_KEY: local-broker-password
+      BROKER_URL: http://local-broker.gorgophone.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
       PLAN_NAME: free-local-dist
       SERVICE_NAME: local-volume
-      TEST_MULTI_CELL: false
-      TEST_MOUNT_OPTIONS: false
+  - task: run-pats
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+      release: local-volume-release
 
 - name: pats-local-windows
   serial_groups:
@@ -823,30 +824,32 @@ jobs:
     - get: diego-dev-release
       passed: [ deploy-cf ]
       trigger: true
-    - get: diego-release
     - get: local-volume-release
       passed:
       - deploy-cf
       trigger: true
     - get: persi-ci
     - get: gorgophone-env-director-state
-    - get: local-volume-release-concourse-tasks
-  - task: run-pats
-    file: local-volume-release-concourse-tasks/scripts/ci/run_pats_localvolume.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
       APPS_DOMAIN: gorgophone.cf-app.com
-      BROKER_URL: http://local-broker.gorgophone.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      BROKER_PASSWORD_KEY: local-broker-password
+      BROKER_URL: http://local-broker.gorgophone.cf-app.com
+      BROKER_USER: {{pats-broker-username}}
       PLAN_NAME: free-local-dist
       SERVICE_NAME: local-volume
-      TEST_MULTI_CELL: false
-      TEST_MOUNT_OPTIONS: false
+  - task: run-pats
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+      release: local-volume-release
+    params:
       TEST_WINDOWS_CELL: true
 
 #### END Local volume #################################################################################################
