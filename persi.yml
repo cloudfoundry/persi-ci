@@ -83,6 +83,8 @@ groups:
   - csi-plugin-certification
   - csi-broker-unit
   - mapfs-unit
+  - certification-test-builds
+  - certification-test-publish
   - pats-csi-local
   - pats-csi-nfs
   - create-csi-local-volume-release
