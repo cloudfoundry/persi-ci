@@ -8,8 +8,8 @@ image_resource:
     tag: latest
 
 inputs:
-- name: persi-ci
 - name: director-state
+- name: persi-ci
 
 outputs:
 - name: pats-config
