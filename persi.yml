@@ -2079,7 +2079,7 @@ jobs:
     file: persi-ci/scripts/ci/run_pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: csi-local-volume-release
+      release: csi-plugins-release
     params:
       TEST_MULTI_CELL: true
 
