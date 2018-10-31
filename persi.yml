@@ -8,7 +8,7 @@ groups:
   - volman-unit-windows
   - volman-inigo
   - nfsdriver-unit
-  - nfsdriver-unit-windows
+  - volumedriver-units-windows
   - nfsbroker-unit
   - nfsdriver-certification
   - efsdriver-unit
@@ -98,7 +98,6 @@ groups:
 - name: nfs
   jobs:
   - nfsdriver-unit
-  - nfsdriver-unit-windows
   - nfsbroker-unit
   - nfsdriver-certification
   - nfsdriver-certification-async-v4
@@ -147,6 +146,7 @@ groups:
   - cifs-azurefilebroker-unit
   - cifs-smbbroker-unit
   - cifs-existingvolumebroker-unit
+  - volumedriver-units-windows
   - create-smb-volume-release
   - cifs-smbdriver-certification
   - cifs-smbdriver-certification-windows
@@ -869,15 +869,6 @@ jobs:
   - task: build
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
 
-- name: nfsdriver-unit-windows
-  public: true
-  plan:
-  - aggregate:
-    - get: nfs-volume-release-concourse-tasks
-    - get: nfs-volume-release
-      trigger: true
-  - task: build
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
 
 - name: nfsbroker-unit
   public: true
@@ -954,7 +945,7 @@ jobs:
     - get: nfs-volume-release
       passed:
       - nfsdriver-unit
-      - nfsdriver-unit-windows
+
       - nfsbroker-unit
       trigger: true
     - get: nfs-volume-version
@@ -2108,6 +2099,17 @@ jobs:
   - task: smbdriver-unit
     file: smb-volume-release-concourse-tasks/scripts/ci/smbdriver-unit-windows.build.yml
 
+- name: volumedriver-units-windows
+  public: true
+  plan:
+  - aggregate:
+    - get: smb-volume-release  
+    - get: nfs-volume-release-concourse-tasks
+    - get: nfs-volume-release
+      trigger: true
+  - task: build
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
+
 - name: cifs-azurefilebroker-unit
   public: true
   plan:
@@ -2155,6 +2157,7 @@ jobs:
       - cifs-existingvolumebroker-unit
       - cifs-smbdriver-unit
       - cifs-smbdriver-unit-windows
+      - volumedriver-units-windows
       trigger: true
     - get: smb-volume-version
       resource: smb-volume-version
