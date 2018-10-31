@@ -2021,32 +2021,29 @@ jobs:
     - get: diego-dev-release
       passed: [ deploy-cf ]
       trigger: true
-    - get: diego-release
-    - get: csi-local-volume-release-tarball
-      passed:
-      - deploy-cf
     - get: persi-ci
     - get: gorgophone-env-director-state
-    - get: csi-local-volume-release-concourse-tasks
-
-  - task: run-pats
-    file: csi-local-volume-release-concourse-tasks/scripts/ci/run_pats_localvolume.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
       APPS_DOMAIN: gorgophone.cf-app.com
-      BIND_CONFIG: '{\"mount\":\"/var/vcap/store\"}'
-      BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
-      BROKER_USER: csi-localbroker
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      PLAN_NAME: free
+      BIND_CONFIG: '{\"mount\":\"/var/vcap/store\"}'
+      BROKER_PASSWORD_KEY: csi-localbroker-password
+      BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
+      BROKER_USER: csi-localbroker
       CREATE_CONFIG: '{\"name\":\"csi-local-storage\",\"volume_capabilities\":[{\"mount\":{}}]}'
+      PLAN_NAME: free
       SERVICE_NAME: csilocalfs
-      TEST_MULTI_CELL: false
-      TEST_MOUNT_OPTIONS: false
+  - task: run-pats
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+      release: csi-local-volume-release
 
 - name: pats-csi-nfs
   serial_groups:
