@@ -2050,39 +2050,38 @@ jobs:
   - csi-nfs
   plan:
   - aggregate:
-    - get: persi-ci
     - get: csi-plugins-release
       passed: [ deploy-cf ]
       trigger: true
     - get: diego-dev-release
       passed: [ deploy-cf ]
       trigger: true
-    - get: diego-release
-    - get: csi-plugins-release-tarball
-      passed:
-      - deploy-cf
+    - get: persi-ci
     - get: gorgophone-env-director-state
-
-  - task: run-pats
-    file: csi-plugins-release/scripts/ci/run_pats_nfs.build.yml
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      #TODO: add uid/gid bind config and use /export/users endpoint
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
       APPS_DOMAIN: gorgophone.cf-app.com
-      BIND_CONFIG:
-      BROKER_URL: http://csi-nfsbroker.gorgophone.cf-app.com
-      BROKER_USER: csi-nfsbroker
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      PLAN_NAME: free
+      #TODO: add uid/gid bind config and use /export/users endpoint
+      BIND_CONFIG: '{}'
+      BROKER_PASSWORD_KEY: csi-nfsbroker-password
+      BROKER_URL: http://csi-nfsbroker.gorgophone.cf-app.com
+      BROKER_USER: csi-nfsbroker
       CREATE_CONFIG: '{\"name\":\"csi-nfs-storage\",\"volume_capabilities\":[{\"mount\":{}}],\"parameters\":{\"server\":\"nfstestserver.service.cf.internal\",\"share\":\"/export/users2000\"}}'
+      PLAN_NAME: free
       SERVICE_NAME: csi-nfs
+  - task: run-pats
+    file: persi-ci/scripts/ci/run_pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+      release: csi-local-volume-release
+    params:
       TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-
 
 #### END CSI related jobs ############################################################################################
 
