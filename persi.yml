@@ -2103,7 +2103,8 @@ jobs:
   public: true
   plan:
   - aggregate:
-    - get: smb-volume-release  
+    - get: smb-volume-release
+      trigger: true
     - get: nfs-volume-release-concourse-tasks
     - get: nfs-volume-release
       trigger: true
