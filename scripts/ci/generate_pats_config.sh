@@ -19,26 +19,6 @@ function validate_required_params() {
 }
 
 function write_config_to_file() {
-  local bind_config_file="${PWD}/pats-config/bind-config.json"
-
-  if [[ -r "${PWD}/bind-create-config/bind-config.json" ]]; then
-    cp "${PWD}/bind-create-config/bind-config.json" "${bind_config_file}"
-  elif [[ -n "${BIND_CONFIG}" ]]; then
-    echo "${BIND_CONFIG}" > "${bind_config_file}"
-  else
-    bind_config_file=""
-  fi
-
-  local create_config_file="${PWD}/pats-config/create-config.json"
-
-  if [[ -r "${PWD}/bind-create-config/create-config.json" ]]; then
-    cp "${PWD}/bind-create-config/create-config.json" "${create_config_file}"
-  elif [[ -n "${CREATE_CONFIG}" ]]; then
-    echo "${CREATE_CONFIG}" > "${create_config_file}"
-  else
-    create_config_file=""
-  fi
-
   # This config file contains fields from both the standard CATs config AND
   # the PATs config structs.
   CONFIG_FILE="pats-config/pats.json"
@@ -54,11 +34,9 @@ function write_config_to_file() {
   "skip_ssl_validation": true,
 
   "bind_bogus_config": "${BIND_BOGUS_CONFIG}",
-  "bind_config": "${bind_config_file}",
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
   "create_bogus_config": "${CREATE_BOGUS_CONFIG}",
-  "create_config": "${create_config_file}",
   "create_lazy_unmount_config": "${CREATE_LAZY_UNMOUNT_CONFIG}",
   "disallowed_ldap_bind_config": "${DISALLOWED_LDAP_BIND_CONFIG}",
   "isolation_segment": "${TEST_ISOLATION_SEGMENT}",
@@ -68,10 +46,36 @@ function write_config_to_file() {
 }
 EOF
 
+  local bind_config_file="${PWD}/bind-config.json"
+
+  if [[ -r "${PWD}/bind-create-config/bind-config.json" ]]; then
+    cp "${PWD}/bind-create-config/bind-config.json" "${bind_config_file}"
+  elif [[ -n "${BIND_CONFIG}" ]]; then
+    echo "${BIND_CONFIG}" > "${bind_config_file}"
+  else
+    echo "" > "${bind_config_file}"
+  fi
+
+  updated_config=$(cat "${CONFIG_FILE}" | jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_config=$bindConfig')
+  echo "${updated_config}" > "${CONFIG_FILE}"
+
+  local create_config_file="${PWD}/pats-config/create-config.json"
+
+  if [[ -r "${PWD}/bind-create-config/create-config.json" ]]; then
+    cp "${PWD}/bind-create-config/create-config.json" "${create_config_file}"
+  elif [[ -n "${CREATE_CONFIG}" ]]; then
+    echo "${CREATE_CONFIG}" > "${create_config_file}"
+  else
+    echo "" > "${create_config_file}"
+  fi
+
+  updated_config=$(cat "${CONFIG_FILE}" | jq --arg createConfig "$(cat "${create_config_file}")" '.create_config=$createConfig')
+  echo "${updated_config}" > "${CONFIG_FILE}"
+
   if [[ -n "${BROKER_PASSWORD_KEY}" ]]; then
     broker_password="$(get_password_from_credhub "${BROKER_PASSWORD_KEY}")"
-    new_config=$(cat "${CONFIG_FILE}" | jq ".broker_password=\"${broker_password}\"")
-    echo "${new_config}" > "${CONFIG_FILE}"
+    updated_config=$(cat "${CONFIG_FILE}" | jq ".broker_password=\"${broker_password}\"")
+    echo "${updated_config}" > "${CONFIG_FILE}"
   fi
 }
 
