@@ -1215,9 +1215,9 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       CREATE_LAZY_UNMOUNT_CONFIG: '{\"share\":\"nfstestservertwo.service.cf.internal/export/users\"}'
       LAZY_UNMOUNT_VM_INSTANCE: nfstestservertwo
       PLAN_NAME: Existing
@@ -1255,10 +1255,10 @@ jobs:
     params:
       APPS_DOMAIN: gorgophone.cf-app.com
       BBL_STATE_DIR: bbl-state-gcp
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-credhub
   - task: run-pats
@@ -1301,9 +1301,9 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-legacy
   - task: run-pats
@@ -1340,8 +1340,8 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
   - task: run-pats
@@ -1378,8 +1378,8 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{"username":"user1000","password":"secret"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
@@ -1416,8 +1416,8 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{\"username\":\"user1000\",\"password\":\"secret\"}'
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      BIND_CONFIG: '{"username":"user1000","password":"secret"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-legacy
@@ -1454,8 +1454,8 @@ jobs:
       CF_USERNAME: admin
       SERVICE_NAME: nfs
       PLAN_NAME: Existing
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
 
 - name: background-load-test
   serial_groups:
@@ -1524,8 +1524,8 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      CREATE_CONFIG: '{\"share\":\"isilon.persi.cf-app.com/ifs/persi-pats\"}'
+      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+      CREATE_CONFIG: '{"share":"isilon.persi.cf-app.com/ifs/persi-pats"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
   - task: run-pats
@@ -2023,11 +2023,11 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{\"mount\":\"/var/vcap/store\"}'
+      BIND_CONFIG: '{"mount":"/var/vcap/store"}'
       BROKER_PASSWORD_KEY: csi-localbroker-password
       BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
       BROKER_USER: csi-localbroker
-      CREATE_CONFIG: '{\"name\":\"csi-local-storage\",\"volume_capabilities\":[{\"mount\":{}}]}'
+      CREATE_CONFIG: '{"name":"csi-local-storage","volume_capabilities":[{"mount":{}}]}'
       PLAN_NAME: free
       SERVICE_NAME: csilocalfs
   - task: run-pats
@@ -2063,7 +2063,7 @@ jobs:
       BROKER_PASSWORD_KEY: csi-nfsbroker-password
       BROKER_URL: http://csi-nfsbroker.gorgophone.cf-app.com
       BROKER_USER: csi-nfsbroker
-      CREATE_CONFIG: '{\"name\":\"csi-nfs-storage\",\"volume_capabilities\":[{\"mount\":{}}],\"parameters\":{\"server\":\"nfstestserver.service.cf.internal\",\"share\":\"/export/users2000\"}}'
+      CREATE_CONFIG: '{"name":"csi-nfs-storage","volume_capabilities":[{"mount":{}}],"parameters":{"server":"nfstestserver.service.cf.internal","share":"/export/users2000"}}'
       PLAN_NAME: free
       SERVICE_NAME: csi-nfs
   - task: run-pats
