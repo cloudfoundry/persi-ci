@@ -19,6 +19,26 @@ function validate_required_params() {
 }
 
 function write_config_to_file() {
+  local bind_config_file="${PWD}/pats-config/bind-config.json"
+
+  if [[ -r "${PWD}/bind-create-config/bind-config.json" ]]; then
+    cp "${PWD}/bind-create-config/bind-config.json" "${bind_config_file}"
+  elif [[ -n "${BIND_CONFIG}" ]]; then
+    echo "${BIND_CONFIG}" > "${bind_config_file}"
+  else
+    bind_config_file=""
+  fi
+
+  local create_config_file="${PWD}/pats-config/create-config.json"
+
+  if [[ -r "${PWD}/bind-create-config/create-config.json" ]]; then
+    cp "${PWD}/bind-create-config/create-config.json" "${create_config_file}"
+  elif [[ -n "${CREATE_CONFIG}" ]]; then
+    echo "${CREATE_CONFIG}" > "${create_config_file}"
+  else
+    create_config_file=""
+  fi
+
   # This config file contains fields from both the standard CATs config AND
   # the PATs config structs.
   CONFIG_FILE="pats-config/pats.json"
@@ -34,11 +54,11 @@ function write_config_to_file() {
   "skip_ssl_validation": true,
 
   "bind_bogus_config": "${BIND_BOGUS_CONFIG}",
-  "bind_config": "${BIND_CONFIG}",
+  "bind_config": "${bind_config_file}",
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
   "create_bogus_config": "${CREATE_BOGUS_CONFIG}",
-  "create_config": "${CREATE_CONFIG}",
+  "create_config": "${create_config_file}",
   "create_lazy_unmount_config": "${CREATE_LAZY_UNMOUNT_CONFIG}",
   "disallowed_ldap_bind_config": "${DISALLOWED_LDAP_BIND_CONFIG}",
   "isolation_segment": "${TEST_ISOLATION_SEGMENT}",

@@ -10,6 +10,8 @@ image_resource:
 inputs:
 - name: director-state
 - name: persi-ci
+- name: bind-create-config
+  optional: true
 
 outputs:
 - name: pats-config
