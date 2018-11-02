@@ -10,6 +10,7 @@ groups:
   - nfsdriver-unit
   - volumedriver-units-windows
   - nfsbroker-unit
+  - nfs-volume-release-job-tests
   - nfsdriver-certification
   - efsdriver-unit
   - efsbroker-unit
@@ -99,6 +100,7 @@ groups:
   jobs:
   - nfsdriver-unit
   - nfsbroker-unit
+  - nfs-volume-release-job-tests
   - nfsdriver-certification
   - nfsdriver-certification-async-v4
   - create-nfs-volume-release
@@ -869,7 +871,6 @@ jobs:
   - task: build
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
 
-
 - name: nfsbroker-unit
   public: true
   plan:
@@ -879,6 +880,18 @@ jobs:
       trigger: true
   - task: build
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
+
+- name: nfs-volume-release-job-tests
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: nfs-volume-release
+      trigger: true
+  - task: build
+    file: persi-ci/scripts/ci/run-rspec.build.yml
+    input_mapping:
+      test-repo: nfs-volume-release
+
 - name: nfsdriver-certification
   serial_groups:
   - nfs-test-server
@@ -907,6 +920,7 @@ jobs:
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_experimental.build.yml
     params:
       SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs
+
 - name: nfsdriver-certification-async-v4
   serial_groups:
   - nfs-test-server
@@ -936,6 +950,7 @@ jobs:
     params:
       SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?version=4
       MULTITHREAD: 1
+
 - name: create-nfs-volume-release
   serial_groups:
   - nfs-version
@@ -945,8 +960,8 @@ jobs:
     - get: nfs-volume-release
       passed:
       - nfsdriver-unit
-
       - nfsbroker-unit
+      - nfs-volume-release-job-tests
       trigger: true
     - get: nfs-volume-version
       resource: nfsvolume-version
@@ -961,6 +976,7 @@ jobs:
   - put: nfs-volume-release-tarball
     params:
       file: created-nfs-volume-release/nfs*.tgz
+
 - name: shipit-nfs
   serial_groups:
   - nfs-version
@@ -1017,6 +1033,7 @@ jobs:
   - put: nfsvolume-version
     params:
       bump: patch
+
 - name: manual-bump-nfs-patch
   serial_groups:
   - nfs-version
@@ -1028,6 +1045,7 @@ jobs:
   - put: nfsvolume-version
     params:
       bump: patch
+
 - name: manual-bump-nfs-minor
   serial_groups:
   - nfs-version
@@ -1039,6 +1057,7 @@ jobs:
   - put: nfsvolume-version
     params:
       bump: minor
+
 - name: manual-bump-nfs-major
   serial_groups:
   - nfs-version
