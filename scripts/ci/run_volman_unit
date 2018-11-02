@@ -16,6 +16,6 @@ pushd src/code.cloudfoundry.org/volman
   ginkgo -r -keepGoing -p -trace -randomizeAllSpecs -progress --race "$@"
 popd
 
-pushd src/code.cloudfoundry.org/voldriver
+pushd src/code.cloudfoundry.org/dockerdriver
   ginkgo -r -keepGoing -p -trace -randomizeAllSpecs -progress --race "$@"
 popd

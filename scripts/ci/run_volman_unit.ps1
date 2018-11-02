@@ -22,6 +22,6 @@ cd src/code.cloudfoundry.org/volman
 ginkgo -r -keepGoing -p -trace -randomizeAllSpecs -progress --race
 CheckLastExitCode
 
-cd ../voldriver
+cd ../dockerdriver
 ginkgo -r -keepGoing -p -trace -randomizeAllSpecs -progress --race
 CheckLastExitCode
