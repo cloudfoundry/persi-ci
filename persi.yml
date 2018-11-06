@@ -2009,18 +2009,21 @@ jobs:
       resource: mapfs-version
       params:
         pre: rc
-
+    - get: persi-ci
   - put: mapfs-version
     resource: mapfs-version
     params:
       file: mapfs-version/number
-
-  - task: generate-release
-    file: mapfs-release/scripts/ci/create_release.build.yml
-
+  - task: create-release
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: mapfs-release
+      release-version: mapfs-version
+    params:
+      RELEASE_NAME: mapfs
   - put: mapfs-release-tarball
     params:
-      file: created-plugins-release/mapfs*.tgz
+      file: release-tarball/mapfs-*.tgz
 
 - name: create-csi-local-volume-release
   plan:
