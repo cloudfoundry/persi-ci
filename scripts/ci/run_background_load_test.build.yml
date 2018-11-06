@@ -5,7 +5,7 @@ image_resource:
   type: docker-image
   source:
     repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
-    tag: v5.15.0
+    tag: latest
 
 inputs:
   - name: persi-ci
@@ -22,6 +22,6 @@ params:
   PLAN_NAME: Existing
   CREATE_CONFIG:
   BIND_CONFIG:
+
 run:
   path: persi-ci/scripts/ci/run_background_load_test
-
