@@ -1736,10 +1736,15 @@ jobs:
     params:
       file: version/number
   - task: create-release
-    file: persi-ci/scripts/ci/create_diego_dev_release.build.yml
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: diego-release
+      release-version: version
+    params:
+      RELEASE_NAME: diego
   - put: diego-dev-release
     params:
-      file: created-diego-release/diego-*.tgz
+      file: release-tarball/diego-*.tgz
 
 #### END CF ###########################################################################################################
 
