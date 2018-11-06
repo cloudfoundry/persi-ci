@@ -35,7 +35,6 @@ function write_config_to_file() {
 
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
-  "disallowed_ldap_bind_config": "${DISALLOWED_LDAP_BIND_CONFIG}",
   "isolation_segment": "${TEST_ISOLATION_SEGMENT}",
   "lazy_unmount_remote_server_job_name": "${LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME}",
   "lazy_unmount_remote_server_process_name": "${LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME}",
