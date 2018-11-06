@@ -2624,6 +2624,7 @@ jobs:
                       operations/add-diego-cell-tagged.yml
                       operations/enable-csi-local-plugin.yml
                       operations/enable-nfs-test-server-two.yml
+                      operations/enable-smb-test-server-two.yml
                       operations/add-static-ips-to-nfstestservers.yml"
   - task: collect-nfs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
@@ -2797,6 +2798,7 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore-smb-broker.yml
                   operations/enable-smb-volume-service.yml
                   operations/enable-smb-volume-service-windows.yml
+                  operations/enable-smb-test-server-two.yml
                   operations/update-releases.yml
                   operations/experimental/use-pxc.yml
                   operations/use-pxc-for-nfs-broker.yml
