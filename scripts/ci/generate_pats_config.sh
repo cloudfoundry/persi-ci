@@ -33,10 +33,8 @@ function write_config_to_file() {
   "name_prefix": "$(openssl rand -hex 3)",
   "skip_ssl_validation": true,
 
-  "bind_bogus_config": "${BIND_BOGUS_CONFIG}",
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
-  "create_bogus_config": "${CREATE_BOGUS_CONFIG}",
   "disallowed_ldap_bind_config": "${DISALLOWED_LDAP_BIND_CONFIG}",
   "isolation_segment": "${TEST_ISOLATION_SEGMENT}",
   "lazy_unmount_remote_server_job_name": "${LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME}",
@@ -57,7 +55,25 @@ EOF
     echo "" > "${bind_config_file}"
   fi
 
-  updated_config=$(cat "${CONFIG_FILE}" | jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_config=$bindConfig')
+  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_config=$bindConfig' "${CONFIG_FILE}")
+  echo "${updated_config}" > "${CONFIG_FILE}"
+
+  if [[ -n "${BIND_BOGUS_CONFIG}" ]]; then
+    echo "${BIND_BOGUS_CONFIG}" > "${bind_config_file}"
+  else
+    echo "" > "${bind_config_file}"
+  fi
+
+  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_bogus_config=$bindConfig' "${CONFIG_FILE}")
+  echo "${updated_config}" > "${CONFIG_FILE}"
+
+  if [[ -n "${DISALLOWED_LDAP_BIND_CONFIG}" ]]; then
+    echo "${DISALLOWED_LDAP_BIND_CONFIG}" > "${bind_config_file}"
+  else
+    echo "" > "${bind_config_file}"
+  fi
+
+  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.disallowed_ldap_bind_config=$bindConfig' "${CONFIG_FILE}")
   echo "${updated_config}" > "${CONFIG_FILE}"
 
   if [[ -r "${PWD}/lazy-unmount-bind-create-config/bind-config.json" ]]; then
@@ -68,7 +84,7 @@ EOF
     echo "" > "${bind_config_file}"
   fi
 
-  updated_config=$(cat "${CONFIG_FILE}" | jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_lazy_unmount_config=$bindConfig')
+  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_lazy_unmount_config=$bindConfig' "${CONFIG_FILE}")
   echo "${updated_config}" > "${CONFIG_FILE}"
 
   local create_config_file="${PWD}/pats-config/create-config.json"
@@ -81,7 +97,16 @@ EOF
     echo "" > "${create_config_file}"
   fi
 
-  updated_config=$(cat "${CONFIG_FILE}" | jq --arg createConfig "$(cat "${create_config_file}")" '.create_config=$createConfig')
+  updated_config=$(jq --arg createConfig "$(cat "${create_config_file}")" '.create_config=$createConfig' "${CONFIG_FILE}")
+  echo "${updated_config}" > "${CONFIG_FILE}"
+
+  if [[ -n "${CREATE_BOGUS_CONFIG}" ]]; then
+    echo "${CREATE_BOGUS_CONFIG}" > "${create_config_file}"
+  else
+    echo "" > "${create_config_file}"
+  fi
+
+  updated_config=$(jq --arg createConfig "$(cat "${create_config_file}")" '.create_bogus_config=$createConfig' "${CONFIG_FILE}")
   echo "${updated_config}" > "${CONFIG_FILE}"
 
   if [[ -r "${PWD}/lazy-unmount-bind-create-config/create-config.json" ]]; then
@@ -92,21 +117,21 @@ EOF
     echo "" > "${create_config_file}"
   fi
 
-  updated_config=$(cat "${CONFIG_FILE}" | jq --arg createConfig "$(cat "${create_config_file}")" '.create_lazy_unmount_config=$createConfig')
+  updated_config=$(jq --arg createConfig "$(cat "${create_config_file}")" '.create_lazy_unmount_config=$createConfig' "${CONFIG_FILE}")
   echo "${updated_config}" > "${CONFIG_FILE}"
 
   if [[ -n "${BROKER_PASSWORD_KEY}" ]]; then
     broker_password="$(get_password_from_credhub "${BROKER_PASSWORD_KEY}")"
-    updated_config=$(cat "${CONFIG_FILE}" | jq ".broker_password=\"${broker_password}\"")
+    updated_config=$(jq ".broker_password=\"${broker_password}\"" "${CONFIG_FILE}")
     echo "${updated_config}" > "${CONFIG_FILE}"
   fi
 }
 
-scripts_path="$(dirname $0)"
+scripts_path="$(dirname "$0")"
 source "${scripts_path}/utils.sh"
 
 set +x
-${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env
+"${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
 source bosh-env/set-env.sh
 set -x
 
