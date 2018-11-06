@@ -1977,18 +1977,21 @@ jobs:
       resource: csi-plugins-version
       params:
         pre: rc
-
+    - get: persi-ci
   - put: csi-plugins-version
     resource: csi-plugins-version
     params:
       file: csi-plugins-version/number
-
-  - task: generate-release
-    file: csi-plugins-release/scripts/ci/create_release.build.yml
-
+  - task: create-release
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: csi-plugins-release
+      release-version: csi-plugins-version
+    params:
+      RELEASE_NAME: csi-plugins
   - put: csi-plugins-release-tarball
     params:
-      file: created-plugins-release/csi*.tgz
+      file: release-tarball/csi-plugins-*.tgz
 
 - name: mapfs-unit
   public: true
