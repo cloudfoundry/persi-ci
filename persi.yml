@@ -777,16 +777,21 @@ jobs:
       resource: localvolume-version
       params:
         pre: rc
-    - get: local-volume-release-concourse-tasks
+    - get: persi-ci
   - put: local-volume-version
     resource: localvolume-version
     params:
       file: local-volume-version/number
   - task: create-release
-    file: local-volume-release-concourse-tasks/scripts/ci/create_local_volume_release.build.yml
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: local-volume-release
+      release-version: local-volume-version
+    params:
+      RELEASE_NAME: local-volume
   - put: local-volume-release-tarball
     params:
-      file: created-local-volume-release/local*.tgz
+      file: release-tarball/local-volume-*.tgz
 
 - name: pats-local
   serial_groups:
@@ -956,7 +961,6 @@ jobs:
   - nfs-version
   plan:
   - aggregate:
-    - get: nfs-volume-release-concourse-tasks
     - get: nfs-volume-release
       passed:
       - nfsdriver-unit
@@ -967,15 +971,21 @@ jobs:
       resource: nfsvolume-version
       params:
         pre: rc
+    - get: persi-ci
   - put: nfs-volume-version
     resource: nfsvolume-version
     params:
       file: nfs-volume-version/number
   - task: create-release
-    file: nfs-volume-release-concourse-tasks/scripts/ci/create_nfs_volume_release.build.yml
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: nfs-volume-release
+      release-version: nfs-volume-version
+    params:
+      RELEASE_NAME: nfs-volume
   - put: nfs-volume-release-tarball
     params:
-      file: created-nfs-volume-release/nfs*.tgz
+      file: release-tarball/nfs-volume-*.tgz
 
 - name: shipit-nfs
   serial_groups:
@@ -1579,6 +1589,7 @@ jobs:
       trigger: true
   - task: build
     file: efs-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
+
 - name: efsdriver-certification
   plan:
   - aggregate:
@@ -1592,10 +1603,10 @@ jobs:
     tags: ["jumpbox"]
     privileged: true
     file: efs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
+
 - name: create-efs-volume-release
   plan:
   - aggregate:
-    - get: efs-volume-release-concourse-tasks
     - get: efs-volume-release
       passed:
       - efsdriver-certification
@@ -1604,15 +1615,21 @@ jobs:
       resource: efsvolume-version
       params:
         pre: rc
+    - get: persi-ci
   - put: efs-volume-version
     resource: efsvolume-version
     params:
       file: efs-volume-version/number
   - task: create-release
-    file: efs-volume-release-concourse-tasks/scripts/ci/create_efs_volume_release.build.yml
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: efs-volume-release
+      release-version: efs-volume-version
+    params:
+      RELEASE_NAME: efs-volume
   - put: efs-volume-release-tarball
     params:
-      file: created-efs-volume-release/efs*.tgz
+      file: release-tarball/efs-volume-*.tgz
 
 - name: pats-efs
   serial_groups:
@@ -1732,20 +1749,25 @@ jobs:
   - aggregate:
     - get: ecs-release
       trigger: true
-    - get: persi-ci
     - get: ecs-version
       resource: ecs-version
       params:
         pre: rc
+    - get: persi-ci
   - put: ecs-version
     resource: ecs-version
     params:
       file: ecs-version/number
   - task: create-release
-    file: persi-ci/scripts/ci/create_ecs_release.build.yml
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: ecs-release
+      release-version: ecs-version
+    params:
+      RELEASE_NAME: ecs-release
   - put: ecs-release-tarball
     params:
-      file: created-ecs-release/ecs*.tgz
+      file: release-tarball/ecs-release-*.tgz
 
 - name: ecs-broker-unit
   public: true
@@ -2171,7 +2193,6 @@ jobs:
 - name: create-smb-volume-release
   plan:
   - aggregate:
-    - get: smb-volume-release-concourse-tasks
     - get: smb-volume-release
       passed:
       - cifs-azurefilebroker-unit
@@ -2185,15 +2206,21 @@ jobs:
       resource: smb-volume-version
       params:
         pre: rc
+    - get: persi-ci
   - put: smb-volume-version
     resource: smb-volume-version
     params:
       file: smb-volume-version/number
   - task: create-release
-    file: smb-volume-release-concourse-tasks/scripts/ci/create_smb_volume_release.build.yml
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: smb-volume-release
+      release-version: smb-volume-version
+    params:
+      RELEASE_NAME: smb-volume
   - put: smb-volume-release-tarball
     params:
-      file: created-smb-volume-release/smb-volume-*.tgz
+      file: release-tarball/smb-volume-*.tgz
 
 - name: cifs-smbdriver-certification
   serial_groups:
