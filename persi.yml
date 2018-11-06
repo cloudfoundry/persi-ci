@@ -1237,7 +1237,9 @@ jobs:
       BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
-      CREATE_LAZY_UNMOUNT_CONFIG: '{\"share\":\"nfstestservertwo.service.cf.internal/export/users\"}'
+      CREATE_LAZY_UNMOUNT_CONFIG: '{"share":"nfstestservertwo.service.cf.internal/export/users"}'
+      LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME: nfstestserver
+      LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME: nfsd
       LAZY_UNMOUNT_VM_INSTANCE: nfstestservertwo
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
@@ -2274,12 +2276,21 @@ jobs:
       - deploy-cf
     - get: persi-ci
     - get: gorgophone-env-director-state
-  - task: generate-bind-create-configs
-    file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
-    params:
-      SMB_REMOTE_PATH: {{smb_remote_path}}
-      SMB_USERNAME: {{smb_username}}
-      SMB_PASSWORD: {{smb_password}}
+  - aggregate:
+    - task: generate-bind-create-configs
+      file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
+      params:
+        SMB_REMOTE_PATH: {{smb_remote_path}}
+        SMB_USERNAME: {{smb_username}}
+        SMB_PASSWORD: {{smb_password}}
+    - task: generate-bind-create-configs-two
+      file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
+      output_mapping:
+        bind-create-config: lazy-unmount-bind-create-config
+      params:
+        SMB_REMOTE_PATH: {{smb_remote_path_two}}
+        SMB_USERNAME: {{smb_username}}
+        SMB_PASSWORD: {{smb_password}}
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -2289,6 +2300,9 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
+      LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME: smbtestserver
+      LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME: smbd
+      LAZY_UNMOUNT_VM_INSTANCE: smbtestservertwo
       PLAN_NAME: Existing
       SERVICE_NAME: smb
   - task: run-pats
@@ -2296,6 +2310,8 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
       release: smb-volume-release
+    params:
+      TEST_LAZY_UNMOUNT: true
 
 - name: pats-cifs-smb-windows
   serial_groups:

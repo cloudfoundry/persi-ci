@@ -37,9 +37,10 @@ function write_config_to_file() {
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
   "create_bogus_config": "${CREATE_BOGUS_CONFIG}",
-  "create_lazy_unmount_config": "${CREATE_LAZY_UNMOUNT_CONFIG}",
   "disallowed_ldap_bind_config": "${DISALLOWED_LDAP_BIND_CONFIG}",
   "isolation_segment": "${TEST_ISOLATION_SEGMENT}",
+  "lazy_unmount_remote_server_job_name": "${LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME}",
+  "lazy_unmount_remote_server_process_name": "${LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME}",
   "lazy_unmount_vm_instance": "${LAZY_UNMOUNT_VM_INSTANCE}",
   "plan_name": "${PLAN_NAME}",
   "service_name": "${SERVICE_NAME}"
@@ -59,6 +60,17 @@ EOF
   updated_config=$(cat "${CONFIG_FILE}" | jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_config=$bindConfig')
   echo "${updated_config}" > "${CONFIG_FILE}"
 
+  if [[ -r "${PWD}/lazy-unmount-bind-create-config/bind-config.json" ]]; then
+    cp "${PWD}/lazy-unmount-bind-create-config/bind-config.json" "${bind_config_file}"
+  elif [[ -n "${BIND_LAZY_UNMOUNT_CONFIG}" ]]; then
+    echo "${BIND_LAZY_UNMOUNT_CONFIG}" > "${bind_config_file}"
+  else
+    echo "" > "${bind_config_file}"
+  fi
+
+  updated_config=$(cat "${CONFIG_FILE}" | jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_lazy_unmount_config=$bindConfig')
+  echo "${updated_config}" > "${CONFIG_FILE}"
+
   local create_config_file="${PWD}/pats-config/create-config.json"
 
   if [[ -r "${PWD}/bind-create-config/create-config.json" ]]; then
@@ -70,6 +82,17 @@ EOF
   fi
 
   updated_config=$(cat "${CONFIG_FILE}" | jq --arg createConfig "$(cat "${create_config_file}")" '.create_config=$createConfig')
+  echo "${updated_config}" > "${CONFIG_FILE}"
+
+  if [[ -r "${PWD}/lazy-unmount-bind-create-config/create-config.json" ]]; then
+    cp "${PWD}/lazy-unmount-bind-create-config/create-config.json" "${create_config_file}"
+  elif [[ -n "${CREATE_LAZY_UNMOUNT_CONFIG}" ]]; then
+    echo "${CREATE_LAZY_UNMOUNT_CONFIG}" > "${create_config_file}"
+  else
+    echo "" > "${create_config_file}"
+  fi
+
+  updated_config=$(cat "${CONFIG_FILE}" | jq --arg createConfig "$(cat "${create_config_file}")" '.create_lazy_unmount_config=$createConfig')
   echo "${updated_config}" > "${CONFIG_FILE}"
 
   if [[ -n "${BROKER_PASSWORD_KEY}" ]]; then

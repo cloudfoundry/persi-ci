@@ -12,6 +12,8 @@ inputs:
 - name: persi-ci
 - name: bind-create-config
   optional: true
+- name: lazy-unmount-bind-create-config
+  optional: true
 
 outputs:
 - name: pats-config
@@ -33,6 +35,8 @@ params:
   CREATE_LAZY_UNMOUNT_CONFIG:
   DEFAULT_TIMEOUT: 30
   DISALLOWED_LDAP_BIND_CONFIG:
+  LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME:
+  LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME:
   LAZY_UNMOUNT_VM_INSTANCE:
   PLAN_NAME: replace-me
   SERVICE_NAME: replace-me
