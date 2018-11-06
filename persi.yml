@@ -2651,10 +2651,8 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-nfs-test-server.yml
                       operations/enable-nfs-test-ldapserver-tls.yml
-                      operations/enable-nfs-volume-service-experiment.yml
-                      operations/test-nfsbroker-migration-to-credhub.yml
                       operations/set-nfs-ldap-test-mode.yml
-                      operations/use-bosh-dns-for-nfs.yml"
+                      operations/test-nfsbroker-migration-to-credhub.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2680,8 +2678,7 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-smb-test-server.yml
-                      operations/enable-smb-volume-service-windows.yml
-                      operations/use-bosh-dns-for-smb.yml"
+                      operations/enable-smb-volume-service-windows.yml"
   - task: collect-csi-plugins-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2786,8 +2783,6 @@ jobs:
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
-                  operations/use-bosh-dns-for-nfs.yml
-                  operations/use-bosh-dns-for-smb.yml
                   operations/windows2016-cell.yml
                   operations/experimental/use-compiled-releases-windows.yml
                   operations/enable-nfs-volume-service.yml
