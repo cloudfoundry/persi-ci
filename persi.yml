@@ -2654,9 +2654,7 @@ jobs:
                       operations/enable-nfs-volume-service-experiment.yml
                       operations/test-nfsbroker-migration-to-credhub.yml
                       operations/set-nfs-ldap-test-mode.yml
-                      operations/use-bosh-dns-for-nfs.yml
-                      operations/use-pxc-for-nfs-broker.yml
-                      operations/enable-nfs-volume-service-credhub.yml"
+                      operations/use-bosh-dns-for-nfs.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2682,7 +2680,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-smb-test-server.yml
-                      operations/enable-smb-volume-service.yml
                       operations/enable-smb-volume-service-windows.yml
                       operations/use-bosh-dns-for-smb.yml"
   - task: collect-csi-plugins-ops-files
@@ -2794,7 +2791,7 @@ jobs:
                   operations/windows2016-cell.yml
                   operations/experimental/use-compiled-releases-windows.yml
                   operations/enable-nfs-volume-service.yml
-                  operations/enable-nfs-volume-service-credhub.yml
+                  operations/experimental/enable-nfs-volume-service-credhub.yml
                   operations/experimental/migrate-nfsbroker-mysql-to-credhub.yml
                   operations/enable-nfs-test-server-two.yml
                   operations/enable-local-volume-service.yml
@@ -2812,12 +2809,12 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/backup-and-restore/enable-backup-restore-smb-broker.yml
-                  operations/enable-smb-volume-service.yml
+                  operations/experimental/enable-smb-volume-service.yml
                   operations/enable-smb-volume-service-windows.yml
                   operations/enable-smb-test-server-two.yml
                   operations/update-releases.yml
-                  operations/experimental/use-pxc.yml
-                  operations/use-pxc-for-nfs-broker.yml
+                  operations/use-pxc.yml
+                  operations/use-pxc-for-nfs-volume-service.yml
                   operations/test-nfsbroker-migration-to-credhub.yml
                   operations/experimental/add-cflinuxfs3.yml"
   - task: bosh-cleanup
