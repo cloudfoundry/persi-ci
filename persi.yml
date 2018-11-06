@@ -2040,19 +2040,21 @@ jobs:
       resource: csi-local-volume-version
       params:
         pre: rc
-    - get: csi-local-volume-release-concourse-tasks
-
+    - get: persi-ci
   - put: csi-local-version
     resource: csi-local-volume-version
     params:
       file: csi-local-version/number
-
-  - task: generate-release
-    file: csi-local-volume-release-concourse-tasks/scripts/ci/create_release.build.yml
-
+  - task: create-release
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: csi-local-volume-release
+      release-version: csi-local-version
+    params:
+      RELEASE_NAME: csi-local-volume
   - put: csi-local-volume-release-tarball
     params:
-      file: created-csi-local-volume-release/csi*.tgz
+      file: release-tarball/csi-local-volume-*.tgz
 
 - name: pats-csi-local
   serial_groups:
