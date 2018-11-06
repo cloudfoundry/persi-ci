@@ -2566,30 +2566,30 @@ jobs:
       passed: [ create-nfs-volume-release ]
     - get: local-volume-release
       passed: [ create-local-volume-release ]
-      trigger: true
     - get: local-volume-release-tarball
       passed: [ create-local-volume-release ]
+      trigger: true
     - get: localvolume-version
       passed: [ create-local-volume-release ]
     - get: csi-local-volume-release
       passed: [ create-csi-local-volume-release ]
-      trigger: true
     - get: csi-local-volume-release-tarball
       passed: [ create-csi-local-volume-release ]
+      trigger: true
     - get: csi-local-volume-version
       passed: [ create-csi-local-volume-release ]
     - get: csi-plugins-release
       passed: [ create-csi-plugins-release ]
-      trigger: true
     - get: csi-plugins-release-tarball
       passed: [ create-csi-plugins-release ]
+      trigger: true
     - get: csi-plugins-version
       passed: [ create-csi-plugins-release ]
     - get: mapfs-release
       passed: [ create-mapfs-release ]
-      trigger: true
     - get: mapfs-release-tarball
       passed: [ create-mapfs-release ]
+      trigger: true
     - get: mapfs-version
       passed: [ create-mapfs-release ]
     - get: ecs-release-tarball
@@ -2878,9 +2878,9 @@ jobs:
       passed: [ create-diego-release ]
     - get: efs-volume-release
       passed: [ create-efs-volume-release ]
-      trigger: true
     - get: efs-volume-release-tarball
       passed: [ create-efs-volume-release ]
+      trigger: true
     - get: efsvolume-version
       passed: [ create-efs-volume-release ]
     - get: mapfs-release
