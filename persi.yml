@@ -790,6 +790,7 @@ jobs:
       passed:
       - deploy-cf
       trigger: true
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -810,7 +811,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: local-volume-release
 
 - name: pats-local-windows
   serial_groups:
@@ -824,6 +824,7 @@ jobs:
       passed:
       - deploy-cf
       trigger: true
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -844,7 +845,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: local-volume-release
     params:
       TEST_WINDOWS_CELL: true
 
@@ -1212,6 +1212,7 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - deploy-cf
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1237,7 +1238,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: nfs-volume-release
     params:
       TEST_LAZY_UNMOUNT: true
       TEST_MOUNT_FAIL_LOGGING: true
@@ -1257,6 +1257,7 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - deploy-cf
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1276,7 +1277,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: nfs-volume-release
     params:
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -1300,6 +1300,7 @@ jobs:
     - get: mapfs-release-tarball
       passed:
       - deploy-cf
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1321,7 +1322,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: nfs-volume-release
     params:
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
@@ -1340,6 +1340,7 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - deploy-cf
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1359,7 +1360,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: nfs-volume-release
     params:
       TEST_DOCKER_PORA: true
       TEST_MOUNT_OPTIONS: true
@@ -1378,6 +1378,7 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - deploy-cf
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1399,7 +1400,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: nfs-volume-release
     params:
       TEST_DOCKER_PORA: true
       TEST_MULTI_CELL: true
@@ -1416,6 +1416,7 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - deploy-cf
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1437,7 +1438,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: nfs-volume-release
     params:
       TEST_DOCKER_PORA: true
       TEST_MULTI_CELL: true
@@ -1519,12 +1519,13 @@ jobs:
   - isilon
   plan:
   - aggregate:
-    - get: persi-ci
     - get: nfs-volume-release
       passed:
       - create-isilon-volume
       - deploy-nfs-brokers
       trigger: true
+    - get: persi-acceptance-tests
+    - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
@@ -1543,7 +1544,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: nfs-volume-release
     params:
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
@@ -1623,6 +1623,7 @@ jobs:
     - get: diego-dev-release
       passed: [ deploy-cf-efs ]
       trigger: true
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1644,7 +1645,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: efs-volume-release
     params:
       TEST_MULTI_CELL: true
 
@@ -2048,6 +2048,7 @@ jobs:
     - get: diego-dev-release
       passed: [ deploy-cf ]
       trigger: true
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -2070,7 +2071,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: csi-local-volume-release
 
 - name: pats-csi-nfs
   serial_groups:
@@ -2083,6 +2083,7 @@ jobs:
     - get: diego-dev-release
       passed: [ deploy-cf ]
       trigger: true
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -2106,7 +2107,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: csi-plugins-release
     params:
       TEST_MULTI_CELL: true
 
@@ -2294,6 +2294,7 @@ jobs:
     - get: smb-volume-release-tarball
       passed:
       - deploy-cf
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - aggregate:
@@ -2329,7 +2330,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: smb-volume-release
     params:
       TEST_LAZY_UNMOUNT: true
 
@@ -2347,6 +2347,7 @@ jobs:
     - get: smb-volume-release-tarball
       passed:
       - deploy-cf
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
   - task: generate-bind-create-configs
@@ -2370,7 +2371,6 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
-      release: smb-volume-release
     params:
       TEST_WINDOWS_CELL: true
 
