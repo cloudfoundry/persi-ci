@@ -807,7 +807,7 @@ jobs:
       PLAN_NAME: free-local-dist
       SERVICE_NAME: local-volume
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: local-volume-release
@@ -841,7 +841,7 @@ jobs:
       PLAN_NAME: free-local-dist
       SERVICE_NAME: local-volume
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: local-volume-release
@@ -1234,7 +1234,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: nfs-volume-release
@@ -1273,7 +1273,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-credhub
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: nfs-volume-release
@@ -1318,7 +1318,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-legacy
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: nfs-volume-release
@@ -1356,7 +1356,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: nfs-volume-release
@@ -1396,7 +1396,7 @@ jobs:
       SERVICE_NAME: nfs
       TEST_ISOLATION_SEGMENT: ldap
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: nfs-volume-release
@@ -1434,7 +1434,7 @@ jobs:
       SERVICE_NAME: nfs-legacy
       TEST_ISOLATION_SEGMENT: ldap
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: nfs-volume-release
@@ -1540,7 +1540,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: nfs-volume-release
@@ -1641,7 +1641,7 @@ jobs:
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: efs-volume-release
@@ -2067,7 +2067,7 @@ jobs:
       PLAN_NAME: free
       SERVICE_NAME: csilocalfs
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: csi-local-volume-release
@@ -2103,7 +2103,7 @@ jobs:
       PLAN_NAME: free
       SERVICE_NAME: csi-nfs
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: csi-plugins-release
@@ -2326,7 +2326,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: smb
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: smb-volume-release
@@ -2367,7 +2367,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: smb
   - task: run-pats
-    file: persi-ci/scripts/ci/run_pats.build.yml
+    file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
       release: smb-volume-release

@@ -27,4 +27,4 @@ params:
   TEST_WINDOWS_CELL: false
 
 run:
-  path: persi-ci/scripts/ci/run_pats
+  path: persi-ci/scripts/ci/run-pats.sh
