@@ -1819,27 +1819,30 @@ jobs:
       passed:
       - deploy-ecs-broker
       trigger: true
-    - get: nfs-volume-release-concourse-tasks
-    - get: nfs-volume-release
-    - get: gorgophone-env-vars-store
+    - get: persi-acceptance-tests
     - get: persi-ci
-  - task: run-pats
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_pats_nfsvolume.build.yml
+    - get: gorgophone-env-director-state
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
-      vars-store: gorgophone-env-vars-store
+      director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp
       APPS_DOMAIN: gorgophone.cf-app.com
+      CF_API_ENDPOINT: api.gorgophone.cf-app.com
+      CF_USERNAME: admin
+      BIND_CONFIG: '{}'
+      BROKER_PASSWORD_KEY: ecs-broker-password
       BROKER_URL: http://ecs-v1.gorgophone.cf-app.com
       BROKER_USER: user
-      BROKER_PASSWORD_KEY: ecs-broker-password
-      CF_USERNAME: admin
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
       PLAN_NAME: 5gb
       SERVICE_NAME: ecs-file-bucket
-      BIND_CONFIG: '{}'
+  - task: run-pats
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
       TEST_MULTI_CELL: true
-      TEST_MOUNT_OPTIONS: false
-      TEST_READ_ONLY: false
 
 #### END ECS ##########################################################################################################
 
