@@ -55,7 +55,7 @@ echo "Creating service..."
 cf create-service nfs-migration-test-mysql Existing nfs-migration-test-service -c ${CREATE_CONFIG}
 
 echo "Pushing app..."
-cd nfs-volume-release/src/code.cloudfoundry.org/persi-acceptance-tests/assets/pora
+cd persi-acceptance-tests/assets/pora
 cf push nfs-migration-test-app --no-start
 
 echo "Binding service..."

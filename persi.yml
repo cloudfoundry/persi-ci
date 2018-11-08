@@ -1179,6 +1179,7 @@ jobs:
   - nfs
   plan:
   - aggregate:
+    - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
     - get: nfs-volume-release

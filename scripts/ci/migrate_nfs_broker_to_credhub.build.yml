@@ -10,7 +10,7 @@ image_resource:
 inputs:
   - name: persi-ci
   - name: bbl-state  # - The Director's `bbl-state.json`
-  - name: nfs-volume-release
+  - name: persi-acceptance-tests
 
 params:
   BBL_STATE_DIR: bbl-state
