@@ -2817,7 +2817,6 @@ jobs:
                   operations/set-nfs-ldap-test-mode.yml
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
-                  operations/backup-and-restore/enable-backup-restore-smb-broker.yml
                   operations/experimental/enable-smb-volume-service.yml
                   operations/enable-smb-volume-service-windows.yml
                   operations/enable-smb-test-server-two.yml
