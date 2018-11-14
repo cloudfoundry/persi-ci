@@ -657,8 +657,8 @@ resources:
 - name: disaster-recovery-acceptance-tests
   type: git
   source:
-    uri: https://github.com/davewalter/disaster-recovery-acceptance-tests.git
-    branch: add-smb-service-broker-testcase
+    uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
+    branch: master
 
 #### End cf-deployment resources #####################################################################################
 
