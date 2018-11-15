@@ -2664,8 +2664,7 @@ jobs:
       new-ops-files: nfs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-server.yml
-                      operations/enable-nfs-test-ldapserver-tls.yml
+      NEW_OPS_FILES: "operations/enable-nfs-test-ldapserver-tls.yml
                       operations/set-nfs-ldap-test-mode.yml
                       operations/test-nfsbroker-migration-to-credhub.yml"
   - task: collect-local-ops-files
@@ -2692,8 +2691,7 @@ jobs:
       new-ops-files: smb-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-smb-test-server.yml
-                      operations/enable-smb-volume-service-windows.yml"
+      NEW_OPS_FILES: "operations/enable-smb-volume-service-windows.yml"
   - task: collect-csi-plugins-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2806,11 +2804,11 @@ jobs:
                   operations/enable-nfs-test-server-two.yml
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
-                  operations/enable-nfs-test-server.yml
+                  operations/test/enable-nfs-test-server.yml
                   operations/enable-nfs-ldap.yml
                   operations/enable-nfs-test-ldapserver-tls.yml
                   operations/parsed-diego-cell-tagged.yml
-                  operations/enable-smb-test-server.yml
+                  operations/test/enable-smb-test-server.yml
                   operations/enable-csi-local-plugin.yml
                   operations/add-static-ips-to-nfstestservers.yml
                   operations/add-csi-nfs-plugin.yml
