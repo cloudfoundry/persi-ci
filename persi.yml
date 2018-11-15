@@ -1151,22 +1151,21 @@ jobs:
     - get: cf-deployment
       passed: [ deploy-cf ]
       trigger: true
+    - get: cf-deployment-concourse-tasks
   - task: run-broker-errand
-    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: nfsbrokerpush
-      INSTANCE_NAME: nfs-broker-push/first
+      ERRAND_NAME: nfs-broker-push
   - task: run-credhub-broker-errand
-    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: nfsbrokerpush
-      INSTANCE_NAME: nfs-broker-credhub-push/first
+      ERRAND_NAME: nfs-broker-credhub-push
 
 - name: migrate-nfs-broker
   serial_groups:
@@ -1798,12 +1797,14 @@ jobs:
     - get: cf-deployment
       passed: [ deploy-cf ]
       trigger: true
+    - get: cf-deployment-concourse-tasks
   - task: run-broker-errand
-    file: persi-ci/scripts/ci/run_ecs_broker_errand_cf_deployment.build.yml
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
+      ERRAND_NAME: ecs-broker-deploy
 
 - name: pats-ecs
   serial_groups:
@@ -2269,14 +2270,14 @@ jobs:
     - get: cf-deployment
       passed: [ deploy-cf ]
       trigger: true
+    - get: cf-deployment-concourse-tasks
   - task: run-broker-errand
-    file: persi-ci/scripts/ci/run_nfs_broker_errand.build.yml
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: smbbrokerpush
-      INSTANCE_NAME: smb-broker-push/first
+      ERRAND_NAME: smb-broker-push
 
 - name: pats-cifs-smb
   serial_groups:
