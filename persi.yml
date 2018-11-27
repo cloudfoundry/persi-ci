@@ -217,7 +217,7 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/mariash/cf-acceptance-tests.git
+    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
 
 - name: bosh-bootloader
   type: git
