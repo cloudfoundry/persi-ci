@@ -2824,6 +2824,7 @@ jobs:
                   operations/use-pxc.yml
                   operations/use-pxc-for-nfs-volume-service.yml
                   operations/test-nfsbroker-migration-to-credhub.yml
+                  operations/experimental/use-native-garden-runc-runner.yml
                   operations/experimental/add-cflinuxfs3.yml"
   - task: bosh-cleanup
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
