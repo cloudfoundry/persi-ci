@@ -24,6 +24,7 @@ cf auth "${CF_USERNAME}" "${CF_PASSWORD}"
 
 function cleanup {
     echo "Cleaning up..."
+    cf logs "${APP_NAME}" --recent
     cf delete "${APP_NAME}" -f
     cf delete-service "${SERVICE_INSTANCE_NAME}" -f
     cf delete-org "${CF_ORG}" -f
