@@ -2831,6 +2831,7 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
+      CLEAN_ALL: false
 
 - name: bbl-up-boshlite-aws
   serial_groups:
