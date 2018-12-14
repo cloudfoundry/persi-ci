@@ -2806,7 +2806,6 @@ jobs:
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
                   operations/test/enable-nfs-test-server.yml
-                  operations/enable-nfs-ldap.yml
                   operations/enable-nfs-test-ldapserver-tls.yml
                   operations/parsed-diego-cell-tagged.yml
                   operations/test/enable-smb-test-server.yml
