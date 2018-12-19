@@ -2141,11 +2141,9 @@ jobs:
   - aggregate:
     - get: smb-volume-release
       trigger: true
-    - get: nfs-volume-release-concourse-tasks
-    - get: nfs-volume-release
-      trigger: true
+    - get: smb-volume-release-concourse-tasks
   - task: build
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
 
 - name: cifs-azurefilebroker-unit
   public: true
