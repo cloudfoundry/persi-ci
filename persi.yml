@@ -618,6 +618,12 @@ resources:
     branch: volume-services-tls-config
     uri: https://github.com/paulcwarren/cf-deployment.git
 
+- name: cf-deployment-master
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/cf-deployment.git
+
 - name: cf-deployment-concourse-tasks
   type: git
   source:
@@ -2539,10 +2545,10 @@ jobs:
   - get: nightly
     trigger: true
   - get: cf-deployment
+  - get: cf-deployment-master
   - get: persi-ci
   - task: noop
     file: persi-ci/scripts/ci/noop.build.yml
-
 
 - name: deploy-cf
   serial_groups:
@@ -2842,9 +2848,9 @@ jobs:
     - get: bosh-bootloader
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment
+    - get: cf-deployment-master
       passed:
-      - bbl-up-gorgophone
+      - cf-deployment-nightly
       trigger: true
     - get: persi-ci
   - task: setup-infrastructure
@@ -2877,6 +2883,7 @@ jobs:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment
+      resource: cf-deployment-master
       passed:
       - bbl-up-boshlite-aws
       trigger: true
