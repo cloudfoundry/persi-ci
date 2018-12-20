@@ -2763,11 +2763,6 @@ jobs:
       NFSTESTSERVER_STATIC_IP: 10.0.255.1
       NFSTESTSERVER_TWO_STATIC_IP: 10.0.255.3
       NFSTESTLDAPSERVER_STATIC_IP: 10.0.255.2
-      AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-2ff60150,sg-2ff60150
-      AWS_SUBNET_ID: subnet-2bb4b763,subnet-5fa64526
-      AWS_AZ: us-west-2a,us-west-2b
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone
       SMB_USERNAME: {{smb_server_username}}
@@ -2980,7 +2975,7 @@ jobs:
       GENERATE_DATADOG_VARS: false
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-0dc8d69d3f2806069
+      AWS_SECURITY_GROUP: sg-049990d0abe73d682
       AWS_SUBNET_ID: subnet-0302a2df2ba97debd
       AWS_AZ: us-west-2b
   - task: bosh-upload-stemcell
