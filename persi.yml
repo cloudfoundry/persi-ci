@@ -1632,12 +1632,12 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-boshlite-aws
-      APPS_DOMAIN: 35.165.76.69.sslip.io
-      CF_API_ENDPOINT: api.35.165.76.69.sslip.io
+      APPS_DOMAIN: 52.33.139.221.sslip.io
+      CF_API_ENDPOINT: api.52.33.139.221.sslip.io
       CF_USERNAME: {{cf-bosh-lite-username}}
       DEFAULT_TIMEOUT: 300
       BROKER_PASSWORD_KEY: efs-broker-password
-      BROKER_URL: http://efs-broker.35.165.76.69.sslip.io
+      BROKER_URL: http://efs-broker.52.33.139.221.sslip.io
       BROKER_USER: {{pats-broker-username}}
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
@@ -2997,7 +2997,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-boshlite-aws
       MANIFEST_FILE: cf-deployment.yml
-      SYSTEM_DOMAIN: 35.165.76.69.sslip.io
+      SYSTEM_DOMAIN: 52.33.139.221.sslip.io
       VARS_STORE_FILE: deployment-vars-bosh-lite.yml
       VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/aws.yml
