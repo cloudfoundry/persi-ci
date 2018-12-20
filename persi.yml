@@ -2978,8 +2978,8 @@ jobs:
       GENERATE_DATADOG_VARS: false
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
-      AWS_SECURITY_GROUP: sg-854aa7f6
-      AWS_SUBNET_ID: subnet-08e7b271
+      AWS_SECURITY_GROUP: sg-0dc8d69d3f2806069
+      AWS_SUBNET_ID: subnet-0302a2df2ba97debd
       AWS_AZ: us-west-2b
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
