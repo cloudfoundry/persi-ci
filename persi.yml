@@ -1574,7 +1574,9 @@ jobs:
   plan:
   - aggregate:
     - get: efs-volume-release-concourse-tasks
+      tags: ["jumpbox"]
     - get: efs-volume-release
+      tags: ["jumpbox"]
       passed:
       - efsdriver-unit
       - efsbroker-unit
