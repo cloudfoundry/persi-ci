@@ -3003,6 +3003,7 @@ jobs:
       OPS_FILES: "operations/aws.yml
                   operations/bosh-lite.yml
                   operations/deploy-efs-broker-and-install-driver.yml
+                  operations/experimental/use-native-garden-runc-runner.yml
                   operations/update-releases.yml"
   - task: bosh-cleanup
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
