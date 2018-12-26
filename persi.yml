@@ -265,6 +265,8 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
+    submodules: none
+
 - name: github-release-nfs
   type: github-release
   source:
@@ -316,6 +318,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/local-volume-release.git
+    submodules: none
 #### END local volume resources ######################################################################################
 
 #### EFS resources ################################################################################################
@@ -350,7 +353,7 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
-
+    submodules: none
 #### END EFS resources ################################################################################################
 
 #### Diego resources ################################################################################################
@@ -468,6 +471,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/csi-local-volume-release.git
+    submodules: none
 
 - name: csi-cert
   type: git
@@ -559,6 +563,7 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/smb-volume-release.git
+    submodules: none
 
 - name: smb-volume-version
   type: semver
