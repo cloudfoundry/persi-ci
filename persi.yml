@@ -204,13 +204,11 @@ resources:
 - name: persi-ci
   type: git
   source:
-    branch: master
     uri: https://github.com/cloudfoundry/persi-ci.git
 
 - name: persi-acceptance-tests
   type: git
   source:
-    branch: master
     uri: https://github.com/cloudfoundry/persi-acceptance-tests.git
 
 - name: cf-acceptance-tests
@@ -241,6 +239,7 @@ resources:
     bucket: nfs-volume-release-tarballs
     regexp: nfs-volume-(.*).tgz
     secret_access_key: {{nfsvolume-uploader_aws_secret}}
+
 - name: nfsvolume-version
   type: semver
   source:
@@ -250,21 +249,21 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{nfsvolume-uploader_aws_secret}}
+
 - name: nfs-volume-release
   type: git
   source:
     username: {{github-user}}
     password: {{github-password}}
-    branch: master
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
     ignore_paths:
     - scripts
+
 - name: nfs-volume-release-concourse-tasks
   type: git
   source:
     username: {{github-user}}
     password: {{github-password}}
-    branch: master
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
 - name: github-release-nfs
   type: github-release
@@ -273,11 +272,13 @@ resources:
     repository: nfs-volume-release
     drafts: true
     access_token: {{github-release-token}}
+
 - name: lib-nfs
   type: git
   source:
     branch: master
     uri: https://github.com/sahlberg/libnfs.git
+
 - name: fuse-nfs
   type: git
   source:
@@ -293,6 +294,7 @@ resources:
     bucket: local-volume-release-tarballs
     regexp: local-volume-(.*).tgz
     secret_access_key: {{localvolume-uploader_aws_secret}}
+
 - name: localvolume-version
   type: semver
   source:
@@ -302,17 +304,17 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{localvolume-uploader_aws_secret}}
+
 - name: local-volume-release
   type: git
   source:
-    branch: master
     uri: https://github.com/cloudfoundry/local-volume-release.git
     ignore_paths:
     - scripts
+
 - name: local-volume-release-concourse-tasks
   type: git
   source:
-    branch: master
     uri: https://github.com/cloudfoundry/local-volume-release.git
 #### END local volume resources ######################################################################################
 
@@ -324,6 +326,7 @@ resources:
     bucket: efs-volume-release-tarballs
     regexp: efs-volume-(.*).tgz
     secret_access_key: {{efsvolume-uploader_aws_secret}}
+
 - name: efsvolume-version
   type: semver
   source:
@@ -333,19 +336,19 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{efsvolume-uploader_aws_secret}}
+
 - name: efs-volume-release
   type: git
   source:
-    branch: master
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
     ignore_paths:
     - scripts
+
 - name: efs-volume-release-concourse-tasks
   type: git
   source:
     username: {{github-user}}
     password: {{github-password}}
-    branch: master
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
 
 #### END EFS resources ################################################################################################
@@ -358,6 +361,7 @@ resources:
     bucket: persi-diego-dev-releases
     regexp: diego-0\.1476\.1-dev\.(\d+)\.tgz
     secret_access_key: {{diego-uploader_aws_secret}}
+
 - name: diego-version
   type: semver
   source:
@@ -367,23 +371,28 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{diego-uploader_aws_secret}}
+
 - name: garden-runc-release-tarball
   type: bosh-io-release
   source:
     repository: cloudfoundry/garden-runc-release
+
 # - name: garden-windows-release-tarball
 #   type: bosh-io-release
 #   source:
 #     repository: cloudfoundry-incubator/garden-windows-bosh-release
+
 - name: garden-runc-release-master
   type: git
   source:
     uri: https://github.com/cloudfoundry/garden-runc-release
     branch: master
+
 - name: diego-ci
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/diego-ci
+
 - name: diego-release
   type: git
   source:
@@ -396,11 +405,13 @@ resources:
     - releases
     - .final_builds
     uri: https://github.com/cloudfoundry/diego-release
+
 - name: routing-release
   type: git
   source:
     branch: master
     uri: https://github.com/cloudfoundry-incubator/routing-release.git
+
 - name: routing-release-tarball
   type: bosh-io-release
   source:
@@ -420,6 +431,7 @@ resources:
   type: git
   source:
     uri: https://github.com/EMC-Dojo/ecs-release.git
+
 - name: ecs-release-tarball
   type: s3
   source:
@@ -427,6 +439,7 @@ resources:
     bucket: ecs-release-tarballs
     regexp: ecs-release-(.*).tgz
     secret_access_key: {{ecs-uploader_aws_secret}}
+
 - name: ecs-version
   type: semver
   source:
@@ -436,6 +449,7 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{ecs-uploader_aws_secret}}
+
 - name: ecs-cf-service-broker
   type: git
   source:
@@ -535,7 +549,6 @@ resources:
   source:
     username: {{github-user}}
     password: {{github-password}}
-    branch: master
     uri: https://github.com/cloudfoundry/smb-volume-release.git
     ignore_paths:
     - scripts
@@ -545,7 +558,6 @@ resources:
   source:
     username: {{github-user}}
     password: {{github-password}}
-    branch: master
     uri: https://github.com/cloudfoundry/smb-volume-release.git
 
 - name: smb-volume-version
@@ -577,7 +589,6 @@ resources:
 #### End SMB resources ###############################################################################################
 
 #### mapfs resources ###################################################################################################
-
 - name: mapfs-release-tarball
   type: s3
   source:
@@ -585,6 +596,7 @@ resources:
     bucket: mapfs-release-tarballs
     regexp: mapfs-(.*).tgz
     secret_access_key: {{mapfs-uploader_aws_secret}}
+
 - name: mapfs-version
   type: semver
   source:
@@ -594,13 +606,14 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{mapfs-uploader_aws_secret}}
+
 - name: mapfs-release
   type: git
   source:
     username: {{github-user}}
     password: {{github-password}}
-    branch: master
     uri: https://github.com/cloudfoundry/mapfs-release.git
+
 - name: github-release-mapfs
   type: github-release
   source:
@@ -608,7 +621,6 @@ resources:
     repository: mapfs-release
     drafts: true
     access_token: {{github-release-token}}
-
 #### End mapfs resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
@@ -633,21 +645,18 @@ resources:
 - name: gorgophone-env-director-state
   type: git
   source:
-    branch: master
     uri: git@github.com:cloudfoundry/gorgophone-env.git
     private_key: {{deployments-persi-key}}
 
 - name: gorgophone-env
   type: git
   source:
-    branch: master
     uri: git@github.com:cloudfoundry/gorgophone-env.git
     private_key: {{deployments-persi-key}}
 
 - name: gorgophone-env-vars-store
   type: git
   source:
-    branch: master
     uri: git@github.com:cloudfoundry/gorgophone-env.git
     private_key: {{deployments-persi-key}}
     paths:
@@ -664,12 +673,9 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
-    branch: master
-
 #### End cf-deployment resources #####################################################################################
 
 ###################################### END RESOURCES SECTION #########################################################
-
 
 ######################################################################################################################
 ###################################### RESOURCE_TYPES SECTION ########################################################
@@ -682,7 +688,9 @@ resource_types:
     tag: latest-final
 ###################################### END RESOURCE_TYPES SECTION ####################################################
 
-
+######################################################################################################################
+########################################### JOBS SECTION #############################################################
+######################################################################################################################
 jobs:
 #### Local Volume related jobs ########################################################################################
 - name: localdriver-unit
