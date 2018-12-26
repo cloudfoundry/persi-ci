@@ -2659,7 +2659,7 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
-                      operations/add-diego-cell-tagged.yml
+                      operations/add-diego-cell-ldap.yml
                       operations/enable-csi-local-plugin.yml
                       operations/enable-nfs-test-server-two.yml
                       operations/enable-smb-test-server-two.yml
@@ -2715,8 +2715,8 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/update-releases.yml"
-  - task: parse-diego-cell-ldap
-    file: persi-ci/scripts/ci/parse-diego-cell-tagged.build.yml
+  - task: generate-diego-cell-ldap-ops-file
+    file: persi-ci/scripts/ci/generate-diego-cell-ldap-ops-file.build.yml
     input_mapping:
       base-ops-files: collected-ops-files
   - task: add-tarballs
@@ -2808,7 +2808,7 @@ jobs:
                   operations/enable-local-volume-service-windows-cells.yml
                   operations/test/enable-nfs-test-server.yml
                   operations/enable-nfs-test-ldapserver-tls.yml
-                  operations/parsed-diego-cell-tagged.yml
+                  operations/add-diego-cell-ldap.yml
                   operations/test/enable-smb-test-server.yml
                   operations/enable-csi-local-plugin.yml
                   operations/add-static-ips-to-nfstestservers.yml

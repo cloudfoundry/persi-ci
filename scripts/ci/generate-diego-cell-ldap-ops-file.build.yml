@@ -16,4 +16,4 @@ outputs:
 - name: collected-ops-files
 
 run:
-  path: persi-ci/scripts/ci/parse-diego-cell-tagged
+  path: persi-ci/scripts/ci/generate-diego-cell-ldap-ops-file
