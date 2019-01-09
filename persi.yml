@@ -2997,8 +2997,7 @@ jobs:
       SYSTEM_DOMAIN: 52.33.139.221.sslip.io
       VARS_STORE_FILE: deployment-vars-bosh-lite.yml
       VARS_FILES: "efs-vars.yml"
-      OPS_FILES: "operations/aws.yml
-                  operations/bosh-lite.yml
+      OPS_FILES: "operations/bosh-lite.yml
                   operations/deploy-efs-broker-and-install-driver.yml
                   operations/experimental/use-native-garden-runc-runner.yml
                   operations/update-releases.yml"
