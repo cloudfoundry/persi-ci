@@ -4,7 +4,7 @@
 source cf-deployment-concourse-tasks/shared-functions
 
 function shrink_cf_manifest() {
-  SMALL_INTERPOLATED_MANIFEST="small-${INTERPOLATED_MANIFEST}"
+  SMALL_INTERPOLATED_MANIFEST="${INTERPOLATED_MANIFEST}-small"
 
   apt-get install -y python3-pip
   pip3 install yq
