@@ -4,6 +4,8 @@
 source cf-deployment-concourse-tasks/shared-functions
 
 function shrink_cf_manifest() {
+  SMALL_MANIFEST_FILE="small-${MANIFEST_FILE}"
+
   shrinkcf/shrink.sh -m "${MANIFEST_FILE}" -o "${SMALL_MANIFEST_FILE}"
   mv "${SMALL_MANIFEST_FILE}" "${MANIFEST_FILE}"
 }
