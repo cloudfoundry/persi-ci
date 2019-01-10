@@ -2919,10 +2919,6 @@ jobs:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: bosh-bootloader
-    - get: cf-deployment
-      passed:
-      - cf-deployment-nightly
-      trigger: true
     - get: diego-dev-release
       passed:
       - create-diego-release
@@ -3111,9 +3107,6 @@ jobs:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment
-      passed:
-      - bbl-up-heleus
-      trigger: true
     - get: persi-ci
     - get: shrinkcf
     - get: diego-dev-release
@@ -3270,10 +3263,6 @@ jobs:
       passed:
       - deploy-cf-heleus
       trigger: true
-    - get: cf-deployment
-      passed:
-      - deploy-cf-heleus
-      trigger: true
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -3367,10 +3356,6 @@ jobs:
       passed:
       - deploy-cf-heleus
       trigger: true
-    - get: cf-deployment
-      passed:
-      - deploy-nfs-broker-heleus
-      trigger: true
     - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
@@ -3404,10 +3389,6 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment
-      passed:
-      - pats-efs-heleus
-      trigger: true
     - get: nfs-volume-release
       passed:
       - pats-nfs-ldap-heleus
@@ -3439,10 +3420,6 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment
-      passed:
-      - delete-cf-heleus
-      trigger: true
   - task: destroy
     file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
     params:
