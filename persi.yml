@@ -3153,7 +3153,7 @@ jobs:
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment
+      base-ops-files: collected-ops-files
       new-ops-files: efs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
