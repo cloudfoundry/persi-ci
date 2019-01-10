@@ -52,6 +52,7 @@ groups:
   - deploy-cf-efs
   - bbl-up-heleus
   - deploy-cf-heleus
+  - deploy-nfs-broker-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
   - deploy-nfs-brokers
@@ -119,6 +120,7 @@ groups:
   - background-load-test
   - bbl-up-heleus
   - deploy-cf-heleus
+  - deploy-nfs-broker-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
 
@@ -3214,6 +3216,29 @@ jobs:
                   operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
 
+- name: deploy-nfs-broker-heleus
+  serial_groups:
+  - nfs-ldap
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: gorgophone-env-director-state
+    - get: nfs-volume-release
+      passed:
+      - deploy-cf-heleus
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - deploy-cf-heleus
+      trigger: true
+  - task: run-broker-errand
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      ERRAND_NAME: nfsbrokerpush
+
 - name: delete-cf-heleus
   serial_groups:
   - nfs-ldap
@@ -3224,7 +3249,7 @@ jobs:
     - get: gorgophone-env-director-state
     - get: cf-deployment
       passed:
-      - deploy-cf-heleus
+      - deploy-nfs-broker-heleus
       trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
