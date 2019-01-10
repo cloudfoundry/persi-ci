@@ -76,6 +76,14 @@ groups:
   - pats-local-windows
   - background-load-test
 
+- name: heleus
+  jobs:
+  - bbl-up-heleus
+  - deploy-cf-heleus
+  - deploy-nfs-broker-heleus
+  - delete-cf-heleus
+  - bbl-destroy-heleus
+
 - name: csi
   jobs:
   - csi-local-controller-plugin-unit
