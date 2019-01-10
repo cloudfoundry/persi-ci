@@ -26,15 +26,15 @@ EOF
 generate_efs_vars() {
   pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
     if [ -z "${AWS_SECURITY_GROUP}" ]; then
-      AWS_SECURITY_GROUP="$(bbl outputs | /yq -r '.internal_security_group')"
+      AWS_SECURITY_GROUP="$(bbl outputs | yq -r '.internal_security_group')"
     fi
 
     if [ -z "${AWS_SUBNET_ID}" ]; then
-      AWS_SUBNET_ID="$(bbl outputs | /yq -r '.subnet_id')"
+      AWS_SUBNET_ID="$(bbl outputs | yq -r '.subnet_id')"
     fi
 
     if [ -z "${AWS_AZ}" ]; then
-      AWS_AZ="$(bbl outputs | /yq -r '.az')"
+      AWS_AZ="$(bbl outputs | yq -r '.az')"
     fi
   popd
 
@@ -62,31 +62,31 @@ EOF
 generate_s3_blobstore_vars() {
   pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
     if [ -z "${S3_BLOBSTORE_ID}" ]; then
-      S3_BLOBSTORE_ID="$(bbl outputs | /yq -r '.s3_blobstore_access_key_id')"
+      S3_BLOBSTORE_ID="$(bbl outputs | yq -r '.s3_blobstore_access_key_id')"
     fi
 
     if [ -z "${S3_BLOBSTORE_KEY}" ]; then
-      S3_BLOBSTORE_KEY="$(bbl outputs | /yq -r '.s3_blobstore_secret_access_key')"
+      S3_BLOBSTORE_KEY="$(bbl outputs | yq -r '.s3_blobstore_secret_access_key')"
     fi
 
     if [ -z "${S3_BLOBSTORE_REGION}" ]; then
-      S3_BLOBSTORE_REGION="$(bbl outputs | /yq -r '.region')"
+      S3_BLOBSTORE_REGION="$(bbl outputs | yq -r '.region')"
     fi
 
     if [ -z "${APP_PACKAGE_DIRECTORY_KEY}" ]; then
-      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | /yq -r '.s3_blobstore_packages_bucket')"
+      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_packages_bucket')"
     fi
 
     if [ -z "${BUILDPACK_DIRECTORY_KEY}" ]; then
-      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | /yq -r '.s3_blobstore_buildpacks_bucket')"
+      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_buildpacks_bucket')"
     fi
 
     if [ -z "${DROPLET_DIRECTORY_KEY}" ]; then
-      DROPLET_DIRECTORY_KEY="$(bbl outputs | /yq -r '.s3_blobstore_droplets_bucket')"
+      DROPLET_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_droplets_bucket')"
     fi
 
     if [ -z "${RESOURCE_DIRECTORY_KEY}" ]; then
-      RESOURCE_DIRECTORY_KEY="$(bbl outputs | /yq -r '.s3_blobstore_resources_bucket')"
+      RESOURCE_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_resources_bucket')"
     fi
   popd
 
