@@ -2917,6 +2917,18 @@ jobs:
       passed:
       - cf-deployment-nightly
       trigger: true
+    - get: diego-dev-release
+      passed:
+      - create-diego-release
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - create-nfs-volume-release
+      trigger: true
+    - get: efs-volume-release-tarball
+      passed:
+      - create-efs-volume-release
+      trigger: true
     - get: gorgophone-env-vars-store
     - get: persi-ci
   - task: setup-infrastructure
@@ -3093,7 +3105,8 @@ jobs:
     - get: persi-ci
     - get: shrinkcf
     - get: diego-dev-release
-      passed: [ create-diego-release ]
+      passed:
+      - bbl-up-heleus
       trigger: true
     - get: diego-release
     - get: diego-version
@@ -3101,14 +3114,16 @@ jobs:
     - get: nfs-volume-release
       passed: [ create-nfs-volume-release ]
     - get: nfs-volume-release-tarball
-      passed: [ create-nfs-volume-release ]
+      passed:
+      - bbl-up-heleus
       trigger: true
     - get: nfsvolume-version
       passed: [ create-nfs-volume-release ]
     - get: efs-volume-release
       passed: [ create-efs-volume-release ]
     - get: efs-volume-release-tarball
-      passed: [ create-efs-volume-release ]
+      passed:
+      - bbl-up-heleus
       trigger: true
     - get: efsvolume-version
       passed: [ create-efs-volume-release ]
@@ -3256,6 +3271,10 @@ jobs:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: cf-deployment
+      passed:
+      - deploy-nfs-broker-heleus
+      trigger: true
+    - get: nfs-volume-release
       passed:
       - deploy-nfs-broker-heleus
       trigger: true
