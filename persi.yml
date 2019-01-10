@@ -3193,7 +3193,7 @@ jobs:
       BBL_STATE_DIR: bbl-state-aws-heleus
       INFRASTRUCTURE: aws
   - task: bosh-deploy-cf
-    file: persi-ci/scripts/ci/bosh-deploy_small-cf.build.yml
+    file: persi-ci/scripts/ci/bosh-deploy-small-cf.build.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
