@@ -2930,14 +2930,23 @@ jobs:
       passed:
       - create-diego-release
       trigger: true
+    - get: diego-version
+      passed:
+      - create-diego-release
     - get: nfs-volume-release-tarball
       passed:
       - create-nfs-volume-release
       trigger: true
+    - get: nfsvolume-version
+      passed:
+      - create-nfs-volume-release
     - get: efs-volume-release-tarball
       passed:
       - create-efs-volume-release
       trigger: true
+    - get: efsvolume-version
+      passed:
+      - create-efs-volume-release
     - get: gorgophone-env-vars-store
     - get: persi-ci
   - task: setup-infrastructure
@@ -3119,7 +3128,8 @@ jobs:
       trigger: true
     - get: diego-release
     - get: diego-version
-      passed: [ create-diego-release ]
+      passed:
+      - bbl-up-heleus
     - get: nfs-volume-release
       passed: [ create-nfs-volume-release ]
     - get: nfs-volume-release-tarball
@@ -3127,7 +3137,8 @@ jobs:
       - bbl-up-heleus
       trigger: true
     - get: nfsvolume-version
-      passed: [ create-nfs-volume-release ]
+      passed:
+      - bbl-up-heleus
     - get: efs-volume-release
       passed: [ create-efs-volume-release ]
     - get: efs-volume-release-tarball
@@ -3135,7 +3146,8 @@ jobs:
       - bbl-up-heleus
       trigger: true
     - get: efsvolume-version
-      passed: [ create-efs-volume-release ]
+      passed:
+      - bbl-up-heleus
     - get: mapfs-release
       passed: [ create-mapfs-release ]
     - get: mapfs-release-tarball
