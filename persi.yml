@@ -3257,6 +3257,12 @@ jobs:
       BBL_STATE_DIR: bbl-state-aws-heleus
     input_mapping:
       bbl-state: gorgophone-env-director-state
+  - task: bosh-cleanup
+    file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
 
 - name: bbl-destroy-heleus
   serial_groups:
