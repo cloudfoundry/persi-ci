@@ -53,6 +53,7 @@ groups:
   - bbl-up-heleus
   - deploy-cf-heleus
   - deploy-nfs-broker-heleus
+  - pats-efs-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
   - deploy-nfs-brokers
@@ -81,6 +82,7 @@ groups:
   - bbl-up-heleus
   - deploy-cf-heleus
   - deploy-nfs-broker-heleus
+  - pats-efs-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
 
@@ -142,6 +144,7 @@ groups:
   - deploy-cf-efs
   - bbl-up-heleus
   - deploy-cf-heleus
+  - pats-efs-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
   - pats-efs
@@ -3262,6 +3265,51 @@ jobs:
       BBL_STATE_DIR: bbl-state-aws-heleus
       ERRAND_NAME: nfsbrokerpush
 
+- name: pats-efs-heleus
+  serial_groups:
+  - efs
+  plan:
+  - aggregate:
+    - get: efs-volume-release
+      passed:
+      - deploy-cf-heleus
+      trigger: true
+    - get: diego-dev-release
+      passed:
+      - deploy-cf-heleus
+      trigger: true
+    - get: cf-deployment
+      passed:
+      - deploy-nfs-broker-heleus
+      trigger: true
+    - get: persi-acceptance-tests
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      APPS_DOMAIN: heleus.cf-app.com
+      CF_API_ENDPOINT: api.heleus.cf-app.com
+      CF_USERNAME: admin
+      DEFAULT_TIMEOUT: 300
+      BROKER_PASSWORD_KEY: efs-broker-password
+      BROKER_URL: http://efs-broker.heleus.cf-app.com
+      BROKER_USER: admin
+      PLAN_NAME: generalPurpose
+      SERVICE_NAME: efs
+  - task: run-pats
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      TEST_MULTI_CELL: true
+
 - name: delete-cf-heleus
   serial_groups:
   - nfs-ldap
@@ -3272,11 +3320,19 @@ jobs:
     - get: gorgophone-env-director-state
     - get: cf-deployment
       passed:
-      - deploy-nfs-broker-heleus
+      - pats-efs-heleus
       trigger: true
     - get: nfs-volume-release
       passed:
       - deploy-nfs-broker-heleus
+      trigger: true
+    - get: efs-volume-release
+      passed:
+      - pats-efs-heleus
+      trigger: true
+    - get: diego-dev-release
+      passed:
+      - pats-efs-heleus
       trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
