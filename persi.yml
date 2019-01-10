@@ -50,6 +50,10 @@ groups:
   - deploy-cf
   - bbl-up-boshlite-aws
   - deploy-cf-efs
+  - bbl-up-heleus
+  - deploy-cf-heleus
+  - delete-cf-heleus
+  - bbl-destroy-heleus
   - deploy-nfs-brokers
   - migrate-nfs-broker
   - pats-nfs
@@ -113,6 +117,10 @@ groups:
   - create-isilon-volume
   - pats-isilon
   - background-load-test
+  - bbl-up-heleus
+  - deploy-cf-heleus
+  - delete-cf-heleus
+  - bbl-destroy-heleus
 
 - name: efs
   jobs:
@@ -122,6 +130,10 @@ groups:
   - create-efs-volume-release
   - bbl-up-boshlite-aws
   - deploy-cf-efs
+  - bbl-up-heleus
+  - deploy-cf-heleus
+  - delete-cf-heleus
+  - bbl-destroy-heleus
   - pats-efs
 
 - name: ecs
@@ -229,6 +241,13 @@ resources:
     start: 12:00 AM
     stop: 1:00 AM
     location: America/Los_Angeles
+
+- name: shrinkcf
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:davewalter/shrinkcf.git
+    private_key: {{deployments-persi-key}}
 #### END Misc resources ###############################################################################################
 
 #### NFS resources ###############################################################################################
@@ -2532,6 +2551,7 @@ jobs:
       LB_DOMAIN: gorgophone.cf-app.com
       BBL_STATE_DIR: bbl-state-gcp
       BBL_CONFIG_DIR: operations/bosh-gcp
+      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
     input_mapping:
       bbl-state: gorgophone-env-director-state
       bbl-config: persi-ci
@@ -2749,7 +2769,10 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp
       BBL_IAAS: gcp
-      GENERATE_EFS_VARS: false
+      GENERATE_DATADOG_VARS: true
+      GENERATE_ECS_VARS: true
+      GENERATE_NFS_VARS: true
+      GENERATE_SMB_VARS: true
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
       LDAP_SVC_USER: {{ldap-svc-user}}
       LDAP_SVC_PASS: {{ldap-svc-pass}}
@@ -2794,8 +2817,7 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
-      VARS_STORE_FILE: deployment-vars.yml
-      VARS_FILES: "nfs-vars.yml cf-vars.yml datadog-vars.yml smb-vars.yml"
+      VARS_FILES: "nfs-vars.yml ecs-vars.yml datadog-vars.yml smb-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
@@ -2861,6 +2883,47 @@ jobs:
       BBL_AWS_REGION: us-west-2
       SKIP_LB_CREATION: true
       BBL_CONFIG_DIR: plan-patches/bosh-lite-aws
+      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      bbl-config: bosh-bootloader
+    ensure:
+      put: gorgophone-env-director-state
+      params:
+        repository: updated-bbl-state
+        rebase: true
+
+- name: bbl-up-heleus
+  serial_groups:
+  - nfs-ldap
+  - efs
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: gorgophone-env-director-state
+    - get: bosh-bootloader
+    - get: cf-deployment
+      passed:
+      - cf-deployment-nightly
+      trigger: true
+    - get: gorgophone-env-vars-store
+    - get: persi-ci
+  - task: setup-infrastructure
+    file: cf-deployment-concourse-tasks/bbl-up/task.yml
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_AWS_REGION: us-west-2
+      BBL_CONFIG_DIR: plan-patches/s3-blobstore-aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_LB_CERT: {{heleus_lbs_ssl_cert}}
+      BBL_LB_KEY: {{heleus_lbs_ssl_private_key}}
+      LB_DOMAIN: heleus.cf-app.com
+      BBL_ENV_NAME: heleus
+      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
+      DEBUG_MODE: true
     input_mapping:
       bbl-state: gorgophone-env-director-state
       bbl-config: bosh-bootloader
@@ -2968,11 +3031,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      GENERATE_NFS_VARS: false
       GENERATE_EFS_VARS: true
-      GENERATE_SMB_VARS: false
-      GENERATE_ECS_BLOBSTORE_VARS: false
-      GENERATE_DATADOG_VARS: false
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
       AWS_SECURITY_GROUP: sg-049990d0abe73d682
@@ -2995,7 +3054,6 @@ jobs:
       BBL_STATE_DIR: bbl-state-boshlite-aws
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: 52.33.139.221.sslip.io
-      VARS_STORE_FILE: deployment-vars-bosh-lite.yml
       VARS_FILES: "efs-vars.yml"
       OPS_FILES: "operations/bosh-lite.yml
                   operations/deploy-efs-broker-and-install-driver.yml
@@ -3007,6 +3065,200 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-boshlite-aws
+
+- name: deploy-cf-heleus
+  serial_groups:
+  - nfs-ldap
+  - efs
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: gorgophone-env-director-state
+    - get: cf-deployment
+      passed:
+      - bbl-up-heleus
+      trigger: true
+    - get: persi-ci
+    - get: shrinkcf
+    - get: diego-dev-release
+      passed: [ create-diego-release ]
+      trigger: true
+    - get: diego-release
+    - get: diego-version
+      passed: [ create-diego-release ]
+    - get: nfs-volume-release
+      passed: [ create-nfs-volume-release ]
+    - get: nfs-volume-release-tarball
+      passed: [ create-nfs-volume-release ]
+      trigger: true
+    - get: nfsvolume-version
+      passed: [ create-nfs-volume-release ]
+    - get: efs-volume-release
+      passed: [ create-efs-volume-release ]
+    - get: efs-volume-release-tarball
+      passed: [ create-efs-volume-release ]
+      trigger: true
+    - get: efsvolume-version
+      passed: [ create-efs-volume-release ]
+    - get: mapfs-release
+      passed: [ create-mapfs-release ]
+    - get: mapfs-release-tarball
+      passed: [ create-mapfs-release ]
+    - get: mapfs-version
+      passed: [ create-mapfs-release ]
+  - task: collect-tarballs
+    file: persi-ci/scripts/ci/collect-tarballs.build.yml
+    params:
+      COLLECT_DIEGO_TARBALL: true
+      COLLECT_NFS_TARBALL: true
+      COLLECT_EFS_TARBALL: true
+      COLLECT_CSI_LOCAL_TARBALL: false
+      COLLECT_CSI_PLUGINS_TARBALL: false
+      COLLECT_ECS_TARBALL: false
+      COLLECT_LOCAL_TARBALL: false
+      COLLECT_SMB_TARBALL: false
+      COLLECT_MAPFS_TARBALL: false
+    #this task requires a lot of inputs that we don't need for this instance--we're feeding in
+    #efsvolume-version as a dummy input because it is tiny and easy to copy
+    input_mapping:
+      persi-ci: persi-ci
+      diego-tarball: diego-dev-release
+      nfs-tarball: nfs-volume-release-tarball
+      efs-tarball: efs-volume-release-tarball
+      csi-local-tarball: efsvolume-version #dummy
+      csi-plugins-tarball: efsvolume-version #dummy
+      mapfs-tarball: mapfs-release-tarball #dummy
+      ecs-tarball: efsvolume-version #dummy
+      local-tarball: efsvolume-version #dummy
+      smb-tarball: efsvolume-version #dummy
+      diego-version: diego-version
+      nfs-version: nfsvolume-version
+      efs-version: efsvolume-version
+      csi-local-version: efsvolume-version #dummy
+      csi-plugins-version: efsvolume-version #dummy
+      mapfs-version: mapfs-version #dummy
+      ecs-version: efsvolume-version #dummy
+      local-version: efsvolume-version #dummy
+      smb-version: efsvolume-version #dummy
+  - task: collect-nfs-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment
+      new-ops-files: nfs-volume-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-nfs-test-ldapserver-tls.yml"
+  - task: collect-efs-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment
+      new-ops-files: efs-volume-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
+  - task: collect-tarball-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: collected-tarballs
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/update-releases.yml"
+  - task: add-tarballs
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: collected-tarballs
+    params:
+      BASE_OPS_FILE_DIR: "."
+      NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate_variables.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      GENERATE_EFS_VARS: true
+      GENERATE_NFS_VARS: true
+      GENERATE_S3_BLOBSTORE_VARS: true
+      AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
+  - task: bosh-upload-stemcell
+    file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      INFRASTRUCTURE: aws
+  - task: bosh-deploy-cf
+    file: persi-ci/scripts/ci/bosh-deploy_small-cf.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      SYSTEM_DOMAIN: heleus.cf-app.com
+      VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
+      OPS_FILES: "operations/scale-to-one-az.yml \
+                  operations/use-compiled-releases.yml \
+                  operations/use-external-blobstore.yml \
+                  operations/use-s3-blobstore.yml \
+                  operations/enable-nfs-volume-service.yml \
+                  operations/enable-nfs-ldap.yml \
+                  operations/test/enable-nfs-test-server.yml \
+                  operations/enable-nfs-test-ldapserver-tls.yml \
+                  operations/experimental/use-native-garden-runc-runner.yml \
+                  operations/deploy-efs-broker-and-install-driver.yml \
+                  operations/update-releases.yml"
+
+- name: delete-cf-heleus
+  serial_groups:
+  - nfs-ldap
+  - efs
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: gorgophone-env-director-state
+    - get: cf-deployment
+      passed:
+      - deploy-cf-heleus
+      trigger: true
+  - task: delete-cf
+    file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+
+- name: bbl-destroy-heleus
+  serial_groups:
+  - nfs-ldap
+  - efs
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: gorgophone-env-director-state
+    - get: cf-deployment
+      passed:
+      - delete-cf-heleus
+      trigger: true
+  - task: destroy
+    file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    ensure:
+      put: gorgophone-env-director-state
+      params:
+        repository: updated-bbl-state
+        rebase: true
 
 - name: pats-drats
   serial: true
