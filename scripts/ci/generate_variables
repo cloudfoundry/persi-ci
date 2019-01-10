@@ -16,10 +16,28 @@ nfs-ldap-host: ${LDAP_HOST}
 nfs-ldap-port: ${LDAP_PORT}
 nfs-ldap-proto: ${LDAP_PROTO}
 nfs-ldap-fqdn: ${LDAP_USER_FQDN}
+
+nfstestserver_static_ips: ${NFSTESTSERVER_STATIC_IP}
+nfstestservertwo_static_ips: ${NFSTESTSERVER_TWO_STATIC_IP}
+nfstestldapserver_static_ips: ${NFSTESTLDAPSERVER_STATIC_IP}
 EOF
 }
 
 generate_efs_vars() {
+  pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
+    if [ -z "${AWS_SECURITY_GROUP}" ]; then
+      AWS_SECURITY_GROUP="$(bbl outputs | /yq r - internal_security_group)"
+    fi
+
+    if [ -z "${AWS_SUBNET_ID}" ]; then
+      AWS_SUBNET_ID="$(bbl outputs | /yq r - subnet_id)"
+    fi
+
+    if [ -z "${AWS_AZ}" ]; then
+      AWS_AZ="$(bbl outputs | /yq r - az)"
+    fi
+  popd
+
     cat << EOF > ${ROOT_DIR}/generated-vars/efs-vars.yml
 ---
 aws-access-key-id: ${AWS_ACCESS_KEY_ID}
@@ -30,15 +48,50 @@ aws-azs: ${AWS_AZ}
 EOF
 }
 
-generate_cf_vars() {
-    cat << EOF > ${ROOT_DIR}/generated-vars/cf-vars.yml
+generate_ecs_vars() {
+    cat << EOF > ${ROOT_DIR}/generated-vars/ecs-vars.yml
 ---
 ecs-password: ${ECS_PASSWORD}
 ecs-username: ${ECS_USERNAME}
 ecs-ip: ${ECS_IP}
 ecs-aws-id: ${ECS_AWS_ID}
 ecs-aws-key: ${ECS_AWS_KEY}
+EOF
+}
 
+generate_s3_blobstore_vars() {
+  pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
+    if [ -z "${S3_BLOBSTORE_ID}" ]; then
+      S3_BLOBSTORE_ID="$(bbl outputs | /yq r - s3_blobstore_access_key_id)"
+    fi
+
+    if [ -z "${S3_BLOBSTORE_KEY}" ]; then
+      S3_BLOBSTORE_KEY="$(bbl outputs | /yq r - s3_blobstore_secret_access_key)"
+    fi
+
+    if [ -z "${S3_BLOBSTORE_REGION}" ]; then
+      S3_BLOBSTORE_REGION="$(bbl outputs | /yq r - region)"
+    fi
+
+    if [ -z "${APP_PACKAGE_DIRECTORY_KEY}" ]; then
+      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | /yq r - s3_blobstore_packages_bucket)"
+    fi
+
+    if [ -z "${BUILDPACK_DIRECTORY_KEY}" ]; then
+      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | /yq r - s3_blobstore_buildpacks_bucket)"
+    fi
+
+    if [ -z "${DROPLET_DIRECTORY_KEY}" ]; then
+      DROPLET_DIRECTORY_KEY="$(bbl outputs | /yq r - s3_blobstore_droplets_bucket)"
+    fi
+
+    if [ -z "${RESOURCE_DIRECTORY_KEY}" ]; then
+      RESOURCE_DIRECTORY_KEY="$(bbl outputs | /yq r - s3_blobstore_resources_bucket)"
+    fi
+  popd
+
+    cat << EOF > ${ROOT_DIR}/generated-vars/s3-blobstore-vars.yml
+---
 blobstore_access_key_id: ${S3_BLOBSTORE_ID}
 blobstore_secret_access_key: ${S3_BLOBSTORE_KEY}
 aws_region: ${S3_BLOBSTORE_REGION}
@@ -47,10 +100,6 @@ app_package_directory_key: ${APP_PACKAGE_DIRECTORY_KEY}
 buildpack_directory_key: ${BUILDPACK_DIRECTORY_KEY}
 droplet_directory_key: ${DROPLET_DIRECTORY_KEY}
 resource_directory_key: ${RESOURCE_DIRECTORY_KEY}
-
-nfstestserver_static_ips: ${NFSTESTSERVER_STATIC_IP}
-nfstestservertwo_static_ips: ${NFSTESTSERVER_TWO_STATIC_IP}
-nfstestldapserver_static_ips: ${NFSTESTLDAPSERVER_STATIC_IP}
 EOF
 }
 
@@ -75,18 +124,31 @@ main() {
   ROOT_DIR="${1}"
   mkdir -p ${ROOT_DIR}/generated-vars
 
+  local yq_exe_url
+  yq_exe_url=$(curl -s https://api.github.com/repos/mikefarah/yq/releases/latest | jq -r '.assets[] | select(.name == "yq_linux_amd64").browser_download_url')
+  wget -O /yq "${yq_exe_url}"
+  chmod +x /yq
+
   if [ "$GENERATE_NFS_VARS" = "true" ]; then
     generate_nfs_vars
   fi
+
   if [ "$GENERATE_EFS_VARS" = "true" ]; then
     generate_efs_vars
   fi
-  if [ "$GENERATE_ECS_BLOBSTORE_VARS" = "true" ]; then
-    generate_cf_vars
+
+  if [ "$GENERATE_ECS_VARS" = "true" ]; then
+    generate_ecs_vars
   fi
+
+  if [ "$GENERATE_S3_BLOBSTORE_VARS" = "true" ]; then
+    generate_s3_blobstore_vars
+  fi
+
   if [ "$GENERATE_DATADOG_VARS" = "true" ]; then
     generate_datadog_vars
   fi
+
   if [ "$GENERATE_SMB_VARS" = "true" ]; then
     generate_smb_vars
   fi
