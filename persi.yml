@@ -2913,9 +2913,6 @@ jobs:
         rebase: true
 
 - name: bbl-up-heleus
-  serial_groups:
-  - nfs-ldap
-  - efs
   build_logs_to_retain: 100
   plan:
   - aggregate:
@@ -3107,9 +3104,6 @@ jobs:
       BBL_STATE_DIR: bbl-state-boshlite-aws
 
 - name: deploy-cf-heleus
-  serial_groups:
-  - nfs-ldap
-  - efs
   public: true
   build_logs_to_retain: 100
   plan:
@@ -3268,8 +3262,6 @@ jobs:
                   operations/update-releases.yml"
 
 - name: deploy-nfs-broker-heleus
-  serial_groups:
-  - nfs-ldap
   plan:
   - aggregate:
     - get: cf-deployment-concourse-tasks
@@ -3365,8 +3357,6 @@ jobs:
       TEST_DOCKER_PORA: true
 
 - name: pats-efs-heleus
-  serial_groups:
-  - efs
   plan:
   - aggregate:
     - get: efs-volume-release
@@ -3410,9 +3400,6 @@ jobs:
       TEST_MULTI_CELL: true
 
 - name: delete-cf-heleus
-  serial_groups:
-  - nfs-ldap
-  - efs
   plan:
   - aggregate:
     - get: cf-deployment-concourse-tasks
@@ -3448,9 +3435,6 @@ jobs:
       BBL_STATE_DIR: bbl-state-aws-heleus
 
 - name: bbl-destroy-heleus
-  serial_groups:
-  - nfs-ldap
-  - efs
   plan:
   - aggregate:
     - get: cf-deployment-concourse-tasks
