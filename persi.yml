@@ -53,6 +53,8 @@ groups:
   - bbl-up-heleus
   - deploy-cf-heleus
   - deploy-nfs-broker-heleus
+  - pats-nfs-ldap-heleus
+  - pats-nfs-ldap-legacy-heleus
   - pats-efs-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
@@ -82,6 +84,8 @@ groups:
   - bbl-up-heleus
   - deploy-cf-heleus
   - deploy-nfs-broker-heleus
+  - pats-nfs-ldap-heleus
+  - pats-nfs-ldap-legacy-heleus
   - pats-efs-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
@@ -131,6 +135,8 @@ groups:
   - bbl-up-heleus
   - deploy-cf-heleus
   - deploy-nfs-broker-heleus
+  - pats-nfs-ldap-heleus
+  - pats-nfs-ldap-legacy-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
 
@@ -3207,12 +3213,19 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-heleus
       GENERATE_EFS_VARS: true
       GENERATE_NFS_VARS: true
       GENERATE_S3_BLOBSTORE_VARS: true
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
+      LDAP_HOST: "nfstestldapserver.service.cf.internal"
+      LDAP_SVC_USER: {{ldap-svc-user}}
+      LDAP_SVC_PASS: {{ldap-svc-pass}}
+      LDAP_PORT: 636
+      LDAP_PROTO: tcp
+      LDAP_USER_FQDN: {{ldap-user-fqdn}}
   - task: bosh-upload-stemcell
     file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
     input_mapping:
@@ -3264,6 +3277,80 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
       ERRAND_NAME: nfsbrokerpush
+
+- name: pats-nfs-ldap-heleus
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - deploy-nfs-broker-heleus
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - deploy-cf-heleus
+    - get: persi-acceptance-tests
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      APPS_DOMAIN: heleus.cf-app.com
+      CF_API_ENDPOINT: api.heleus.cf-app.com
+      CF_USERNAME: admin
+      BIND_CONFIG: '{"username":"user1000","password":"secret"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+      DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+  - task: run-pats
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      TEST_DOCKER_PORA: true
+
+- name: pats-nfs-ldap-legacy-heleus
+  plan:
+  - aggregate:
+    - get: nfs-volume-release
+      passed:
+      - deploy-nfs-broker-heleus
+      trigger: true
+    - get: nfs-volume-release-tarball
+      passed:
+      - deploy-cf-heleus
+    - get: persi-acceptance-tests
+    - get: persi-ci
+    - get: gorgophone-env-director-state
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      APPS_DOMAIN: heleus.cf-app.com
+      CF_API_ENDPOINT: api.heleus.cf-app.com
+      CF_USERNAME: admin
+      BIND_CONFIG: '{"username":"user1000","password":"secret"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+      DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs-legacy
+  - task: run-pats
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      TEST_DOCKER_PORA: true
 
 - name: pats-efs-heleus
   serial_groups:
@@ -3324,7 +3411,8 @@ jobs:
       trigger: true
     - get: nfs-volume-release
       passed:
-      - deploy-nfs-broker-heleus
+      - pats-nfs-ldap-heleus
+      - pats-nfs-ldap-legacy-heleus
       trigger: true
     - get: efs-volume-release
       passed:
