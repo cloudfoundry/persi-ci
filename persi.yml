@@ -3150,7 +3150,7 @@ jobs:
       BBL_STATE_DIR: bbl-state-aws-heleus
       BBL_LB_CERT: {{heleus_lbs_ssl_cert}}
       BBL_LB_KEY: {{heleus_lbs_ssl_private_key}}
-      LB_DOMAIN: heleus.cf-app.com
+      LB_DOMAIN: heleus.persi.cf-app.com
       BBL_ENV_NAME: heleus
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
       DEBUG_MODE: true
@@ -3309,7 +3309,7 @@ jobs:
       vars-files: generated-vars
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
-      SYSTEM_DOMAIN: heleus.cf-app.com
+      SYSTEM_DOMAIN: heleus.persi.cf-app.com
       VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
                   operations/use-compiled-releases.yml \
@@ -3355,8 +3355,8 @@ jobs:
     params:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-heleus
-      APPS_DOMAIN: heleus.cf-app.com
-      CF_API_ENDPOINT: api.heleus.cf-app.com
+      APPS_DOMAIN: heleus.persi.cf-app.com
+      CF_API_ENDPOINT: api.heleus.persi.cf-app.com
       CF_USERNAME: admin
       BIND_CONFIG: '{"username":"user1000","password":"secret"}'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
@@ -3388,8 +3388,8 @@ jobs:
     params:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-heleus
-      APPS_DOMAIN: heleus.cf-app.com
-      CF_API_ENDPOINT: api.heleus.cf-app.com
+      APPS_DOMAIN: heleus.persi.cf-app.com
+      CF_API_ENDPOINT: api.heleus.persi.cf-app.com
       CF_USERNAME: admin
       BIND_CONFIG: '{"username":"user1000","password":"secret"}'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
@@ -3421,12 +3421,12 @@ jobs:
     params:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-heleus
-      APPS_DOMAIN: heleus.cf-app.com
-      CF_API_ENDPOINT: api.heleus.cf-app.com
+      APPS_DOMAIN: heleus.persi.cf-app.com
+      CF_API_ENDPOINT: api.heleus.persi.cf-app.com
       CF_USERNAME: admin
       DEFAULT_TIMEOUT: 300
       BROKER_PASSWORD_KEY: efs-broker-password
-      BROKER_URL: http://efs-broker.heleus.cf-app.com
+      BROKER_URL: http://efs-broker.heleus.persi.cf-app.com
       BROKER_USER: admin
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
