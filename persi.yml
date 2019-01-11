@@ -3099,16 +3099,12 @@ jobs:
   build_logs_to_retain: 100
   plan:
   - aggregate:
+    - get: bosh-bootloader
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: bosh-bootloader
-    - get: diego-dev-release-tarball
+    - get: nfs-volume-release
       passed:
-      - create-diego-release
-      trigger: true
-    - get: diego-version
-      passed:
-      - create-diego-release
+      - create-nfs-volume-release
     - get: nfs-volume-release-tarball
       passed:
       - create-nfs-volume-release
@@ -3116,6 +3112,19 @@ jobs:
     - get: nfsvolume-version
       passed:
       - create-nfs-volume-release
+    - get: mapfs-release
+      passed:
+      - create-mapfs-release
+    - get: mapfs-release-tarball
+      passed:
+      - create-mapfs-release
+      trigger: true
+    - get: mapfs-version
+      passed:
+      - create-mapfs-release
+    - get: efs-volume-release
+      passed:
+      - create-efs-volume-release
     - get: efs-volume-release-tarball
       passed:
       - create-efs-volume-release
@@ -3123,8 +3132,13 @@ jobs:
     - get: efsvolume-version
       passed:
       - create-efs-volume-release
-    - get: gorgophone-env-vars-store
-    - get: persi-ci
+    - get: diego-dev-release-tarball
+      passed:
+      - create-diego-release
+      trigger: true
+    - get: diego-version
+      passed:
+      - create-diego-release
   - task: setup-infrastructure
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -3154,43 +3168,48 @@ jobs:
   build_logs_to_retain: 100
   plan:
   - aggregate:
+    - get: cf-deployment
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: cf-deployment
-    - get: persi-ci
-    - get: shrinkcf
-    - get: diego-dev-release-tarball
       passed:
       - bbl-up-heleus
       trigger: true
+    - get: persi-ci
+    - get: shrinkcf
+    - get: nfs-volume-release
+      passed:
+      - bbl-up-heleus
+    - get: nfs-volume-release-tarball
+      passed:
+      - bbl-up-heleus
+    - get: nfsvolume-version
+      passed:
+      - bbl-up-heleus
+    - get: mapfs-release
+      passed:
+      - bbl-up-heleus
+    - get: mapfs-release-tarball
+      passed:
+      - bbl-up-heleus
+    - get: mapfs-version
+      passed:
+      - bbl-up-heleus
+    - get: efs-volume-release
+      passed:
+      - bbl-up-heleus
+    - get: efs-volume-release-tarball
+      passed:
+      - bbl-up-heleus
+    - get: efsvolume-version
+      passed:
+      - bbl-up-heleus
+    - get: diego-dev-release-tarball
+      passed:
+      - bbl-up-heleus
     - get: diego-release
     - get: diego-version
       passed:
       - bbl-up-heleus
-    - get: nfs-volume-release
-      passed: [ create-nfs-volume-release ]
-    - get: nfs-volume-release-tarball
-      passed:
-      - bbl-up-heleus
-      trigger: true
-    - get: nfsvolume-version
-      passed:
-      - bbl-up-heleus
-    - get: efs-volume-release
-      passed: [ create-efs-volume-release ]
-    - get: efs-volume-release-tarball
-      passed:
-      - bbl-up-heleus
-      trigger: true
-    - get: efsvolume-version
-      passed:
-      - bbl-up-heleus
-    - get: mapfs-release
-      passed: [ create-mapfs-release ]
-    - get: mapfs-release-tarball
-      passed: [ create-mapfs-release ]
-    - get: mapfs-version
-      passed: [ create-mapfs-release ]
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -3309,7 +3328,6 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: nfs-volume-release
       passed:
       - deploy-cf-heleus
       trigger: true
@@ -3324,16 +3342,12 @@ jobs:
 - name: pats-nfs-ldap-heleus
   plan:
   - aggregate:
-    - get: nfs-volume-release
+    - get: gorgophone-env-director-state
       passed:
       - deploy-nfs-broker-heleus
       trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-cf-heleus
     - get: persi-acceptance-tests
     - get: persi-ci
-    - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -3361,16 +3375,12 @@ jobs:
 - name: pats-nfs-ldap-legacy-heleus
   plan:
   - aggregate:
-    - get: nfs-volume-release
+    - get: gorgophone-env-director-state
       passed:
       - deploy-nfs-broker-heleus
       trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-cf-heleus
     - get: persi-acceptance-tests
     - get: persi-ci
-    - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -3398,17 +3408,12 @@ jobs:
 - name: pats-efs-heleus
   plan:
   - aggregate:
-    - get: efs-volume-release
+    - get: gorgophone-env-director-state
       passed:
-      - deploy-cf-heleus
-      trigger: true
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf-heleus
+      - deploy-nfs-broker-heleus
       trigger: true
     - get: persi-acceptance-tests
     - get: persi-ci
-    - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -3439,18 +3444,10 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
-    - get: nfs-volume-release
       passed:
+      - pats-efs-heleus
       - pats-nfs-ldap-heleus
       - pats-nfs-ldap-legacy-heleus
-      trigger: true
-    - get: efs-volume-release
-      passed:
-      - pats-efs-heleus
-      trigger: true
-    - get: diego-dev-release-tarball
-      passed:
-      - pats-efs-heleus
       trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
@@ -3470,6 +3467,9 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
+      passed:
+      - delete-cf-heleus
+      trigger: true
   - task: destroy
     file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
     params:
