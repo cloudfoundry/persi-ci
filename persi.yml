@@ -2626,7 +2626,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
-                      operations/add-diego-cell-ldap.yml
                       operations/enable-csi-local-plugin.yml
                       operations/enable-nfs-test-server-two.yml
                       operations/enable-smb-test-server-two.yml
@@ -2638,9 +2637,7 @@ jobs:
       new-ops-files: nfs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-ldapserver-tls.yml
-                      operations/set-nfs-ldap-test-mode.yml
-                      operations/test-nfsbroker-migration-to-credhub.yml"
+      NEW_OPS_FILES: "operations/test-nfsbroker-migration-to-credhub.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2682,10 +2679,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/update-releases.yml"
-  - task: generate-diego-cell-ldap-ops-file
-    file: persi-ci/scripts/ci/generate-diego-cell-ldap-ops-file.build.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
   - task: add-tarballs
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2712,12 +2705,6 @@ jobs:
       GENERATE_ECS_VARS: true
       GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: true
-      LDAP_HOST: "nfstestldapserver.service.cf.internal"
-      LDAP_SVC_USER: {{ldap-svc-user}}
-      LDAP_SVC_PASS: {{ldap-svc-pass}}
-      LDAP_PORT: 636
-      LDAP_PROTO: tcp
-      LDAP_USER_FQDN: {{ldap-user-fqdn}}
       ECS_PASSWORD: {{ecs-password}}
       ECS_USERNAME: {{ecs-user}}
       ECS_IP: 35.233.221.61
@@ -2732,7 +2719,6 @@ jobs:
       RESOURCE_DIRECTORY_KEY: persi-cc-resources
       NFSTESTSERVER_STATIC_IP: 10.0.255.1
       NFSTESTSERVER_TWO_STATIC_IP: 10.0.255.3
-      NFSTESTLDAPSERVER_STATIC_IP: 10.0.255.2
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone
       SMB_USERNAME: {{smb_server_username}}
@@ -2769,14 +2755,11 @@ jobs:
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
                   operations/test/enable-nfs-test-server.yml
-                  operations/enable-nfs-test-ldapserver-tls.yml
-                  operations/add-diego-cell-ldap.yml
                   operations/test/enable-smb-test-server.yml
                   operations/enable-csi-local-plugin.yml
                   operations/add-static-ips-to-nfstestservers.yml
                   operations/add-csi-nfs-plugin.yml
                   operations/deploy-ecs-broker-errand.yml
-                  operations/set-nfs-ldap-test-mode.yml
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/experimental/enable-smb-volume-service.yml
