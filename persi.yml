@@ -3153,7 +3153,6 @@ jobs:
       LB_DOMAIN: heleus.persi.cf-app.com
       BBL_ENV_NAME: heleus
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
-      DEBUG_MODE: true
     input_mapping:
       bbl-state: gorgophone-env-director-state
       bbl-config: bosh-bootloader
