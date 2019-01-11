@@ -2912,60 +2912,6 @@ jobs:
         repository: updated-bbl-state
         rebase: true
 
-- name: bbl-up-heleus
-  build_logs_to_retain: 100
-  plan:
-  - aggregate:
-    - get: cf-deployment-concourse-tasks
-    - get: gorgophone-env-director-state
-    - get: bosh-bootloader
-    - get: diego-dev-release
-      passed:
-      - create-diego-release
-      trigger: true
-    - get: diego-version
-      passed:
-      - create-diego-release
-    - get: nfs-volume-release-tarball
-      passed:
-      - create-nfs-volume-release
-      trigger: true
-    - get: nfsvolume-version
-      passed:
-      - create-nfs-volume-release
-    - get: efs-volume-release-tarball
-      passed:
-      - create-efs-volume-release
-      trigger: true
-    - get: efsvolume-version
-      passed:
-      - create-efs-volume-release
-    - get: gorgophone-env-vars-store
-    - get: persi-ci
-  - task: setup-infrastructure
-    file: cf-deployment-concourse-tasks/bbl-up/task.yml
-    params:
-      BBL_IAAS: aws
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-      BBL_AWS_REGION: us-west-2
-      BBL_CONFIG_DIR: plan-patches/s3-blobstore-aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      BBL_LB_CERT: {{heleus_lbs_ssl_cert}}
-      BBL_LB_KEY: {{heleus_lbs_ssl_private_key}}
-      LB_DOMAIN: heleus.cf-app.com
-      BBL_ENV_NAME: heleus
-      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
-      DEBUG_MODE: true
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-      bbl-config: bosh-bootloader
-    ensure:
-      put: gorgophone-env-director-state
-      params:
-        repository: updated-bbl-state
-        rebase: true
-
 - name: deploy-cf-efs
   serial_groups:
   - efs
@@ -3098,6 +3044,110 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-boshlite-aws
+
+- name: pats-drats
+  serial: true
+  serial_groups:
+  - gorgophone
+  - local
+  - nfs-test-server
+  - nfs
+  - ecs-deploy
+  - csi-local
+  - csi-nfs
+  - smb
+  plan:
+  - aggregate:
+    - get: diego-dev-release
+      passed:
+      - deploy-cf
+      trigger: true
+    - get: nfs-volume-release
+      passed:
+      - deploy-nfs-brokers
+      trigger: true
+    - get: smb-volume-release
+      passed:
+      - deploy-smb-broker
+      trigger: true
+    - get: bbr-binary-release
+    - get: disaster-recovery-acceptance-tests
+    - get: gorgophone-env-director-state
+    - get: persi-ci
+  - task: update-integration-config
+    file: disaster-recovery-acceptance-tests/ci/credhub-compatible/update-integration-config/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      integration-configs: persi-ci
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      INTEGRATION_CONFIG_FILE_PATH: config/drats.json
+      SYSTEM_DOMAIN: gorgophone.cf-app.com
+  - task: acceptance-tests
+    file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
+    privileged: true
+    input_mapping:
+      drats-integration-config: updated-integration-configs
+    params:
+      CONFIG_FILE_PATH: config/drats.json
+
+#### END cf-deployment related jobs ##################################################################################
+
+#### START heleus related jobs #######################################################################################
+
+- name: bbl-up-heleus
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: gorgophone-env-director-state
+    - get: bosh-bootloader
+    - get: diego-dev-release
+      passed:
+      - create-diego-release
+      trigger: true
+    - get: diego-version
+      passed:
+      - create-diego-release
+    - get: nfs-volume-release-tarball
+      passed:
+      - create-nfs-volume-release
+      trigger: true
+    - get: nfsvolume-version
+      passed:
+      - create-nfs-volume-release
+    - get: efs-volume-release-tarball
+      passed:
+      - create-efs-volume-release
+      trigger: true
+    - get: efsvolume-version
+      passed:
+      - create-efs-volume-release
+    - get: gorgophone-env-vars-store
+    - get: persi-ci
+  - task: setup-infrastructure
+    file: cf-deployment-concourse-tasks/bbl-up/task.yml
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_AWS_REGION: us-west-2
+      BBL_CONFIG_DIR: plan-patches/s3-blobstore-aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_LB_CERT: {{heleus_lbs_ssl_cert}}
+      BBL_LB_KEY: {{heleus_lbs_ssl_private_key}}
+      LB_DOMAIN: heleus.cf-app.com
+      BBL_ENV_NAME: heleus
+      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
+      DEBUG_MODE: true
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      bbl-config: bosh-bootloader
+    ensure:
+      put: gorgophone-env-director-state
+      params:
+        repository: updated-bbl-state
+        rebase: true
 
 - name: deploy-cf-heleus
   public: true
@@ -3435,52 +3485,6 @@ jobs:
         repository: updated-bbl-state
         rebase: true
 
-- name: pats-drats
-  serial: true
-  serial_groups:
-  - gorgophone
-  - local
-  - nfs-test-server
-  - nfs
-  - ecs-deploy
-  - csi-local
-  - csi-nfs
-  - smb
-  plan:
-  - aggregate:
-    - get: diego-dev-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-brokers
-      trigger: true
-    - get: smb-volume-release
-      passed:
-      - deploy-smb-broker
-      trigger: true
-    - get: bbr-binary-release
-    - get: disaster-recovery-acceptance-tests
-    - get: gorgophone-env-director-state
-    - get: persi-ci
-  - task: update-integration-config
-    file: disaster-recovery-acceptance-tests/ci/credhub-compatible/update-integration-config/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-      integration-configs: persi-ci
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      INTEGRATION_CONFIG_FILE_PATH: config/drats.json
-      SYSTEM_DOMAIN: gorgophone.cf-app.com
-  - task: acceptance-tests
-    file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
-    privileged: true
-    input_mapping:
-      drats-integration-config: updated-integration-configs
-    params:
-      CONFIG_FILE_PATH: config/drats.json
-
-#### END cf-deployment related jobs ##################################################################################
+#### END heleus related jobs #########################################################################################
 
 ###################################### END JOBS SECTION ##############################################################
