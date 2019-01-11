@@ -396,7 +396,7 @@ resources:
 #### END EFS resources ################################################################################################
 
 #### Diego resources ################################################################################################
-- name: diego-dev-release
+- name: diego-dev-release-tarball
   type: s3
   source:
     access_key_id: {{diego-uploader_aws_ID}}
@@ -830,7 +830,7 @@ jobs:
   - local
   plan:
   - aggregate:
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed: [ deploy-cf ]
       trigger: true
     - get: local-volume-release
@@ -864,7 +864,7 @@ jobs:
   - local
   plan:
   - aggregate:
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed: [ deploy-cf ]
       trigger: true
     - get: local-volume-release
@@ -1669,7 +1669,7 @@ jobs:
       passed:
       - deploy-cf-efs
       trigger: true
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed: [ deploy-cf-efs ]
       trigger: true
     - get: persi-acceptance-tests
@@ -1772,7 +1772,7 @@ jobs:
       release-version: version
     params:
       RELEASE_NAME: diego
-  - put: diego-dev-release
+  - put: diego-dev-release-tarball
     params:
       file: release-tarball/diego-*.tgz
 
@@ -2100,7 +2100,7 @@ jobs:
       passed:
       - deploy-cf
       trigger: true
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed: [ deploy-cf ]
       trigger: true
     - get: persi-acceptance-tests
@@ -2135,7 +2135,7 @@ jobs:
     - get: csi-plugins-release
       passed: [ deploy-cf ]
       trigger: true
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed: [ deploy-cf ]
       trigger: true
     - get: persi-acceptance-tests
@@ -2620,7 +2620,7 @@ jobs:
       trigger: true
     - get: gorgophone-env-vars-store
     - get: persi-ci
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed: [ create-diego-release ]
       trigger: true
     - get: diego-release
@@ -2680,7 +2680,7 @@ jobs:
       COLLECT_EFS_TARBALL: false
     input_mapping:
       persi-ci: persi-ci
-      diego-tarball: diego-dev-release
+      diego-tarball: diego-dev-release-tarball
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: nfsvolume-version #dummy
       csi-local-tarball: csi-local-volume-release-tarball
@@ -2928,7 +2928,7 @@ jobs:
       trigger: true
     - get: bosh-bootloader
     - get: persi-ci
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed: [ create-diego-release ]
       trigger: true
     - get: diego-release
@@ -2963,7 +2963,7 @@ jobs:
     #efsvolume-version as a dummy input because it is tiny and easy to copy
     input_mapping:
       persi-ci: persi-ci
-      diego-tarball: diego-dev-release
+      diego-tarball: diego-dev-release-tarball
       nfs-tarball: efsvolume-version #dummy
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: efsvolume-version #dummy
@@ -3058,7 +3058,7 @@ jobs:
   - smb
   plan:
   - aggregate:
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed:
       - deploy-cf
       trigger: true
@@ -3102,7 +3102,7 @@ jobs:
     - get: cf-deployment-concourse-tasks
     - get: gorgophone-env-director-state
     - get: bosh-bootloader
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed:
       - create-diego-release
       trigger: true
@@ -3159,7 +3159,7 @@ jobs:
     - get: cf-deployment
     - get: persi-ci
     - get: shrinkcf
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed:
       - bbl-up-heleus
       trigger: true
@@ -3207,7 +3207,7 @@ jobs:
     #efsvolume-version as a dummy input because it is tiny and easy to copy
     input_mapping:
       persi-ci: persi-ci
-      diego-tarball: diego-dev-release
+      diego-tarball: diego-dev-release-tarball
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: efsvolume-version #dummy
@@ -3402,7 +3402,7 @@ jobs:
       passed:
       - deploy-cf-heleus
       trigger: true
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed:
       - deploy-cf-heleus
       trigger: true
@@ -3448,7 +3448,7 @@ jobs:
       passed:
       - pats-efs-heleus
       trigger: true
-    - get: diego-dev-release
+    - get: diego-dev-release-tarball
       passed:
       - pats-efs-heleus
       trigger: true
