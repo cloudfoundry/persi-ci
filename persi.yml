@@ -257,6 +257,7 @@ resources:
     branch: master
     uri: git@github.com:davewalter/shrinkcf.git
     private_key: {{deployments-persi-key}}
+
 #### END Misc resources ###############################################################################################
 
 #### NFS resources ###############################################################################################
@@ -690,6 +691,14 @@ resources:
     private_key: {{deployments-persi-key}}
     paths:
     - deployment-vars.yml
+
+- name: env-creation-gate-lock
+  type: pool
+  source:
+    uri: git@github.com:cloudfoundry/gorgophone-env.git
+    branch: master
+    pool: gate-locks
+    private_key: {{deployments-persi-key}}
 
 - name: bbr-binary-release
   type: github-release
@@ -2828,28 +2837,37 @@ jobs:
     - get: diego-version
       passed:
       - create-diego-release
-  - task: setup-infrastructure
-    file: cf-deployment-concourse-tasks/bbl-up/task.yml
+  - put: env-creation-gate-lock
     params:
-      BBL_IAAS: aws
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-      BBL_AWS_REGION: us-west-2
-      BBL_CONFIG_DIR: plan-patches/s3-blobstore-aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      BBL_LB_CERT: {{heleus_lbs_ssl_cert}}
-      BBL_LB_KEY: {{heleus_lbs_ssl_private_key}}
-      LB_DOMAIN: heleus.persi.cf-app.com
-      BBL_ENV_NAME: heleus
-      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-      bbl-config: bosh-bootloader
-    ensure:
-      put: gorgophone-env-director-state
+      claim: heleus
+    timeout: 3h
+  - do:
+    - task: setup-infrastructure
+      file: cf-deployment-concourse-tasks/bbl-up/task.yml
       params:
-        repository: updated-bbl-state
-        rebase: true
+        BBL_IAAS: aws
+        BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+        BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+        BBL_AWS_REGION: us-west-2
+        BBL_CONFIG_DIR: plan-patches/s3-blobstore-aws
+        BBL_STATE_DIR: bbl-state-aws-heleus
+        BBL_LB_CERT: {{heleus_lbs_ssl_cert}}
+        BBL_LB_KEY: {{heleus_lbs_ssl_private_key}}
+        LB_DOMAIN: heleus.persi.cf-app.com
+        BBL_ENV_NAME: heleus
+        GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
+      input_mapping:
+        bbl-state: gorgophone-env-director-state
+        bbl-config: bosh-bootloader
+      ensure:
+        put: gorgophone-env-director-state
+        params:
+          repository: updated-bbl-state
+          rebase: true
+    on_failure:
+      put: env-creation-gate-lock
+      params:
+        release: env-creation-gate-lock
 
 - name: deploy-cf-heleus
   public: true
@@ -2858,6 +2876,9 @@ jobs:
   - aggregate:
     - get: cf-deployment
     - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - bbl-up-heleus
     - get: gorgophone-env-director-state
       passed:
       - bbl-up-heleus
@@ -3015,6 +3036,9 @@ jobs:
   plan:
   - aggregate:
     - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - deploy-cf-heleus
     - get: gorgophone-env-director-state
       passed:
       - deploy-cf-heleus
@@ -3030,6 +3054,9 @@ jobs:
 - name: pats-nfs-ldap-heleus
   plan:
   - aggregate:
+    - get: env-creation-gate-lock
+      passed:
+      - deploy-nfs-broker-heleus
     - get: gorgophone-env-director-state
       passed:
       - deploy-nfs-broker-heleus
@@ -3063,6 +3090,9 @@ jobs:
 - name: pats-nfs-ldap-legacy-heleus
   plan:
   - aggregate:
+    - get: env-creation-gate-lock
+      passed:
+      - deploy-nfs-broker-heleus
     - get: gorgophone-env-director-state
       passed:
       - deploy-nfs-broker-heleus
@@ -3096,9 +3126,12 @@ jobs:
 - name: pats-efs-heleus
   plan:
   - aggregate:
+    - get: env-creation-gate-lock
+      passed:
+      - deploy-cf-heleus
     - get: gorgophone-env-director-state
       passed:
-      - deploy-nfs-broker-heleus
+      - deploy-cf-heleus
       trigger: true
     - get: persi-acceptance-tests
     - get: persi-ci
@@ -3131,6 +3164,11 @@ jobs:
   plan:
   - aggregate:
     - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - pats-efs-heleus
+      - pats-nfs-ldap-heleus
+      - pats-nfs-ldap-legacy-heleus
     - get: gorgophone-env-director-state
       passed:
       - pats-efs-heleus
@@ -3154,6 +3192,9 @@ jobs:
   plan:
   - aggregate:
     - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - delete-cf-heleus
     - get: gorgophone-env-director-state
       passed:
       - delete-cf-heleus
@@ -3172,6 +3213,9 @@ jobs:
       params:
         repository: updated-bbl-state
         rebase: true
+  - put: env-creation-gate-lock
+    params:
+      release: env-creation-gate-lock
 
 #### END heleus related jobs #########################################################################################
 
