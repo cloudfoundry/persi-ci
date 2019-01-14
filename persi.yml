@@ -3121,7 +3121,6 @@ jobs:
     params:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-heleus
-      TEST_DOCKER_PORA: true
 
 - name: pats-efs-heleus
   plan:
