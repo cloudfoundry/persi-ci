@@ -9,7 +9,7 @@ function shrink_cf_manifest() {
   apt-get install -y python3-pip
   pip3 install yq
 
-  shrinkcf/shrink.sh -m "${INTERPOLATED_MANIFEST}" -o "${SMALL_INTERPOLATED_MANIFEST}"
+  shrinkcf/shrink.sh -s "${INTERPOLATED_MANIFEST}" -t "${SMALL_INTERPOLATED_MANIFEST}"
   mv "${SMALL_INTERPOLATED_MANIFEST}" "${INTERPOLATED_MANIFEST}"
 }
 
