@@ -1535,15 +1535,15 @@ jobs:
   plan:
   - aggregate:
     - get: efs-volume-release-concourse-tasks
-      tags: ["jumpbox"]
+      tags: ["aws-worker"]
     - get: efs-volume-release
-      tags: ["jumpbox"]
+      tags: ["aws-worker"]
       passed:
       - efsdriver-unit
       - efsbroker-unit
       trigger: true
   - task: build
-    tags: ["jumpbox"]
+    tags: ["aws-worker"]
     privileged: true
     file: efs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
 
