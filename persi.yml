@@ -295,7 +295,6 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
-    submodules: none
 
 - name: github-release-nfs
   type: github-release
@@ -348,7 +347,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/local-volume-release.git
-    submodules: none
 #### END local volume resources ######################################################################################
 
 #### EFS resources ################################################################################################
@@ -383,7 +381,6 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
-    submodules: none
 #### END EFS resources ################################################################################################
 
 #### Diego resources ################################################################################################
@@ -501,7 +498,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/csi-local-volume-release.git
-    submodules: none
 
 - name: csi-cert
   type: git
@@ -593,7 +589,6 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/smb-volume-release.git
-    submodules: none
 
 - name: smb-volume-version
   type: semver
@@ -728,6 +723,8 @@ jobs:
   plan:
   - aggregate:
     - get: local-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: local-volume-release
       trigger: true
   - task: build
@@ -738,6 +735,8 @@ jobs:
   plan:
   - aggregate:
     - get: local-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: local-volume-release
       trigger: true
   - task: build
@@ -748,6 +747,8 @@ jobs:
   plan:
   - aggregate:
     - get: local-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: local-volume-release
       trigger: true
   - task: build
@@ -761,6 +762,8 @@ jobs:
       - localdriver-unit
       trigger: true
     - get: local-volume-release-concourse-tasks
+      params:
+        submodules: none
   - task: build
     file: local-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
 
@@ -772,6 +775,8 @@ jobs:
       - localdriver-unit-windows
       trigger: true
     - get: local-volume-release-concourse-tasks
+      params:
+        submodules: none
   - task: build
     file: local-volume-release-concourse-tasks/scripts/ci/run_driver_cert_windows.build.yml
 
@@ -783,6 +788,8 @@ jobs:
       - localdriver-unit
       trigger: true
     - get: local-volume-release-concourse-tasks
+      params:
+        submodules: none
   - task: build
     privileged: true
     file: local-volume-release-concourse-tasks/scripts/ci/run_docker_cert.build.yml
@@ -894,6 +901,8 @@ jobs:
   plan:
   - aggregate:
     - get: nfs-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: nfs-volume-release
       trigger: true
   - task: build
@@ -904,6 +913,8 @@ jobs:
   plan:
   - aggregate:
     - get: nfs-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: nfs-volume-release
       trigger: true
   - task: build
@@ -926,6 +937,8 @@ jobs:
   plan:
   - aggregate:
     - get: nfs-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: nfs-volume-release
       passed:
       - create-nfs-volume-release
@@ -955,6 +968,8 @@ jobs:
   plan:
   - aggregate:
     - get: nfs-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: nfs-volume-release
       passed:
       - create-nfs-volume-release
@@ -1517,6 +1532,8 @@ jobs:
   plan:
   - aggregate:
     - get: efs-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: efs-volume-release
       trigger: true
   - task: build
@@ -1526,6 +1543,8 @@ jobs:
   plan:
   - aggregate:
     - get: efs-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: efs-volume-release
       trigger: true
   - task: build
@@ -1535,6 +1554,8 @@ jobs:
   plan:
   - aggregate:
     - get: efs-volume-release-concourse-tasks
+      params:
+        submodules: none
       tags: ["aws-worker"]
     - get: efs-volume-release
       tags: ["aws-worker"]
@@ -1782,6 +1803,8 @@ jobs:
     - get: csi-local-volume-release
       trigger: true
     - get: csi-local-volume-release-concourse-tasks
+      params:
+        submodules: none
   - task: local-controller-plugin-unit
     file: csi-local-volume-release-concourse-tasks/scripts/ci/local-controller-plugin-unit.build.yml
 
@@ -1792,6 +1815,8 @@ jobs:
     - get: csi-local-volume-release
       trigger: true
     - get: csi-local-volume-release-concourse-tasks
+      params:
+        submodules: none
   - task: local-node-plugin-unit
     file: csi-local-volume-release-concourse-tasks/scripts/ci/local-node-plugin-unit.build.yml
 
@@ -1802,6 +1827,8 @@ jobs:
     - get: csi-local-volume-release
       trigger: true
     - get: csi-local-volume-release-concourse-tasks
+      params:
+        submodules: none
   - task: local-node-plugin-unit-windows
     file: csi-local-volume-release-concourse-tasks/scripts/ci/local-node-plugin-unit-windows.build.yml
 
@@ -1812,6 +1839,8 @@ jobs:
     - get: csi-local-volume-release
       trigger: true
     - get: csi-local-volume-release-concourse-tasks
+      params:
+        submodules: none
   - task: csi-broker-unit
     file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-broker-unit.build.yml
 
@@ -1826,6 +1855,8 @@ jobs:
     - get: csi-cert
       trigger: true
     - get: csi-local-volume-release-concourse-tasks
+      params:
+        submodules: none
   - task: csi-plugin-certification
     privileged: true
     file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-plugin-certification.build.yml
@@ -2049,6 +2080,8 @@ jobs:
   plan:
   - aggregate:
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: smb-volume-release
       trigger: true
   - task: smbdriver-unit
@@ -2061,6 +2094,8 @@ jobs:
   plan:
   - aggregate:
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: smb-volume-release
       trigger: true
   - task: smbdriver-unit
@@ -2073,6 +2108,8 @@ jobs:
     - get: smb-volume-release
       trigger: true
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
   - task: build
     file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
 
@@ -2081,6 +2118,8 @@ jobs:
   plan:
   - aggregate:
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: smb-volume-release
       trigger: true
   - task: azurefilebroker-unit
@@ -2093,6 +2132,8 @@ jobs:
   plan:
   - aggregate:
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: smb-volume-release
       trigger: true
   - task: smbbroker-unit
@@ -2105,6 +2146,8 @@ jobs:
   plan:
   - aggregate:
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: smb-volume-release
       trigger: true
   - task: existingvolumebroker-unit
@@ -2151,6 +2194,8 @@ jobs:
   - aggregate:
     - get: persi-ci
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: smb-volume-release
       passed:
       - deploy-cf
@@ -2174,6 +2219,8 @@ jobs:
   - aggregate:
     - get: persi-ci
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: smb-volume-release
       passed:
       - deploy-cf
@@ -2215,6 +2262,8 @@ jobs:
   plan:
   - aggregate:
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: smb-volume-release
       passed:
       - deploy-smb-broker
@@ -2268,6 +2317,8 @@ jobs:
   plan:
   - aggregate:
     - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
     - get: smb-volume-release
       passed:
       - deploy-smb-broker
