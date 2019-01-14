@@ -684,14 +684,6 @@ resources:
     uri: git@github.com:cloudfoundry/gorgophone-env.git
     private_key: {{deployments-persi-key}}
 
-- name: gorgophone-env-vars-store
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry/gorgophone-env.git
-    private_key: {{deployments-persi-key}}
-    paths:
-    - deployment-vars.yml
-
 - name: env-creation-gate-lock
   type: pool
   source:
@@ -1231,7 +1223,6 @@ jobs:
       passed:
       - pats-nfs
       trigger: true
-    - get: gorgophone-env-vars-store
   - task: run-migration-test
     file: persi-ci/scripts/ci/migrate_nfs_broker_to_credhub.build.yml
     input_mapping:
@@ -2439,7 +2430,6 @@ jobs:
       passed:
       - cf-deployment-nightly
       trigger: true
-    - get: gorgophone-env-vars-store
     - get: persi-ci
 
   - task: setup-infrastructure
@@ -2502,7 +2492,6 @@ jobs:
       passed:
       - bbl-up-gorgophone
       trigger: true
-    - get: gorgophone-env-vars-store
     - get: persi-ci
     - get: diego-dev-release-tarball
       passed: [ create-diego-release ]
@@ -2698,7 +2687,6 @@ jobs:
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
-      vars-store: gorgophone-env-vars-store
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
       vars-files: generated-vars
