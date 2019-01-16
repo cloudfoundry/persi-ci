@@ -577,6 +577,7 @@ resources:
 - name: smb-volume-release
   type: git
   source:
+    branch: master
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/smb-volume-release.git
@@ -2769,11 +2770,8 @@ jobs:
                   operations/enable-smb-volume-service-windows.yml
                   operations/enable-smb-test-server-two.yml
                   operations/update-releases.yml
-                  operations/use-pxc.yml
-                  operations/use-pxc-for-nfs-volume-service.yml
                   operations/test-nfsbroker-migration-to-credhub.yml
-                  operations/experimental/use-native-garden-runc-runner.yml
-                  operations/experimental/add-cflinuxfs3.yml"
+                  operations/experimental/use-native-garden-runc-runner.yml"
   - task: bosh-cleanup
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
     input_mapping:
@@ -2838,7 +2836,6 @@ jobs:
   - aggregate:
     - get: bosh-bootloader
     - get: cf-deployment-concourse-tasks
-    - get: gorgophone-env-director-state
     - get: nfs-volume-release
       passed:
       - create-nfs-volume-release
@@ -2880,6 +2877,7 @@ jobs:
     params:
       claim: heleus
     timeout: 3h
+  - get: gorgophone-env-director-state
   - do:
     - task: setup-infrastructure
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
