@@ -48,6 +48,7 @@ groups:
   - bbl-up-gorgophone
   - cf-deployment-nightly
   - deploy-cf
+  - acquire-lock-heleus
   - bbl-up-heleus
   - deploy-cf-heleus
   - deploy-nfs-broker-heleus
@@ -76,6 +77,7 @@ groups:
 
 - name: heleus
   jobs:
+  - acquire-lock-heleus
   - bbl-up-heleus
   - deploy-cf-heleus
   - deploy-nfs-broker-heleus
@@ -125,6 +127,7 @@ groups:
   - create-isilon-volume
   - pats-isilon
   - background-load-test
+  - acquire-lock-heleus
   - bbl-up-heleus
   - deploy-cf-heleus
   - deploy-nfs-broker-heleus
@@ -139,6 +142,7 @@ groups:
   - efsbroker-unit
   - efsdriver-certification
   - create-efs-volume-release
+  - acquire-lock-heleus
   - bbl-up-heleus
   - deploy-cf-heleus
   - pats-efs-heleus
@@ -2830,7 +2834,7 @@ jobs:
 
 #### START heleus related jobs #######################################################################################
 
-- name: bbl-up-heleus
+- name: acquire-lock-heleus
   build_logs_to_retain: 100
   plan:
   - aggregate:
@@ -2877,7 +2881,51 @@ jobs:
     params:
       claim: heleus
     timeout: 3h
-  - get: gorgophone-env-director-state
+
+- name: bbl-up-heleus
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: bosh-bootloader
+    - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - acquire-lock-heleus
+      trigger: true
+    - get: gorgophone-env-director-state
+    - get: nfs-volume-release
+      passed:
+      - acquire-lock-heleus
+    - get: nfs-volume-release-tarball
+      passed:
+      - acquire-lock-heleus
+    - get: nfsvolume-version
+      passed:
+      - acquire-lock-heleus
+    - get: mapfs-release
+      passed:
+      - acquire-lock-heleus
+    - get: mapfs-release-tarball
+      passed:
+      - acquire-lock-heleus
+    - get: mapfs-version
+      passed:
+      - acquire-lock-heleus
+    - get: efs-volume-release
+      passed:
+      - acquire-lock-heleus
+    - get: efs-volume-release-tarball
+      passed:
+      - acquire-lock-heleus
+    - get: efsvolume-version
+      passed:
+      - acquire-lock-heleus
+    - get: diego-dev-release-tarball
+      passed:
+      - acquire-lock-heleus
+    - get: diego-version
+      passed:
+      - acquire-lock-heleus
   - do:
     - task: setup-infrastructure
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
