@@ -1561,15 +1561,15 @@ jobs:
     - get: efs-volume-release-concourse-tasks
       params:
         submodules: none
-      tags: ["aws-worker"]
+      tags: ["aws"]
     - get: efs-volume-release
-      tags: ["aws-worker"]
+      tags: ["aws"]
       passed:
       - efsdriver-unit
       - efsbroker-unit
       trigger: true
   - task: build
-    tags: ["aws-worker"]
+    tags: ["aws"]
     privileged: true
     file: efs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
 
