@@ -2211,8 +2211,9 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      username: {{smb_server_username}}
-      password: {{smb_server_password}}
+      SMB_REMOTE_PATH: {{smb_cert_remote_path}}
+      SMB_USERNAME: {{smb_cert_username}}
+      SMB_PASSWORD: {{smb_cert_password}}
       BBL_STATE_DIR: bbl-state-gcp
       BBL_IAAS: gcp
     file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
@@ -2233,9 +2234,9 @@ jobs:
   - task: driver-cert
     privileged: true
     params:
-      smbremotepath: {{smb_remote_path_windows}}
-      smbusername: {{smb_username_windows}}
-      smbpassword: {{smb_password_windows}}
+      smbremotepath: {{smb_cert_remote_path}}
+      smbusername: {{smb_cert_username}}
+      smbpassword: {{smb_cert_password}}
     file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert_windows.build.yml
 
 - name: deploy-smb-broker
@@ -2284,17 +2285,17 @@ jobs:
     - task: generate-bind-create-configs
       file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
       params:
-        SMB_REMOTE_PATH: {{smb_remote_path}}
-        SMB_USERNAME: {{smb_username}}
-        SMB_PASSWORD: {{smb_password}}
+        SMB_REMOTE_PATH: {{smb_pats_remote_path}}
+        SMB_USERNAME: {{smb_pats_username}}
+        SMB_PASSWORD: {{smb_pats_password}}
     - task: generate-bind-create-configs-two
       file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
       output_mapping:
         bind-create-config: lazy-unmount-bind-create-config
       params:
-        SMB_REMOTE_PATH: {{smb_remote_path_two}}
-        SMB_USERNAME: {{smb_username}}
-        SMB_PASSWORD: {{smb_password}}
+        SMB_REMOTE_PATH: {{smb_pats_remote_path_two}}
+        SMB_USERNAME: {{smb_pats_username_two}}
+        SMB_PASSWORD: {{smb_pats_password_two}}
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -2338,9 +2339,9 @@ jobs:
   - task: generate-bind-create-configs
     file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
     params:
-      SMB_REMOTE_PATH: {{smb_remote_path_windows}}
-      SMB_USERNAME: {{smb_username_windows}}
-      SMB_PASSWORD: {{smb_password_windows}}
+      SMB_REMOTE_PATH: {{smb_pats_remote_path_windows}}
+      SMB_USERNAME: {{smb_pats_username_windows}}
+      SMB_PASSWORD: {{smb_pats_password_windows}}
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -2730,8 +2731,8 @@ jobs:
       NFSTESTSERVER_TWO_STATIC_IP: 10.0.255.3
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone
-      SMB_USERNAME: {{smb_server_username}}
-      SMB_PASSWORD: {{smb_server_password}}
+      SMB_USERNAME: {{smb_pats_username_two}}
+      SMB_PASSWORD: {{smb_pats_password_two}}
   - task: bosh-upload-stemcells
     file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
     input_mapping:
