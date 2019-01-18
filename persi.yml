@@ -2837,6 +2837,7 @@ jobs:
 
 - name: acquire-lock-heleus
   build_logs_to_retain: 100
+  serial: true
   plan:
   - aggregate:
     - get: bosh-bootloader
