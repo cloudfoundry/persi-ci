@@ -941,6 +941,7 @@ jobs:
   - nfs-test-server
   plan:
   - aggregate:
+    - get: persi-ci
     - get: nfs-volume-release-concourse-tasks
       params:
         submodules: none
@@ -950,22 +951,38 @@ jobs:
       trigger: true
     - get: lib-nfs
     - get: fuse-nfs
-  - task: fuse-nfs-cert
-    privileged: true
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_fuse_nfs_cert.build.yml
+  - task: create-gcp-nfs-volume
+    file: persi-ci/scripts/ci/create-gcp-nfs-volume.build.yml
     params:
-      FUSE_MOUNT: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050
-      NFS_MOUNT: nfstestserver.gorgophone.cf-app.com:/export2/certs
-  - task: driver-cert
-    privileged: true
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_tcp.build.yml
-    params:
-      SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs
-  - task: experimental-driver-cert
-    privileged: true
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_experimental.build.yml
-    params:
-      SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs
+      FILESHARE_NAME: nfsdriver_cert_volume
+      FILESTORE_INSTANCE_NAME: nfsdriver-certification
+      GCP_LOCATION: us-west2-a
+      GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
+      NETWORK_NAME: concourse-network
+  - aggregate:
+    - task: fuse-nfs-cert
+      privileged: true
+      file: nfs-volume-release-concourse-tasks/scripts/ci/run_fuse_nfs_cert.build.yml
+      params:
+        FUSE_MOUNT: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050
+        NFS_MOUNT: nfstestserver.gorgophone.cf-app.com:/export2/certs
+    - task: driver-cert-legacy
+      privileged: true
+      file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_tcp.build.yml
+      params:
+        SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs
+    - task: driver-cert
+      privileged: true
+      file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_experimental.build.yml
+      params:
+        SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs
+    ensure:
+      task: delete-gcp-nfs-volume
+      file: persi-ci/scripts/ci/delete-gcp-nfs-volume.build.yml
+      params:
+        FILESTORE_INSTANCE_NAME: nfsdriver-certification
+        GCP_LOCATION: us-west2-a
+        GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
 
 - name: nfsdriver-certification-async-v4
   serial_groups:
