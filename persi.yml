@@ -937,8 +937,6 @@ jobs:
       test-repo: nfs-volume-release
 
 - name: nfsdriver-certification
-  serial_groups:
-  - nfs-test-server
   plan:
   - aggregate:
     - get: persi-ci
@@ -985,8 +983,6 @@ jobs:
         GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
 
 - name: nfsdriver-certification-async-v4
-  serial_groups:
-  - nfs-test-server
   plan:
   - aggregate:
     - get: nfs-volume-release-concourse-tasks
@@ -2463,7 +2459,6 @@ jobs:
   serial_groups:
   - gorgophone
   - local
-  - nfs-test-server
   - nfs
   - ecs-deploy
   - csi-local
@@ -2484,7 +2479,6 @@ jobs:
 - name: bbl-up-gorgophone
   serial_groups:
   - local
-  - nfs-test-server
   - nfs
   - ecs-deploy
   - csi-local
@@ -2546,7 +2540,6 @@ jobs:
 - name: deploy-cf
   serial_groups:
   - local
-  - nfs-test-server
   - nfs
   - ecs-deploy
   - csi-local
@@ -2803,7 +2796,6 @@ jobs:
   serial_groups:
   - gorgophone
   - local
-  - nfs-test-server
   - nfs
   - ecs-deploy
   - csi-local
