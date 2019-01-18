@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: google/cloud-sdk
+    tag: 229.0.0-slim
+
+inputs:
+- name: persi-ci
+
+outputs:
+- name: gcp-nfs-volume-info
+
+params:
+  FILESHARE_NAME:
+  FILESTORE_INSTANCE_NAME:
+  GCP_LOCATION:
+  GCP_SERVICE_ACCOUNT_KEY:
+  NETWORK_NAME:
+
+run:
+  path: persi-ci/scripts/ci/create-gcp-nfs-volume.sh
