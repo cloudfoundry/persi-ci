@@ -985,16 +985,12 @@ jobs:
   - task: fuse-nfs-cert
     privileged: true
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_fuse_nfs_cert.build.yml
-    input_mapping:
-      fuse-nfs: fuse-nfs
     params:
       FUSE_MOUNT: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050&multithread=1
       NFS_MOUNT: nfstestserver.gorgophone.cf-app.com:/export2/certs
   - task: driver-cert
     privileged: true
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_tcp.build.yml
-    input_mapping:
-      fuse-nfs: fuse-nfs
     params:
       SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?version=4
       MULTITHREAD: 1
