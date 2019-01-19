@@ -193,6 +193,15 @@ groups:
   - deploy-cf
   - drats-nfs-smb
 
+- name: diego
+  jobs:
+  - cf-deployment-nightly
+  - volman-unit
+  - volman-unit-windows
+  - volman-inigo
+  - create-diego-release
+  - deploy-cf
+
 - name: util
   jobs:
   - bbl-destroy
