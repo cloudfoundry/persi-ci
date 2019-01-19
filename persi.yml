@@ -1618,6 +1618,8 @@ jobs:
   plan:
   - aggregate:
     - get: diego-release
+      passed:
+      - cf-deployment-nightly
       trigger: true
     - get: persi-ci
   - task: run-unit
@@ -1628,6 +1630,8 @@ jobs:
   plan:
   - aggregate:
     - get: diego-release
+      passed:
+      - cf-deployment-nightly
       trigger: true
     - get: persi-ci
   - task: run-unit-windows
@@ -1637,6 +1641,8 @@ jobs:
   plan:
   - aggregate:
     - get: diego-release
+      passed:
+      - cf-deployment-nightly
       trigger: true
     - get: garden-runc-release-tarball
     - get: garden-runc-release-master
@@ -1666,6 +1672,7 @@ jobs:
       trigger: true
       passed:
       - volman-unit
+      - volman-unit-windows
       - volman-inigo
     - get: persi-ci
     - get: version
@@ -2530,12 +2537,11 @@ jobs:
 - name: cf-deployment-nightly
   public: true
   plan:
-  - get: nightly
-    trigger: true
-  - get: cf-deployment
-  - get: persi-ci
-  - task: noop
-    file: persi-ci/scripts/ci/noop.build.yml
+  - aggregate:
+    - get: nightly
+      trigger: true
+    - get: cf-deployment
+    - get: diego-release
 
 - name: deploy-cf
   serial_groups:
@@ -2559,7 +2565,6 @@ jobs:
     - get: diego-dev-release-tarball
       passed: [ create-diego-release ]
       trigger: true
-    - get: diego-release
     - get: diego-version
       passed: [ create-diego-release ]
     - get: nfs-volume-release
@@ -3007,7 +3012,6 @@ jobs:
     - get: diego-dev-release-tarball
       passed:
       - bbl-up-heleus
-    - get: diego-release
     - get: diego-version
       passed:
       - bbl-up-heleus
