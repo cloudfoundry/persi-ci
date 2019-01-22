@@ -5,6 +5,7 @@ pip3 install yq
 
 echo "${GCP_SERVICE_ACCOUNT_KEY}" | gcloud auth activate-service-account --key-file=-
 
+echo "Creating GCP filestore volume..."
 # shellcheck disable=SC2140
 gcloud beta filestore instances create "${FILESTORE_INSTANCE_NAME}" \
   --location="${GCP_LOCATION}" \
@@ -16,3 +17,11 @@ VOLUME_IP_ADDRESS="$(gcloud beta filestore instances describe "${FILESTORE_INSTA
 
 echo "nfs://${VOLUME_IP_ADDRESS}/${FILESHARE_NAME}" > gcp-nfs-volume-info/fuse-nfs-volume-info
 echo "${VOLUME_IP_ADDRESS}:/${FILESHARE_NAME}" > gcp-nfs-volume-info/nfs-volume-info
+
+echo "Modifying volume permissions..."
+MOUNT_DIR="/tmp/mount_dir"
+mkdir -p "${MOUNT_DIR}"
+
+mount -t nfs "${VOLUME_IP_ADDRESS}:/${FILESHARE_NAME}" "${MOUNT_DIR}"
+chmod 0777 "${MOUNT_DIR}"
+umount "${MOUNT_DIR}"
