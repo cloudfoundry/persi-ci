@@ -14,4 +14,5 @@ gcloud beta filestore instances create "${FILESTORE_INSTANCE_NAME}" \
 
 VOLUME_IP_ADDRESS="$(gcloud beta filestore instances describe "${FILESTORE_INSTANCE_NAME}" --location="${GCP_LOCATION}" | yq -r '.networks[0].ipAddresses[0]')"
 
-echo "${VOLUME_IP_ADDRESS}:/${FILESHARE_NAME}" > gcp-nfs-volume-info/volume-info
+echo "nfs://${VOLUME_IP_ADDRESS}/${FILESHARE_NAME}" > gcp-nfs-volume-info/fuse-nfs-volume-info
+echo "${VOLUME_IP_ADDRESS}:/${FILESHARE_NAME}" > gcp-nfs-volume-info/nfs-volume-info
