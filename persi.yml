@@ -954,7 +954,9 @@ jobs:
         submodules: none
     - get: nfs-volume-release
       passed:
-      - create-nfs-volume-release
+      - nfsdriver-unit
+      - nfsbroker-unit
+      - nfs-volume-release-job-tests
       trigger: true
     - get: lib-nfs
     - get: fuse-nfs
@@ -998,7 +1000,9 @@ jobs:
         submodules: none
     - get: nfs-volume-release
       passed:
-      - create-nfs-volume-release
+      - nfsdriver-unit
+      - nfsbroker-unit
+      - nfs-volume-release-job-tests
     - get: lib-nfs
       trigger: true
     - get: fuse-nfs
@@ -1023,9 +1027,7 @@ jobs:
   - aggregate:
     - get: nfs-volume-release
       passed:
-      - nfsdriver-unit
-      - nfsbroker-unit
-      - nfs-volume-release-job-tests
+      - nfsdriver-certification
       trigger: true
     - get: nfs-volume-version
       resource: nfsvolume-version
