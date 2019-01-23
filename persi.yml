@@ -946,6 +946,7 @@ jobs:
       test-repo: nfs-volume-release
 
 - name: nfsdriver-certification
+  serial: true
   plan:
   - aggregate:
     - get: persi-ci
@@ -960,30 +961,27 @@ jobs:
       trigger: true
     - get: lib-nfs
     - get: fuse-nfs
-  - task: create-gcp-nfs-volume
-    file: persi-ci/scripts/ci/create-gcp-nfs-volume.build.yml
-    params:
-      FILESHARE_NAME: nfs_cert_volume
-      FILESTORE_INSTANCE_NAME: nfs-certification
-      GCP_LOCATION: us-west2-a
-      GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
-      NETWORK_NAME: concourse-network
-  - aggregate:
-    - task: fuse-nfs-cert
-      file: nfs-volume-release-concourse-tasks/scripts/ci/run_fuse_nfs_cert.build.yml
-      input_mapping:
-        nfs-volume-info: gcp-nfs-volume-info
+  - do:
+    - task: create-gcp-nfs-volume
+      file: persi-ci/scripts/ci/create-gcp-nfs-volume.build.yml
+      params:
+        FILESHARE_NAME: nfs_cert_volume
+        FILESTORE_INSTANCE_NAME: nfs-certification
+        GCP_LOCATION: us-west2-a
+        GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
+        NETWORK_NAME: concourse-network
       privileged: true
-    - task: driver-cert-legacy
-      file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_tcp.build.yml
-      input_mapping:
-        nfs-volume-info: gcp-nfs-volume-info
-      privileged: true
-    - task: driver-cert
-      file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_experimental.build.yml
-      input_mapping:
-        nfs-volume-info: gcp-nfs-volume-info
-      privileged: true
+    - aggregate:
+      - task: driver-cert-legacy
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_tcp.build.yml
+        input_mapping:
+          nfs-volume-info: gcp-nfs-volume-info
+        privileged: true
+      - task: driver-cert
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_experimental.build.yml
+        input_mapping:
+          nfs-volume-info: gcp-nfs-volume-info
+        privileged: true
     ensure:
       task: delete-gcp-nfs-volume
       file: persi-ci/scripts/ci/delete-gcp-nfs-volume.build.yml
