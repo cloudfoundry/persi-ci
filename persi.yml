@@ -973,12 +973,12 @@ jobs:
       privileged: true
     - aggregate:
       - task: driver-cert-legacy
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_tcp.build.yml
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_legacy.build.yml
         input_mapping:
           nfs-volume-info: gcp-nfs-volume-info
         privileged: true
       - task: driver-cert
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_experimental.build.yml
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
         input_mapping:
           nfs-volume-info: gcp-nfs-volume-info
         privileged: true
@@ -1013,7 +1013,7 @@ jobs:
       NFS_MOUNT: nfstestserver.gorgophone.cf-app.com:/export2/certs
   - task: driver-cert
     privileged: true
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_tcp.build.yml
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_legacy.build.yml
     params:
       SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?version=4
       MULTITHREAD: 1
