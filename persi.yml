@@ -972,6 +972,11 @@ jobs:
         NETWORK_NAME: concourse-network
       privileged: true
     - aggregate:
+      - task: fuse-nfs-cert
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_fuse_nfs_cert.build.yml
+        input_mapping:
+          nfs-volume-info: gcp-nfs-volume-info
+        privileged: true
       - task: driver-cert-legacy
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_legacy.build.yml
         input_mapping:
