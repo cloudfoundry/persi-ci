@@ -2799,8 +2799,7 @@ jobs:
                   operations/enable-smb-volume-service-windows.yml
                   operations/enable-smb-test-server-two.yml
                   operations/update-releases.yml
-                  operations/test-nfsbroker-migration-to-credhub.yml
-                  operations/experimental/use-native-garden-runc-runner.yml"
+                  operations/test-nfsbroker-migration-to-credhub.yml"
   - task: bosh-cleanup
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
     input_mapping:
@@ -3137,7 +3136,6 @@ jobs:
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
                   operations/enable-nfs-test-ldapserver-tls.yml \
-                  operations/experimental/use-native-garden-runc-runner.yml \
                   operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
 
