@@ -2341,6 +2341,7 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       TEST_LAZY_UNMOUNT: true
+      TEST_READ_ONLY: true
 
 - name: pats-cifs-smb-windows
   serial_groups:
