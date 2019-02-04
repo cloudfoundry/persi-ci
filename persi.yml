@@ -2771,14 +2771,6 @@ jobs:
       DATADOG_METRIC_PREFIX: gorgophone
       SMB_USERNAME: {{smb_pats_username_two}}
       SMB_PASSWORD: {{smb_pats_password_two}}
-  - task: bosh-upload-stemcells
-    file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-      ops-files: collected-ops-files
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      OPS_FILES: operations/windows2016-cell.yml
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
@@ -2787,6 +2779,7 @@ jobs:
       vars-files: generated-vars
     params:
       BBL_STATE_DIR: bbl-state-gcp
+      BBL_IAAS: gcp
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_FILES: "nfs-vars.yml ecs-vars.yml datadog-vars.yml smb-vars.yml"
@@ -3125,13 +3118,6 @@ jobs:
       LDAP_PORT: 636
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
-  - task: bosh-upload-stemcell
-    file: cf-deployment-concourse-tasks/bosh-upload-stemcells/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      INFRASTRUCTURE: aws
   - task: bosh-deploy-cf
     file: persi-ci/scripts/ci/bosh-deploy-small-cf.build.yml
     input_mapping:
@@ -3140,6 +3126,7 @@ jobs:
       vars-files: generated-vars
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_IAAS: aws
       SYSTEM_DOMAIN: heleus.persi.cf-app.com
       VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
