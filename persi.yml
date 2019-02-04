@@ -2779,7 +2779,6 @@ jobs:
       vars-files: generated-vars
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      BBL_IAAS: gcp
       MANIFEST_FILE: cf-deployment.yml
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is a required by the task
       VARS_FILES: "nfs-vars.yml ecs-vars.yml datadog-vars.yml smb-vars.yml"
@@ -3126,7 +3125,6 @@ jobs:
       vars-files: generated-vars
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
-      BBL_IAAS: aws
       SYSTEM_DOMAIN: heleus.persi.cf-app.com
       VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
