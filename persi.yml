@@ -27,6 +27,7 @@ groups:
   - cifs-azurefilebroker-unit
   - cifs-smbbroker-unit
   - cifs-existingvolumebroker-unit
+  - cifs-volume-mount-options-unit
   - localdriver-unit
   - localdriver-unit-windows
   - localbroker-unit
@@ -167,6 +168,7 @@ groups:
   - cifs-azurefilebroker-unit
   - cifs-smbbroker-unit
   - cifs-existingvolumebroker-unit
+  - cifs-volume-mount-options-unit
   - volumedriver-units-windows
   - create-smb-volume-release
   - cifs-smbdriver-certification
@@ -2189,6 +2191,20 @@ jobs:
     params:
       SUBMODULE_NAME: existingvolumebroker
 
+- name: cifs-volume-mount-options-unit
+  public: true
+  plan:
+  - aggregate:
+    - get: smb-volume-release-concourse-tasks
+      params:
+        submodules: none
+    - get: smb-volume-release
+      trigger: true
+  - task: volume-mount-options-unit
+    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
+    params:
+      SUBMODULE_NAME: volume-mount-options
+
 - name: create-smb-volume-release
   plan:
   - aggregate:
@@ -2197,6 +2213,7 @@ jobs:
       - cifs-azurefilebroker-unit
       - cifs-smbbroker-unit
       - cifs-existingvolumebroker-unit
+      - cifs-volume-mount-options-unit
       - cifs-smbdriver-unit
       - cifs-smbdriver-unit-windows
       - volumedriver-units-windows
