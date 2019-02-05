@@ -1151,10 +1151,12 @@ jobs:
     - get: release-tarball
       resource: mapfs-release-tarball
       passed:
+      - pats-nfs
       - pats-nfs-legacy
     - get: release
       resource: mapfs-release
       passed:
+      - pats-nfs
       - pats-nfs-legacy
     - get: version
       resource: mapfs-version
@@ -1293,6 +1295,13 @@ jobs:
     - get: nfs-volume-release-tarball
       passed:
       - deploy-cf
+    - get: mapfs-release
+      passed:
+      - deploy-cf
+      trigger: true
+    - get: mapfs-release-tarball
+      passed:
+      - deploy-cf
     - get: persi-acceptance-tests
     - get: persi-ci
     - get: gorgophone-env-director-state
@@ -1378,6 +1387,7 @@ jobs:
     - get: mapfs-release
       passed:
       - deploy-cf
+      trigger: true
     - get: mapfs-release-tarball
       passed:
       - deploy-cf
