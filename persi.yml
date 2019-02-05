@@ -656,6 +656,7 @@ resources:
 - name: mapfs-release
   type: git
   source:
+    branch: master
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/mapfs-release.git
