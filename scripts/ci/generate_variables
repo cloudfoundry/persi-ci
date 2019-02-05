@@ -59,6 +59,50 @@ ecs-aws-key: ${ECS_AWS_KEY}
 EOF
 }
 
+generate_gcs_blobstore_vars() {
+  pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
+    if [ -z "${GCS_BLOBSTORE_PROJECT_ID}" ]; then
+      GCS_BLOBSTORE_PROJECT_ID="$(bbl outputs | yq -r '.gcs_blobstore_service_account_project')"
+    fi
+
+    if [ -z "${GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL}" ]; then
+      GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL="$(bbl outputs | yq -r '.gcs_blobstore_service_account_email')"
+    fi
+
+    if [ -z "${GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY}" ]; then
+      GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY="$(bbl outputs | yq -r '.gcs_blobstore_service_account_key')"
+    fi
+
+    if [ -z "${APP_PACKAGE_DIRECTORY_KEY}" ]; then
+      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_packages_bucket')"
+    fi
+
+    if [ -z "${BUILDPACK_DIRECTORY_KEY}" ]; then
+      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_buildpacks_bucket')"
+    fi
+
+    if [ -z "${DROPLET_DIRECTORY_KEY}" ]; then
+      DROPLET_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_droplets_bucket')"
+    fi
+
+    if [ -z "${RESOURCE_DIRECTORY_KEY}" ]; then
+      RESOURCE_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_resources_bucket')"
+    fi
+  popd
+
+    cat << EOF > ${ROOT_DIR}/generated-vars/s3-blobstore-vars.yml
+---
+gcs_project: ${GCS_BLOBSTORE_PROJECT_ID}
+gcs_service_account_email: ${GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL}
+gcs_service_account_json_key: ${GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY}
+
+app_package_directory_key: ${APP_PACKAGE_DIRECTORY_KEY}
+buildpack_directory_key: ${BUILDPACK_DIRECTORY_KEY}
+droplet_directory_key: ${DROPLET_DIRECTORY_KEY}
+resource_directory_key: ${RESOURCE_DIRECTORY_KEY}
+EOF
+}
+
 generate_s3_blobstore_vars() {
   pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
     if [ -z "${S3_BLOBSTORE_ID}" ]; then
@@ -138,6 +182,10 @@ main() {
 
   if [ "$GENERATE_ECS_VARS" = "true" ]; then
     generate_ecs_vars
+  fi
+
+  if [ "$GENERATE_GCS_BLOBSTORE_VARS" = "true" ]; then
+    generate_gcs_blobstore_vars
   fi
 
   if [ "$GENERATE_S3_BLOBSTORE_VARS" = "true" ]; then
