@@ -3128,8 +3128,8 @@ jobs:
       LDAP_PORT: 636
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
-  - task: bosh-deploy-cf
-    file: persi-ci/scripts/ci/bosh-deploy-small-cf.build.yml
+  - task: shrink-cf
+    file: shrinkcf/tasks/shrink-cf/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
@@ -3148,6 +3148,16 @@ jobs:
                   operations/enable-nfs-test-ldapserver-tls.yml \
                   operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
+  - task: bosh-deploy-cf
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      cf-deployment: scf-deployment
+      ops-files: collected-ops-files
+      vars-files: scf-deployment
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      SYSTEM_DOMAIN: heleus.persi.cf-app.com
 
 - name: deploy-nfs-broker-heleus
   plan:
