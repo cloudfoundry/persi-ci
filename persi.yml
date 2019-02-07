@@ -113,7 +113,6 @@ groups:
   - nfsbroker-unit
   - nfs-volume-release-job-tests
   - nfsdriver-certification
-  - nfsdriver-certification-async-v4
   - create-nfs-volume-release
   - pats-nfs
   - pats-nfs-docker
@@ -318,18 +317,6 @@ resources:
     repository: nfs-volume-release
     drafts: true
     access_token: {{github-release-token}}
-
-- name: lib-nfs
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/sahlberg/libnfs.git
-
-- name: fuse-nfs
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/sahlberg/fuse-nfs.git
 #### END NFS resources ###############################################################################################
 
 #### local volume resources ##########################################################################################
@@ -962,8 +949,6 @@ jobs:
       - nfsbroker-unit
       - nfs-volume-release-job-tests
       trigger: true
-    - get: lib-nfs
-    - get: fuse-nfs
   - do:
     - task: create-gcp-nfs-volume
       file: persi-ci/scripts/ci/create-gcp-nfs-volume.build.yml
@@ -974,22 +959,11 @@ jobs:
         GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
         NETWORK_NAME: concourse-network
       privileged: true
-    - aggregate:
-      - task: fuse-nfs-cert
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_fuse_nfs_cert.build.yml
-        input_mapping:
-          nfs-volume-info: gcp-nfs-volume-info
-        privileged: true
-      - task: driver-cert-legacy
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_legacy.build.yml
-        input_mapping:
-          nfs-volume-info: gcp-nfs-volume-info
-        privileged: true
-      - task: driver-cert
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
-        input_mapping:
-          nfs-volume-info: gcp-nfs-volume-info
-        privileged: true
+    - task: driver-cert
+      file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
+      input_mapping:
+        nfs-volume-info: gcp-nfs-volume-info
+      privileged: true
     ensure:
       task: delete-gcp-nfs-volume
       file: persi-ci/scripts/ci/delete-gcp-nfs-volume.build.yml
@@ -997,34 +971,6 @@ jobs:
         FILESTORE_INSTANCE_NAME: nfs-certification
         GCP_LOCATION: us-west2-a
         GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
-
-- name: nfsdriver-certification-async-v4
-  plan:
-  - aggregate:
-    - get: nfs-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: nfs-volume-release
-      passed:
-      - nfsdriver-unit
-      - nfsbroker-unit
-      - nfs-volume-release-job-tests
-    - get: lib-nfs
-      trigger: true
-    - get: fuse-nfs
-      trigger: true
-  - task: fuse-nfs-cert
-    privileged: true
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_fuse_nfs_cert.build.yml
-    params:
-      FUSE_MOUNT: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?uid=3000&gid=3050&multithread=1
-      NFS_MOUNT: nfstestserver.gorgophone.cf-app.com:/export2/certs
-  - task: driver-cert
-    privileged: true
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert_legacy.build.yml
-    params:
-      SOURCE: nfs://nfstestserver.gorgophone.cf-app.com/export2/certs?version=4
-      MULTITHREAD: 1
 
 - name: create-nfs-volume-release
   serial_groups:
