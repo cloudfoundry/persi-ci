@@ -75,6 +75,15 @@ EOF
   updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.disallowed_ldap_bind_config=$bindConfig' "${CONFIG_FILE}")
   echo "${updated_config}" > "${CONFIG_FILE}"
 
+  if [[ -n "${DISALLOWED_OVERRIDE_BIND_CONFIG}" ]]; then
+    echo "${DISALLOWED_OVERRIDE_BIND_CONFIG}" > "${bind_config_file}"
+  else
+    echo "" > "${bind_config_file}"
+  fi
+
+  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.disallowed_override_bind_config=$bindConfig' "${CONFIG_FILE}")
+  echo "${updated_config}" > "${CONFIG_FILE}"
+
   if [[ -r "${PWD}/lazy-unmount-bind-create-config/bind-config.json" ]]; then
     cp "${PWD}/lazy-unmount-bind-create-config/bind-config.json" "${bind_config_file}"
   elif [[ -n "${BIND_LAZY_UNMOUNT_CONFIG}" ]]; then
