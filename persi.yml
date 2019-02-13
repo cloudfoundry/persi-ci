@@ -949,6 +949,9 @@ jobs:
       - nfsbroker-unit
       - nfs-volume-release-job-tests
       trigger: true
+    - get: mapfs-release
+      passed: [ mapfs-unit ]
+      trigger: true
   - do:
     - task: create-gcp-nfs-volume
       file: persi-ci/scripts/ci/create-gcp-nfs-volume.build.yml
