@@ -1200,13 +1200,6 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp
       ERRAND_NAME: nfs-broker-push
-  - task: run-credhub-broker-errand
-    file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: nfs-broker-credhub-push
 
 - name: pats-nfs
   serial_groups:
