@@ -1,0 +1,55 @@
+#!/bin/bash -eu
+
+source "$(dirname $0)/helpers.sh"
+
+org_name="migration"
+space_name="migration"
+app_name="pora-migration-test"
+instance_name="migration-test"
+
+function cleanup() {
+  echo "Cleaning up..."
+  cf delete-org -f ${org_name}
+}
+
+function main() {
+  "${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
+  source bosh-env/set-env.sh
+
+  trap "cleanup" EXIT
+
+  echo "Targetting api..."
+  cf api "${CF_API_ENDPOINT}" --skip-ssl-validation
+  cf auth admin "$(get_password_from_credhub cf_admin_password)"
+  cf create-org ${org_name}
+  cf create-space ${space_name} -o ${org_name}
+  cf target -o ${org_name} -s ${space_name}
+
+  echo "Enabling service access..."
+  cf enable-service-access nfs -o ${org_name}
+
+  pushd persi-acceptance-tests/assets/pora
+    echo "Pushing ${app_name}..."
+    cf push ${app_name} --no-start
+  popd
+
+  echo "Creating ${instance_name} service..."
+  cf create-service nfs Existing ${instance_name} -c "${CREATE_CONFIG}"
+
+  echo "Binding ${instance_name} service to ${app_name}..."
+  cf bind-service ${app_name} ${instance_name} -c "${BIND_CONFIG}"
+
+  echo "Running migration errand..."
+  bosh -d cf run-errand nfs-broker-push-migration-test
+
+  echo "Checking for ${instance_name} service..."
+  cf services | grep ${instance_name} | grep ${app_name}
+
+  echo "Unbinding the ${instance_name} service from ${app_name}..."
+  cf unbind-service -f ${app_name} ${instance_name}
+
+  echo "Deleting the ${instance_name} service..."
+  cf delete-service -f ${instance_name}
+}
+
+main

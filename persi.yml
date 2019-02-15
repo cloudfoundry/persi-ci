@@ -56,6 +56,7 @@ groups:
   - pats-nfs-ldap-heleus
   - pats-nfs-ldap-legacy-heleus
   - pats-efs-heleus
+  - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
   - deploy-nfs-brokers
@@ -85,6 +86,7 @@ groups:
   - pats-nfs-ldap-heleus
   - pats-nfs-ldap-legacy-heleus
   - pats-efs-heleus
+  - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
 
@@ -133,6 +135,7 @@ groups:
   - deploy-nfs-broker-heleus
   - pats-nfs-ldap-heleus
   - pats-nfs-ldap-legacy-heleus
+  - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
 
@@ -3038,6 +3041,15 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
+  - task: collect-persi-ci-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-nfs-volume-service.yml \
+                      operations/enable-nfs-volume-service-migration-test.yml"
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -3087,6 +3099,7 @@ jobs:
                   operations/use-external-blobstore.yml \
                   operations/use-s3-blobstore.yml \
                   operations/enable-nfs-volume-service.yml \
+                  operations/enable-nfs-volume-service-migration-test.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
                   operations/enable-nfs-test-ldapserver-tls.yml \
@@ -3230,10 +3243,11 @@ jobs:
       BBL_STATE_DIR: bbl-state-aws-heleus
       TEST_MULTI_CELL: true
 
-- name: delete-cf-heleus
+- name: migrate-nfs-broker-to-credhub-heleus
   plan:
   - aggregate:
-    - get: cf-deployment-concourse-tasks
+    - get: persi-ci
+    - get: persi-acceptance-tests
     - get: env-creation-gate-lock
       passed:
       - pats-efs-heleus
@@ -3244,6 +3258,30 @@ jobs:
       - pats-efs-heleus
       - pats-nfs-ldap-heleus
       - pats-nfs-ldap-legacy-heleus
+      trigger: true
+  - task: test-migration
+    file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      APPS_DOMAIN: heleus.persi.cf-app.com
+      CF_API_ENDPOINT: api.heleus.persi.cf-app.com
+      CF_USERNAME: admin
+      BIND_CONFIG: '{"username":"user1000","password":"secret"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+
+- name: delete-cf-heleus
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - migrate-nfs-broker-to-credhub-heleus
+    - get: gorgophone-env-director-state
+      passed:
+      - migrate-nfs-broker-to-credhub-heleus
       trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
