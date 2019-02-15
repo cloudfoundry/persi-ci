@@ -3220,7 +3220,7 @@ jobs:
   - task: test-migration
     file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
     input_mapping:
-      bbl-state: gorgophone-env-director-state
+      director-state: gorgophone-env-director-state
     params:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-heleus
