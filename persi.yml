@@ -60,7 +60,6 @@ groups:
   - delete-cf-heleus
   - bbl-destroy-heleus
   - deploy-nfs-brokers
-  - migrate-nfs-broker
   - pats-nfs
   - pats-nfs-credhub
   - create-isilon-volume
@@ -124,7 +123,6 @@ groups:
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-nfs-brokers
-  - migrate-nfs-broker
   - drats-nfs-smb
   - create-isilon-volume
   - pats-isilon
@@ -1209,32 +1207,6 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp
       ERRAND_NAME: nfs-broker-credhub-push
-
-- name: migrate-nfs-broker
-  serial_groups:
-  - nfs
-  plan:
-  - aggregate:
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: nfs-volume-release
-      passed:
-      - pats-nfs
-      trigger: true
-  - task: run-migration-test
-    file: persi-ci/scripts/ci/migrate_nfs_broker_to_credhub.build.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USER: admin
-      SERVICE_BROKER_NAME: nfs-broker-migration-test
-      BROKER_PASSWORD_KEY: nfs-broker-migration-test-password
-      BROKER_APP_URL: http://nfs-broker-migration-test.gorgophone.cf-app.com
-      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
-      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
 
 - name: pats-nfs
   serial_groups:
@@ -2641,14 +2613,6 @@ jobs:
                       operations/enable-nfs-test-server-two.yml
                       operations/enable-smb-test-server-two.yml
                       operations/add-static-ips-to-nfstestservers.yml"
-  - task: collect-nfs-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: nfs-volume-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/test-nfsbroker-migration-to-credhub.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2752,7 +2716,6 @@ jobs:
                   operations/experimental/use-compiled-releases-windows.yml
                   operations/enable-nfs-volume-service.yml
                   operations/experimental/enable-nfs-volume-service-credhub.yml
-                  operations/experimental/migrate-nfsbroker-mysql-to-credhub.yml
                   operations/enable-nfs-test-server-two.yml
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
@@ -2767,8 +2730,7 @@ jobs:
                   operations/experimental/enable-smb-volume-service.yml
                   operations/enable-smb-volume-service-windows.yml
                   operations/enable-smb-test-server-two.yml
-                  operations/update-releases.yml
-                  operations/test-nfsbroker-migration-to-credhub.yml"
+                  operations/update-releases.yml"
   - task: bosh-cleanup
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
     input_mapping:
