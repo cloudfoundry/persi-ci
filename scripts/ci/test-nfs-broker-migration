@@ -46,7 +46,7 @@ function main() {
   cf services | grep ${instance_name} | grep ${app_name}
 
   echo "Unbinding the ${instance_name} service from ${app_name}..."
-  cf unbind-service -f ${app_name} ${instance_name}
+  cf unbind-service ${app_name} ${instance_name}
 
   echo "Deleting the ${instance_name} service..."
   cf delete-service -f ${instance_name}
