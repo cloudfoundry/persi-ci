@@ -1,0 +1,34 @@
+{
+  "jobs": [
+    {
+      "target": "database",
+      "sources": [
+        "nats"
+      ]
+    },
+    {
+      "target": "brain",
+      "sources": [
+        "adapter",
+        "diego-api",
+        "uaa",
+        "api",
+        "cc-worker",
+        "doppler",
+        "scheduler",
+        "log-api",
+        "credhub"
+      ]
+    }
+  ],
+  "errands": [
+    {
+      "target": "brain",
+      "source": [
+        "smoke-tests",
+        "rotate-cc-database-key",
+        "nfs-broker-push"
+      ]
+    }
+  ]
+}
