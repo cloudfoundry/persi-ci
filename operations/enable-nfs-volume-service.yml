@@ -121,3 +121,17 @@
       extended_key_usage:
       - client_auth
     type: certificate
+- type: replace
+  path: /releases/-
+  value:
+    name: nfs-volume
+    sha1: f4d472551f37fcd898e99ef93070b261b2d21d71
+    url: https://bosh.io/d/github.com/cloudfoundry/nfs-volume-release?v=1.7.7
+    version: 1.7.7
+- type: replace
+  path: /releases/name=mapfs?
+  value:
+    name: mapfs
+    sha1: bc3f7ba4342268a56ccc47463c28f86dd03d356f
+    url: https://bosh.io/d/github.com/cloudfoundry/mapfs-release?v=1.1.4
+    version: 1.1.4
