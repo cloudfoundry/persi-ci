@@ -24,7 +24,7 @@
   "errands": [
     {
       "target": "brain",
-      "source": [
+      "sources": [
         "smoke-tests",
         "rotate-cc-database-key",
         "nfs-broker-push"

@@ -3052,9 +3052,10 @@ jobs:
       bbl-state: gorgophone-env-director-state
       ops-files: collected-ops-files
       vars-files: generated-vars
+      config-dir: persi-ci
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
-      CONFIG_FILE: persi-ci/config/shrink-heleus-config.json
+      CONFIG_FILE: config-dir/config/shrink-heleus-config.json
       SYSTEM_DOMAIN: heleus.persi.cf-app.com
       VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
