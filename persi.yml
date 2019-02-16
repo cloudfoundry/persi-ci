@@ -662,7 +662,7 @@ resources:
 - name: cf-deployment
   type: git
   source:
-    branch: develop
+    branch: nfs-credhub-for-ci-only
     uri: https://github.com/paulcwarren/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
@@ -2708,7 +2708,6 @@ jobs:
                   operations/windows2016-cell.yml
                   operations/experimental/use-compiled-releases-windows.yml
                   operations/enable-nfs-volume-service.yml
-                  operations/experimental/enable-nfs-volume-service-credhub.yml
                   operations/enable-nfs-test-server-two.yml
                   operations/enable-local-volume-service.yml
                   operations/enable-local-volume-service-windows-cells.yml
