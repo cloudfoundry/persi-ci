@@ -2956,7 +2956,7 @@ jobs:
       COLLECT_ECS_TARBALL: false
       COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
-      COLLECT_MAPFS_TARBALL: false
+      COLLECT_MAPFS_TARBALL: true
     #this task requires a lot of inputs that we don't need for this instance--we're feeding in
     #efsvolume-version as a dummy input because it is tiny and easy to copy
     input_mapping:
@@ -2966,7 +2966,7 @@ jobs:
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: efsvolume-version #dummy
       csi-plugins-tarball: efsvolume-version #dummy
-      mapfs-tarball: mapfs-release-tarball #dummy
+      mapfs-tarball: mapfs-release-tarball
       ecs-tarball: efsvolume-version #dummy
       local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
@@ -3019,7 +3019,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz efs.tgz"
+      NEW_OPS_FILES: "diego.tgz nfs.tgz mapfs.tgz efs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
