@@ -3203,12 +3203,10 @@ jobs:
     - get: persi-acceptance-tests
     - get: env-creation-gate-lock
       passed:
-      - pats-efs-heleus
       - pats-nfs-ldap-heleus
       - pats-nfs-ldap-legacy-heleus
     - get: gorgophone-env-director-state
       passed:
-      - pats-efs-heleus
       - pats-nfs-ldap-heleus
       - pats-nfs-ldap-legacy-heleus
       trigger: true
@@ -3232,9 +3230,11 @@ jobs:
     - get: env-creation-gate-lock
       passed:
       - migrate-nfs-broker-to-credhub-heleus
+      - pats-efs-heleus
     - get: gorgophone-env-director-state
       passed:
       - migrate-nfs-broker-to-credhub-heleus
+      - pats-efs-heleus
       trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
