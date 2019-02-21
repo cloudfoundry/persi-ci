@@ -225,10 +225,6 @@ groups:
   - create-diego-release
   - deploy-cf
 
-- name: util
-  jobs:
-  - bbl-destroy
-
 - name: release-nfs
   jobs:
   - shipit-nfs
@@ -2438,27 +2434,6 @@ jobs:
 #### END SMB related jobs ###########################################################################################
 
 #### START cf-deployment related jobs ################################################################################
-
-- name: bbl-destroy
-  serial_groups:
-  - gorgophone
-  - local
-  - nfs
-  - ecs
-  - csi-local
-  - csi-nfs
-  - smb
-  plan:
-  - aggregate:
-    - get: cf-deployment-concourse-tasks
-    - get: gorgophone-env-director-state
-  - task: destroy
-    file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
-    params:
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
 
 - name: bbl-up-gorgophone
   serial_groups:
