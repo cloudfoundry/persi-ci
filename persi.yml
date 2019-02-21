@@ -2,7 +2,7 @@
 ###################################### GROUPS SECTION ################################################################
 ######################################################################################################################
 groups:
-- name: gorgophone
+- name: persi
   jobs:
   - volman-unit
   - volman-unit-windows
@@ -59,6 +59,27 @@ groups:
   - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
+  - deploy-nfs-brokers
+  - pats-nfs
+  - pats-nfs-credhub
+  - create-isilon-volume
+  - pats-isilon
+  - pats-nfs-docker
+  - pats-nfs-legacy
+  - cats-nfs
+  - drats-nfs-smb
+  - pats-csi-local
+  - pats-csi-nfs
+  - pats-cifs-smb
+  - pats-cifs-smb-windows
+  - pats-local
+  - pats-local-windows
+  - background-load-test
+
+- name: gorgophone
+  jobs:
+  - bbl-up-gorgophone
+  - deploy-cf
   - deploy-nfs-brokers
   - pats-nfs
   - pats-nfs-credhub
