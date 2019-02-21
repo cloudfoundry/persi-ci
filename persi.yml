@@ -22,12 +22,12 @@ groups:
   - csi-plugin-certification
   - certification-test-builds
   - certification-test-publish
-  - cifs-smbdriver-unit
-  - cifs-smbdriver-unit-windows
-  - cifs-azurefilebroker-unit
-  - cifs-smbbroker-unit
-  - cifs-existingvolumebroker-unit
-  - cifs-volume-mount-options-unit
+  - smbdriver-unit
+  - smbdriver-unit-windows
+  - smb-azurefilebroker-unit
+  - smbbroker-unit
+  - smb-existingvolumebroker-unit
+  - smb-volume-mount-options-unit
   - localdriver-unit
   - localdriver-unit-windows
   - localbroker-unit
@@ -35,8 +35,8 @@ groups:
   - localdriver-certification
   - localdriver-certification-windows
   - localdriver-docker-certification
-  - cifs-smbdriver-certification
-  - cifs-smbdriver-certification-windows
+  - smbdriver-certification
+  - smbdriver-certification-windows
   - deploy-smb-broker
   - create-local-volume-release
   - create-nfs-volume-release
@@ -70,8 +70,8 @@ groups:
   - drats-nfs-smb
   - pats-csi-local
   - pats-csi-nfs
-  - pats-cifs-smb
-  - pats-cifs-smb-windows
+  - pats-smb
+  - pats-smb-windows
   - pats-local
   - pats-local-windows
   - background-load-test
@@ -91,8 +91,8 @@ groups:
   - drats-nfs-smb
   - pats-csi-local
   - pats-csi-nfs
-  - pats-cifs-smb
-  - pats-cifs-smb-windows
+  - pats-smb
+  - pats-smb-windows
   - pats-local
   - pats-local-windows
   - background-load-test
@@ -182,23 +182,23 @@ groups:
   - pats-ecs
   - drats-nfs-smb
 
-- name: cifs
+- name: smb
   jobs:
-  - cifs-smbdriver-unit
-  - cifs-smbdriver-unit-windows
-  - cifs-azurefilebroker-unit
-  - cifs-smbbroker-unit
-  - cifs-existingvolumebroker-unit
-  - cifs-volume-mount-options-unit
+  - smbdriver-unit
+  - smbdriver-unit-windows
+  - smb-azurefilebroker-unit
+  - smbbroker-unit
+  - smb-existingvolumebroker-unit
+  - smb-volume-mount-options-unit
   - volumedriver-units-windows
   - create-smb-volume-release
-  - cifs-smbdriver-certification
-  - cifs-smbdriver-certification-windows
+  - smbdriver-certification
+  - smbdriver-certification-windows
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-smb-broker
-  - pats-cifs-smb
-  - pats-cifs-smb-windows
+  - pats-smb
+  - pats-smb-windows
   - drats-nfs-smb
 
 - name: local
@@ -236,7 +236,7 @@ groups:
   - manual-bump-nfs-minor
   - manual-bump-nfs-major
 
-- name: release-cifs-smb
+- name: release-smb
   jobs:
   - shipit-smb
   - manual-bump-smb-patch
@@ -2060,7 +2060,7 @@ jobs:
 #### END CSI related jobs ############################################################################################
 
 #### START SMB related jobs ###########################################################################################
-- name: cifs-smbdriver-unit
+- name: smbdriver-unit
   public: true
   plan:
   - aggregate:
@@ -2074,7 +2074,7 @@ jobs:
     params:
       SUBMODULE_NAME: smbdriver
 
-- name: cifs-smbdriver-unit-windows
+- name: smbdriver-unit-windows
   public: true
   plan:
   - aggregate:
@@ -2098,7 +2098,7 @@ jobs:
   - task: build
     file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
 
-- name: cifs-azurefilebroker-unit
+- name: smb-azurefilebroker-unit
   public: true
   plan:
   - aggregate:
@@ -2112,7 +2112,7 @@ jobs:
     params:
       SUBMODULE_NAME: azurefilebroker
 
-- name: cifs-smbbroker-unit
+- name: smbbroker-unit
   public: true
   plan:
   - aggregate:
@@ -2126,7 +2126,7 @@ jobs:
     params:
       SUBMODULE_NAME: smbbroker
 
-- name: cifs-existingvolumebroker-unit
+- name: smb-existingvolumebroker-unit
   public: true
   plan:
   - aggregate:
@@ -2140,7 +2140,7 @@ jobs:
     params:
       SUBMODULE_NAME: existingvolumebroker
 
-- name: cifs-volume-mount-options-unit
+- name: smb-volume-mount-options-unit
   public: true
   plan:
   - aggregate:
@@ -2159,12 +2159,12 @@ jobs:
   - aggregate:
     - get: smb-volume-release
       passed:
-      - cifs-azurefilebroker-unit
-      - cifs-smbbroker-unit
-      - cifs-existingvolumebroker-unit
-      - cifs-volume-mount-options-unit
-      - cifs-smbdriver-unit
-      - cifs-smbdriver-unit-windows
+      - smb-azurefilebroker-unit
+      - smbbroker-unit
+      - smb-existingvolumebroker-unit
+      - smb-volume-mount-options-unit
+      - smbdriver-unit
+      - smbdriver-unit-windows
       - volumedriver-units-windows
       trigger: true
     - get: smb-volume-version
@@ -2187,7 +2187,7 @@ jobs:
     params:
       file: release-tarball/smb-volume-*.tgz
 
-- name: cifs-smbdriver-certification
+- name: smbdriver-certification
   plan:
   - aggregate:
     - get: persi-ci
@@ -2211,7 +2211,7 @@ jobs:
       BBL_IAAS: gcp
     file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
 
-- name: cifs-smbdriver-certification-windows
+- name: smbdriver-certification-windows
   plan:
   - aggregate:
     - get: persi-ci
@@ -2253,7 +2253,7 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp
       ERRAND_NAME: smb-broker-push
 
-- name: pats-cifs-smb
+- name: pats-smb
   serial_groups:
   - smb
   plan:
@@ -2264,7 +2264,7 @@ jobs:
     - get: smb-volume-release
       passed:
       - deploy-smb-broker
-      - cifs-smbdriver-certification
+      - smbdriver-certification
       trigger: true
     - get: smb-volume-release-tarball
       passed:
@@ -2310,7 +2310,7 @@ jobs:
       TEST_LAZY_UNMOUNT: true
       TEST_READ_ONLY: true
 
-- name: pats-cifs-smb-windows
+- name: pats-smb-windows
   serial_groups:
   - smb
   plan:
@@ -2321,7 +2321,7 @@ jobs:
     - get: smb-volume-release
       passed:
       - deploy-smb-broker
-      - cifs-smbdriver-certification-windows
+      - smbdriver-certification-windows
       trigger: true
     - get: smb-volume-release-tarball
       passed:
@@ -2362,11 +2362,11 @@ jobs:
     - get: release-tarball
       resource: smb-volume-release-tarball
       passed:
-      - pats-cifs-smb
+      - pats-smb
     - get: release
       resource: smb-volume-release
       passed:
-      - pats-cifs-smb
+      - pats-smb
     - get: version
       resource: smb-volume-version
       params:
