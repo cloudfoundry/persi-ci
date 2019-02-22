@@ -2719,6 +2719,13 @@ jobs:
                   operations/enable-smb-volume-service-windows.yml
                   operations/enable-smb-test-server-two.yml
                   operations/update-releases.yml"
+  - task: run-snoke-tests
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp
+      ERRAND_NAME: smoke_tests
   - task: bosh-cleanup
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
     input_mapping:
@@ -3067,6 +3074,14 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
       SYSTEM_DOMAIN: heleus.persi.cf-app.com
+  - task: run-snoke-tests
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      ERRAND_NAME: smoke_tests
+      INSTANCE: brain/0
 
 - name: deploy-nfs-broker-heleus
   plan:
