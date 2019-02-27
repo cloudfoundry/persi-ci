@@ -2704,7 +2704,7 @@ jobs:
       config-dir: persi-ci
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      CONFIG_FILE: persi-ci/config/shrink-gorgophone-config.json
+      CONFIG_FILE: config-dir/config/shrink-gorgophone-config.json
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is required by the task
       VARS_FILES: "nfs-vars.yml ecs-vars.yml datadog-vars.yml smb-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
