@@ -1220,7 +1220,7 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: nfs-broker-push
+      ERRAND_NAME: nfsbrokerpush
 
 - name: pats-nfs
   serial_groups:
@@ -1744,7 +1744,7 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: ecs-broker-deploy
+      ERRAND_NAME: broker-deploy
 
 - name: pats-ecs
   serial_groups:
@@ -2258,7 +2258,7 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp
-      ERRAND_NAME: smb-broker-push
+      ERRAND_NAME: smbbrokerpush
 
 - name: pats-smb
   serial_groups:
