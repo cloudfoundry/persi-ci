@@ -63,6 +63,8 @@ params:
   BBL_AWS_SECRET_ACCESS_KEY:
   BBL_STATE_DIR: bbl-state
   BBL_IAAS: aws
+  SMB_USERNAME:
+  SMB_PASSWORD:
 
 run:
   path: persi-ci/scripts/ci/generate_variables
