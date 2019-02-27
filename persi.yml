@@ -81,6 +81,7 @@ groups:
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-nfs-brokers
+  - deploy-smb-broker
   - pats-nfs
   - pats-nfs-credhub
   - create-isilon-volume
