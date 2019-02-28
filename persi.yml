@@ -61,7 +61,6 @@ groups:
   - bbl-destroy-heleus
   - deploy-nfs-brokers
   - pats-nfs
-  - pats-nfs-credhub
   - create-isilon-volume
   - pats-isilon
   - pats-nfs-docker
@@ -83,7 +82,6 @@ groups:
   - deploy-nfs-brokers
   - deploy-smb-broker
   - pats-nfs
-  - pats-nfs-credhub
   - create-isilon-volume
   - pats-isilon
   - pats-nfs-docker
@@ -143,7 +141,6 @@ groups:
   - pats-nfs
   - pats-nfs-docker
   - pats-nfs-legacy
-  - pats-nfs-credhub
   - cats-nfs
   - drats-nfs-smb
   - create-isilon-volume
@@ -1271,43 +1268,6 @@ jobs:
     params:
       TEST_LAZY_UNMOUNT: true
       TEST_MOUNT_FAIL_LOGGING: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_MULTI_CELL: true
-      TEST_READ_ONLY: true
-
-- name: pats-nfs-credhub
-  serial_groups:
-  - nfs
-  plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-brokers
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-cf
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      APPS_DOMAIN: gorgophone.cf-app.com
-      BBL_STATE_DIR: bbl-state-gcp
-      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs-credhub
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
