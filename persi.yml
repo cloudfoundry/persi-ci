@@ -2699,7 +2699,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is required by the task
-  - task: run-snoke-tests
+  - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
@@ -3055,7 +3055,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
       SYSTEM_DOMAIN: heleus.persi.cf-app.com
-  - task: run-snoke-tests
+  - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
