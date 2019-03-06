@@ -2962,14 +2962,6 @@ jobs:
       ecs-version: efsvolume-version #dummy
       local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
-  - task: collect-nfs-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: cf-deployment
-      new-ops-files: nfs-volume-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-ldapserver-tls.yml"
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -3042,7 +3034,7 @@ jobs:
                   operations/enable-nfs-volume-service-migration-test.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
-                  operations/enable-nfs-test-ldapserver-tls.yml \
+                  operations/enable-nfs-test-ldapserver.yml \
                   operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
   - task: bosh-deploy-cf
