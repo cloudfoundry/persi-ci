@@ -2985,7 +2985,7 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-volume-service.yml \
+      NEW_OPS_FILES: "operations/enable-nfs-volume-service-with-sqlstore.yml \
                       operations/enable-nfs-volume-service-migration-test.yml"
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
@@ -3038,6 +3038,7 @@ jobs:
                   operations/use-external-blobstore.yml \
                   operations/use-s3-blobstore.yml \
                   operations/enable-nfs-volume-service.yml \
+                  operations/enable-nfs-volume-service-with-sqlstore.yml \
                   operations/enable-nfs-volume-service-migration-test.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
@@ -3194,6 +3195,7 @@ jobs:
 - name: migrate-nfs-broker-to-credhub-heleus
   plan:
   - aggregate:
+    - get: cf-deployment-concourse-tasks
     - get: persi-ci
     - get: persi-acceptance-tests
     - get: env-creation-gate-lock
@@ -3205,6 +3207,13 @@ jobs:
       - pats-nfs-ldap-heleus
       - pats-nfs-ldap-legacy-heleus
       trigger: true
+  - task: run-broker-with-sqlstore-errand
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      ERRAND_NAME: nfs-broker-push-with-sqlstore
   - task: test-migration
     file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
     input_mapping:
