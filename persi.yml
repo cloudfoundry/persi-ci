@@ -2965,7 +2965,7 @@ jobs:
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: collected-ops-files
+      base-ops-files: cf-deployment
       new-ops-files: efs-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -3034,7 +3034,7 @@ jobs:
                   operations/enable-nfs-volume-service-migration-test.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
-                  operations/enable-nfs-test-ldapserver.yml \
+                  operations/test/enable-nfs-test-ldapserver.yml \
                   operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
   - task: bosh-deploy-cf
