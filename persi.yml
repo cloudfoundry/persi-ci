@@ -56,6 +56,8 @@ groups:
   - pats-nfs-ldap-heleus
   - pats-nfs-ldap-legacy-heleus
   - pats-efs-heleus
+  - delete-cf-heleus-credhub
+  - deploy-cf-heleus-sql
   - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
@@ -105,6 +107,8 @@ groups:
   - pats-nfs-ldap-heleus
   - pats-nfs-ldap-legacy-heleus
   - pats-efs-heleus
+  - delete-cf-heleus-credhub
+  - deploy-cf-heleus-sql
   - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
@@ -152,6 +156,8 @@ groups:
   - deploy-nfs-broker-heleus
   - pats-nfs-ldap-heleus
   - pats-nfs-ldap-legacy-heleus
+  - delete-cf-heleus-credhub
+  - deploy-cf-heleus-sql
   - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
   - bbl-destroy-heleus
@@ -2970,15 +2976,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
-  - task: collect-persi-ci-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: persi-ci
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-volume-service-with-sqlstore.yml \
-                      operations/enable-nfs-volume-service-migration-test.yml"
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -3030,8 +3027,6 @@ jobs:
                   operations/use-external-blobstore.yml \
                   operations/use-s3-blobstore.yml \
                   operations/enable-nfs-volume-service.yml \
-                  operations/enable-nfs-volume-service-with-sqlstore.yml \
-                  operations/enable-nfs-volume-service-migration-test.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
                   operations/test/enable-nfs-test-ldapserver.yml \
@@ -3184,6 +3179,212 @@ jobs:
       BBL_STATE_DIR: bbl-state-aws-heleus
       TEST_MULTI_CELL: true
 
+- name: delete-cf-heleus-credhub
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - pats-nfs-ldap-heleus
+      - pats-nfs-ldap-legacy-heleus
+      - pats-efs-heleus
+    - get: gorgophone-env-director-state
+      passed:
+      - pats-nfs-ldap-heleus
+      - pats-nfs-ldap-legacy-heleus
+      - pats-efs-heleus
+      trigger: true
+  - task: delete-cf
+    file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+
+- name: deploy-cf-heleus-sql
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - aggregate:
+    - get: cf-deployment
+    - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - delete-cf-heleus-credhub
+    - get: gorgophone-env-director-state
+      passed:
+      - delete-cf-heleus-credhub
+      trigger: true
+    - get: persi-ci
+    - get: shrinkcf
+    - get: nfs-volume-release
+      passed:
+      - deploy-cf-heleus
+    - get: nfs-volume-release-tarball
+      passed:
+      - deploy-cf-heleus
+    - get: nfsvolume-version
+      passed:
+      - deploy-cf-heleus
+    - get: mapfs-release
+      passed:
+      - deploy-cf-heleus
+    - get: mapfs-release-tarball
+      passed:
+      - deploy-cf-heleus
+    - get: mapfs-version
+      passed:
+      - deploy-cf-heleus
+    - get: efs-volume-release
+      passed:
+      - deploy-cf-heleus
+    - get: efs-volume-release-tarball
+      passed:
+      - deploy-cf-heleus
+    - get: efsvolume-version
+      passed:
+      - deploy-cf-heleus
+    - get: diego-dev-release-tarball
+      passed:
+      - deploy-cf-heleus
+    - get: diego-version
+      passed:
+      - deploy-cf-heleus
+  - task: collect-tarballs
+    file: persi-ci/scripts/ci/collect-tarballs.build.yml
+    params:
+      COLLECT_DIEGO_TARBALL: true
+      COLLECT_NFS_TARBALL: true
+      COLLECT_EFS_TARBALL: true
+      COLLECT_CSI_LOCAL_TARBALL: false
+      COLLECT_CSI_PLUGINS_TARBALL: false
+      COLLECT_ECS_TARBALL: false
+      COLLECT_LOCAL_TARBALL: false
+      COLLECT_SMB_TARBALL: false
+      COLLECT_MAPFS_TARBALL: true
+    #this task requires a lot of inputs that we don't need for this instance--we're feeding in
+    #efsvolume-version as a dummy input because it is tiny and easy to copy
+    input_mapping:
+      persi-ci: persi-ci
+      diego-tarball: diego-dev-release-tarball
+      nfs-tarball: nfs-volume-release-tarball
+      efs-tarball: efs-volume-release-tarball
+      csi-local-tarball: efsvolume-version #dummy
+      csi-plugins-tarball: efsvolume-version #dummy
+      mapfs-tarball: mapfs-release-tarball
+      ecs-tarball: efsvolume-version #dummy
+      local-tarball: efsvolume-version #dummy
+      smb-tarball: efsvolume-version #dummy
+      diego-version: diego-version
+      nfs-version: nfsvolume-version
+      efs-version: efsvolume-version
+      csi-local-version: efsvolume-version #dummy
+      csi-plugins-version: efsvolume-version #dummy
+      mapfs-version: mapfs-version #dummy
+      ecs-version: efsvolume-version #dummy
+      local-version: efsvolume-version #dummy
+      smb-version: efsvolume-version #dummy
+  - task: collect-efs-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment
+      new-ops-files: efs-volume-release
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
+  - task: collect-persi-ci-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-nfs-volume-service-with-sqlstore.yml \
+                      operations/enable-nfs-volume-service-migration-test.yml"
+  - task: collect-tarball-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: collected-tarballs
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/update-releases.yml"
+  - task: add-tarballs
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: collected-tarballs
+    params:
+      BASE_OPS_FILE_DIR: "."
+      NEW_OPS_FILES: "diego.tgz nfs.tgz mapfs.tgz efs.tgz"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate_variables.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      BBL_IAAS: aws
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      GENERATE_EFS_VARS: true
+      GENERATE_NFS_VARS: true
+      GENERATE_S3_BLOBSTORE_VARS: true
+      AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
+      LDAP_HOST: "nfstestldapserver.service.cf.internal"
+      LDAP_SVC_USER: {{ldap-svc-user}}
+      LDAP_SVC_PASS: {{ldap-svc-pass}}
+      LDAP_PORT: 636
+      LDAP_PROTO: tcp
+      LDAP_USER_FQDN: {{ldap-user-fqdn}}
+  - task: shrink-cf
+    file: shrinkcf/tasks/shrink-cf/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+      config-dir: persi-ci
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      CONFIG_FILE: config-dir/config/shrink-heleus-config.json
+      SYSTEM_DOMAIN: heleus.persi.cf-app.com
+      VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
+      OPS_FILES: "operations/scale-to-one-az.yml \
+                  operations/use-compiled-releases.yml \
+                  operations/use-external-blobstore.yml \
+                  operations/use-s3-blobstore.yml \
+                  operations/enable-nfs-volume-service-with-sqlstore.yml \
+                  operations/enable-nfs-volume-service-migration-test.yml \
+                  operations/enable-nfs-ldap.yml \
+                  operations/test/enable-nfs-test-server.yml \
+                  operations/test/enable-nfs-test-ldapserver.yml \
+                  operations/deploy-efs-broker-and-install-driver.yml \
+                  operations/update-releases.yml"
+  - task: bosh-deploy-cf
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      cf-deployment: scf-deployment
+      ops-files: collected-ops-files
+      vars-files: scf-deployment
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      SYSTEM_DOMAIN: heleus.persi.cf-app.com
+  - task: run-smoke-tests
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      ERRAND_NAME: smoke_tests
+      INSTANCE: brain/0
+  - task: run-broker-errand
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-aws-heleus
+      ERRAND_NAME: nfsbrokerpush
+      INSTANCE: brain/0
+
 - name: migrate-nfs-broker-to-credhub-heleus
   plan:
   - aggregate:
@@ -3192,12 +3393,10 @@ jobs:
     - get: persi-acceptance-tests
     - get: env-creation-gate-lock
       passed:
-      - pats-nfs-ldap-heleus
-      - pats-nfs-ldap-legacy-heleus
+      - deploy-cf-heleus-sql
     - get: gorgophone-env-director-state
       passed:
-      - pats-nfs-ldap-heleus
-      - pats-nfs-ldap-legacy-heleus
+      - deploy-cf-heleus-sql
       trigger: true
   - task: run-broker-with-sqlstore-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
@@ -3226,11 +3425,9 @@ jobs:
     - get: env-creation-gate-lock
       passed:
       - migrate-nfs-broker-to-credhub-heleus
-      - pats-efs-heleus
     - get: gorgophone-env-director-state
       passed:
       - migrate-nfs-broker-to-credhub-heleus
-      - pats-efs-heleus
       trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
