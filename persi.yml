@@ -3398,13 +3398,6 @@ jobs:
       passed:
       - deploy-cf-heleus-sql
       trigger: true
-  - task: run-broker-with-sqlstore-errand
-    file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      ERRAND_NAME: nfs-broker-push-with-sqlstore
   - task: test-migration
     file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
     input_mapping:
