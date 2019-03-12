@@ -2579,8 +2579,7 @@ jobs:
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/enable-csi-local-plugin.yml
                       operations/enable-nfs-test-server-two.yml
-                      operations/enable-smb-test-server-two.yml
-                      operations/add-static-ips-to-nfstestservers.yml"
+                      operations/enable-smb-test-server-two.yml"
   - task: collect-local-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2656,8 +2655,6 @@ jobs:
       S3_BLOBSTORE_ID: {{s3-blobstore-user}}
       S3_BLOBSTORE_KEY: {{s3-blobstore-key}}
       S3_BLOBSTORE_REGION: {{s3-blobstore-region}}
-      NFSTESTSERVER_STATIC_IP: 10.0.255.1
-      NFSTESTSERVER_TWO_STATIC_IP: 10.0.255.3
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone
       SMB_USERNAME: {{smb_pats_username_two}}
@@ -2686,7 +2683,6 @@ jobs:
                   operations/test/enable-nfs-test-server.yml
                   operations/test/enable-smb-test-server.yml
                   operations/enable-csi-local-plugin.yml
-                  operations/add-static-ips-to-nfstestservers.yml
                   operations/add-csi-nfs-plugin.yml
                   operations/deploy-ecs-broker-errand.yml
                   operations/backup-and-restore/enable-backup-restore.yml
