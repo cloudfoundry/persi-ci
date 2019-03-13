@@ -1,0 +1,65 @@
+#!/bin/bash -eu
+
+function fly_pipeline() {
+  local pipeline="$1"
+
+  lpass ls > /dev/null
+
+  echo "Setting ${pipeline}..."
+  fly -t persi sp -c "${pipeline}.yml" -p "${pipeline}" --load-vars-from <(lpass show --note pipeline-secrets)
+}
+
+function main() {
+  local all=0 pipeline="" o
+
+  while getopts ahp: o; do
+    case $o in
+      a)
+        all=1
+        ;;
+      h)
+        cat<<EOT
+Usage: fly [a] | [-p <pipeline>]
+
+Options:
+  -a Fly all pipelines in the current directory
+  -h Help (show this text)
+  -p Fly the specified pipeline
+EOT
+        exit 0
+        ;;
+      p)
+        pipeline="${OPTARG}"
+        ;;
+      *)
+        echo "Invalid option specified: $o"
+        exit 1
+        ;;
+    esac
+  done
+
+  shift $((OPTIND-1))
+
+  if [[ "${all}" = "1" ]]; then
+    for file in *.yml; do
+      fly_pipeline "$(basename "${file}" .yml)"
+    done
+  else
+    if [[ -z "${pipeline}" && $# -gt 0 ]]; then
+      pipeline="$1"
+    fi
+
+    if [[ -z "${pipeline}" ]]; then
+      pipeline="persi"
+    fi
+
+    if [[ ! -r "${pipeline}.yml" ]]; then
+      echo "Missing ${pipeline}.yml"
+      exit 1
+    fi
+
+    fly_pipeline "${pipeline}"
+  fi
+}
+
+main "$@"
