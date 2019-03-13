@@ -90,8 +90,8 @@ resources:
 - name: efs-broker-tile-bucket
   type: s3
   source:
-    access_key_id: ((tile_upload_aws_access_key_id))
-    secret_access_key: ((tile_upload_aws_secret_access_key))
+    access_key_id: ((tile_manager_aws_access_key_id))
+    secret_access_key: ((tile_manager_aws_secret_access_key))
     bucket: efs-broker-tiles
     private: true
     region_name: us-west-2
@@ -121,8 +121,8 @@ resources:
 - name: vpn-client-tile-bucket
   type: s3
   source:
-    access_key_id: ((tile_upload_aws_access_key_id))
-    secret_access_key: ((tile_upload_aws_secret_access_key))
+    access_key_id: ((tile_manager_aws_access_key_id))
+    secret_access_key: ((tile_manager_aws_secret_access_key))
     bucket: vpn-client-tiles
     private: true
     region_name: us-west-2
