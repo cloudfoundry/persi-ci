@@ -229,6 +229,7 @@ jobs:
     input_mapping:
       releases: openvpn-release-tarball
     params:
+      ICON_FILENAME: icon.jpg
       TILE_FILENAME_PREFIX: vpn-client
   - put: vpn-client-tile-version
     params:
