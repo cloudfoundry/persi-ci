@@ -62,8 +62,8 @@ resources:
   source:
     bucket: efs-volume-release-tarballs
     regexp: efs-volume-(.*).tgz
-    access_key_id: {{efsvolume-uploader_aws_ID}}
-    secret_access_key: {{efsvolume-uploader_aws_secret}}
+    access_key_id: {{efsvolume-reader_aws_ID}}
+    secret_access_key: {{efsvolume-reader_aws_secret}}
 
 - name: openvpn-release-tarball
   type: bosh-io-release
