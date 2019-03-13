@@ -156,18 +156,23 @@ jobs:
     - get: bpm-release-tarball
       params:
         tarball: true
+      trigger: true
     - get: efs-volume-release-tarball
+      trigger: true
     - get: kiln-concourse-tasks
     - get: metadata-repo
       resource: efs-broker-tile-metadata-repo
+      trigger: true
     - get: routing-release-tarball
       params:
         tarball: true
+      trigger: true
     - get: stemcell
       resource: stemcell-linux-xenial
       params:
         globs:
         - '*google*'
+      trigger: true
     - get: version
       resource: efs-broker-tile-version
   - task: collect-bpm-release
@@ -206,14 +211,17 @@ jobs:
     - get: kiln-concourse-tasks
     - get: metadata-repo
       resource: vpn-client-tile-metadata-repo
+      trigger: true
     - get: openvpn-release-tarball
       params:
         tarball: true
+      trigger: true
     - get: stemcell
       resource: stemcell-linux-xenial
       params:
         globs:
         - '*google*'
+      trigger: true
     - get: version
       resource: vpn-client-tile-version
   - task: create-tile
