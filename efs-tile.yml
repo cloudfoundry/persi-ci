@@ -1,0 +1,225 @@
+groups:
+- name: efs-tile
+  jobs:
+  - build-efs-broker-tile
+  - build-vpn-client-tile
+  # - bbl-up-aws-efs
+  # - bosh-deploy-vpn
+  # - claim-toolsmiths-env
+  # - upload-tiles-and-stemcell
+  # - configure-efs-broker-tile
+  # - configure-vpn-client-tile
+  # - apply-changes
+  # - pats-efs
+  # - unclaim-toolsmiths-env
+  # - bosh-delete-vpn
+  # - bbl-destroy-aws-efs
+
+- name: build
+  jobs:
+  - build-efs-broker-tile
+  - build-vpn-client-tile
+
+# - name: test
+#   jobs:
+#   - bbl-up-aws-efs
+#   - bosh-deploy-vpn
+#   - claim-toolsmiths-env
+#   - upload-tiles-and-stemcell
+#   - configure-efs-broker-tile
+#   - configure-vpn-client-tile
+#   - apply-changes
+#   - pats-efs
+#   - unclaim-toolsmiths-env
+#   - bosh-delete-vpn
+#   - bbl-destroy-aws-efs
+
+resources:
+## General ##
+- name: kiln-concourse-tasks
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:davewalter/kiln-concourse-tasks.git
+    private_key: {{deployments-persi-key}}
+## End General ##
+
+## Releases ##
+- name: bpm-release-tarball
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/bpm-release
+
+- name: efs-volume-release-tarball
+  type: s3
+  source:
+    bucket: efs-volume-release-tarballs
+    regexp: efs-volume-(.*).tgz
+    access_key_id: {{efsvolume-uploader_aws_ID}}
+    secret_access_key: {{efsvolume-uploader_aws_secret}}
+
+- name: openvpn-release-tarball
+  type: bosh-io-release
+  source:
+    repository: dpb587/openvpn-bosh-release
+
+- name: routing-release-tarball
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry/routing-release
+## End Releases ##
+
+## Stemcell ##
+- name: stemcell-linux-xenial
+  type: pivnet
+  source:
+    api_token: ((persi_pivnet_refresh_token))
+    product_slug: stemcells-ubuntu-xenial
+    product_version: ^170\.\d+
+    sort_by: semver
+## End Stemcell ##
+
+## EFS Broker Tile ##
+- name: efs-broker-tile-bucket
+  type: s3
+  source:
+    access_key_id: ((tile_upload_aws_access_key_id))
+    secret_access_key: ((tile_upload_aws_secret_access_key))
+    bucket: efs-broker-tiles
+    private: true
+    region_name: us-west-2
+    regexp: efs-broker-(.*).pivotal
+
+- name: efs-broker-tile-metadata-repo
+  type: git
+  source:
+    uri: git@github.com:davewalter/aws-efs-broker-tile.git
+    branch: master
+    private_key: {{deployments-persi-key}}
+    ignore_paths:
+    - version
+
+- name: efs-broker-tile-version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:davewalter/aws-efs-broker-tile.git
+    branch: master
+    file: version
+    initial_version: 0.0.1-build.1
+    private_key: {{deployments-persi-key}}
+## End EFS Broker Tile ##
+
+## VPN Client Tile ##
+- name: vpn-client-tile-bucket
+  type: s3
+  source:
+    access_key_id: ((tile_upload_aws_access_key_id))
+    secret_access_key: ((tile_upload_aws_secret_access_key))
+    bucket: vpn-client-tiles
+    private: true
+    region_name: us-west-2
+    regexp: vpn-client-(.*).pivotal
+
+- name: vpn-client-tile-metadata-repo
+  type: git
+  source:
+    uri: git@github.com:davewalter/aws-efs-broker-vpn-client-tile.git
+    branch: master
+    private_key: {{deployments-persi-key}}
+    ignore_paths:
+    - version
+
+- name: vpn-client-tile-version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:davewalter/aws-efs-broker-vpn-client-tile.git
+    branch: master
+    file: version
+    initial_version: 0.0.1-build.1
+    private_key: {{deployments-persi-key}}
+## End VPN Client Tile ##
+
+jobs:
+- name: build-efs-broker-tile
+  serial: true
+  plan:
+  - aggregate:
+    - get: bpm-release-tarball
+      params:
+        tarball: true
+    - get: efs-volume-release-tarball
+    - get: kiln-concourse-tasks
+    - get: metadata-repo
+      resource: efs-broker-tile-metadata-repo
+    - get: routing-release-tarball
+      params:
+        tarball: true
+    - get: stemcell
+      resource: stemcell-linux-xenial
+      params:
+        globs:
+        - '*google*'
+    - get: version
+      resource: efs-broker-tile-version
+  - task: collect-bpm-release
+    file: kiln-concourse-tasks/collect-release/task.yml
+    input_mapping:
+      base-releases: efs-volume-release-tarball
+      new-release: bpm-release-tarball
+    params:
+      RELEASE_NAME: bpm
+  - task: collect-routing-release
+    file: kiln-concourse-tasks/collect-release/task.yml
+    input_mapping:
+      base-releases: collected-releases
+      new-release: routing-release-tarball
+    params:
+      RELEASE_NAME: routing
+  - task: create-tile
+    file: kiln-concourse-tasks/bake/task.yml
+    input_mapping:
+      releases: collected-releases
+    params:
+      TILE_FILENAME_PREFIX: efs-broker
+  - put: efs-broker-tile-version
+    params:
+      pre: build
+  - put: efs-broker-tile-bucket
+    params:
+      file: tile/*.pivotal
+    get_params:
+      skip_download: 'true'
+
+- name: build-vpn-client-tile
+  serial: true
+  plan:
+  - aggregate:
+    - get: kiln-concourse-tasks
+    - get: metadata-repo
+      resource: vpn-client-tile-metadata-repo
+    - get: openvpn-release-tarball
+      params:
+        tarball: true
+    - get: stemcell
+      resource: stemcell-linux-xenial
+      params:
+        globs:
+        - '*google*'
+    - get: version
+      resource: vpn-client-tile-version
+  - task: create-tile
+    file: kiln-concourse-tasks/bake/task.yml
+    input_mapping:
+      releases: openvpn-release-tarball
+    params:
+      TILE_FILENAME_PREFIX: vpn-client
+  - put: vpn-client-tile-version
+    params:
+      pre: build
+  - put: vpn-client-tile-bucket
+    params:
+      file: tile/*.pivotal
+    get_params:
+      skip_download: 'true'
