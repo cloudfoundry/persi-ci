@@ -82,7 +82,7 @@ resources:
   source:
     api_token: ((persi_pivnet_refresh_token))
     product_slug: stemcells-ubuntu-xenial
-    product_version: ^170\.\d+
+    product_version: ^250\.\d+
     sort_by: semver
 ## End Stemcell ##
 
