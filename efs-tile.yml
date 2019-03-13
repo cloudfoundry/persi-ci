@@ -73,7 +73,7 @@ resources:
 - name: routing-release-tarball
   type: bosh-io-release
   source:
-    repository: cloudfoundry/routing-release
+    repository: cloudfoundry-incubator/cf-routing-release
 ## End Releases ##
 
 ## Stemcell ##
