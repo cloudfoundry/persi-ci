@@ -1,4 +1,26 @@
 {
-  "jobs": [],
-  "all_errands": "api"
+  "jobs": [
+    {
+      "target": "database",
+      "sources": [
+        "nats"
+      ]
+    },
+    {
+      "target": "brain",
+      "sources": [
+        "adapter",
+        "diego-api",
+        "uaa",
+        "api",
+        "cc-worker",
+        "doppler",
+        "scheduler",
+        "log-api",
+        "credhub",
+        "backup-restore"
+      ]
+    }
+  ],
+  "all_errands": "brain"
 }
