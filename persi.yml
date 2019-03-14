@@ -79,6 +79,7 @@ groups:
 
 - name: gorgophone
   jobs:
+  - cf-deployment-nightly
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-nfs-brokers
