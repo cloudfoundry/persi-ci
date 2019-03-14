@@ -5,15 +5,15 @@ groups:
   - build-vpn-client-tile
   - acquire-lock-efstile
   - bbl-up-efstile
-  # - bosh-deploy-openvpn
-  # - claim-toolsmiths-env
+  - bosh-deploy-openvpn
+  - claim-toolsmiths-env
   # - upload-tiles-and-stemcell
   # - configure-efs-broker-tile
   # - configure-vpn-client-tile
   # - apply-changes
   # - pats-efs
-  # - unclaim-toolsmiths-env
-  # - bosh-delete-openvpn
+  - unclaim-toolsmiths-env
+  - bosh-delete-openvpn
   - bbl-destroy-efstile
 
 - name: build
@@ -25,18 +25,24 @@ groups:
   jobs:
   - acquire-lock-efstile
   - bbl-up-efstile
-#   - bosh-deploy-openvpn
-#   - claim-toolsmiths-env
+  - bosh-deploy-openvpn
+  - claim-toolsmiths-env
 #   - upload-tiles-and-stemcell
 #   - configure-efs-broker-tile
 #   - configure-vpn-client-tile
 #   - apply-changes
 #   - pats-efs
-#   - unclaim-toolsmiths-env
-#   - bosh-delete-openvpn
+  - unclaim-toolsmiths-env
+  - bosh-delete-openvpn
   - bbl-destroy-efstile
 
 resource_types:
+- name: pcf-pool
+  type: docker-image
+  source:
+    repository: cftoolsmiths/toolsmiths-envs-resource
+    tag: latest
+
 - name: pivnet
   type: docker-image
   source:
@@ -77,6 +83,25 @@ resources:
   source:
     branch: master
     uri: git@github.com:davewalter/kiln-concourse-tasks.git
+    private_key: {{deployments-persi-key}}
+
+- name: openvpn-bosh-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/paulcwarren/openvpn-bosh-release.git
+
+- name: pcf-2.5
+  type: pcf-pool
+  source:
+    api_token: ((persi_toolsmiths_env_api_token))
+    pool_name: us_2_5
+
+- name: persi-ci
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/persi-ci.git
+    branch: master
     private_key: {{deployments-persi-key}}
 ## End General ##
 
@@ -291,17 +316,24 @@ jobs:
   - aggregate:
     - get: bosh-bootloader
     - get: cf-deployment-concourse-tasks
+    - get: efs-broker-tile-bucket
+      passed:
+      - acquire-lock-efstile
     - get: env-creation-gate-lock
       passed:
       - acquire-lock-efstile
       trigger: true
     - get: gorgophone-env-director-state
-    - get: efs-broker-tile-bucket
-      passed:
-      - acquire-lock-efstile
+    - get: persi-ci
     - get: vpn-client-tile-bucket
       passed:
       - acquire-lock-efstile
+  - task: generate-variables
+    file: persi-ci/scripts/ci/add-zones-to-plan-patch.build.yml
+    input_mapping:
+      bbl-config: bosh-bootloader
+    params:
+      BBL_CONFIG_DIR: plan-patches/openvpn-aws
   - task: bbl-up
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -309,23 +341,23 @@ jobs:
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
       BBL_AWS_REGION: us-west-2
-      BBL_CONFIG_DIR: plan-patches/openvpn-aws
       BBL_STATE_DIR: bbl-state-aws-efstile
       BBL_ENV_NAME: efstile
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
       SKIP_LB_CREATION: true
     input_mapping:
       bbl-state: gorgophone-env-director-state
-      bbl-config: bosh-bootloader
+      bbl-config: merged-plan-patch
     ensure:
       put: gorgophone-env-director-state
       params:
         repository: updated-bbl-state
         rebase: true
 
-- name: bbl-destroy-efstile
+- name: bosh-deploy-openvpn
   plan:
   - aggregate:
+    - get: openvpn-bosh-release
     - get: cf-deployment-concourse-tasks
     - get: env-creation-gate-lock
       passed:
@@ -333,6 +365,116 @@ jobs:
     - get: gorgophone-env-director-state
       passed:
       - bbl-up-efstile
+      trigger: true
+    - get: persi-ci
+    - get: efs-broker-tile-bucket
+      passed:
+      - bbl-up-efstile
+    - get: vpn-client-tile-bucket
+      passed:
+      - bbl-up-efstile
+  - task: collect-openvpn-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: openvpn-bosh-release
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "deployment"
+      NEW_OPS_FILES: "operations/with-bosh-agent.yml \
+                      operations/with-static-ip.yml"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate-openvpn-variables.build.yml
+    input_mapping:
+      director-state: gorgophone-env-director-state
+    params:
+      AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_STATE_DIR: bbl-state-aws-efstile
+  - task: bosh-deploy-cf
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      cf-deployment: openvpn-bosh-release
+      ops-files: collected-ops-files
+      vars-files: generated-var-files
+    params:
+      BBL_STATE_DIR: bbl-state-aws-efstile
+      MANIFEST_FILE: deployment/openvpn.yml
+      SYSTEM_DOMAIN: dummy.persi.cf-app.com
+      VARS_FILES: "openvpn-vars.yml"
+      OPS_FILES: "deployment/with-lan-access.yml \
+                  deployment/with-lan-masquerading.yml \
+                  deployment/with-multiple-client-connections.yml \
+                  deployment/with-bosh-agent.yml \
+                  deployment/with-static-ip.yml"
+
+- name: claim-toolsmiths-env
+  plan:
+  - aggregate:
+    - get: env-creation-gate-lock
+      passed:
+      - bosh-deploy-openvpn
+    - get: gorgophone-env-director-state
+      passed:
+      - bosh-deploy-openvpn
+      trigger: true
+    - get: efs-broker-tile-bucket
+      passed:
+      - bosh-deploy-openvpn
+    - get: vpn-client-tile-bucket
+      passed:
+      - bosh-deploy-openvpn
+  - put: pcf-2.5
+    params:
+      action: claim
+
+- name: unclaim-toolsmiths-env
+  plan:
+  - aggregate:
+    - get: env-creation-gate-lock
+      passed:
+      - claim-toolsmiths-env
+    - get: gorgophone-env-director-state
+      passed:
+      - claim-toolsmiths-env
+      trigger: true
+    - get: pcf-2.5
+      passed:
+      - claim-toolsmiths-env
+  - put: pcf-2.5
+    params:
+      action: unclaim
+      env_file: pcf-2.5/metadata
+
+- name: bosh-delete-openvpn
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - unclaim-toolsmiths-env
+    - get: gorgophone-env-director-state
+      passed:
+      - unclaim-toolsmiths-env
+      trigger: true
+  - task: delete-openvpn
+    file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
+    params:
+      BBL_STATE_DIR: bbl-state-aws-efstile
+      DEPLOYMENT_NAME: openvpn
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+
+- name: bbl-destroy-efstile
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - bosh-delete-openvpn
+    - get: gorgophone-env-director-state
+      passed:
+      - bosh-delete-openvpn
       trigger: true
   - task: destroy
     file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
