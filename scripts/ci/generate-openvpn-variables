@@ -16,7 +16,7 @@ lan_network_mask_bits: 24
 vpn_network: 10.100.0.0
 vpn_network_mask: 255.255.255.0
 vpn_network_mask_bits: 24
-wan_ip: $(bbl outputs | awk -F ': ' '$1 == "openvpn_ip" { print $2 }')
+wan_ip: $(bbl --state-dir="director-state/${BBL_STATE_DIR}" outputs | awk -F ': ' '$1 == "openvpn_ip" { print $2 }')
 EOT
 }
 
