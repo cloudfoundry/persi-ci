@@ -871,7 +871,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -906,7 +906,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -1224,7 +1224,7 @@ jobs:
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: nfsbrokerpush
 
 - name: pats-nfs
@@ -1254,7 +1254,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -1306,7 +1306,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -1346,7 +1346,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -1381,7 +1381,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       BBL_IAAS: gcp
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -1405,7 +1405,7 @@ jobs:
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       CF_USERNAME: admin
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       APPS_DOMAIN: gorgophone.cf-app.com
@@ -1432,7 +1432,7 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       BBL_IAAS: gcp
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
     file: deployments-persi/persi-ci/deployments/isilon-volume/create-share.build.yml
 
 - name: pats-isilon
@@ -1454,7 +1454,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -1686,7 +1686,7 @@ jobs:
       vars-store: gorgophone-env
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       BBL_IAAS: gcp
 
 - name: deploy-ecs-broker
@@ -1711,7 +1711,7 @@ jobs:
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: broker-deploy
 
 - name: pats-ecs
@@ -1731,7 +1731,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -1974,7 +1974,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -2011,7 +2011,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -2180,7 +2180,7 @@ jobs:
       SMB_REMOTE_PATH: {{smb_cert_remote_path}}
       SMB_USERNAME: {{smb_cert_username}}
       SMB_PASSWORD: {{smb_cert_password}}
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       BBL_IAAS: gcp
     file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
 
@@ -2225,7 +2225,7 @@ jobs:
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: smbbrokerpush
 
 - name: pats-smb
@@ -2267,7 +2267,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -2315,7 +2315,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
@@ -2447,13 +2447,13 @@ jobs:
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
       BBL_CONFIG_DIR: plan-patches/gcs-blobstore-gcp
-      BBL_ENV_NAME: bbl-env-victoria-2018-04-23t19-08z
+      BBL_ENV_NAME: gorgophone
       BBL_GCP_REGION: us-west1
       BBL_GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
       BBL_IAAS: gcp
       BBL_LB_CERT: {{gorgophone_lbs_ssl_cert}}
       BBL_LB_KEY: {{gorgophone_lbs_ssl_signing_key}}
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
       LB_DOMAIN: gorgophone.cf-app.com
     input_mapping:
@@ -2635,7 +2635,7 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       BBL_IAAS: gcp
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       GENERATE_DATADOG_VARS: true
       GENERATE_ECS_VARS: true
       GENERATE_NFS_VARS: true
@@ -2658,7 +2658,7 @@ jobs:
       vars-files: generated-vars
       config-dir: persi-ci
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       CONFIG_FILE: config-dir/config/shrink-gorgophone-config.json
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is required by the task
       VARS_FILES: "nfs-vars.yml ecs-vars.yml datadog-vars.yml smb-vars.yml"
@@ -2692,21 +2692,21 @@ jobs:
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is required by the task
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: smoke_tests
   - task: bosh-cleanup
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       CLEAN_ALL: false
 
 - name: drats-nfs-smb
@@ -2743,7 +2743,7 @@ jobs:
       bbl-state: gorgophone-env-director-state
       integration-configs: persi-ci
     params:
-      BBL_STATE_DIR: bbl-state-gcp
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       INTEGRATION_CONFIG_FILE_PATH: config/drats.json
       SYSTEM_DOMAIN: gorgophone.cf-app.com
   - task: acceptance-tests
