@@ -1235,6 +1235,10 @@ jobs:
   - nfs
   plan:
   - aggregate:
+    - get: diego-dev-release-tarball
+      passed:
+      - deploy-cf
+      trigger: true
     - get: nfs-volume-release
       passed:
       - deploy-nfs-brokers
@@ -1288,6 +1292,10 @@ jobs:
   - nfs
   plan:
   - aggregate:
+    - get: diego-dev-release-tarball
+      passed:
+      - deploy-cf
+      trigger: true
     - get: nfs-volume-release
       passed:
       - deploy-nfs-brokers
@@ -1336,6 +1344,10 @@ jobs:
   - nfs
   plan:
   - aggregate:
+    - get: diego-dev-release-tarball
+      passed:
+      - deploy-cf
+      trigger: true
     - get: nfs-volume-release
       passed:
       - deploy-nfs-brokers
@@ -1447,6 +1459,10 @@ jobs:
   - isilon
   plan:
   - aggregate:
+    - get: diego-dev-release-tarball
+      passed:
+      - deploy-cf
+      trigger: true
     - get: nfs-volume-release
       passed:
       - create-isilon-volume
@@ -2244,6 +2260,10 @@ jobs:
   - smb
   plan:
   - aggregate:
+    - get: diego-dev-release-tarball
+      passed:
+      - deploy-cf
+      trigger: true
     - get: smb-volume-release-concourse-tasks
       params:
         submodules: none
