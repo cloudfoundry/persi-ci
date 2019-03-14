@@ -2666,7 +2666,7 @@ jobs:
                   operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
                   operations/use-external-blobstore.yml
-                  operations/use-gcs-blobstore-access-key.yml
+                  operations/use-gcs-blobstore-service-account.yml
                   operations/windows2016-cell.yml
                   operations/experimental/use-compiled-releases-windows.yml
                   operations/enable-nfs-volume-service.yml
