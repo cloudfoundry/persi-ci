@@ -20,6 +20,24 @@
         "credhub",
         "backup-restore"
       ]
+    },
+    {
+      "target": "localbroker",
+      "sources": [
+        "csi-localbroker"
+      ]
+    },
+    {
+      "target": "nfstestserver",
+      "sources": [
+        "smbtestserver"
+      ]
+    },
+    {
+      "target": "nfstestservertwo",
+      "sources": [
+        "smbtestservertwo"
+      ]
     }
   ],
   "all_errands": "brain"
