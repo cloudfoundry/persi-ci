@@ -1,0 +1,23 @@
+#!/bin/bash -eu
+
+function main() {
+  pushd "director-state/${BBL_STATE_DIR}"
+    eval "$(bbl print-env)"
+  popd
+
+  mkdir -p generated-var-files
+
+  cat <<EOT >> generated-var-files/openvpn-vars.yml
+access_key_id: "${AWS_ACCESS_KEY_ID}"
+secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+lan_network: 10.0.144.0
+lan_network_mask: 255.255.255.0
+lan_network_mask_bits: 24
+vpn_network: 10.100.0.0
+vpn_network_mask: 255.255.255.0
+vpn_network_mask_bits: 24
+wan_ip: $(bbl outputs | awk -F ': ' '$1 == "openvpn_ip" { print $2 }')
+EOT
+}
+
+main
