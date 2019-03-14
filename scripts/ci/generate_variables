@@ -90,7 +90,7 @@ generate_gcs_blobstore_vars() {
     fi
   popd
 
-    cat << EOF > ${ROOT_DIR}/generated-vars/s3-blobstore-vars.yml
+    cat << EOF > ${ROOT_DIR}/generated-vars/gcs-blobstore-vars.yml
 ---
 gcs_project: ${GCS_BLOBSTORE_PROJECT_ID}
 gcs_service_account_email: ${GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL}

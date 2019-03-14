@@ -2661,7 +2661,7 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       CONFIG_FILE: config-dir/config/shrink-gorgophone-config.json
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is required by the task
-      VARS_FILES: "nfs-vars.yml ecs-vars.yml datadog-vars.yml smb-vars.yml"
+      VARS_FILES: "nfs-vars.yml ecs-vars.yml datadog-vars.yml smb-vars.yml gcs-blobstore-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
