@@ -3,8 +3,9 @@ groups:
   jobs:
   - build-efs-broker-tile
   - build-vpn-client-tile
-  # - bbl-up-aws-efs
-  # - bosh-deploy-vpn
+  - acquire-lock-efstile
+  - bbl-up-efstile
+  # - bosh-deploy-openvpn
   # - claim-toolsmiths-env
   # - upload-tiles-and-stemcell
   # - configure-efs-broker-tile
@@ -12,18 +13,19 @@ groups:
   # - apply-changes
   # - pats-efs
   # - unclaim-toolsmiths-env
-  # - bosh-delete-vpn
-  # - bbl-destroy-aws-efs
+  # - bosh-delete-openvpn
+  - bbl-destroy-efstile
 
 - name: build
   jobs:
   - build-efs-broker-tile
   - build-vpn-client-tile
 
-# - name: test
-#   jobs:
-#   - bbl-up-aws-efs
-#   - bosh-deploy-vpn
+- name: test
+  jobs:
+  - acquire-lock-efstile
+  - bbl-up-efstile
+#   - bosh-deploy-openvpn
 #   - claim-toolsmiths-env
 #   - upload-tiles-and-stemcell
 #   - configure-efs-broker-tile
@@ -31,8 +33,8 @@ groups:
 #   - apply-changes
 #   - pats-efs
 #   - unclaim-toolsmiths-env
-#   - bosh-delete-vpn
-#   - bbl-destroy-aws-efs
+#   - bosh-delete-openvpn
+  - bbl-destroy-efstile
 
 resource_types:
 - name: pivnet
@@ -43,6 +45,33 @@ resource_types:
 
 resources:
 ## General ##
+- name: bosh-bootloader
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/paulcwarren/bosh-bootloader.git
+
+- name: cf-deployment-concourse-tasks
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
+
+- name: env-creation-gate-lock
+  type: pool
+  source:
+    uri: git@github.com:cloudfoundry/gorgophone-env.git
+    branch: master
+    pool: gate-locks
+    private_key: {{deployments-persi-key}}
+
+- name: gorgophone-env-director-state
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/gorgophone-env.git
+    branch: master
+    private_key: {{deployments-persi-key}}
+
 - name: kiln-concourse-tasks
   type: git
   source:
@@ -239,3 +268,86 @@ jobs:
       file: tile/*.pivotal
     get_params:
       skip_download: 'true'
+
+- name: acquire-lock-efstile
+  serial: true
+  plan:
+  - aggregate:
+    - get: efs-broker-tile-bucket
+      passed:
+      - build-efs-broker-tile
+      trigger: true
+    - get: vpn-client-tile-bucket
+      passed:
+      - build-vpn-client-tile
+      trigger: true
+  - put: env-creation-gate-lock
+    params:
+      claim: efstile
+    timeout: 3h
+
+- name: bbl-up-efstile
+  plan:
+  - aggregate:
+    - get: bosh-bootloader
+    - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - acquire-lock-efstile
+      trigger: true
+    - get: gorgophone-env-director-state
+    - get: efs-broker-tile-bucket
+      passed:
+      - acquire-lock-efstile
+    - get: vpn-client-tile-bucket
+      passed:
+      - acquire-lock-efstile
+  - task: bbl-up
+    file: cf-deployment-concourse-tasks/bbl-up/task.yml
+    params:
+      BBL_IAAS: aws
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+      BBL_AWS_REGION: us-west-2
+      BBL_CONFIG_DIR: plan-patches/openvpn-aws
+      BBL_STATE_DIR: bbl-state-aws-efstile
+      BBL_ENV_NAME: efstile
+      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
+      SKIP_LB_CREATION: true
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      bbl-config: bosh-bootloader
+    ensure:
+      put: gorgophone-env-director-state
+      params:
+        repository: updated-bbl-state
+        rebase: true
+
+- name: bbl-destroy-efstile
+  plan:
+  - aggregate:
+    - get: cf-deployment-concourse-tasks
+    - get: env-creation-gate-lock
+      passed:
+      - bbl-up-efstile
+    - get: gorgophone-env-director-state
+      passed:
+      - bbl-up-efstile
+      trigger: true
+  - task: destroy
+    file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
+    params:
+      BBL_STATE_DIR: bbl-state-aws-efstile
+      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
+      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
+      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+    ensure:
+      put: gorgophone-env-director-state
+      params:
+        repository: updated-bbl-state
+        rebase: true
+  - put: env-creation-gate-lock
+    params:
+      release: env-creation-gate-lock
