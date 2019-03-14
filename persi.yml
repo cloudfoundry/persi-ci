@@ -2762,8 +2762,6 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - get: bosh-bootloader
-    - get: cf-deployment-concourse-tasks
     - get: nfs-volume-release
       passed:
       - create-nfs-volume-release
