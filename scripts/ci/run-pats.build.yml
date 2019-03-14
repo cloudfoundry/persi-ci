@@ -15,7 +15,7 @@ inputs:
 
 params:
   BBL_IAAS: gcp
-  BBL_STATE_DIR: bbl-state-gcp
+  BBL_STATE_DIR:
   CONFIG_FILE_PATH: pats-config/pats.json
   PARALLEL_NODES:
   TEST_DOCKER_PORA: false

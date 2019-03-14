@@ -884,6 +884,8 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
 
 - name: pats-local-windows
   serial_groups:
@@ -920,6 +922,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_WINDOWS_CELL: true
 
 #### END Local volume #################################################################################################
@@ -1273,6 +1276,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_LAZY_UNMOUNT: true
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
@@ -1321,6 +1325,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -1359,6 +1364,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_DOCKER_PORA: true
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -1467,6 +1473,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 #### END Isilon ######################################################################################################
@@ -1746,6 +1753,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_MULTI_CELL: true
 
 #### END ECS ##########################################################################################################
@@ -1989,6 +1997,8 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: gorgophone-env-director-state
+    params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
 
 - name: pats-csi-nfs
   serial_groups:
@@ -2028,6 +2038,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_MULTI_CELL: true
 
 #### END CSI related jobs ############################################################################################
@@ -2282,6 +2293,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_LAZY_UNMOUNT: true
       TEST_READ_ONLY: true
 
@@ -2326,6 +2338,7 @@ jobs:
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_WINDOWS_CELL: true
 
 - name: shipit-smb
