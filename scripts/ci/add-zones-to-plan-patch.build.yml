@@ -1,0 +1,21 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: latest
+
+inputs:
+- name: persi-ci
+- name: bbl-config
+
+outputs:
+- name: merged-plan-patch
+
+params:
+  BBL_CONFIG_DIR:
+
+run:
+  path: persi-ci/scripts/ci/add-zones-to-plan-patch

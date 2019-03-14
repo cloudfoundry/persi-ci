@@ -1,0 +1,11 @@
+#!/bin/bash -eu
+
+function main() {
+  cp -pr "bbl-config/${BBL_CONFIG_DIR}" merged-plan-patch
+
+  cat <<EOT > merged-plan-patch/vars/zone.tfvars
+availability_zones=["us-west-2a", "us-west-2b", "us-west-2c"]
+EOT
+}
+
+main
