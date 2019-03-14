@@ -70,7 +70,7 @@ generate_gcs_blobstore_vars() {
     fi
 
     if [ -z "${GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY}" ]; then
-      GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY="$(bbl outputs | yq -r '.gcs_blobstore_service_account_key')"
+      GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY="$(bbl outputs | yq '.gcs_blobstore_service_account_key')"
     fi
 
     if [ -z "${APP_PACKAGE_DIRECTORY_KEY}" ]; then
