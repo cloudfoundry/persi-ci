@@ -7,7 +7,7 @@
       ]
     },
     {
-      "target": "brain",
+      "target": "scheduler",
       "sources": [
         "adapter",
         "diego-api",
@@ -15,7 +15,6 @@
         "api",
         "cc-worker",
         "doppler",
-        "scheduler",
         "log-api",
         "credhub",
         "backup-restore"
@@ -40,5 +39,8 @@
       ]
     }
   ],
-  "all_errands": "brain"
+  "all_errands": "scheduler",
+  "instance_group_rename_map": {
+    "scheduler": "brain"
+  }
 }

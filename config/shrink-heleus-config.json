@@ -7,7 +7,7 @@
       ]
     },
     {
-      "target": "brain",
+      "target": "scheduler",
       "sources": [
         "adapter",
         "diego-api",
@@ -15,7 +15,6 @@
         "api",
         "cc-worker",
         "doppler",
-        "scheduler",
         "log-api",
         "credhub"
       ]
@@ -23,12 +22,15 @@
   ],
   "errands": [
     {
-      "target": "brain",
+      "target": "scheduler",
       "sources": [
         "smoke-tests",
         "rotate-cc-database-key",
         "nfs-broker-push"
       ]
     }
-  ]
+  ],
+  "instance_group_rename_map": {
+    "scheduler": "brain"
+  }
 }
