@@ -24,8 +24,7 @@
     {
       "target": "localbroker",
       "sources": [
-        "csi-localbroker",
-        "csi-nfsbroker"
+        "csi-localbroker"
       ]
     },
     {
