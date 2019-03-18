@@ -42,7 +42,7 @@
         route_registrar:
           routes:
           - name: csi-localbroker
-            port: 8999
+            port: 9010
             registration_interval: 20s
             tags:
               component: csi-localbroker
