@@ -28,6 +28,11 @@
     - name: default
     jobs:
     - name: csi-localbroker
+      properties:
+        csi-localbroker:
+          csi-controller-addr: 127.0.0.1:9860
+          username: csi-localbroker
+          password: ((csi-localbroker-password))
       release: csi-local-volume
     - name: csi-localcontroller
       release: csi-local-volume
@@ -43,10 +48,6 @@
               component: csi-localbroker
             uris:
             - csi-localbroker.gorgophone.cf-app.com
-        csi-localbroker:
-          csi-controller-addr: 127.0.0.1:9860
-          username: csi-localbroker
-          password: ((csi-localbroker-password))
 
 - type: replace
   path: /variables/-
