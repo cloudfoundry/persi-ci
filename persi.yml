@@ -2867,6 +2867,7 @@ jobs:
     - get: mapfs-version
       passed:
       - acquire-lock-heleus
+    - get: persi-ci
     - get: efs-volume-release
       passed:
       - acquire-lock-heleus
@@ -2891,7 +2892,7 @@ jobs:
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
       BBL_AWS_REGION: us-west-2
-      BBL_CONFIG_DIR: updated-bosh-bootloader-plan-patches/s3-blobstore-aws
+      BBL_CONFIG_DIR: plan-patches/s3-blobstore-aws
       BBL_STATE_DIR: bbl-state-aws-heleus
       BBL_LB_CERT: {{heleus_lbs_ssl_cert}}
       BBL_LB_KEY: {{heleus_lbs_ssl_private_key}}
@@ -2900,7 +2901,7 @@ jobs:
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
     input_mapping:
       bbl-state: gorgophone-env-director-state
-      bbl-config: bosh-bootloader
+      bbl-config: updated-bosh-bootloader-plan-patches
     ensure:
       put: gorgophone-env-director-state
       params:
