@@ -1,9 +1,21 @@
-  #!/bin/bash
-  set -eu
+---
+platform: linux
 
-  mkdir -p updated-bosh-bootloader-plan-patches/plan-patches
-  cp -r bosh-bootloader/plan-patches/s3-blobstore-aws/ updated-bosh-bootloader-plan-patches/plan-patches/
-  mkdir -p updated-bosh-bootloader-plan-patches/plan-patches/s3-blobstore-aws/vars
-  echo <<EOF >updated-bosh-bootloader-plan-patches/plan-patches/s3-blobstore-aws/vars/zone.tfvars
-  availability_zones=["us-west-2a","us-west-2b","us-west-2c"]
-  EOF
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: latest
+
+
+inputs:
+- name: persi-ci
+- name: bosh-bootloader
+
+outputs:
+- name: updated-bosh-bootloader-plan-patches
+
+params: []
+
+run:
+  path: persi-ci/scripts/ci/bbl-up-heleus-az-plan-patch
