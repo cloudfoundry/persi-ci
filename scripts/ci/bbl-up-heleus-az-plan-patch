@@ -4,5 +4,5 @@ mkdir -p updated-bosh-bootloader-plan-patches/plan-patches
 cp -r bosh-bootloader/plan-patches/s3-blobstore-aws/* updated-bosh-bootloader-plan-patches/plan-patches/
 mkdir -p updated-bosh-bootloader-plan-patches/plan-patches/vars
 cat <<EOF >updated-bosh-bootloader-plan-patches/plan-patches/vars/zone.tfvars
-availability_zones=["us-west-2a","us-west-2b","us-west-2c"]
+availability_zones=["us-west-2a","us-west-2b","us-west-2c","us-west-2a"]
 EOF
