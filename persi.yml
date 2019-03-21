@@ -3023,6 +3023,7 @@ jobs:
       GENERATE_EFS_VARS: true
       GENERATE_NFS_VARS: true
       GENERATE_S3_BLOBSTORE_VARS: true
+      AWS_SUBNET_ID: {{efs-subnet-id}}
       AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
       AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
