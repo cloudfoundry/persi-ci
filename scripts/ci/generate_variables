@@ -33,6 +33,10 @@ generate_efs_vars() {
       AWS_SUBNET_ID="$(bbl outputs | yq -r '.subnet_id')"
     fi
 
+    if [ -z "${AWS_REGION}" ]; then
+      AWS_REGION="$(bbl outputs | yq -r '.region')"
+    fi
+
     if [ -z "${AWS_AZ}" ]; then
       AWS_AZ="$(bbl outputs | yq -r '.az')"
     fi
@@ -44,6 +48,7 @@ aws-access-key-id: ${AWS_ACCESS_KEY_ID}
 aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
 aws-subnet-ids: ${AWS_SUBNET_ID}
 aws-security-groups: ${AWS_SECURITY_GROUP}
+aws-region: "${AWS_REGION}"
 aws-azs: ${AWS_AZ}
 EOF
 }
