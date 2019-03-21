@@ -29,16 +29,14 @@ generate_efs_vars() {
       AWS_SECURITY_GROUP="$(bbl outputs | yq -r '.internal_security_group')"
     fi
 
-    if [ -z "${AWS_SUBNET_ID}" ]; then
-      AWS_SUBNET_ID="$(bbl outputs | yq -r '.subnet_id')"
-    fi
-
     if [ -z "${AWS_REGION}" ]; then
       AWS_REGION="$(bbl outputs | yq -r '.region')"
     fi
 
-    if [ -z "${AWS_AZ}" ]; then
-      AWS_AZ="$(bbl outputs | yq -r '.az')"
+    AWS_AZ="${AWS_REGION}a"
+
+    if [ -z "${AWS_SUBNET_ID}" ]; then
+      AWS_SUBNET_ID=$(bbl outputs | yq -r ".internal_az_subnet_id_mapping.\"${AWS_AZ}\"" )
     fi
   popd
 
