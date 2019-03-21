@@ -2883,16 +2883,14 @@ jobs:
     - get: diego-version
       passed:
       - acquire-lock-heleus
-  - task: bbl-plan-shim
-    file: persi-ci/scripts/ci/bbl-up-heleus-az-plan-patch.build.yml
   - task: bbl-up
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
       BBL_IAAS: aws
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-      BBL_AWS_REGION: us-west-2
-      BBL_CONFIG_DIR: plan-patches
+      BBL_AWS_REGION: us-east-1
+      BBL_CONFIG_DIR: plan-patches/s3-blobstore-aws
       BBL_STATE_DIR: bbl-state-aws-heleus
       BBL_LB_CERT: {{heleus_lbs_ssl_cert}}
       BBL_LB_KEY: {{heleus_lbs_ssl_private_key}}
@@ -2901,7 +2899,7 @@ jobs:
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
     input_mapping:
       bbl-state: gorgophone-env-director-state
-      bbl-config: updated-bosh-bootloader-plan-patches
+      bbl-config: bosh-bootloader
     ensure:
       put: gorgophone-env-director-state
       params:
