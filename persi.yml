@@ -20,8 +20,6 @@ groups:
   - csi-local-node-plugin-unit-windows
   - csi-broker-unit
   - csi-plugin-certification
-  - certification-test-builds
-  - certification-test-publish
   - smbdriver-unit
   - smbdriver-unit-windows
   - smb-azurefilebroker-unit
@@ -122,8 +120,6 @@ groups:
   - csi-plugin-certification
   - csi-broker-unit
   - mapfs-unit
-  - certification-test-builds
-  - certification-test-publish
   - create-csi-local-volume-release
   - create-csi-plugins-release
   - create-mapfs-release
@@ -529,24 +525,6 @@ resources:
   source:
     uri: https://github.com/paulcwarren/csi-cert
 
-- name: csi-version
-  type: semver
-  source:
-    access_key_id: {{csivolume-uploader_aws_ID}}
-    bucket: csi-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{csivolume-uploader_aws_secret}}
-
-- name: csi-binaries
-  type: s3
-  source:
-    access_key_id: {{csivolume-uploader_aws_ID}}
-    versioned_file: csi-cert.test.tgz
-    bucket: csi-binaries
-    secret_access_key: {{csivolume-uploader_aws_secret}}
-
 - name: csi-local-volume-version
   type: semver
   source:
@@ -582,14 +560,6 @@ resources:
     bucket: csi-plugins-release-tarballs
     regexp: csi-plugins-(.*).tgz
     secret_access_key: {{csiplugins-uploader_aws_secret}}
-
-- name: github-release-csi
-  type: github-release
-  source:
-    user: paulcwarren
-    repository: csi-cert
-    drafts: true
-    access_token: {{github-release-token}}
 
 - name: csi-plugins-release
   type: git
@@ -1839,53 +1809,6 @@ jobs:
   - task: csi-plugin-certification
     privileged: true
     file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-plugin-certification.build.yml
-
-- name: certification-test-builds
-  plan:
-  - aggregate:
-    - get: csi-local-volume-release
-      passed:
-      - csi-plugin-certification
-      trigger: true
-    - get: csi-cert
-      passed:
-      - csi-plugin-certification
-      trigger: true
-  - task: certificate-test-build
-    file: csi-cert/scripts/ci/certificate-test-build.build.yml
-  - put: csi-binaries
-    params:
-      file: binaries/csi-cert.test.tgz
-
-- name: certification-test-publish
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: volume-version
-      resource: csi-version
-    - get: csi-binaries
-    - get: volume-release
-      resource: csi-cert
-      passed:
-      - certification-test-builds
-
-  - task: generate-release
-    file: persi-ci/scripts/ci/generate_csi_github_release.build.yml
-    params:
-      VERSION: csi-version
-      RELEASE: csi-cert
-      BASE_RELEASE_NAME: csi-cert
-
-  - put: github-release-csi
-    params:
-      name: generated-release/name
-      tag: generated-release/version
-      globs:
-      - csi-binaries/*.tgz
-
-  - put: csi-version
-    params:
-      bump: minor
 
 - name: create-csi-plugins-release
   plan:
