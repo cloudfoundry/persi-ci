@@ -684,8 +684,8 @@ resources:
 - name: cf-deployment
   type: git
   source:
-    branch: develop
-    uri: https://github.com/paulcwarren/cf-deployment.git
+    branch: release-candidate
+    uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
   type: git
