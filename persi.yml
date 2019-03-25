@@ -335,7 +335,7 @@ resources:
     user: cloudfoundry
     repository: nfs-volume-release
     drafts: true
-    access_token: {{github-release-token}}
+    access_token: {{github-release-token-nfsvolumerelease}}
 #### END NFS resources ###############################################################################################
 
 #### local volume resources ##########################################################################################
@@ -610,7 +610,7 @@ resources:
     user: cloudfoundry
     repository: smb-volume-release
     drafts: true
-    access_token: {{github-release-token}}
+    access_token: {{github-release-token-smbvolumerelease}}
 
 #### End SMB resources ###############################################################################################
 
@@ -647,7 +647,7 @@ resources:
     user: cloudfoundry
     repository: mapfs-release
     drafts: true
-    access_token: {{github-release-token}}
+    access_token: {{github-release-token-mapfs}}
 #### End mapfs resources ###############################################################################################
 
 #### cf-deployment resources #########################################################################################
@@ -689,7 +689,7 @@ resources:
   source:
     owner: cloudfoundry-incubator
     repository: bosh-backup-and-restore
-    access_token: {{github-release-token}}
+    access_token: {{github-release-token-bbr}}
 
 - name: disaster-recovery-acceptance-tests
   type: git
