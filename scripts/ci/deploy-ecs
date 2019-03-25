@@ -15,4 +15,4 @@ cp ecs-release-tarball/*.tgz ops-files/ecs.tgz
 bosh \
   -n \
   -d ecs \
-  deploy vars-store/manifest/ecs.yml
+  deploy vars-store/deployments/ecs/ecs.yml
