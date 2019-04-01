@@ -93,7 +93,10 @@ resources:
 
 - name: pcf-2.5
   type: pcf-pool
+  tags:
+    - cf-diego-persistence-vsphere
   source:
+    hostname: environments.toolsmiths.cf-app.com
     api_token: ((persi_toolsmiths_env_api_token))
     pool_name: us_2_5
 
@@ -425,6 +428,8 @@ jobs:
       passed:
       - bosh-deploy-openvpn
   - put: pcf-2.5
+    tags:
+      - cf-diego-persistence-vsphere
     params:
       action: claim
 
@@ -439,9 +444,13 @@ jobs:
       - claim-toolsmiths-env
       trigger: true
     - get: pcf-2.5
+      tags:
+        - cf-diego-persistence-vsphere
       passed:
       - claim-toolsmiths-env
   - put: pcf-2.5
+    tags:
+      - cf-diego-persistence-vsphere
     params:
       action: unclaim
       env_file: pcf-2.5/metadata
