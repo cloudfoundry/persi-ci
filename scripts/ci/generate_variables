@@ -26,17 +26,17 @@ EOF
 generate_efs_vars() {
   pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
     if [ -z "${AWS_SECURITY_GROUP}" ]; then
-      AWS_SECURITY_GROUP="$(bbl outputs | yq.v2 r - 'internal_security_group')"
+      AWS_SECURITY_GROUP="$(bbl outputs | yq -r '.internal_security_group')"
     fi
 
     if [ -z "${AWS_REGION}" ]; then
-      AWS_REGION="$(bbl outputs | yq.v2 r - 'region')"
+      AWS_REGION="$(bbl outputs | yq -r '.region')"
     fi
 
     AWS_AZ="${AWS_REGION}a"
 
     if [ -z "${AWS_SUBNET_ID}" ]; then
-      AWS_SUBNET_ID=$(bbl outputs | yq.v2 r - "internal_az_subnet_id_mapping.\"${AWS_AZ}\"" )
+      AWS_SUBNET_ID=$(bbl outputs | yq -r ".internal_az_subnet_id_mapping.\"${AWS_AZ}\"" )
     fi
   popd
 
@@ -65,31 +65,31 @@ EOF
 generate_gcs_blobstore_vars() {
   pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
     if [ -z "${GCS_BLOBSTORE_PROJECT_ID}" ]; then
-      GCS_BLOBSTORE_PROJECT_ID="$(bbl outputs | yq.v2 r - gcs_blobstore_service_account_project)"
+      GCS_BLOBSTORE_PROJECT_ID="$(bbl outputs | yq -r '.gcs_blobstore_service_account_project')"
     fi
 
     if [ -z "${GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL}" ]; then
-      GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL="$(bbl outputs | yq.v2 r - gcs_blobstore_service_account_email)"
+      GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL="$(bbl outputs | yq -r '.gcs_blobstore_service_account_email')"
     fi
 
     if [ -z "${GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY}" ]; then
-      GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY="$(bbl outputs | yq.v2 r - gcs_blobstore_service_account_key)"
+      GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY="$(bbl outputs | yq '.gcs_blobstore_service_account_key')"
     fi
 
     if [ -z "${APP_PACKAGE_DIRECTORY_KEY}" ]; then
-      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | yq.v2 r - gcs_blobstore_packages_bucket)"
+      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_packages_bucket')"
     fi
 
     if [ -z "${BUILDPACK_DIRECTORY_KEY}" ]; then
-      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | yq.v2 r - gcs_blobstore_buildpacks_bucket)"
+      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_buildpacks_bucket')"
     fi
 
     if [ -z "${DROPLET_DIRECTORY_KEY}" ]; then
-      DROPLET_DIRECTORY_KEY="$(bbl outputs | yq.v2 r - gcs_blobstore_droplets_bucket)"
+      DROPLET_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_droplets_bucket')"
     fi
 
     if [ -z "${RESOURCE_DIRECTORY_KEY}" ]; then
-      RESOURCE_DIRECTORY_KEY="$(bbl outputs | yq.v2 r - gcs_blobstore_resources_bucket)"
+      RESOURCE_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_resources_bucket')"
     fi
   popd
 
@@ -109,31 +109,31 @@ EOF
 generate_s3_blobstore_vars() {
   pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
     if [ -z "${S3_BLOBSTORE_ID}" ]; then
-      S3_BLOBSTORE_ID="$(bbl outputs | yq.v2 r - 's3_blobstore_access_key_id')"
+      S3_BLOBSTORE_ID="$(bbl outputs | yq -r '.s3_blobstore_access_key_id')"
     fi
 
     if [ -z "${S3_BLOBSTORE_KEY}" ]; then
-      S3_BLOBSTORE_KEY="$(bbl outputs | yq.v2 r - 's3_blobstore_secret_access_key')"
+      S3_BLOBSTORE_KEY="$(bbl outputs | yq -r '.s3_blobstore_secret_access_key')"
     fi
 
     if [ -z "${S3_BLOBSTORE_REGION}" ]; then
-      S3_BLOBSTORE_REGION="$(bbl outputs | yq.v2 r - 'region')"
+      S3_BLOBSTORE_REGION="$(bbl outputs | yq -r '.region')"
     fi
 
     if [ -z "${APP_PACKAGE_DIRECTORY_KEY}" ]; then
-      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | yq.v2 r - 's3_blobstore_packages_bucket')"
+      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_packages_bucket')"
     fi
 
     if [ -z "${BUILDPACK_DIRECTORY_KEY}" ]; then
-      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | yq.v2 r - 's3_blobstore_buildpacks_bucket')"
+      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_buildpacks_bucket')"
     fi
 
     if [ -z "${DROPLET_DIRECTORY_KEY}" ]; then
-      DROPLET_DIRECTORY_KEY="$(bbl outputs | yq.v2 r - 's3_blobstore_droplets_bucket')"
+      DROPLET_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_droplets_bucket')"
     fi
 
     if [ -z "${RESOURCE_DIRECTORY_KEY}" ]; then
-      RESOURCE_DIRECTORY_KEY="$(bbl outputs | yq.v2 r - 's3_blobstore_resources_bucket')"
+      RESOURCE_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_resources_bucket')"
     fi
   popd
 
@@ -171,7 +171,9 @@ main() {
   ROOT_DIR="${1}"
   mkdir -p ${ROOT_DIR}/generated-vars
 
-  go get gopkg.in/mikefarah/yq.v2
+  apt-get install -y python3-pip
+  pip3 install yq
+
 
   if [ "$GENERATE_NFS_VARS" = "true" ]; then
     generate_nfs_vars
