@@ -384,7 +384,8 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "deployment"
       NEW_OPS_FILES: "operations/with-bosh-agent.yml \
-                      operations/with-static-ip.yml"
+                      operations/with-static-ip.yml \
+                      operations/with-vpn-client-cert.yml"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate-openvpn-variables.build.yml
     input_mapping:
@@ -409,7 +410,8 @@ jobs:
                   deployment/with-lan-masquerading.yml \
                   deployment/with-multiple-client-connections.yml \
                   deployment/with-bosh-agent.yml \
-                  deployment/with-static-ip.yml"
+                  deployment/with-static-ip.yml \
+                  deployment/with-vpn-client-cert.yml"
 
 - name: claim-toolsmiths-env
   plan:
