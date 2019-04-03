@@ -1,0 +1,9 @@
+- path: /variables/-
+  type: replace
+  value:
+    name: client_cert
+    type: certificate
+    options:
+      is_ca: false
+      ca: ca
+      common_name: diego
