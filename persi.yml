@@ -284,12 +284,6 @@ resources:
     stop: 1:00 AM
     location: America/Los_Angeles
 
-- name: shrinkcf
-  type: git
-  source:
-    branch: master
-    uri: git@github.com:davewalter/shrinkcf.git
-    private_key: {{deployments-persi-key}}
 
 #### END Misc resources ###############################################################################################
 
@@ -2440,7 +2434,6 @@ jobs:
       - bbl-up-gorgophone
       trigger: true
     - get: persi-ci
-    - get: shrinkcf
     - get: diego-dev-release-tarball
       passed: [ create-diego-release ]
       trigger: true
@@ -2606,16 +2599,15 @@ jobs:
       DATADOG_METRIC_PREFIX: gorgophone
       SMB_USERNAME: {{smb_pats_username_two}}
       SMB_PASSWORD: {{smb_pats_password_two}}
-  - task: shrink-cf
-    file: shrinkcf/tasks/shrink-cf/task.yml
+  - task: bosh-deploy-cf
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
+      cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
-      config-dir: persi-ci
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      CONFIG_FILE: config-dir/config/shrink-gorgophone-config.json
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is required by the task
       VARS_FILES: "nfs-vars.yml ecs-vars.yml datadog-vars.yml smb-vars.yml gcs-blobstore-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
@@ -2640,16 +2632,6 @@ jobs:
                   operations/enable-smb-volume-service-windows.yml
                   operations/enable-smb-test-server-two.yml
                   operations/update-releases.yml"
-  - task: bosh-deploy-cf
-    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-      cf-deployment: scf-deployment
-      ops-files: collected-ops-files
-      vars-files: generated-vars
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is required by the task
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -2844,7 +2826,6 @@ jobs:
       - bbl-up-heleus
       trigger: true
     - get: persi-ci
-    - get: shrinkcf
     - get: nfs-volume-release
       passed:
       - bbl-up-heleus
@@ -2954,16 +2935,15 @@ jobs:
       LDAP_PORT: 636
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
-  - task: shrink-cf
-    file: shrinkcf/tasks/shrink-cf/task.yml
+  - task: bosh-deploy-cf
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
+      cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
-      config-dir: persi-ci
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
-      CONFIG_FILE: config-dir/config/shrink-heleus-config.json
       SYSTEM_DOMAIN: heleus.persi.cf-app.com
       VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
@@ -2976,16 +2956,6 @@ jobs:
                   operations/test/enable-nfs-test-ldapserver.yml \
                   operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
-  - task: bosh-deploy-cf
-    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-      cf-deployment: scf-deployment
-      ops-files: collected-ops-files
-      vars-files: scf-deployment
-    params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      SYSTEM_DOMAIN: heleus.persi.cf-app.com
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -3160,7 +3130,6 @@ jobs:
       - delete-cf-heleus-credhub
       trigger: true
     - get: persi-ci
-    - get: shrinkcf
     - get: nfs-volume-release
       passed:
       - deploy-cf-heleus
@@ -3279,16 +3248,15 @@ jobs:
       LDAP_PORT: 636
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
-  - task: shrink-cf
-    file: shrinkcf/tasks/shrink-cf/task.yml
+  - task: bosh-deploy-cf
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
       bbl-state: gorgophone-env-director-state
+      cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
-      config-dir: persi-ci
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
-      CONFIG_FILE: config-dir/config/shrink-heleus-config.json
       SYSTEM_DOMAIN: heleus.persi.cf-app.com
       VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
@@ -3302,16 +3270,6 @@ jobs:
                   operations/test/enable-nfs-test-ldapserver.yml \
                   operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
-  - task: bosh-deploy-cf
-    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-      cf-deployment: scf-deployment
-      ops-files: collected-ops-files
-      vars-files: scf-deployment
-    params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      SYSTEM_DOMAIN: heleus.persi.cf-app.com
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
