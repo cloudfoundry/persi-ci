@@ -14,8 +14,7 @@ inputs:
 outputs:
 - name: merged-plan-patch
 
-params:
-  BBL_CONFIG_DIR:
+params: {}
 
 run:
   path: persi-ci/scripts/ci/add-zones-to-plan-patch
