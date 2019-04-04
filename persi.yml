@@ -2963,7 +2963,6 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
       ERRAND_NAME: smoke_tests
-      INSTANCE: brain/0
 
 - name: deploy-nfs-broker-heleus
   plan:
@@ -2983,7 +2982,6 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
       ERRAND_NAME: nfsbrokerpush
-      INSTANCE: brain/0
 
 - name: pats-nfs-ldap-heleus
   plan:
@@ -3277,7 +3275,6 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
       ERRAND_NAME: smoke_tests
-      INSTANCE: brain/0
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -3285,7 +3282,6 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
       ERRAND_NAME: nfsbrokerpush
-      INSTANCE: brain/0
 
 - name: migrate-nfs-broker-to-credhub-heleus
   plan:
