@@ -2221,8 +2221,8 @@ jobs:
       CF_USERNAME: admin
       LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME: smbtestserver
       LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME: smbd
-      LAZY_UNMOUNT_VM_INSTANCE: nfstestservertwo
-      DISALLOWED_OVERRIDE_BIND_CONFIG: '{"share":{{smb_pats_remote_path_two}}}'
+      LAZY_UNMOUNT_VM_INSTANCE: smbtestservertwo
+      DISALLOWED_OVERRIDE_BIND_CONFIG: '{"share"://smbtestservertwo.service.cf.internal/vol2}'
       PLAN_NAME: Existing
       SERVICE_NAME: smb
   - task: run-pats
