@@ -55,7 +55,7 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/paulcwarren/bosh-bootloader.git
+    uri: https://github.com/cloudfoundry/bosh-bootloader.git
 
 - name: cf-deployment-concourse-tasks
   type: git
@@ -331,25 +331,21 @@ jobs:
     - get: vpn-client-tile-bucket
       passed:
       - acquire-lock-efstile
-  - task: generate-variables
-    file: persi-ci/scripts/ci/add-zones-to-plan-patch.build.yml
-    input_mapping:
-      bbl-config: bosh-bootloader
   - task: bbl-up
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
       BBL_IAAS: aws
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-      BBL_AWS_REGION: us-west-2
+      BBL_AWS_REGION: us-west-1
       BBL_STATE_DIR: bbl-state-aws-efstile
       BBL_ENV_NAME: efstile
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
       SKIP_LB_CREATION: true
-      BBL_CONFIG_DIR: openvpn-aws
+      BBL_CONFIG_DIR: plan-patches/openvpn-aws
     input_mapping:
       bbl-state: gorgophone-env-director-state
-      bbl-config: merged-plan-patch
+      bbl-config: bosh-bootloader
     ensure:
       put: gorgophone-env-director-state
       params:
