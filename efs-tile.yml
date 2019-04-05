@@ -82,7 +82,7 @@ resources:
   type: git
   source:
     branch: master
-    uri: git@github.com:davewalter/kiln-concourse-tasks.git
+    uri: git@github.com:pivotal/kiln-concourse-tasks.git
     private_key: {{deployments-persi-key}}
 
 - name: openvpn-bosh-release
@@ -157,7 +157,7 @@ resources:
 - name: efs-broker-tile-metadata-repo
   type: git
   source:
-    uri: git@github.com:davewalter/aws-efs-broker-tile.git
+    uri: git@github.com:pivotal/aws-efs-broker-tile.git
     branch: master
     private_key: {{deployments-persi-key}}
     ignore_paths:
@@ -167,7 +167,7 @@ resources:
   type: semver
   source:
     driver: git
-    uri: git@github.com:davewalter/aws-efs-broker-tile.git
+    uri: git@github.com:pivotal/aws-efs-broker-tile.git
     branch: master
     file: version
     initial_version: 0.0.1-build.1
@@ -188,7 +188,7 @@ resources:
 - name: vpn-client-tile-metadata-repo
   type: git
   source:
-    uri: git@github.com:davewalter/aws-efs-broker-vpn-client-tile.git
+    uri: git@github.com:pivotal/aws-efs-broker-vpn-client-tile.git
     branch: master
     private_key: {{deployments-persi-key}}
     ignore_paths:
@@ -198,7 +198,7 @@ resources:
   type: semver
   source:
     driver: git
-    uri: git@github.com:davewalter/aws-efs-broker-vpn-client-tile.git
+    uri: git@github.com:pivotal/aws-efs-broker-vpn-client-tile.git
     branch: master
     file: version
     initial_version: 0.0.1-build.1
