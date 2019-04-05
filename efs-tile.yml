@@ -335,8 +335,6 @@ jobs:
     file: persi-ci/scripts/ci/add-zones-to-plan-patch.build.yml
     input_mapping:
       bbl-config: bosh-bootloader
-    params:
-      BBL_CONFIG_DIR: plan-patches/openvpn-aws
   - task: bbl-up
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -348,6 +346,7 @@ jobs:
       BBL_ENV_NAME: efstile
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
       SKIP_LB_CREATION: true
+      BBL_CONFIG_DIR: openvpn-aws
     input_mapping:
       bbl-state: gorgophone-env-director-state
       bbl-config: merged-plan-patch
@@ -417,18 +416,12 @@ jobs:
   plan:
   - aggregate:
     - get: env-creation-gate-lock
-      passed:
-      - bosh-deploy-openvpn
-    - get: gorgophone-env-director-state
-      passed:
-      - bosh-deploy-openvpn
-      trigger: true
     - get: efs-broker-tile-bucket
       passed:
-      - bosh-deploy-openvpn
+      - acquire-lock-efstile
     - get: vpn-client-tile-bucket
       passed:
-      - bosh-deploy-openvpn
+      - acquire-lock-efstile
   - put: pcf-2.5
     tags:
       - cf-diego-persistence-vsphere
@@ -438,13 +431,12 @@ jobs:
 - name: unclaim-toolsmiths-env
   plan:
   - aggregate:
+    - get: gorgophone-env-director-state
+      passed:
+      - bbl-up-efstile
     - get: env-creation-gate-lock
       passed:
       - claim-toolsmiths-env
-    - get: gorgophone-env-director-state
-      passed:
-      - claim-toolsmiths-env
-      trigger: true
     - get: pcf-2.5
       tags:
         - cf-diego-persistence-vsphere
