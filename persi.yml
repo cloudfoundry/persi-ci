@@ -2207,7 +2207,7 @@ jobs:
       output_mapping:
         bind-create-config: lazy-unmount-bind-create-config
       params:
-        SMB_REMOTE_PATH: {{smb_pats_remote_path_two}}
+        SMB_REMOTE_PATH: //smbtestservertwo.service.cf.internal/vol2
         SMB_USERNAME: {{smb_pats_username_two}}
         SMB_PASSWORD: {{smb_pats_password_two}}
   - task: generate-pats-config
