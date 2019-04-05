@@ -83,7 +83,7 @@ resources:
   source:
     branch: master
     uri: git@github.com:pivotal/kiln-concourse-tasks.git
-    private_key: {{deployments-persi-key}}
+    private_key: {{efs-tile-deployment-private-key}}
 
 - name: openvpn-bosh-release
   type: git
@@ -159,7 +159,7 @@ resources:
   source:
     uri: git@github.com:pivotal/aws-efs-broker-tile.git
     branch: master
-    private_key: {{deployments-persi-key}}
+    private_key: {{efs-tile-deployment-private-key}}
     ignore_paths:
     - version
 
@@ -171,7 +171,7 @@ resources:
     branch: master
     file: version
     initial_version: 0.0.1-build.1
-    private_key: {{deployments-persi-key}}
+    private_key: {{efs-tile-deployment-private-key}}
 ## End EFS Broker Tile ##
 
 ## VPN Client Tile ##
@@ -190,7 +190,7 @@ resources:
   source:
     uri: git@github.com:pivotal/aws-efs-broker-vpn-client-tile.git
     branch: master
-    private_key: {{deployments-persi-key}}
+    private_key: {{efs-tile-deployment-private-key}}
     ignore_paths:
     - version
 
@@ -202,7 +202,7 @@ resources:
     branch: master
     file: version
     initial_version: 0.0.1-build.1
-    private_key: {{deployments-persi-key}}
+    private_key: {{efs-tile-deployment-private-key}}
 ## End VPN Client Tile ##
 
 jobs:
