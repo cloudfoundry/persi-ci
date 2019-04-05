@@ -5,7 +5,7 @@ function main() {
 
   mkdir -p merged-plan-patch/openvpn-aws/vars
   cat <<EOT > merged-plan-patch/openvpn-aws/vars/zone.tfvars
-availability_zones=["us-west-2a", "us-west-2b", "us-west-2c"]
+availability_zones=["us-west-2a", "us-west-2b", "us-west-2c", "us-west-2a"]
 EOT
 }
 
