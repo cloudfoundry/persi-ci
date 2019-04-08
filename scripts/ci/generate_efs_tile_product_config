@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -exuo pipefail
 
 mkdir -p generated-efs-tile-product-config
 OUTPUT_DIR="$PWD/generated-efs-tile-product-config"
