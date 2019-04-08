@@ -1,0 +1,31 @@
+#!/bin/bash -e
+
+mkdir -p generated-oms-env
+
+cat <<EOF >generated-efs-tile-product-config.yml
+---
+product-name: aws-efs-broker
+product-properties:
+  .properties.aws_access_key_id:
+    value: "${AWS_ACCESS_KEY_ID}"
+  .properties.aws_secret_access_key:
+    value:
+      secret: "${AWS_SECRET_ACCESS_KEY}"
+  .properties.aws_region:
+    value: $(bbl outputs | yq -r .region)
+  .properties.aws_subnet_ids:
+    value: $(bbl outputs | yq -r .internal_az_subnet_id_mapping.\"`bbl outputs | yq -r .az`\")
+  .properties.aws_security_group_ids:
+    value: $(bbl outputs | yq -r .internal_security_group)
+  .properties.aws_azs:
+    value: $(bbl outputs | yq -r .az)
+network-properties:
+  network:
+    name: $(cat pcf/metadata | jq -r .service_subnet_name)
+  other_availability_zones: $(smith read | jq -cr '.azs | map( {name: .} )')
+  singleton_availability_zone:
+    name: $(smith read | jq -r '.azs | map( {name: .} )[0].name')
+resource-config:
+  efsbroker:
+    instances: automatic
+EOF
