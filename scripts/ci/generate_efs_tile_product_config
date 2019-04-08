@@ -1,8 +1,10 @@
-#!/bin/bash -e
+#!/bin/bash -ex
+
+mkdir -p generated-efs-tile-product-config
+OUTPUT_DIR="$PWD/generated-efs-tile-product-config"
 
 pushd bbl-state/${BBL_ENV}
 
-  mkdir -p generated-oms-env
   AWS_REGION=$(bbl outputs | yq -r .region)
   AWS_SUBNETS=$(bbl outputs | yq -r .internal_az_subnet_id_mapping.\"`bbl outputs | yq -r .az`\")
   AWS_SECURITY_GROUP_IDS=$(bbl outputs | yq -r .internal_security_group)
@@ -11,7 +13,7 @@ pushd bbl-state/${BBL_ENV}
   OTHER_AVAILABILITY_ZONES=$(cat ../pcf/metadata | jq -cr '.azs | map( {name: .} )')
   SINGLETON_AVAILABILITY_ZONE=$(cat ../pcf/metadata | jq -r '.azs | map( {name: .} )[0].name')
 
-  cat <<EOF >generated-efs-tile-product-config.yml
+  cat <<EOF >${OUTPUT_DIR}/generated-efs-tile-product-config.yml
 ---
 product-name: aws-efs-broker
 product-properties:
