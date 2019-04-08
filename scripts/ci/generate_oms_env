@@ -7,7 +7,7 @@ cat <<EOF >generated-oms-env/env.yml
 target: $(jq -r '.ops_manager.url' ./pcf/metadata)
 connect-timeout: 30
 request-timeout: 1800
-skip-ssl-validation: false
+skip-ssl-validation: true
 username: $(jq -r '.ops_manager.username' ./pcf/metadata)
 password: $(jq -r '.ops_manager.password' ./pcf/metadata)
 EOF
