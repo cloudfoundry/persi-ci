@@ -10,9 +10,9 @@ pushd bbl-state/${BBL_ENV}
   AWS_SUBNETS=$(bbl outputs | yq -r .internal_az_subnet_id_mapping.\"`bbl outputs | yq -r .az`\")
   AWS_SECURITY_GROUP_IDS=$(bbl outputs | yq -r .internal_security_group)
   AWS_AZS=$(bbl outputs | yq -r .az)
-  NETWORK_PROPERTIES=$(cat ../pcf/metadata | jq -r .service_subnet_name)
-  OTHER_AVAILABILITY_ZONES=$(cat ../pcf/metadata | jq -cr '.azs | map( {name: .} )')
-  SINGLETON_AVAILABILITY_ZONE=$(cat ../pcf/metadata | jq -r '.azs | map( {name: .} )[0].name')
+  NETWORK_PROPERTIES=$(cat ../../pcf/metadata | jq -r .service_subnet_name)
+  OTHER_AVAILABILITY_ZONES=$(cat ../../pcf/metadata | jq -cr '.azs | map( {name: .} )')
+  SINGLETON_AVAILABILITY_ZONE=$(cat ../../pcf/metadata | jq -r '.azs | map( {name: .} )[0].name')
 
   cat <<EOF >${OUTPUT_DIR}/generated-efs-tile-product-config.yml
 ---
