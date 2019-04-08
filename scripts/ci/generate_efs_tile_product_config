@@ -1,8 +1,10 @@
 #!/bin/bash -e
 
-mkdir -p generated-oms-env
+pushd bbl-state
 
-cat <<EOF >generated-efs-tile-product-config.yml
+  mkdir -p generated-oms-env
+
+  cat <<EOF >generated-efs-tile-product-config.yml
 ---
 product-name: aws-efs-broker
 product-properties:
@@ -21,11 +23,13 @@ product-properties:
     value: $(bbl outputs | yq -r .az)
 network-properties:
   network:
-    name: $(cat pcf/metadata | jq -r .service_subnet_name)
+    name: $(cat ../pcf/metadata | jq -r .service_subnet_name)
   other_availability_zones: $(smith read | jq -cr '.azs | map( {name: .} )')
   singleton_availability_zone:
-    name: $(smith read | jq -r '.azs | map( {name: .} )[0].name')
+    name: $(cat ../pcf/metadata | jq -r '.azs | map( {name: .} )[0].name')
 resource-config:
   efsbroker:
     instances: automatic
 EOF
+
+popd
