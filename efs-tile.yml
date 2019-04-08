@@ -1,6 +1,7 @@
 groups:
 - name: efs-tile
   jobs:
+  - build-cf-deployment-concourse-tasks-yq
   - build-efs-broker-tile
   - build-vpn-client-tile
   - acquire-lock-efstile
@@ -51,6 +52,13 @@ resource_types:
 
 resources:
 ## General ##
+- name: nightly
+  type: time
+  source:
+    start: 12:00 AM
+    stop: 1:00 AM
+    location: America/Los_Angeles
+
 - name: bosh-bootloader
   type: git
   source:
@@ -106,6 +114,14 @@ resources:
     uri: git@github.com:cloudfoundry/persi-ci.git
     branch: master
     private_key: {{deployments-persi-key}}
+
+- name: cf-deployment-concourse-tasks-yq-docker
+  type: docker-image
+  source:
+    repository: cfpersi/cf-deployment-concourse-tasks-yq
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 ## End General ##
 
 ## Releases ##
@@ -423,6 +439,15 @@ jobs:
       - cf-diego-persistence-vsphere
     params:
       action: claim
+
+- name: build-cf-deployment-concourse-tasks-yq
+  plan:
+  - get: nightly
+    trigger: true
+  - get: persi-ci
+  - put: cf-deployment-concourse-tasks-yq-docker
+    params:
+      build: persi-ci/dockerfiles/cf-deployment-concourse-tasks-yq
 
 - name: unclaim-toolsmiths-env
   plan:
