@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-pushd bbl-state
+pushd bbl-state/${BBL_ENV}
 
   mkdir -p generated-oms-env
 
