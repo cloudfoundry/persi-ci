@@ -1,0 +1,31 @@
+#!/bin/bash -exu
+set -o pipefail
+
+mkdir -p generated-vpn-client-tile-product-config
+OUTPUT_DIR="$PWD/generated-vpn-client-tile-product-config"
+
+pushd bbl-state/${BBL_ENV}
+
+  eval "$(bbl print-env)"
+  VPN_SERVER_ADDRESS="$(bbl outputs | yq -r .openvpn_ip)"
+  VPN_SERVER_CA="$(credhub get -n /bosh-efstile/openvpn/ca | yq -r .value.ca)"
+  VPN_CLIENT_CERT_PEM="$(credhub get -n /bosh-efstile/openvpn/client_cert | yq -r .value.certificate)"
+  VPN_CLIENT_CERT_PRIVATE_KEY="$(credhub get -n /bosh-efstile/openvpn/client_cert | yq -r .value.private_key)"
+
+
+  cat <<EOF >${OUTPUT_DIR}/generated-vpn-client-tile-product-config.yml
+product-name: aws-efs-broker-vpn-client
+product-properties:
+  .properties.vpn_server_protocol:
+    value: tcp
+  .properties.vpn_server_address:
+    value: ${VPN_SERVER_ADDRESS}
+  .properties.vpn_server_ca:
+    value: ${VPN_SERVER_CA}
+  .properties.vpn_client_cert:
+    value:
+      cert_pem: ${VPN_CLIENT_CERT_PEM}
+      private_key_pem: ${VPN_CLIENT_CERT_PRIVATE_KEY}
+EOF
+
+popd
