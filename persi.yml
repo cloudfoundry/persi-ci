@@ -3282,6 +3282,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
       ERRAND_NAME: nfsbrokerpush
+      INSTANCE: nfs-broker-push
 
 - name: migrate-nfs-broker-to-credhub-heleus
   plan:
