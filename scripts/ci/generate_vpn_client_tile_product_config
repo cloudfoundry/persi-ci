@@ -8,9 +8,9 @@ pushd bbl-state/${BBL_ENV}
 
   eval "$(bbl print-env)"
   VPN_SERVER_ADDRESS="$(bbl outputs | yq -r .openvpn_ip)"
-  VPN_SERVER_CA="$(credhub get -n /bosh-efstile/openvpn/ca | yq -r .value.ca)"
-  VPN_CLIENT_CERT_PEM="$(credhub get -n /bosh-efstile/openvpn/client_cert | yq -r .value.certificate)"
-  VPN_CLIENT_CERT_PRIVATE_KEY="$(credhub get -n /bosh-efstile/openvpn/client_cert | yq -r .value.private_key)"
+  VPN_SERVER_CA="$(credhub get -n /bosh-efstile/openvpn/ca | yq .value.ca)"
+  VPN_CLIENT_CERT_PEM="$(credhub get -n /bosh-efstile/openvpn/client_cert | yq .value.certificate)"
+  VPN_CLIENT_CERT_PRIVATE_KEY="$(credhub get -n /bosh-efstile/openvpn/client_cert | yq .value.private_key)"
 
 
   cat <<EOF >${OUTPUT_DIR}/generated-vpn-client-tile-product-config.yml
