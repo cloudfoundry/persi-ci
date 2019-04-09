@@ -8,6 +8,7 @@ groups:
   - bbl-up-efstile
   - bosh-deploy-openvpn
   - claim-toolsmiths-env
+  - configure-efs-tile
   # - upload-tiles-and-stemcell
   # - configure-efs-broker-tile
   # - configure-vpn-client-tile
@@ -114,6 +115,25 @@ resources:
     uri: git@github.com:cloudfoundry/persi-ci.git
     branch: master
     private_key: {{deployments-persi-key}}
+
+- name: platform-automation-tasks
+  type: s3
+  source:
+    access_key_id: ((platform-automation-blobstore-access-access-key-id))
+    bucket: platform-automation-tasks
+    region_name: us-west-1
+    secret_access_key: ((platform-automation-blobstore-access-secret-key))
+    regexp: platform-automation-tasks-(.*).zip
+
+- name: platform-automation-image
+  type: s3
+  source:
+    access_key_id: ((platform-automation-blobstore-access-access-key-id))
+    bucket: platform-automation-image
+    region_name: us-west-1
+    secret_access_key: ((platform-automation-blobstore-access-secret-key))
+    regexp: platform-automation-image-(.*).tgz
+
 
 - name: cf-deployment-concourse-tasks-yq-docker
   type: docker-image
@@ -448,6 +468,76 @@ jobs:
   - put: cf-deployment-concourse-tasks-yq-docker
     params:
       build: persi-ci/dockerfiles/cf-deployment-concourse-tasks-yq
+
+- name: configure-efs-tile
+  plan:
+  - aggregate:
+    - get: persi-ci
+    - get: env-creation-gate-lock
+    - get: efs-broker-tile-bucket
+    - get: gorgophone-env-director-state
+    - get: platform-automation-image
+      params:
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: stemcell
+      resource: stemcell-linux-xenial
+      params:
+        globs:
+        - '*google*'
+    - get: pcf-2.5
+      tags:
+      - cf-diego-persistence-vsphere
+  - task: generate-oms-env
+    file: persi-ci/scripts/ci/generate_oms_env.build.yml
+    input_mapping:
+      pcf: pcf-2.5
+  - task: upload-efs-stemcell
+    tags:
+    - cf-diego-persistence-vsphere
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-stemcell.yml
+    input_mapping:
+      env: generated-oms-env
+      stemcell: stemcell
+    params:
+      ENV_FILE: env.yml
+  - task: upload-product
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-product.yml
+    input_mapping:
+      product: efs-broker-tile-bucket
+      env: generated-oms-env
+    params:
+      ENV_FILE: env.yml
+  - task: stage-product
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/stage-product.yml
+    input_mapping:
+      product: efs-broker-tile-bucket
+      env: generated-oms-env
+    params:
+      ENV_FILE: env.yml
+  - task: generate-efs-tile-product-config
+    file: persi-ci/scripts/ci/generate_efs_tile_product_config.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      pcf: pcf-2.5
+    params:
+      AWS_ACCESS_KEY_ID: ((gorgophone_aws_access_key_id))
+      AWS_SECRET_ACCESS_KEY: ((gorgophone_aws_secret_access_key))
+      BBL_ENV: bbl-state-aws-efstile
+  - task: configure-efs-tile
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-product.yml
+    input_mapping:
+      config: generated-efs-tile-product-config
+      env: generated-oms-env
+    params:
+      CONFIG_FILE: generated-efs-tile-product-config.yml
+      ENV_FILE: env.yml
 
 - name: unclaim-toolsmiths-env
   plan:
