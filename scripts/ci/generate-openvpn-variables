@@ -3,6 +3,11 @@
 function main() {
   pushd "director-state/${BBL_STATE_DIR}"
     eval "$(bbl print-env)"
+
+    AWS_SUBNETS=$(bbl outputs | yq -r .internal_az_subnet_id_mapping.\"`bbl outputs | yq -r .az`\")
+    LAN_NETWORK=$(ipcalc ${AWS_SUBNETS} | grep Address | awk '{print $2}')
+    LAN_NETWORK_MASK=$(ipcalc ${AWS_SUBNETS} | grep Netmask | awk '{print $2}')
+    LAN_NETWORK_MASK_BITS=$(ipcalc ${AWS_SUBNETS} | grep Netmask | awk '{print $4}')
   popd
 
   mkdir -p generated-var-files
@@ -10,9 +15,9 @@ function main() {
   cat <<EOT >> generated-var-files/openvpn-vars.yml
 access_key_id: "${AWS_ACCESS_KEY_ID}"
 secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
-lan_network: 10.0.144.0
-lan_network_mask: 255.255.255.0
-lan_network_mask_bits: 24
+lan_network: ${LAN_NETWORK}
+lan_network_mask: ${LAN_NETWORK_MASK}
+lan_network_mask_bits: ${LAN_NETWORK_MASK_BITS}
 vpn_network: 10.100.0.0
 vpn_network_mask: 255.255.255.0
 vpn_network_mask_bits: 24
