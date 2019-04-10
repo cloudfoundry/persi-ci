@@ -5,10 +5,8 @@ groups:
 - name: persi
   jobs:
   - volman-unit
-  - volman-unit-windows
   - volman-inigo
   - nfsdriver-unit
-  - volumedriver-units-windows
   - nfsbroker-unit
   - nfs-volume-release-job-tests
   - nfsdriver-certification
@@ -17,24 +15,19 @@ groups:
   - efsdriver-certification
   - csi-local-controller-plugin-unit
   - csi-local-node-plugin-unit
-  - csi-local-node-plugin-unit-windows
   - csi-broker-unit
   - csi-plugin-certification
   - smbdriver-unit
-  - smbdriver-unit-windows
   - smb-azurefilebroker-unit
   - smbbroker-unit
   - smb-existingvolumebroker-unit
   - smb-volume-mount-options-unit
   - localdriver-unit
-  - localdriver-unit-windows
   - localbroker-unit
   - mapfs-unit
   - localdriver-certification
-  - localdriver-certification-windows
   - localdriver-docker-certification
   - smbdriver-certification
-  - smbdriver-certification-windows
   - deploy-smb-broker
   - create-local-volume-release
   - create-nfs-volume-release
@@ -70,9 +63,7 @@ groups:
   - pats-csi-local
   - pats-csi-nfs
   - pats-smb
-  - pats-smb-windows
   - pats-local
-  - pats-local-windows
   - background-load-test
 
 - name: gorgophone
@@ -92,9 +83,7 @@ groups:
   - pats-csi-local
   - pats-csi-nfs
   - pats-smb
-  - pats-smb-windows
   - pats-local
-  - pats-local-windows
   - background-load-test
 
 - name: heleus
@@ -116,7 +105,6 @@ groups:
   jobs:
   - csi-local-controller-plugin-unit
   - csi-local-node-plugin-unit
-  - csi-local-node-plugin-unit-windows
   - csi-plugin-certification
   - csi-broker-unit
   - mapfs-unit
@@ -186,42 +174,34 @@ groups:
 - name: smb
   jobs:
   - smbdriver-unit
-  - smbdriver-unit-windows
   - smb-azurefilebroker-unit
   - smbbroker-unit
   - smb-existingvolumebroker-unit
   - smb-volume-mount-options-unit
-  - volumedriver-units-windows
   - create-smb-volume-release
   - smbdriver-certification
-  - smbdriver-certification-windows
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-smb-broker
   - pats-smb
-  - pats-smb-windows
   - drats-nfs-smb
 
 - name: local
   jobs:
   - localdriver-unit
   - localbroker-unit
-  - localdriver-unit-windows
   - localdriver-certification
-  - localdriver-certification-windows
   - localdriver-docker-certification
   - create-local-volume-release
   - bbl-up-gorgophone
   - deploy-cf
   - pats-local
-  - pats-local-windows
   - drats-nfs-smb
 
 - name: diego
   jobs:
   - cf-deployment-nightly
   - volman-unit
-  - volman-unit-windows
   - volman-inigo
   - create-diego-release
   - deploy-cf
@@ -421,11 +401,6 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry/garden-runc-release
-
-# - name: garden-windows-release-tarball
-#   type: bosh-io-release
-#   source:
-#     repository: cloudfoundry-incubator/garden-windows-bosh-release
 
 - name: garden-runc-release-master
   type: git
@@ -721,18 +696,6 @@ jobs:
   - task: build
     file: local-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
 
-- name: localdriver-unit-windows
-  public: true
-  plan:
-  - aggregate:
-    - get: local-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: local-volume-release
-      trigger: true
-  - task: build
-    file: local-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
-
 - name: localbroker-unit
   public: true
   plan:
@@ -757,19 +720,6 @@ jobs:
         submodules: none
   - task: build
     file: local-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
-
-- name: localdriver-certification-windows
-  plan:
-  - aggregate:
-    - get: local-volume-release
-      passed:
-      - localdriver-unit-windows
-      trigger: true
-    - get: local-volume-release-concourse-tasks
-      params:
-        submodules: none
-  - task: build
-    file: local-volume-release-concourse-tasks/scripts/ci/run_driver_cert_windows.build.yml
 
 - name: localdriver-docker-certification
   plan:
@@ -850,44 +800,6 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
-
-- name: pats-local-windows
-  serial_groups:
-  - local
-  plan:
-  - aggregate:
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: local-volume-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      BROKER_PASSWORD_KEY: local-broker-password
-      BROKER_URL: http://local-broker.gorgophone.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      PLAN_NAME: free-local-dist
-      SERVICE_NAME: local-volume
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      TEST_WINDOWS_CELL: true
 
 #### END Local volume #################################################################################################
 
@@ -1544,18 +1456,6 @@ jobs:
   - task: run-unit
     file: persi-ci/scripts/ci/run_volman_unit.build.yml
 
-- name: volman-unit-windows
-  public: true
-  plan:
-  - aggregate:
-    - get: diego-release
-      passed:
-      - cf-deployment-nightly
-      trigger: true
-    - get: persi-ci
-  - task: run-unit-windows
-    file: persi-ci/scripts/ci/run_volman_unit_windows.build.yml
-
 - name: volman-inigo
   plan:
   - aggregate:
@@ -1591,7 +1491,6 @@ jobs:
       trigger: true
       passed:
       - volman-unit
-      - volman-unit-windows
       - volman-inigo
     - get: persi-ci
     - get: version
@@ -1762,18 +1661,6 @@ jobs:
         submodules: none
   - task: local-node-plugin-unit
     file: csi-local-volume-release-concourse-tasks/scripts/ci/local-node-plugin-unit.build.yml
-
-- name: csi-local-node-plugin-unit-windows
-  public: true
-  plan:
-  - aggregate:
-    - get: csi-local-volume-release
-      trigger: true
-    - get: csi-local-volume-release-concourse-tasks
-      params:
-        submodules: none
-  - task: local-node-plugin-unit-windows
-    file: csi-local-volume-release-concourse-tasks/scripts/ci/local-node-plugin-unit-windows.build.yml
 
 - name: csi-broker-unit
   public: true
@@ -1991,30 +1878,6 @@ jobs:
     params:
       SUBMODULE_NAME: smbdriver
 
-- name: smbdriver-unit-windows
-  public: true
-  plan:
-  - aggregate:
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      trigger: true
-  - task: smbdriver-unit
-    file: smb-volume-release-concourse-tasks/scripts/ci/smbdriver-unit-windows.build.yml
-
-- name: volumedriver-units-windows
-  public: true
-  plan:
-  - aggregate:
-    - get: smb-volume-release
-      trigger: true
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-  - task: build
-    file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_unit_windows.build.yml
-
 - name: smb-azurefilebroker-unit
   public: true
   plan:
@@ -2081,8 +1944,6 @@ jobs:
       - smb-existingvolumebroker-unit
       - smb-volume-mount-options-unit
       - smbdriver-unit
-      - smbdriver-unit-windows
-      - volumedriver-units-windows
       trigger: true
     - get: smb-volume-version
       resource: smb-volume-version
@@ -2127,25 +1988,6 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       BBL_IAAS: gcp
     file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
-
-- name: smbdriver-certification-windows
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      passed:
-      - deploy-cf
-      trigger: true
-  - task: driver-cert
-    privileged: true
-    params:
-      smbremotepath: {{smb_cert_remote_path}}
-      smbusername: {{smb_cert_username}}
-      smbpassword: {{smb_cert_password}}
-    file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert_windows.build.yml
 
 - name: deploy-smb-broker
   serial_groups:
@@ -2233,50 +2075,6 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_LAZY_UNMOUNT: true
       TEST_READ_ONLY: true
-
-- name: pats-smb-windows
-  serial_groups:
-  - smb
-  plan:
-  - aggregate:
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      passed:
-      - deploy-smb-broker
-      - smbdriver-certification-windows
-      trigger: true
-    - get: smb-volume-release-tarball
-      passed:
-      - deploy-cf
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-  - task: generate-bind-create-configs
-    file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
-    params:
-      SMB_REMOTE_PATH: {{smb_pats_remote_path_windows}}
-      SMB_USERNAME: {{smb_pats_username_windows}}
-      SMB_PASSWORD: {{smb_pats_password_windows}}
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      PLAN_NAME: Existing
-      SERVICE_NAME: smb
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      TEST_WINDOWS_CELL: true
 
 - name: shipit-smb
   serial_groups:
@@ -2529,8 +2327,7 @@ jobs:
       new-ops-files: local-volume-release
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-local-volume-service.yml
-                      operations/enable-local-volume-service-windows-cells.yml"
+      NEW_OPS_FILES: "operations/enable-local-volume-service.yml"
   - task: collect-ecs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2539,14 +2336,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/deploy-ecs-broker-errand.yml"
-  - task: collect-smb-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: smb-volume-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-smb-volume-service-windows.yml"
   - task: collect-csi-plugins-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2615,12 +2404,9 @@ jobs:
                   operations/scale-up-routers-and-cells.yml
                   operations/use-external-blobstore.yml
                   operations/use-gcs-blobstore-service-account.yml
-                  operations/windows2016-cell.yml
-                  operations/experimental/use-compiled-releases-windows.yml
                   operations/enable-nfs-volume-service.yml
                   operations/enable-nfs-test-server-two.yml
                   operations/enable-local-volume-service.yml
-                  operations/enable-local-volume-service-windows-cells.yml
                   operations/test/enable-nfs-test-server.yml
                   operations/test/enable-smb-test-server.yml
                   operations/enable-csi-local-plugin.yml
@@ -2629,7 +2415,6 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
-                  operations/enable-smb-volume-service-windows.yml
                   operations/enable-smb-test-server-two.yml
                   operations/update-releases.yml"
   - task: run-smoke-tests
