@@ -500,6 +500,7 @@ jobs:
     - get: efs-broker-tile-bucket
     - get: vpn-client-tile-bucket
     - get: gorgophone-env-director-state
+      trigger: true
       passed:
         - bbl-up-efstile
     - get: platform-automation-image
@@ -653,8 +654,10 @@ jobs:
       - bosh-deploy-openvpn
       - configure-efs-tile
     - get: env-creation-gate-lock
+      trigger: true
       passed:
-      - claim-toolsmiths-env
+      - configure-efs-tile
+      - bosh-deploy-openvpn
     - get: pcf-2.5
       tags:
         - cf-diego-persistence-vsphere
@@ -672,6 +675,7 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: env-creation-gate-lock
+      trigger: true
       passed:
       - unclaim-toolsmiths-env
     - get: gorgophone-env-director-state
@@ -688,6 +692,7 @@ jobs:
   - aggregate:
     - get: cf-deployment-concourse-tasks
     - get: env-creation-gate-lock
+      trigger: true
       passed:
       - bosh-delete-openvpn
     - get: gorgophone-env-director-state
