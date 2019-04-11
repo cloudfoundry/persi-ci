@@ -2,6 +2,7 @@ groups:
 - name: efs-tile
   jobs:
   - build-cf-deployment-concourse-tasks-yq
+  - build-generate-pats-config-for-toolsmith
   - build-efs-broker-tile
   - build-vpn-client-tile
   - acquire-lock-efstile
@@ -64,7 +65,7 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/cloudfoundry/bosh-bootloader.git
+    uri: https://github.com/DennisDenuto/bosh-bootloader.git
 
 - name: cf-deployment-concourse-tasks
   type: git
@@ -116,6 +117,12 @@ resources:
     branch: master
     private_key: {{deployments-persi-key}}
 
+#- name: persi-acceptance-tests
+#  type: git
+#  source:
+#    uri: https://github.com/cloudfoundry/persi-acceptance-tests
+#    branch: master
+
 - name: platform-automation-tasks
   type: s3
   source:
@@ -139,6 +146,13 @@ resources:
   type: docker-image
   source:
     repository: cfpersi/cf-deployment-concourse-tasks-yq
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: generate-pats-config-for-toolsmith-docker
+  type: docker-image
+  source:
+    repository: cfpersi/generate-pats-config-for-toolsmith
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
@@ -469,13 +483,25 @@ jobs:
     params:
       build: persi-ci/dockerfiles/cf-deployment-concourse-tasks-yq
 
+- name: build-generate-pats-config-for-toolsmith
+  plan:
+  - get: persi-ci
+  - put: generate-pats-config-for-toolsmith-docker
+    params:
+      build: persi-ci/dockerfiles/generate-pats-config-for-toolsmith
+
 - name: configure-efs-tile
   plan:
   - aggregate:
     - get: persi-ci
     - get: env-creation-gate-lock
+      passed:
+        - claim-toolsmiths-env
     - get: efs-broker-tile-bucket
+    - get: vpn-client-tile-bucket
     - get: gorgophone-env-director-state
+      passed:
+        - bbl-up-efstile
     - get: platform-automation-image
       params:
         unpack: true
@@ -494,7 +520,7 @@ jobs:
     file: persi-ci/scripts/ci/generate_oms_env.build.yml
     input_mapping:
       pcf: pcf-2.5
-  - task: upload-efs-stemcell
+  - task: upload-stemcell
     tags:
     - cf-diego-persistence-vsphere
     image: platform-automation-image
@@ -504,7 +530,7 @@ jobs:
       stemcell: stemcell
     params:
       ENV_FILE: env.yml
-  - task: upload-product
+  - task: upload-efs-product
     image: platform-automation-image
     file: platform-automation-tasks/tasks/upload-product.yml
     input_mapping:
@@ -512,7 +538,7 @@ jobs:
       env: generated-oms-env
     params:
       ENV_FILE: env.yml
-  - task: stage-product
+  - task: stage-efs-product
     image: platform-automation-image
     file: platform-automation-tasks/tasks/stage-product.yml
     input_mapping:
@@ -526,8 +552,8 @@ jobs:
       bbl-state: gorgophone-env-director-state
       pcf: pcf-2.5
     params:
-      AWS_ACCESS_KEY_ID: ((gorgophone_aws_access_key_id))
-      AWS_SECRET_ACCESS_KEY: ((gorgophone_aws_secret_access_key))
+      AWS_ACCESS_KEY_ID: ((efs-broker-user-snowflaked-for-efs-concourse-access-key))
+      AWS_SECRET_ACCESS_KEY: ((efs-broker-user-snowflaked-for-efs-concourse-secret-access-key))
       BBL_ENV: bbl-state-aws-efstile
   - task: configure-efs-tile
     image: platform-automation-image
@@ -538,13 +564,94 @@ jobs:
     params:
       CONFIG_FILE: generated-efs-tile-product-config.yml
       ENV_FILE: env.yml
+  - task: upload-vpn-client-product
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-product.yml
+    input_mapping:
+      product: vpn-client-tile-bucket
+      env: generated-oms-env
+    params:
+      ENV_FILE: env.yml
+  - task: stage-vpn-client-product
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/stage-product.yml
+    input_mapping:
+      product: vpn-client-tile-bucket
+      env: generated-oms-env
+    params:
+      ENV_FILE: env.yml
+  - task: generate-vpn-client-tile-product-config
+    file: persi-ci/scripts/ci/generate_vpn_client_tile_product_config.build.yml
+    input_mapping:
+      bbl-state: gorgophone-env-director-state
+      pcf: pcf-2.5
+    params:
+      AWS_ACCESS_KEY_ID: ((gorgophone_aws_access_key_id))
+      AWS_SECRET_ACCESS_KEY: ((gorgophone_aws_secret_access_key))
+      BBL_ENV: bbl-state-aws-efstile
+  - task: configure-vpn-client-tile
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-product.yml
+    input_mapping:
+      config: generated-vpn-client-tile-product-config
+      env: generated-oms-env
+    params:
+      CONFIG_FILE: generated-vpn-client-tile-product-config.yml
+      ENV_FILE: env.yml
+  - task: apply-product-changes
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/apply-changes.yml
+    input_mapping:
+      env: generated-oms-env
+    params:
+      ENV_FILE: env.yml
+
+
+#- name: pats-efs
+#  plan:
+#  - aggregate:
+#    - get: env-creation-gate-lock
+#      passed:
+#      - configure-efs-tile
+#    - get: gorgophone-env-director-state
+#      passed:
+#      - configure-efs-tile
+#      trigger: true
+#    - get: persi-acceptance-tests
+#    - get: persi-ci
+#  - task: generate-pats-config
+#    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+#    input_mapping:
+#      director-state: gorgophone-env-director-state
+#    params:
+#      BBL_IAAS: aws
+#      BBL_STATE_DIR: bbl-state-aws-heleus
+#      APPS_DOMAIN: heleus.persi.cf-app.com
+#      CF_API_ENDPOINT: api.heleus.persi.cf-app.com
+#      CF_USERNAME: admin
+#      DEFAULT_TIMEOUT: 300
+#      BROKER_PASSWORD_KEY: efs-broker-password
+#      BROKER_URL: http://efs-broker.heleus.persi.cf-app.com
+#      BROKER_USER: admin
+#      PLAN_NAME: generalPurpose
+#      SERVICE_NAME: efs
+#  - task: run-pats
+#    file: persi-ci/scripts/ci/run-pats.build.yml
+#    input_mapping:
+#      director-state: gorgophone-env-director-state
+#    params:
+#      BBL_IAAS: aws
+#      BBL_STATE_DIR: bbl-state-aws-heleus
+#      TEST_MULTI_CELL: true
+
 
 - name: unclaim-toolsmiths-env
   plan:
   - aggregate:
     - get: gorgophone-env-director-state
       passed:
-      - bbl-up-efstile
+      - bosh-deploy-openvpn
+      - configure-efs-tile
     - get: env-creation-gate-lock
       passed:
       - claim-toolsmiths-env
@@ -568,9 +675,6 @@ jobs:
       passed:
       - unclaim-toolsmiths-env
     - get: gorgophone-env-director-state
-      passed:
-      - unclaim-toolsmiths-env
-      trigger: true
   - task: delete-openvpn
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
     params:
@@ -587,9 +691,6 @@ jobs:
       passed:
       - bosh-delete-openvpn
     - get: gorgophone-env-director-state
-      passed:
-      - bosh-delete-openvpn
-      trigger: true
   - task: destroy
     file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
     params:
