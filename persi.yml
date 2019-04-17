@@ -24,6 +24,7 @@ groups:
   - smb-volume-mount-options-unit
   - localdriver-unit
   - localbroker-unit
+  - build-mapfs-tests-docker-image
   - mapfs-unit
   - localdriver-certification
   - localdriver-docker-certification
@@ -234,6 +235,12 @@ groups:
 ######################################################################################################################
 resources:
 
+- name: mapfs-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/mapfs-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
 #### Misc resources ###############################################################################################
 - name: persi-ci
   type: git
@@ -609,6 +616,14 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/mapfs-release.git
+
+- name: mapfs
+  type: git
+  source:
+    branch: master
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/mapfs.git
 
 - name: github-release-mapfs
   type: github-release
@@ -1718,6 +1733,16 @@ jobs:
     params:
       file: release-tarball/csi-plugins-*.tgz
 
+- name: build-mapfs-tests-docker-image
+  plan:
+  - get: nightly
+    trigger: true
+  - get: mapfs
+    trigger: true
+  - put: mapfs-tests-docker-image
+    params:
+      build: mapfs/ci/dockerfiles/perf
+
 - name: mapfs-unit
   public: true
   plan:
@@ -1725,6 +1750,7 @@ jobs:
     trigger: true
   - task: run-unit
     file: mapfs-release/scripts/ci/run_tests.build.yml
+    privileged: true
 
 - name: create-mapfs-release
   plan:
