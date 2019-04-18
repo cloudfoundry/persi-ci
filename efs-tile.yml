@@ -462,6 +462,9 @@ jobs:
   plan:
   - aggregate:
     - get: env-creation-gate-lock
+      passed:
+      - acquire-lock-efstile
+      trigger: true
     - get: efs-broker-tile-bucket
       passed:
       - acquire-lock-efstile
@@ -502,7 +505,7 @@ jobs:
     - get: gorgophone-env-director-state
       trigger: true
       passed:
-        - bbl-up-efstile
+        - bosh-deploy-openvpn
     - get: platform-automation-image
       params:
         unpack: true
@@ -517,6 +520,8 @@ jobs:
     - get: pcf-2.5
       tags:
       - cf-diego-persistence-vsphere
+      passed:
+      - claim-toolsmiths-env
   - task: generate-oms-env
     file: persi-ci/scripts/ci/generate_oms_env.build.yml
     input_mapping:
@@ -651,18 +656,17 @@ jobs:
   - aggregate:
     - get: gorgophone-env-director-state
       passed:
-      - bosh-deploy-openvpn
       - configure-efs-tile
     - get: env-creation-gate-lock
       trigger: true
       passed:
       - configure-efs-tile
-      - bosh-deploy-openvpn
     - get: pcf-2.5
       tags:
         - cf-diego-persistence-vsphere
       passed:
-      - claim-toolsmiths-env
+      - configure-efs-tile
+      trigger: true
   - put: pcf-2.5
     tags:
       - cf-diego-persistence-vsphere
