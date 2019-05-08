@@ -51,17 +51,6 @@ aws-azs: ${AWS_AZ}
 EOF
 }
 
-generate_ecs_vars() {
-    cat << EOF > ${ROOT_DIR}/generated-vars/ecs-vars.yml
----
-ecs-password: ${ECS_PASSWORD}
-ecs-username: ${ECS_USERNAME}
-ecs-ip: ${ECS_IP}
-ecs-aws-id: ${ECS_AWS_ID}
-ecs-aws-key: ${ECS_AWS_KEY}
-EOF
-}
-
 generate_gcs_blobstore_vars() {
   pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
     if [ -z "${GCS_BLOBSTORE_PROJECT_ID}" ]; then
@@ -181,10 +170,6 @@ main() {
 
   if [ "$GENERATE_EFS_VARS" = "true" ]; then
     generate_efs_vars
-  fi
-
-  if [ "$GENERATE_ECS_VARS" = "true" ]; then
-    generate_ecs_vars
   fi
 
   if [ "$GENERATE_GCS_BLOBSTORE_VARS" = "true" ]; then

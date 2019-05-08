@@ -161,17 +161,6 @@ groups:
   - delete-cf-heleus
   - bbl-destroy-heleus
 
-- name: ecs
-  jobs:
-  - ecs-broker-unit
-  - create-ecs-release
-  - deploy-ecs-cluster
-  - deploy-ecs-broker
-  - bbl-up-gorgophone
-  - deploy-cf
-  - pats-ecs
-  - drats-nfs-smb
-
 - name: smb
   jobs:
   - smbdriver-unit
@@ -453,36 +442,6 @@ resources:
     uri: git@github.com:cloudfoundry/deployments-persi.git
 #### End Persi resources ################################################################################################
 
-#### ECS resources ###################################################################################################
-- name: ecs-release
-  type: git
-  source:
-    uri: https://github.com/EMC-Dojo/ecs-release.git
-
-- name: ecs-release-tarball
-  type: s3
-  source:
-    access_key_id: {{ecs-uploader_aws_ID}}
-    bucket: ecs-release-tarballs
-    regexp: ecs-release-(.*).tgz
-    secret_access_key: {{ecs-uploader_aws_secret}}
-
-- name: ecs-version
-  type: semver
-  source:
-    access_key_id: {{ecs-uploader_aws_ID}}
-    bucket: ecs-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{ecs-uploader_aws_secret}}
-
-- name: ecs-cf-service-broker
-  type: git
-  source:
-    uri: https://github.com/codedellemc/ecs-cf-service-broker
-#### End ECS resources ###############################################################################################
-
 #### CSI resources ###################################################################################################
 - name: csi-local-volume-release
   type: git
@@ -652,12 +611,6 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/gorgophone-env.git
     branch: master
-    private_key: {{deployments-persi-key}}
-
-- name: gorgophone-env
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry/gorgophone-env.git
     private_key: {{deployments-persi-key}}
 
 - name: env-creation-gate-lock
@@ -1529,129 +1482,6 @@ jobs:
 
 #### END CF ###########################################################################################################
 
-#### START ECS related jobs ###########################################################################################
-- name: create-ecs-release
-  plan:
-  - aggregate:
-    - get: ecs-release
-      trigger: true
-    - get: ecs-version
-      resource: ecs-version
-      params:
-        pre: rc
-    - get: persi-ci
-  - put: ecs-version
-    resource: ecs-version
-    params:
-      file: ecs-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: ecs-release
-      release-version: ecs-version
-    params:
-      RELEASE_NAME: ecs-release
-  - put: ecs-release-tarball
-    params:
-      file: release-tarball/ecs-release-*.tgz
-
-- name: ecs-broker-unit
-  public: true
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: ecs-cf-service-broker
-      trigger: true
-  - task: ecs-broker-unit
-    file: persi-ci/scripts/ci/ecs_broker_unit.build.yml
-
-- name: deploy-ecs-cluster
-  serial_groups:
-  - ecs
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: gorgophone-env
-    - get: ecs-bosh-release
-      passed:
-      - create-ecs-release
-      trigger: true
-      resource: ecs-release
-    - get: ecs-release-tarball
-      passed:
-      - create-ecs-release
-  - task: bosh-deploy-ecs
-    file: persi-ci/scripts/ci/deploy-ecs.yml
-    input_mapping:
-      vars-store: gorgophone-env
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      BBL_IAAS: gcp
-
-- name: deploy-ecs-broker
-  serial_groups:
-  - ecs
-  - gorgophone-errands
-  plan:
-  - aggregate:
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: ecs-version
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: cf-deployment-concourse-tasks
-  - task: run-broker-errand
-    file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      ERRAND_NAME: broker-deploy
-
-- name: pats-ecs
-  serial_groups:
-  - ecs
-  plan:
-  - aggregate:
-    - get: ecs-version
-      passed:
-      - deploy-ecs-broker
-      trigger: true
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      BIND_CONFIG: '{}'
-      BROKER_PASSWORD_KEY: ecs-broker-password
-      BROKER_URL: http://ecs-v1.gorgophone.cf-app.com
-      BROKER_USER: user
-      PLAN_NAME: 5gb
-      SERVICE_NAME: ecs-file-bucket
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      TEST_MULTI_CELL: true
-
-#### END ECS ##########################################################################################################
-
 #### START CSI related jobs ###########################################################################################
 - name: csi-local-controller-plugin-unit
   public: true
@@ -2201,7 +2031,6 @@ jobs:
   serial_groups:
   - local
   - nfs
-  - ecs
   - csi-local
   - csi-nfs
   - smb
@@ -2243,7 +2072,6 @@ jobs:
   serial_groups:
   - local
   - nfs
-  - ecs
   - csi-local
   - csi-nfs
   - smb
@@ -2298,12 +2126,6 @@ jobs:
       trigger: true
     - get: mapfs-version
       passed: [ create-mapfs-release ]
-    - get: ecs-release-tarball
-      passed: [ create-ecs-release ]
-    - get: ecs-version
-      passed: [ create-ecs-release ]
-    - get: ecs-release
-      passed: [ create-ecs-release ]
     - get: smb-volume-release
       passed: [ create-smb-volume-release ]
     - get: smb-volume-release-tarball
@@ -2323,7 +2145,6 @@ jobs:
       csi-local-tarball: csi-local-volume-release-tarball
       csi-plugins-tarball: csi-plugins-release-tarball
       mapfs-tarball: mapfs-release-tarball
-      ecs-tarball: ecs-release-tarball
       local-tarball: local-volume-release-tarball
       smb-tarball: smb-volume-release-tarball
       diego-version: diego-version
@@ -2332,7 +2153,6 @@ jobs:
       csi-local-version: csi-local-volume-version
       csi-plugins-version: csi-plugins-version
       mapfs-version: mapfs-version
-      ecs-version: ecs-version
       local-version: localvolume-version
       smb-version: smb-volume-version
   - task: collect-persi-ci-ops-files
@@ -2354,14 +2174,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-local-volume-service.yml"
-  - task: collect-ecs-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: ecs-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/deploy-ecs-broker-errand.yml"
   - task: collect-csi-plugins-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2391,7 +2203,6 @@ jobs:
                       csi-local.tgz
                       csi-plugins.tgz
                       mapfs.tgz
-                      ecs.tgz
                       smb.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
@@ -2401,15 +2212,9 @@ jobs:
       BBL_IAAS: gcp
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       GENERATE_DATADOG_VARS: true
-      GENERATE_ECS_VARS: true
       GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: true
       GENERATE_GCS_BLOBSTORE_VARS: true
-      ECS_PASSWORD: {{ecs-password}}
-      ECS_USERNAME: {{ecs-user}}
-      ECS_IP: 35.233.221.61
-      ECS_AWS_ID: {{ecs-blob-user}}
-      ECS_AWS_KEY: {{ecs-blob-key}}
       DATADOG_API_KEY: {{gorgophone-datadog-api-key}}
       DATADOG_METRIC_PREFIX: gorgophone
       SMB_USERNAME: {{smb_pats_username_two}}
@@ -2424,7 +2229,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is required by the task
-      VARS_FILES: "nfs-vars.yml ecs-vars.yml datadog-vars.yml smb-vars.yml gcs-blobstore-vars.yml"
+      VARS_FILES: "nfs-vars.yml datadog-vars.yml smb-vars.yml gcs-blobstore-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
                   operations/scale-up-routers-and-cells.yml
@@ -2437,7 +2242,6 @@ jobs:
                   operations/test/enable-smb-test-server.yml
                   operations/enable-csi-local-plugin.yml
                   operations/add-csi-nfs-plugin.yml
-                  operations/deploy-ecs-broker-errand.yml
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
@@ -2464,7 +2268,6 @@ jobs:
   - gorgophone
   - local
   - nfs
-  - ecs
   - csi-local
   - csi-nfs
   - smb
@@ -2678,7 +2481,6 @@ jobs:
       COLLECT_EFS_TARBALL: true
       COLLECT_CSI_LOCAL_TARBALL: false
       COLLECT_CSI_PLUGINS_TARBALL: false
-      COLLECT_ECS_TARBALL: false
       COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
@@ -2692,7 +2494,6 @@ jobs:
       csi-local-tarball: efsvolume-version #dummy
       csi-plugins-tarball: efsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
-      ecs-tarball: efsvolume-version #dummy
       local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
       diego-version: diego-version
@@ -2701,7 +2502,6 @@ jobs:
       csi-local-version: efsvolume-version #dummy
       csi-plugins-version: efsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
-      ecs-version: efsvolume-version #dummy
       local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
   - task: collect-efs-ops-files
@@ -2980,7 +2780,6 @@ jobs:
       COLLECT_EFS_TARBALL: true
       COLLECT_CSI_LOCAL_TARBALL: false
       COLLECT_CSI_PLUGINS_TARBALL: false
-      COLLECT_ECS_TARBALL: false
       COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
@@ -2994,7 +2793,6 @@ jobs:
       csi-local-tarball: efsvolume-version #dummy
       csi-plugins-tarball: efsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
-      ecs-tarball: efsvolume-version #dummy
       local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
       diego-version: diego-version
@@ -3003,7 +2801,6 @@ jobs:
       csi-local-version: efsvolume-version #dummy
       csi-plugins-version: efsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
-      ecs-version: efsvolume-version #dummy
       local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
   - task: collect-efs-ops-files
