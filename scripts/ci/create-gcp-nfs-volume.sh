@@ -14,7 +14,7 @@ gcloud beta filestore instances create "${FILESTORE_INSTANCE_NAME}" \
   --file-share=name="${FILESHARE_NAME}",capacity=1TB \
   --network=name="${NETWORK_NAME}",reserved-ip-range="10.1.0.0/29"
 
-VOLUME_IP_ADDRESS="$(gcloud beta filestore instances describe "${FILESTORE_INSTANCE_NAME}" --location="${GCP_LOCATION}" | yq -r '.networks[0].ipAddresses[0]')"
+VOLUME_IP_ADDRESS="$(gcloud beta filestore instances describe "${FILESTORE_INSTANCE_NAME}" --location="${GCP_LOCATION}" --project "${GCP_PROJECT}" | yq -r '.networks[0].ipAddresses[0]')"
 
 echo "nfs://${VOLUME_IP_ADDRESS}/${FILESHARE_NAME}" > gcp-nfs-volume-info/fuse-nfs-volume-info
 echo "${VOLUME_IP_ADDRESS}:/${FILESHARE_NAME}" > gcp-nfs-volume-info/nfs-volume-info
