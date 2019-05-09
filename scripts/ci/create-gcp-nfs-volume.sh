@@ -8,6 +8,7 @@ echo "${GCP_SERVICE_ACCOUNT_KEY}" | gcloud auth activate-service-account --key-f
 echo "Creating GCP filestore volume..."
 # shellcheck disable=SC2140
 gcloud beta filestore instances create "${FILESTORE_INSTANCE_NAME}" \
+  --project "${GCP_PROJECT}" \
   --location="${GCP_LOCATION}" \
   --tier=STANDARD \
   --file-share=name="${FILESHARE_NAME}",capacity=1TB \

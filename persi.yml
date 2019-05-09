@@ -830,6 +830,7 @@ jobs:
       params:
         FILESHARE_NAME: nfs_cert_volume
         FILESTORE_INSTANCE_NAME: nfs-certification
+        GCP_PROJECT: {{gcp_project}}
         GCP_LOCATION: us-west2-a
         GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
         NETWORK_NAME: concourse-network
