@@ -655,68 +655,78 @@ jobs:
 - name: localdriver-unit
   public: true
   plan:
-  - aggregate:
-    - get: local-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: local-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: local-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: local-volume-release
+        trigger: true
   - task: build
     file: local-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
 
 - name: localbroker-unit
   public: true
   plan:
-  - aggregate:
-    - get: local-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: local-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: local-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: local-volume-release
+        trigger: true
   - task: build
     file: local-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
 
 - name: localdriver-certification
   plan:
-  - aggregate:
-    - get: local-volume-release
-      passed:
-      - localdriver-unit
-      trigger: true
-    - get: local-volume-release-concourse-tasks
-      params:
-        submodules: none
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: local-volume-release
+        passed:
+        - localdriver-unit
+        trigger: true
+      - get: local-volume-release-concourse-tasks
+        params:
+          submodules: none
   - task: build
     file: local-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
 
 - name: localdriver-docker-certification
   plan:
-  - aggregate:
-    - get: local-volume-release
-      passed:
-      - localdriver-unit
-      trigger: true
-    - get: local-volume-release-concourse-tasks
-      params:
-        submodules: none
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: local-volume-release
+        passed:
+        - localdriver-unit
+        trigger: true
+      - get: local-volume-release-concourse-tasks
+        params:
+          submodules: none
   - task: build
     privileged: true
     file: local-volume-release-concourse-tasks/scripts/ci/run_docker_cert.build.yml
 
 - name: create-local-volume-release
   plan:
-  - aggregate:
-    - get: local-volume-release
-      passed:
-      - localdriver-certification
-      - localdriver-docker-certification
-      - localbroker-unit
-      trigger: true
-    - get: local-volume-version
-      resource: localvolume-version
-      params:
-        pre: rc
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: local-volume-release
+        passed:
+        - localdriver-certification
+        - localdriver-docker-certification
+        - localbroker-unit
+        trigger: true
+      - get: local-volume-version
+        resource: localvolume-version
+        params:
+          pre: rc
+      - get: persi-ci
   - put: local-volume-version
     resource: localvolume-version
     params:
@@ -736,18 +746,20 @@ jobs:
   serial_groups:
   - local
   plan:
-  - aggregate:
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: local-volume-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: local-volume-release
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: persi-acceptance-tests
+      - get: persi-ci
+      - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -775,7 +787,7 @@ jobs:
 - name: nfsdriver-unit
   public: true
   plan:
-  - aggregate:
+  - in_parallel:
     - get: nfs-volume-release-concourse-tasks
       params:
         submodules: none
@@ -787,21 +799,25 @@ jobs:
 - name: nfsbroker-unit
   public: true
   plan:
-  - aggregate:
-    - get: nfs-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: nfs-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: nfs-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: nfs-volume-release
+        trigger: true
   - task: build
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
 
 - name: nfs-volume-release-job-tests
   plan:
-  - aggregate:
-    - get: persi-ci
-    - get: nfs-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: nfs-volume-release
+        trigger: true
   - task: build
     file: persi-ci/scripts/ci/run-rspec.build.yml
     input_mapping:
@@ -810,20 +826,22 @@ jobs:
 - name: nfsdriver-certification
   serial: true
   plan:
-  - aggregate:
-    - get: persi-ci
-    - get: nfs-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: nfs-volume-release
-      passed:
-      - nfsdriver-unit
-      - nfsbroker-unit
-      - nfs-volume-release-job-tests
-      trigger: true
-    - get: mapfs-release
-      passed: [ mapfs-unit ]
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: nfs-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: nfs-volume-release
+        passed:
+        - nfsdriver-unit
+        - nfsbroker-unit
+        - nfs-volume-release-job-tests
+        trigger: true
+      - get: mapfs-release
+        passed: [ mapfs-unit ]
+        trigger: true
   - do:
     - task: driver-cert
       file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
@@ -833,16 +851,18 @@ jobs:
   serial_groups:
   - nfs-version
   plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - nfsdriver-certification
-      trigger: true
-    - get: nfs-volume-version
-      resource: nfsvolume-version
-      params:
-        pre: rc
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: nfs-volume-release
+        passed:
+        - nfsdriver-certification
+        trigger: true
+      - get: nfs-volume-version
+        resource: nfsvolume-version
+        params:
+          pre: rc
+      - get: persi-ci
   - put: nfs-volume-version
     resource: nfsvolume-version
     params:
@@ -862,20 +882,22 @@ jobs:
   serial_groups:
   - nfs-version
   plan:
-  - aggregate:
-    - get: persi-ci
-    - get: release-tarball
-      resource: nfs-volume-release-tarball
-      passed:
-      - pats-nfs
-    - get: release
-      resource: nfs-volume-release
-      passed:
-      - pats-nfs
-    - get: version
-      resource: nfsvolume-version
-      params:
-        bump: final
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: release-tarball
+        resource: nfs-volume-release-tarball
+        passed:
+        - pats-nfs
+      - get: release
+        resource: nfs-volume-release
+        passed:
+        - pats-nfs
+      - get: version
+        resource: nfsvolume-version
+        params:
+          bump: final
   - task: finalize-release
     file: persi-ci/scripts/ci/finalize_release.build.yml
     params:
@@ -950,22 +972,24 @@ jobs:
   serial_groups:
   - mapfs-version
   plan:
-  - aggregate:
-    - get: persi-ci
-    - get: release-tarball
-      resource: mapfs-release-tarball
-      passed:
-      - pats-nfs
-      - pats-nfs-legacy
-    - get: release
-      resource: mapfs-release
-      passed:
-      - pats-nfs
-      - pats-nfs-legacy
-    - get: version
-      resource: mapfs-version
-      params:
-        bump: final
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: release-tarball
+        resource: mapfs-release-tarball
+        passed:
+        - pats-nfs
+        - pats-nfs-legacy
+      - get: release
+        resource: mapfs-release
+        passed:
+        - pats-nfs
+        - pats-nfs-legacy
+      - get: version
+        resource: mapfs-version
+        params:
+          bump: final
   - task: finalize-release
     file: persi-ci/scripts/ci/finalize_release.build.yml
     params:
@@ -974,11 +998,10 @@ jobs:
       GIT_EMAIL: {{github-email}}
       S3_ACCESS_KEY_ID: {{mapfs-uploader_aws_ID}}
       S3_ACCESS_KEY: {{mapfs-uploader_aws_secret}}
-  - aggregate:
-    - put: version
-      resource: mapfs-version
-      params:
-        file: version/number
+  - put: version
+    resource: mapfs-version
+    params:
+      file: version/number
   - task: generate-release
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
@@ -1036,18 +1059,20 @@ jobs:
   - nfs
   - gorgophone-errands
   plan:
-  - aggregate:
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: nfs-volume-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: cf-deployment-concourse-tasks
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: gorgophone-env-director-state
+      - get: nfs-volume-release
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: cf-deployment
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: cf-deployment-concourse-tasks
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -1060,28 +1085,30 @@ jobs:
   serial_groups:
   - nfs
   plan:
-  - aggregate:
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-brokers
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-cf
-    - get: mapfs-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: mapfs-release-tarball
-      passed:
-      - deploy-cf
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: nfs-volume-release
+        passed:
+        - deploy-nfs-brokers
+        trigger: true
+      - get: nfs-volume-release-tarball
+        passed:
+        - deploy-cf
+      - get: mapfs-release
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: mapfs-release-tarball
+        passed:
+        - deploy-cf
+      - get: persi-acceptance-tests
+      - get: persi-ci
+      - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -1117,28 +1144,30 @@ jobs:
   serial_groups:
   - nfs
   plan:
-  - aggregate:
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-brokers
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-cf
-    - get: mapfs-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: mapfs-release-tarball
-      passed:
-      - deploy-cf
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: nfs-volume-release
+        passed:
+        - deploy-nfs-brokers
+        trigger: true
+      - get: nfs-volume-release-tarball
+        passed:
+        - deploy-cf
+      - get: mapfs-release
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: mapfs-release-tarball
+        passed:
+        - deploy-cf
+      - get: persi-acceptance-tests
+      - get: persi-ci
+      - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -1169,21 +1198,23 @@ jobs:
   serial_groups:
   - nfs
   plan:
-  - aggregate:
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-brokers
-      trigger: true
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-cf
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: nfs-volume-release
+        passed:
+        - deploy-nfs-brokers
+        trigger: true
+      - get: nfs-volume-release-tarball
+        passed:
+        - deploy-cf
+      - get: persi-acceptance-tests
+      - get: persi-ci
+      - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -1212,14 +1243,16 @@ jobs:
   serial_groups:
   - nfs
   plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-brokers
-      trigger: true
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: cf-acceptance-tests
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: nfs-volume-release
+        passed:
+        - deploy-nfs-brokers
+        trigger: true
+      - get: persi-ci
+      - get: gorgophone-env-director-state
+      - get: cf-acceptance-tests
   - task: run-cats
     file: persi-ci/scripts/ci/run_cats.build.yml
     input_mapping:
@@ -1238,12 +1271,14 @@ jobs:
   serial_groups:
   - nfs
   plan:
-  - aggregate:
-    - get: nightly
-      trigger: true
-    - get: persi-ci
-    - get: persi-acceptance-tests
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: nightly
+        trigger: true
+      - get: persi-ci
+      - get: persi-acceptance-tests
+      - get: gorgophone-env-director-state
   - task: run-test
     file: persi-ci/scripts/ci/run_background_load_test.build.yml
     input_mapping:
@@ -1263,14 +1298,16 @@ jobs:
   serial_groups:
   - isilon
   plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: persi-ci
-    - get: deployments-persi
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: nfs-volume-release
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: persi-ci
+      - get: deployments-persi
+      - get: gorgophone-env-director-state
   - task: create-share
     input_mapping:
       director-state: gorgophone-env-director-state
@@ -1284,19 +1321,21 @@ jobs:
   - nfs
   - isilon
   plan:
-  - aggregate:
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: nfs-volume-release
-      passed:
-      - create-isilon-volume
-      - deploy-nfs-brokers
-      trigger: true
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: nfs-volume-release
+        passed:
+        - create-isilon-volume
+        - deploy-nfs-brokers
+        trigger: true
+      - get: persi-acceptance-tests
+      - get: persi-ci
+      - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -1325,39 +1364,45 @@ jobs:
 - name: efsdriver-unit
   public: true
   plan:
-  - aggregate:
-    - get: efs-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: efs-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: efs-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: efs-volume-release
+        trigger: true
   - task: build
     file: efs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
 - name: efsbroker-unit
   public: true
   plan:
-  - aggregate:
-    - get: efs-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: efs-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: efs-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: efs-volume-release
+        trigger: true
   - task: build
     file: efs-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
 
 - name: efsdriver-certification
   plan:
-  - aggregate:
-    - get: efs-volume-release-concourse-tasks
-      params:
-        submodules: none
-      tags: ["aws"]
-    - get: efs-volume-release
-      tags: ["aws"]
-      passed:
-      - efsdriver-unit
-      - efsbroker-unit
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: efs-volume-release-concourse-tasks
+        params:
+          submodules: none
+        tags: ["aws"]
+      - get: efs-volume-release
+        tags: ["aws"]
+        passed:
+        - efsdriver-unit
+        - efsbroker-unit
+        trigger: true
   - task: build
     tags: ["aws"]
     privileged: true
@@ -1365,16 +1410,18 @@ jobs:
 
 - name: create-efs-volume-release
   plan:
-  - aggregate:
-    - get: efs-volume-release
-      passed:
-      - efsdriver-certification
-      trigger: true
-    - get: efs-volume-version
-      resource: efsvolume-version
-      params:
-        pre: rc
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: efs-volume-release
+        passed:
+        - efsdriver-certification
+        trigger: true
+      - get: efs-volume-version
+        resource: efsvolume-version
+        params:
+          pre: rc
+      - get: persi-ci
   - put: efs-volume-version
     resource: efsvolume-version
     params:
@@ -1397,30 +1444,34 @@ jobs:
 - name: volman-unit
   public: true
   plan:
-  - aggregate:
-    - get: diego-release
-      passed:
-      - cf-deployment-nightly
-      trigger: true
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-release
+        passed:
+        - cf-deployment-nightly
+        trigger: true
+      - get: persi-ci
   - task: run-unit
     file: persi-ci/scripts/ci/run_volman_unit.build.yml
 
 - name: volman-inigo
   plan:
-  - aggregate:
-    - get: diego-release
-      passed:
-      - cf-deployment-nightly
-      trigger: true
-    - get: garden-runc-release-tarball
-    - get: garden-runc-release-master
-      params: {submodules: none}
-    - get: routing-release
-      params: { submodules: none }
-    - get: routing-release-tarball
-    - get: diego-ci
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-release
+        passed:
+        - cf-deployment-nightly
+        trigger: true
+      - get: garden-runc-release-tarball
+      - get: garden-runc-release-master
+        params: {submodules: none}
+      - get: routing-release
+        params: { submodules: none }
+      - get: routing-release-tarball
+      - get: diego-ci
+      - get: persi-ci
   - task: garden-runc-release
     file: diego-ci/concourse/checkout_garden.build.yml
   - task: routing-release
@@ -1436,17 +1487,19 @@ jobs:
 
 - name: create-diego-release
   plan:
-  - aggregate:
-    - get: diego-release
-      trigger: true
-      passed:
-      - volman-unit
-      - volman-inigo
-    - get: persi-ci
-    - get: version
-      resource: diego-version
-      params:
-        pre: dev
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-release
+        trigger: true
+        passed:
+        - volman-unit
+        - volman-inigo
+      - get: persi-ci
+      - get: version
+        resource: diego-version
+        params:
+          pre: dev
   - put: version
     resource: diego-version
     params:
@@ -1468,68 +1521,78 @@ jobs:
 - name: csi-local-controller-plugin-unit
   public: true
   plan:
-  - aggregate:
-    - get: csi-local-volume-release
-      trigger: true
-    - get: csi-local-volume-release-concourse-tasks
-      params:
-        submodules: none
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: csi-local-volume-release
+        trigger: true
+      - get: csi-local-volume-release-concourse-tasks
+        params:
+          submodules: none
   - task: local-controller-plugin-unit
     file: csi-local-volume-release-concourse-tasks/scripts/ci/local-controller-plugin-unit.build.yml
 
 - name: csi-local-node-plugin-unit
   public: true
   plan:
-  - aggregate:
-    - get: csi-local-volume-release
-      trigger: true
-    - get: csi-local-volume-release-concourse-tasks
-      params:
-        submodules: none
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: csi-local-volume-release
+        trigger: true
+      - get: csi-local-volume-release-concourse-tasks
+        params:
+          submodules: none
   - task: local-node-plugin-unit
     file: csi-local-volume-release-concourse-tasks/scripts/ci/local-node-plugin-unit.build.yml
 
 - name: csi-broker-unit
   public: true
   plan:
-  - aggregate:
-    - get: csi-local-volume-release
-      trigger: true
-    - get: csi-local-volume-release-concourse-tasks
-      params:
-        submodules: none
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: csi-local-volume-release
+        trigger: true
+      - get: csi-local-volume-release-concourse-tasks
+        params:
+          submodules: none
   - task: csi-broker-unit
     file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-broker-unit.build.yml
 
 - name: csi-plugin-certification
   plan:
-  - aggregate:
-    - get: csi-local-volume-release
-      passed:
-      - csi-local-controller-plugin-unit
-      - csi-local-node-plugin-unit
-      trigger: true
-    - get: csi-cert
-      trigger: true
-    - get: csi-local-volume-release-concourse-tasks
-      params:
-        submodules: none
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: csi-local-volume-release
+        passed:
+        - csi-local-controller-plugin-unit
+        - csi-local-node-plugin-unit
+        trigger: true
+      - get: csi-cert
+        trigger: true
+      - get: csi-local-volume-release-concourse-tasks
+        params:
+          submodules: none
   - task: csi-plugin-certification
     privileged: true
     file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-plugin-certification.build.yml
 
 - name: create-csi-plugins-release
   plan:
-  - aggregate:
-    - get: csi-plugins-release
-#      passed:
-#      - TODO: add unit and certification test
-      trigger: true
-    - get: csi-plugins-version
-      resource: csi-plugins-version
-      params:
-        pre: rc
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: csi-plugins-release
+  #      passed:
+  #      - TODO: add unit and certification test
+        trigger: true
+      - get: csi-plugins-version
+        resource: csi-plugins-version
+        params:
+          pre: rc
+      - get: persi-ci
   - put: csi-plugins-version
     resource: csi-plugins-version
     params:
@@ -1566,16 +1629,18 @@ jobs:
 
 - name: create-mapfs-release
   plan:
-  - aggregate:
-    - get: mapfs-release
-      passed:
-      - mapfs-unit
-      trigger: true
-    - get: mapfs-version
-      resource: mapfs-version
-      params:
-        pre: rc
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: mapfs-release
+        passed:
+        - mapfs-unit
+        trigger: true
+      - get: mapfs-version
+        resource: mapfs-version
+        params:
+          pre: rc
+      - get: persi-ci
   - put: mapfs-version
     resource: mapfs-version
     params:
@@ -1593,17 +1658,19 @@ jobs:
 
 - name: create-csi-local-volume-release
   plan:
-  - aggregate:
-    - get: csi-local-volume-release
-      passed:
-      - csi-plugin-certification
-      - csi-broker-unit
-      trigger: true
-    - get: csi-local-version
-      resource: csi-local-volume-version
-      params:
-        pre: rc
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: csi-local-volume-release
+        passed:
+        - csi-plugin-certification
+        - csi-broker-unit
+        trigger: true
+      - get: csi-local-version
+        resource: csi-local-volume-version
+        params:
+          pre: rc
+      - get: persi-ci
   - put: csi-local-version
     resource: csi-local-volume-version
     params:
@@ -1623,18 +1690,20 @@ jobs:
   serial_groups:
   - csi-local
   plan:
-  - aggregate:
-    - get: csi-local-volume-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: csi-local-volume-release
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: persi-acceptance-tests
+      - get: persi-ci
+      - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -1662,18 +1731,20 @@ jobs:
   serial_groups:
   - csi-nfs
   plan:
-  - aggregate:
-    - get: csi-plugins-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: csi-plugins-release
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: persi-acceptance-tests
+      - get: persi-ci
+      - get: gorgophone-env-director-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -1705,12 +1776,14 @@ jobs:
 - name: smbdriver-unit
   public: true
   plan:
-  - aggregate:
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: smb-volume-release
+        trigger: true
   - task: smbdriver-unit
     file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
     params:
@@ -1719,12 +1792,14 @@ jobs:
 - name: smb-azurefilebroker-unit
   public: true
   plan:
-  - aggregate:
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: smb-volume-release
+        trigger: true
   - task: azurefilebroker-unit
     file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
     params:
@@ -1733,12 +1808,14 @@ jobs:
 - name: smbbroker-unit
   public: true
   plan:
-  - aggregate:
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: smb-volume-release
+        trigger: true
   - task: smbbroker-unit
     file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
     params:
@@ -1747,12 +1824,14 @@ jobs:
 - name: smb-existingvolumebroker-unit
   public: true
   plan:
-  - aggregate:
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: smb-volume-release
+        trigger: true
   - task: existingvolumebroker-unit
     file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
     params:
@@ -1761,12 +1840,14 @@ jobs:
 - name: smb-volume-mount-options-unit
   public: true
   plan:
-  - aggregate:
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: smb-volume-release
+        trigger: true
   - task: volume-mount-options-unit
     file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
     params:
@@ -1774,20 +1855,22 @@ jobs:
 
 - name: create-smb-volume-release
   plan:
-  - aggregate:
-    - get: smb-volume-release
-      passed:
-      - smb-azurefilebroker-unit
-      - smbbroker-unit
-      - smb-existingvolumebroker-unit
-      - smb-volume-mount-options-unit
-      - smbdriver-unit
-      trigger: true
-    - get: smb-volume-version
-      resource: smb-volume-version
-      params:
-        pre: rc
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smb-volume-release
+        passed:
+        - smb-azurefilebroker-unit
+        - smbbroker-unit
+        - smb-existingvolumebroker-unit
+        - smb-volume-mount-options-unit
+        - smbdriver-unit
+        trigger: true
+      - get: smb-volume-version
+        resource: smb-volume-version
+        params:
+          pre: rc
+      - get: persi-ci
   - put: smb-volume-version
     resource: smb-volume-version
     params:
@@ -1805,16 +1888,18 @@ jobs:
 
 - name: smbdriver-certification
   plan:
-  - aggregate:
-    - get: persi-ci
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: smb-volume-release
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: gorgophone-env-director-state
   - task: driver-cert
     privileged: true
     input_mapping:
@@ -1832,18 +1917,20 @@ jobs:
   - smb
   - gorgophone-errands
   plan:
-  - aggregate:
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-    - get: smb-volume-release
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: cf-deployment
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: cf-deployment-concourse-tasks
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: gorgophone-env-director-state
+      - get: smb-volume-release
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: cf-deployment
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: cf-deployment-concourse-tasks
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -1856,40 +1943,44 @@ jobs:
   serial_groups:
   - smb
   plan:
-  - aggregate:
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: smb-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: smb-volume-release
-      passed:
-      - deploy-smb-broker
-      - smbdriver-certification
-      trigger: true
-    - get: smb-volume-release-tarball
-      passed:
-      - deploy-cf
-    - get: persi-acceptance-tests
-    - get: persi-ci
-    - get: gorgophone-env-director-state
-  - aggregate:
-    - task: generate-bind-create-configs
-      file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
-      params:
-        SMB_REMOTE_PATH: {{smb_pats_remote_path}}
-        SMB_USERNAME: {{smb_pats_username}}
-        SMB_PASSWORD: {{smb_pats_password}}
-    - task: generate-bind-create-configs-two
-      file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
-      output_mapping:
-        bind-create-config: lazy-unmount-bind-create-config
-      params:
-        SMB_REMOTE_PATH: //smbtestservertwo.service.cf.internal/vol2
-        SMB_USERNAME: {{smb_pats_username_two}}
-        SMB_PASSWORD: {{smb_pats_password_two}}
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: smb-volume-release
+        passed:
+        - deploy-smb-broker
+        - smbdriver-certification
+        trigger: true
+      - get: smb-volume-release-tarball
+        passed:
+        - deploy-cf
+      - get: persi-acceptance-tests
+      - get: persi-ci
+      - get: gorgophone-env-director-state
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: generate-bind-create-configs
+        file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
+        params:
+          SMB_REMOTE_PATH: {{smb_pats_remote_path}}
+          SMB_USERNAME: {{smb_pats_username}}
+          SMB_PASSWORD: {{smb_pats_password}}
+      - task: generate-bind-create-configs-two
+        file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
+        output_mapping:
+          bind-create-config: lazy-unmount-bind-create-config
+        params:
+          SMB_REMOTE_PATH: //smbtestservertwo.service.cf.internal/vol2
+          SMB_USERNAME: {{smb_pats_username_two}}
+          SMB_PASSWORD: {{smb_pats_password_two}}
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -1918,20 +2009,22 @@ jobs:
   serial_groups:
   - smb-version
   plan:
-  - aggregate:
-    - get: persi-ci
-    - get: release-tarball
-      resource: smb-volume-release-tarball
-      passed:
-      - pats-smb
-    - get: release
-      resource: smb-volume-release
-      passed:
-      - pats-smb
-    - get: version
-      resource: smb-volume-version
-      params:
-        bump: final
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: release-tarball
+        resource: smb-volume-release-tarball
+        passed:
+        - pats-smb
+      - get: release
+        resource: smb-volume-release
+        passed:
+        - pats-smb
+      - get: version
+        resource: smb-volume-version
+        params:
+          bump: final
   - task: finalize-release
     file: persi-ci/scripts/ci/finalize_release.build.yml
     params:
@@ -2003,11 +2096,13 @@ jobs:
 - name: cf-deployment-nightly
   public: true
   plan:
-  - aggregate:
-    - get: nightly
-      trigger: true
-    - get: cf-deployment
-    - get: diego-release
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: nightly
+        trigger: true
+      - get: cf-deployment
+      - get: diego-release
 
 - name: bbl-up-gorgophone
   serial_groups:
@@ -2019,15 +2114,17 @@ jobs:
   public: true
   build_logs_to_retain: 100
   plan:
-  - aggregate:
-    - get: bosh-bootloader
-    - get: cf-deployment-concourse-tasks
-    - get: gorgophone-env-director-state
-    - get: cf-deployment
-      passed:
-      - cf-deployment-nightly
-      trigger: true
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: bosh-bootloader
+      - get: cf-deployment-concourse-tasks
+      - get: gorgophone-env-director-state
+      - get: cf-deployment
+        passed:
+        - cf-deployment-nightly
+        trigger: true
+      - get: persi-ci
   - task: bbl-up
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -2060,61 +2157,63 @@ jobs:
   public: true
   build_logs_to_retain: 100
   plan:
-  - aggregate:
-    - get: cf-deployment-concourse-tasks
-    - get: gorgophone-env-director-state
-    - get: cf-deployment
-      passed:
-      - bbl-up-gorgophone
-      trigger: true
-    - get: persi-ci
-    - get: diego-dev-release-tarball
-      passed: [ create-diego-release ]
-      trigger: true
-    - get: diego-version
-      passed: [ create-diego-release ]
-    - get: nfs-volume-release
-      passed: [ create-nfs-volume-release ]
-    - get: nfs-volume-release-tarball
-      passed: [ create-nfs-volume-release ]
-      trigger: true
-    - get: nfsvolume-version
-      passed: [ create-nfs-volume-release ]
-    - get: local-volume-release
-      passed: [ create-local-volume-release ]
-    - get: local-volume-release-tarball
-      passed: [ create-local-volume-release ]
-      trigger: true
-    - get: localvolume-version
-      passed: [ create-local-volume-release ]
-    - get: csi-local-volume-release
-      passed: [ create-csi-local-volume-release ]
-    - get: csi-local-volume-release-tarball
-      passed: [ create-csi-local-volume-release ]
-      trigger: true
-    - get: csi-local-volume-version
-      passed: [ create-csi-local-volume-release ]
-    - get: csi-plugins-release
-      passed: [ create-csi-plugins-release ]
-    - get: csi-plugins-release-tarball
-      passed: [ create-csi-plugins-release ]
-      trigger: true
-    - get: csi-plugins-version
-      passed: [ create-csi-plugins-release ]
-    - get: mapfs-release
-      passed: [ create-mapfs-release ]
-    - get: mapfs-release-tarball
-      passed: [ create-mapfs-release ]
-      trigger: true
-    - get: mapfs-version
-      passed: [ create-mapfs-release ]
-    - get: smb-volume-release
-      passed: [ create-smb-volume-release ]
-    - get: smb-volume-release-tarball
-      passed: [ create-smb-volume-release ]
-      trigger: true
-    - get: smb-volume-version
-      passed: [ create-smb-volume-release ]
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment-concourse-tasks
+      - get: gorgophone-env-director-state
+      - get: cf-deployment
+        passed:
+        - bbl-up-gorgophone
+        trigger: true
+      - get: persi-ci
+      - get: diego-dev-release-tarball
+        passed: [ create-diego-release ]
+        trigger: true
+      - get: diego-version
+        passed: [ create-diego-release ]
+      - get: nfs-volume-release
+        passed: [ create-nfs-volume-release ]
+      - get: nfs-volume-release-tarball
+        passed: [ create-nfs-volume-release ]
+        trigger: true
+      - get: nfsvolume-version
+        passed: [ create-nfs-volume-release ]
+      - get: local-volume-release
+        passed: [ create-local-volume-release ]
+      - get: local-volume-release-tarball
+        passed: [ create-local-volume-release ]
+        trigger: true
+      - get: localvolume-version
+        passed: [ create-local-volume-release ]
+      - get: csi-local-volume-release
+        passed: [ create-csi-local-volume-release ]
+      - get: csi-local-volume-release-tarball
+        passed: [ create-csi-local-volume-release ]
+        trigger: true
+      - get: csi-local-volume-version
+        passed: [ create-csi-local-volume-release ]
+      - get: csi-plugins-release
+        passed: [ create-csi-plugins-release ]
+      - get: csi-plugins-release-tarball
+        passed: [ create-csi-plugins-release ]
+        trigger: true
+      - get: csi-plugins-version
+        passed: [ create-csi-plugins-release ]
+      - get: mapfs-release
+        passed: [ create-mapfs-release ]
+      - get: mapfs-release-tarball
+        passed: [ create-mapfs-release ]
+        trigger: true
+      - get: mapfs-version
+        passed: [ create-mapfs-release ]
+      - get: smb-volume-release
+        passed: [ create-smb-volume-release ]
+      - get: smb-volume-release-tarball
+        passed: [ create-smb-volume-release ]
+        trigger: true
+      - get: smb-volume-version
+        passed: [ create-smb-volume-release ]
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -2254,23 +2353,25 @@ jobs:
   - csi-nfs
   - smb
   plan:
-  - aggregate:
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf
-      trigger: true
-    - get: nfs-volume-release
-      passed:
-      - deploy-nfs-brokers
-      trigger: true
-    - get: smb-volume-release
-      passed:
-      - deploy-smb-broker
-      trigger: true
-    - get: bbr-binary-release
-    - get: disaster-recovery-acceptance-tests
-    - get: gorgophone-env-director-state
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf
+        trigger: true
+      - get: nfs-volume-release
+        passed:
+        - deploy-nfs-brokers
+        trigger: true
+      - get: smb-volume-release
+        passed:
+        - deploy-smb-broker
+        trigger: true
+      - get: bbr-binary-release
+      - get: disaster-recovery-acceptance-tests
+      - get: gorgophone-env-director-state
+      - get: persi-ci
   - task: update-integration-config
     file: disaster-recovery-acceptance-tests/ci/credhub-compatible/update-integration-config/task.yml
     input_mapping:
@@ -2296,44 +2397,46 @@ jobs:
   build_logs_to_retain: 100
   serial: true
   plan:
-  - aggregate:
-    - get: nfs-volume-release
-      passed:
-      - create-nfs-volume-release
-    - get: nfs-volume-release-tarball
-      passed:
-      - create-nfs-volume-release
-      trigger: true
-    - get: nfsvolume-version
-      passed:
-      - create-nfs-volume-release
-    - get: mapfs-release
-      passed:
-      - create-mapfs-release
-    - get: mapfs-release-tarball
-      passed:
-      - create-mapfs-release
-      trigger: true
-    - get: mapfs-version
-      passed:
-      - create-mapfs-release
-    - get: efs-volume-release
-      passed:
-      - create-efs-volume-release
-    - get: efs-volume-release-tarball
-      passed:
-      - create-efs-volume-release
-      trigger: true
-    - get: efsvolume-version
-      passed:
-      - create-efs-volume-release
-    - get: diego-dev-release-tarball
-      passed:
-      - create-diego-release
-      trigger: true
-    - get: diego-version
-      passed:
-      - create-diego-release
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: nfs-volume-release
+        passed:
+        - create-nfs-volume-release
+      - get: nfs-volume-release-tarball
+        passed:
+        - create-nfs-volume-release
+        trigger: true
+      - get: nfsvolume-version
+        passed:
+        - create-nfs-volume-release
+      - get: mapfs-release
+        passed:
+        - create-mapfs-release
+      - get: mapfs-release-tarball
+        passed:
+        - create-mapfs-release
+        trigger: true
+      - get: mapfs-version
+        passed:
+        - create-mapfs-release
+      - get: efs-volume-release
+        passed:
+        - create-efs-volume-release
+      - get: efs-volume-release-tarball
+        passed:
+        - create-efs-volume-release
+        trigger: true
+      - get: efsvolume-version
+        passed:
+        - create-efs-volume-release
+      - get: diego-dev-release-tarball
+        passed:
+        - create-diego-release
+        trigger: true
+      - get: diego-version
+        passed:
+        - create-diego-release
   - put: env-creation-gate-lock
     params:
       claim: heleus
@@ -2342,48 +2445,50 @@ jobs:
 - name: bbl-up-heleus
   build_logs_to_retain: 100
   plan:
-  - aggregate:
-    - get: bosh-bootloader
-    - get: cf-deployment-concourse-tasks
-    - get: env-creation-gate-lock
-      passed:
-      - acquire-lock-heleus
-      trigger: true
-    - get: gorgophone-env-director-state
-    - get: nfs-volume-release
-      passed:
-      - acquire-lock-heleus
-    - get: nfs-volume-release-tarball
-      passed:
-      - acquire-lock-heleus
-    - get: nfsvolume-version
-      passed:
-      - acquire-lock-heleus
-    - get: mapfs-release
-      passed:
-      - acquire-lock-heleus
-    - get: mapfs-release-tarball
-      passed:
-      - acquire-lock-heleus
-    - get: mapfs-version
-      passed:
-      - acquire-lock-heleus
-    - get: persi-ci
-    - get: efs-volume-release
-      passed:
-      - acquire-lock-heleus
-    - get: efs-volume-release-tarball
-      passed:
-      - acquire-lock-heleus
-    - get: efsvolume-version
-      passed:
-      - acquire-lock-heleus
-    - get: diego-dev-release-tarball
-      passed:
-      - acquire-lock-heleus
-    - get: diego-version
-      passed:
-      - acquire-lock-heleus
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: bosh-bootloader
+      - get: cf-deployment-concourse-tasks
+      - get: env-creation-gate-lock
+        passed:
+        - acquire-lock-heleus
+        trigger: true
+      - get: gorgophone-env-director-state
+      - get: nfs-volume-release
+        passed:
+        - acquire-lock-heleus
+      - get: nfs-volume-release-tarball
+        passed:
+        - acquire-lock-heleus
+      - get: nfsvolume-version
+        passed:
+        - acquire-lock-heleus
+      - get: mapfs-release
+        passed:
+        - acquire-lock-heleus
+      - get: mapfs-release-tarball
+        passed:
+        - acquire-lock-heleus
+      - get: mapfs-version
+        passed:
+        - acquire-lock-heleus
+      - get: persi-ci
+      - get: efs-volume-release
+        passed:
+        - acquire-lock-heleus
+      - get: efs-volume-release-tarball
+        passed:
+        - acquire-lock-heleus
+      - get: efsvolume-version
+        passed:
+        - acquire-lock-heleus
+      - get: diego-dev-release-tarball
+        passed:
+        - acquire-lock-heleus
+      - get: diego-version
+        passed:
+        - acquire-lock-heleus
   - task: bbl-up
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -2411,50 +2516,52 @@ jobs:
   public: true
   build_logs_to_retain: 100
   plan:
-  - aggregate:
-    - get: cf-deployment
-    - get: cf-deployment-concourse-tasks
-    - get: env-creation-gate-lock
-      passed:
-      - bbl-up-heleus
-    - get: gorgophone-env-director-state
-      passed:
-      - bbl-up-heleus
-      trigger: true
-    - get: persi-ci
-    - get: nfs-volume-release
-      passed:
-      - bbl-up-heleus
-    - get: nfs-volume-release-tarball
-      passed:
-      - bbl-up-heleus
-    - get: nfsvolume-version
-      passed:
-      - bbl-up-heleus
-    - get: mapfs-release
-      passed:
-      - bbl-up-heleus
-    - get: mapfs-release-tarball
-      passed:
-      - bbl-up-heleus
-    - get: mapfs-version
-      passed:
-      - bbl-up-heleus
-    - get: efs-volume-release
-      passed:
-      - bbl-up-heleus
-    - get: efs-volume-release-tarball
-      passed:
-      - bbl-up-heleus
-    - get: efsvolume-version
-      passed:
-      - bbl-up-heleus
-    - get: diego-dev-release-tarball
-      passed:
-      - bbl-up-heleus
-    - get: diego-version
-      passed:
-      - bbl-up-heleus
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment
+      - get: cf-deployment-concourse-tasks
+      - get: env-creation-gate-lock
+        passed:
+        - bbl-up-heleus
+      - get: gorgophone-env-director-state
+        passed:
+        - bbl-up-heleus
+        trigger: true
+      - get: persi-ci
+      - get: nfs-volume-release
+        passed:
+        - bbl-up-heleus
+      - get: nfs-volume-release-tarball
+        passed:
+        - bbl-up-heleus
+      - get: nfsvolume-version
+        passed:
+        - bbl-up-heleus
+      - get: mapfs-release
+        passed:
+        - bbl-up-heleus
+      - get: mapfs-release-tarball
+        passed:
+        - bbl-up-heleus
+      - get: mapfs-version
+        passed:
+        - bbl-up-heleus
+      - get: efs-volume-release
+        passed:
+        - bbl-up-heleus
+      - get: efs-volume-release-tarball
+        passed:
+        - bbl-up-heleus
+      - get: efsvolume-version
+        passed:
+        - bbl-up-heleus
+      - get: diego-dev-release-tarball
+        passed:
+        - bbl-up-heleus
+      - get: diego-version
+        passed:
+        - bbl-up-heleus
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -2559,15 +2666,17 @@ jobs:
 
 - name: deploy-nfs-broker-heleus
   plan:
-  - aggregate:
-    - get: cf-deployment-concourse-tasks
-    - get: env-creation-gate-lock
-      passed:
-      - deploy-cf-heleus
-    - get: gorgophone-env-director-state
-      passed:
-      - deploy-cf-heleus
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment-concourse-tasks
+      - get: env-creation-gate-lock
+        passed:
+        - deploy-cf-heleus
+      - get: gorgophone-env-director-state
+        passed:
+        - deploy-cf-heleus
+        trigger: true
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -2578,16 +2687,18 @@ jobs:
 
 - name: pats-nfs-ldap-heleus
   plan:
-  - aggregate:
-    - get: env-creation-gate-lock
-      passed:
-      - deploy-nfs-broker-heleus
-    - get: gorgophone-env-director-state
-      passed:
-      - deploy-nfs-broker-heleus
-      trigger: true
-    - get: persi-acceptance-tests
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: env-creation-gate-lock
+        passed:
+        - deploy-nfs-broker-heleus
+      - get: gorgophone-env-director-state
+        passed:
+        - deploy-nfs-broker-heleus
+        trigger: true
+      - get: persi-acceptance-tests
+      - get: persi-ci
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -2614,16 +2725,18 @@ jobs:
 
 - name: pats-nfs-ldap-legacy-heleus
   plan:
-  - aggregate:
-    - get: env-creation-gate-lock
-      passed:
-      - deploy-nfs-broker-heleus
-    - get: gorgophone-env-director-state
-      passed:
-      - deploy-nfs-broker-heleus
-      trigger: true
-    - get: persi-acceptance-tests
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: env-creation-gate-lock
+        passed:
+        - deploy-nfs-broker-heleus
+      - get: gorgophone-env-director-state
+        passed:
+        - deploy-nfs-broker-heleus
+        trigger: true
+      - get: persi-acceptance-tests
+      - get: persi-ci
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -2649,16 +2762,18 @@ jobs:
 
 - name: pats-efs-heleus
   plan:
-  - aggregate:
-    - get: env-creation-gate-lock
-      passed:
-      - deploy-cf-heleus
-    - get: gorgophone-env-director-state
-      passed:
-      - deploy-cf-heleus
-      trigger: true
-    - get: persi-acceptance-tests
-    - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: env-creation-gate-lock
+        passed:
+        - deploy-cf-heleus
+      - get: gorgophone-env-director-state
+        passed:
+        - deploy-cf-heleus
+        trigger: true
+      - get: persi-acceptance-tests
+      - get: persi-ci
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -2686,19 +2801,21 @@ jobs:
 
 - name: delete-cf-heleus-credhub
   plan:
-  - aggregate:
-    - get: cf-deployment-concourse-tasks
-    - get: env-creation-gate-lock
-      passed:
-      - pats-nfs-ldap-heleus
-      - pats-nfs-ldap-legacy-heleus
-      - pats-efs-heleus
-    - get: gorgophone-env-director-state
-      passed:
-      - pats-nfs-ldap-heleus
-      - pats-nfs-ldap-legacy-heleus
-      - pats-efs-heleus
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment-concourse-tasks
+      - get: env-creation-gate-lock
+        passed:
+        - pats-nfs-ldap-heleus
+        - pats-nfs-ldap-legacy-heleus
+        - pats-efs-heleus
+      - get: gorgophone-env-director-state
+        passed:
+        - pats-nfs-ldap-heleus
+        - pats-nfs-ldap-legacy-heleus
+        - pats-efs-heleus
+        trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
     params:
@@ -2710,50 +2827,52 @@ jobs:
   public: true
   build_logs_to_retain: 100
   plan:
-  - aggregate:
-    - get: cf-deployment
-    - get: cf-deployment-concourse-tasks
-    - get: env-creation-gate-lock
-      passed:
-      - delete-cf-heleus-credhub
-    - get: gorgophone-env-director-state
-      passed:
-      - delete-cf-heleus-credhub
-      trigger: true
-    - get: persi-ci
-    - get: nfs-volume-release
-      passed:
-      - deploy-cf-heleus
-    - get: nfs-volume-release-tarball
-      passed:
-      - deploy-cf-heleus
-    - get: nfsvolume-version
-      passed:
-      - deploy-cf-heleus
-    - get: mapfs-release
-      passed:
-      - deploy-cf-heleus
-    - get: mapfs-release-tarball
-      passed:
-      - deploy-cf-heleus
-    - get: mapfs-version
-      passed:
-      - deploy-cf-heleus
-    - get: efs-volume-release
-      passed:
-      - deploy-cf-heleus
-    - get: efs-volume-release-tarball
-      passed:
-      - deploy-cf-heleus
-    - get: efsvolume-version
-      passed:
-      - deploy-cf-heleus
-    - get: diego-dev-release-tarball
-      passed:
-      - deploy-cf-heleus
-    - get: diego-version
-      passed:
-      - deploy-cf-heleus
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment
+      - get: cf-deployment-concourse-tasks
+      - get: env-creation-gate-lock
+        passed:
+        - delete-cf-heleus-credhub
+      - get: gorgophone-env-director-state
+        passed:
+        - delete-cf-heleus-credhub
+        trigger: true
+      - get: persi-ci
+      - get: nfs-volume-release
+        passed:
+        - deploy-cf-heleus
+      - get: nfs-volume-release-tarball
+        passed:
+        - deploy-cf-heleus
+      - get: nfsvolume-version
+        passed:
+        - deploy-cf-heleus
+      - get: mapfs-release
+        passed:
+        - deploy-cf-heleus
+      - get: mapfs-release-tarball
+        passed:
+        - deploy-cf-heleus
+      - get: mapfs-version
+        passed:
+        - deploy-cf-heleus
+      - get: efs-volume-release
+        passed:
+        - deploy-cf-heleus
+      - get: efs-volume-release-tarball
+        passed:
+        - deploy-cf-heleus
+      - get: efsvolume-version
+        passed:
+        - deploy-cf-heleus
+      - get: diego-dev-release-tarball
+        passed:
+        - deploy-cf-heleus
+      - get: diego-version
+        passed:
+        - deploy-cf-heleus
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -2876,17 +2995,19 @@ jobs:
 
 - name: migrate-nfs-broker-to-credhub-heleus
   plan:
-  - aggregate:
-    - get: cf-deployment-concourse-tasks
-    - get: persi-ci
-    - get: persi-acceptance-tests
-    - get: env-creation-gate-lock
-      passed:
-      - deploy-cf-heleus-sql
-    - get: gorgophone-env-director-state
-      passed:
-      - deploy-cf-heleus-sql
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment-concourse-tasks
+      - get: persi-ci
+      - get: persi-acceptance-tests
+      - get: env-creation-gate-lock
+        passed:
+        - deploy-cf-heleus-sql
+      - get: gorgophone-env-director-state
+        passed:
+        - deploy-cf-heleus-sql
+        trigger: true
   - task: test-migration
     file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
     input_mapping:
@@ -2902,15 +3023,17 @@ jobs:
 
 - name: delete-cf-heleus
   plan:
-  - aggregate:
-    - get: cf-deployment-concourse-tasks
-    - get: env-creation-gate-lock
-      passed:
-      - migrate-nfs-broker-to-credhub-heleus
-    - get: gorgophone-env-director-state
-      passed:
-      - migrate-nfs-broker-to-credhub-heleus
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment-concourse-tasks
+      - get: env-creation-gate-lock
+        passed:
+        - migrate-nfs-broker-to-credhub-heleus
+      - get: gorgophone-env-director-state
+        passed:
+        - migrate-nfs-broker-to-credhub-heleus
+        trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
     params:
@@ -2926,15 +3049,17 @@ jobs:
 
 - name: bbl-destroy-heleus
   plan:
-  - aggregate:
-    - get: cf-deployment-concourse-tasks
-    - get: env-creation-gate-lock
-      passed:
-      - delete-cf-heleus
-    - get: gorgophone-env-director-state
-      passed:
-      - delete-cf-heleus
-      trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment-concourse-tasks
+      - get: env-creation-gate-lock
+        passed:
+        - delete-cf-heleus
+      - get: gorgophone-env-director-state
+        passed:
+        - delete-cf-heleus
+        trigger: true
   - task: destroy
     file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
     params:
