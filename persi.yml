@@ -24,7 +24,6 @@ groups:
   - smb-volume-mount-options-unit
   - localdriver-unit
   - localbroker-unit
-  - build-mapfs-tests-docker-image
   - mapfs-unit
   - localdriver-certification
   - localdriver-docker-certification
@@ -117,6 +116,11 @@ groups:
   - pats-csi-local
   - pats-csi-nfs
   - drats-nfs-smb
+
+- name: build-docker-images
+  jobs:
+  - build-nfs-driver-cert-docker-image
+  - build-mapfs-tests-docker-image
 
 - name: nfs
   jobs:
@@ -230,6 +234,14 @@ resources:
     repository: cfpersi/mapfs-tests
     username: ((dockerhub_username))
     password: ((dockerhub_password))
+
+- name: nfs-driver-cert-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/nfs-certification
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 #### Misc resources ###############################################################################################
 - name: persi-ci
   type: git
@@ -1284,6 +1296,16 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CREATE_CONFIG: '{"share":"isilon.persi.cf-app.com/ifs/persi-only"}'
       BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+
+- name: build-nfs-driver-cert-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: nfs-volume-release
+      trigger: true
+    - put: nfs-driver-cert-docker-image
+      params:
+        build: nfs-volume-release/dockerfiles/nfs-certification/
 
 #### END NFS #########################################################################################################
 
