@@ -1877,10 +1877,8 @@ jobs:
       - get: smb-volume-release
         passed:
         - smb-azurefilebroker-unit
-        - smbbroker-unit
         - smb-existingvolumebroker-unit
-        - smb-volume-mount-options-unit
-        - smbdriver-unit
+        - smbdriver-certification
         trigger: true
       - get: smb-volume-version
         resource: smb-volume-version
@@ -1913,7 +1911,9 @@ jobs:
           submodules: none
       - get: smb-volume-release
         passed:
-        - deploy-cf
+        - smbbroker-unit
+        - smb-volume-mount-options-unit
+        - smbdriver-unit
         trigger: true
       - get: gorgophone-env-director-state
   - task: driver-cert
