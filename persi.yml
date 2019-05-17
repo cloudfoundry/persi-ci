@@ -1127,8 +1127,8 @@ jobs:
       BIND_BOGUS_CONFIG: '{"uid":"1000","gid":"1000"}'
       BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
       CREATE_BOGUS_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/nonexistensevol"}'
-      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
-      CREATE_LAZY_UNMOUNT_CONFIG: '{"share":"nfstestservertwo.service.cf.internal/export/users"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users", "version":"3.0"}'
+      CREATE_LAZY_UNMOUNT_CONFIG: '{"share":"nfstestservertwo.service.cf.internal/export/users", "version":"3.0"}'
       LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME: nfstestserver
       LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME: nfsd
       LAZY_UNMOUNT_VM_INSTANCE: nfstestservertwo
@@ -1186,7 +1186,7 @@ jobs:
       BIND_BOGUS_CONFIG: '{"uid":"1000","gid":"1000"}'
       BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
       CREATE_BOGUS_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/nonexistensevol"}'
-      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users", "version":"3.0"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-legacy
   - task: run-pats
