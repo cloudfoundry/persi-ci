@@ -2660,8 +2660,6 @@ jobs:
       VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
                   operations/use-compiled-releases.yml \
-                  operations/use-external-blobstore.yml \
-                  operations/use-s3-blobstore.yml \
                   operations/enable-nfs-volume-service.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
