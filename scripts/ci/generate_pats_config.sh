@@ -51,7 +51,7 @@ EOF
     echo "" > "${bind_config_file}"
   fi
 
-  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_config=$bindConfig' "${CONFIG_FILE}")
+  updated_config=$(jq --argjson bindConfig "$(cat "${bind_config_file}")" '.bind_config=$bindConfig' "${CONFIG_FILE}")
   echo "${updated_config}" > "${CONFIG_FILE}"
 
   if [[ -n "${BIND_BOGUS_CONFIG}" ]]; then

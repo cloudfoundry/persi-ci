@@ -1125,7 +1125,7 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       BIND_BOGUS_CONFIG: '{"uid":"1000","gid":"1000"}'
-      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}"]'
       CREATE_BOGUS_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/nonexistensevol"}'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users", "version":"3.0"}'
       CREATE_LAZY_UNMOUNT_CONFIG: '{"share":"nfstestservertwo.service.cf.internal/export/users", "version":"3.0"}'
@@ -1184,7 +1184,7 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       BIND_BOGUS_CONFIG: '{"uid":"1000","gid":"1000"}'
-      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"mount\": \"/var/vcap/data/foo\"}"]'
       CREATE_BOGUS_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/nonexistensevol"}'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users", "version":"3.0"}'
       PLAN_NAME: Existing
@@ -1230,7 +1230,7 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}"]'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
@@ -1271,7 +1271,7 @@ jobs:
       SERVICE_NAME: nfs
       PLAN_NAME: Existing
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}"]'
 
 - name: background-load-test
   serial_groups:
@@ -1295,7 +1295,7 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       APPS_DOMAIN: gorgophone.cf-app.com
       CREATE_CONFIG: '{"share":"isilon.persi.cf-app.com/ifs/persi-only"}'
-      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}"]'
 
 - name: build-nfs-driver-cert-docker-image
   plan:
@@ -1361,7 +1361,7 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}"]'
       CREATE_CONFIG: '{"share":"isilon.persi.cf-app.com/ifs/persi-pats"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
@@ -1729,7 +1729,7 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{"mount":"/var/vcap/store"}'
+      BIND_CONFIG: '["{\"mount\":\"/var/vcap/store\"}"]'
       BROKER_PASSWORD_KEY: csi-localbroker-password
       BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
       BROKER_USER: csi-localbroker
@@ -1770,8 +1770,7 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      #TODO: add uid/gid bind config and use /export/users endpoint
-      BIND_CONFIG: '{}'
+      BIND_CONFIG: '["{}"]'
       BROKER_PASSWORD_KEY: csi-nfsbroker-password
       BROKER_URL: http://csi-nfsbroker.gorgophone.cf-app.com
       BROKER_USER: csi-nfsbroker
@@ -2719,7 +2718,7 @@ jobs:
       APPS_DOMAIN: heleus.persi.cf-app.com
       CF_API_ENDPOINT: api.heleus.persi.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{"username":"user1000","password":"secret"}'
+      BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
       PLAN_NAME: Existing
@@ -2757,7 +2756,7 @@ jobs:
       APPS_DOMAIN: heleus.persi.cf-app.com
       CF_API_ENDPOINT: api.heleus.persi.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{"username":"user1000","password":"secret"}'
+      BIND_CONFIG: '["{"username":"user1000","password":"secret"}"]'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
       PLAN_NAME: Existing
@@ -3026,7 +3025,7 @@ jobs:
       APPS_DOMAIN: heleus.persi.cf-app.com
       CF_API_ENDPOINT: api.heleus.persi.cf-app.com
       CF_USERNAME: admin
-      BIND_CONFIG: '{"username":"user1000","password":"secret"}'
+      BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
 
 - name: delete-cf-heleus
