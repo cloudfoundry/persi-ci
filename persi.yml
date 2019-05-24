@@ -1295,7 +1295,7 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       APPS_DOMAIN: gorgophone.cf-app.com
       CREATE_CONFIG: '{"share":"isilon.persi.cf-app.com/ifs/persi-only"}'
-      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}"]'
+      BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
 
 - name: build-nfs-driver-cert-docker-image
   plan:
