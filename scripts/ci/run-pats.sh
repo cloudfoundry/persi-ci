@@ -19,8 +19,8 @@ pushd persi-acceptance-tests
   export PATH="${GOPATH}/bin:${PATH}"
 
   if [[ -n "${PARALLEL_NODES}" ]]; then
-    ./bin/test --slowSpecThreshold=300 -nodes "${PARALLEL_NODES}" .
+    ./bin/test -flakeAttempts=3 --slowSpecThreshold=300 -nodes "${PARALLEL_NODES}" .
   else
-    ./bin/test --slowSpecThreshold=300 -p .
+    ./bin/test -flakeAttempts=3 --slowSpecThreshold=300 -p .
   fi
 popd
