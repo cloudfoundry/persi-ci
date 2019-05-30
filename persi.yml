@@ -1305,6 +1305,7 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CREATE_CONFIG: '{"share":"isilon.persi.cf-app.com/ifs/persi-only"}'
       BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+    attempts: 3
 
 - name: build-nfs-driver-cert-docker-image
   plan:
@@ -2176,6 +2177,11 @@ jobs:
       params:
         repository: updated-bbl-state
         rebase: true
+      on_error:
+        put: gorgophone-env-director-state
+        params:
+          repository: updated-bbl-state
+          rebase: true
 
 - name: deploy-cf
   serial_groups:
@@ -2539,6 +2545,11 @@ jobs:
       params:
         repository: updated-bbl-state
         rebase: true
+      on_error:
+        put: gorgophone-env-director-state
+        params:
+          repository: updated-bbl-state
+          rebase: true
 
 - name: deploy-cf-heleus
   public: true
