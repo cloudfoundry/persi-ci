@@ -2419,6 +2419,7 @@ jobs:
       SYSTEM_DOMAIN: gorgophone.cf-app.com
   - task: acceptance-tests
     file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
+    attempts: 3
     privileged: true
     input_mapping:
       drats-integration-config: updated-integration-configs
