@@ -831,12 +831,17 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: nfs-volume-release-concourse-tasks
+      - get: mapfs-release
       - get: nfs-volume-release
         trigger: true
-  - task: build
+  - task: rspec
     file: persi-ci/scripts/ci/run-rspec.build.yml
     input_mapping:
       test-repo: nfs-volume-release
+  - task: bosh-release-test
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+    privileged: true
 
 - name: nfsdriver-certification
   serial: true
