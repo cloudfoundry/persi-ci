@@ -122,6 +122,7 @@ groups:
   - build-nfs-driver-cert-docker-image
   - build-mapfs-tests-docker-image
   - build-nfs-bosh-release-test-docker-image
+  - build-nfs-broker-tests-docker-image
 
 - name: nfs
   jobs:
@@ -250,7 +251,14 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-  #### Misc resources ###############################################################################################
+- name: nfs-broker-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/nfs-broker-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+#### Misc resources ###############################################################################################
 - name: persi-ci
   type: git
   source:
@@ -1338,6 +1346,16 @@ jobs:
     - put: nfs-bosh-release-test-docker-image
       params:
         build: nfs-volume-release/dockerfiles/bosh-release-tests
+
+- name: build-nfs-broker-tests-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: nfs-volume-release
+      trigger: true
+    - put: nfs-broker-tests-docker-image
+      params:
+        build: nfs-volume-release/dockerfiles/nfs-broker-tests
 
 #### END NFS #########################################################################################################
 
