@@ -7,7 +7,7 @@ groups:
   - volman-unit
   - volman-inigo
   - nfsdriver-unit
-  - nfsbroker-unit
+  - nfsbroker-tests
   - nfs-volume-release-job-tests
   - nfsdriver-certification
   - efsdriver-unit
@@ -126,7 +126,7 @@ groups:
 - name: nfs
   jobs:
   - nfsdriver-unit
-  - nfsbroker-unit
+  - nfsbroker-tests
   - nfs-volume-release-job-tests
   - nfsdriver-certification
   - create-nfs-volume-release
@@ -266,6 +266,12 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
+
+- name: credhub
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/credhub
 
 - name: nightly
   type: time
@@ -811,7 +817,7 @@ jobs:
   - task: build
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
 
-- name: nfsbroker-unit
+- name: nfsbroker-tests
   public: true
   plan:
   - in_parallel:
@@ -822,8 +828,9 @@ jobs:
           submodules: none
       - get: nfs-volume-release
         trigger: true
-  - task: build
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
+      - get: credhub
+  - task: run-test
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
 
 - name: nfs-volume-release-job-tests
   plan:
@@ -856,7 +863,7 @@ jobs:
       - get: nfs-volume-release
         passed:
         - nfsdriver-unit
-        - nfsbroker-unit
+        - nfsbroker-tests
         - nfs-volume-release-job-tests
         trigger: true
       - get: mapfs-release
