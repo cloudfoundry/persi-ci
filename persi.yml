@@ -1548,7 +1548,7 @@ jobs:
     privileged: true
     file: persi-ci/scripts/ci/run_volman_inigo.build.yml
     params:
-      DEFAULT_EVENTUALLY_TIMEOUT: 5m
+      DEFAULT_EVENTUALLY_TIMEOUT: 10m
       GINKGO_PARALLEL: false
 
 - name: create-diego-release
