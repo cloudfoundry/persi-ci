@@ -36,13 +36,6 @@ collect_versions() {
       fi
       CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
   fi
-  if [ "$COLLECT_CSI_PLUGINS_TARBALL" = "true" ]; then
-      if [ ! -d ${ROOT_DIR}/csi-plugins-version ]; then
-        echo "[ERROR] csi-plugins-version input is missing."
-        exit 1
-      fi
-      CSI_PLUGINS_VERSION="$(cat csi-plugins-version/number)"
-  fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" ]; then
       if [ ! -d ${ROOT_DIR}/mapfs-version ]; then
         echo "[ERROR] mapfs-version input is missing."
@@ -78,10 +71,6 @@ check_params() {
   fi
   if [ "$COLLECT_CSI_LOCAL_TARBALL" = "true" -a ! -d ${ROOT_DIR}/csi-local-tarball ]; then
     echo "[ERROR] csi-local-tarball input is missing."
-    exit 1
-  fi
-  if [ "$COLLECT_CSI_PLUGINS_TARBALL" = "true" -a ! -d ${ROOT_DIR}/csi-plugins-tarball ]; then
-    echo "[ERROR] csi-plugins-tarball input is missing."
     exit 1
   fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" -a ! -d ${ROOT_DIR}/mapfs-tarball ]; then
@@ -137,9 +126,6 @@ collect_tarballs() {
   fi
   if [ "$COLLECT_CSI_LOCAL_TARBALL" = "true" -a -n "${CSI_LOCAL_VERSION}" ]; then
       cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
-  fi
-  if [ "$COLLECT_CSI_PLUGINS_TARBALL" = "true" -a -n "${CSI_PLUGINS_VERSION}" ]; then
-      cp ${ROOT_DIR}/csi-plugins-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-plugins.tgz
   fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" -a -n "${MAPFS_VERSION}" ]; then
       cp ${ROOT_DIR}/mapfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/mapfs.tgz
@@ -204,16 +190,6 @@ EOF
     name: csi-local-volume
     version: ${CSI_LOCAL_VERSION}
     url: ../ops-files/csi-local.tgz
-EOF
-  fi
-  if [ "$COLLECT_CSI_PLUGINS_TARBALL" = "true" ]; then
-    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
-- type: replace
-  path: /releases/name=csi-plugins
-  value:
-    name: csi-plugins
-    version: ${CSI_PLUGINS_VERSION}
-    url: ../ops-files/csi-plugins.tgz
 EOF
   fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" ]; then

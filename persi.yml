@@ -33,7 +33,6 @@ groups:
   - create-nfs-volume-release
   - create-efs-volume-release
   - create-csi-local-volume-release
-  - create-csi-plugins-release
   - create-mapfs-release
   - create-diego-release
   - create-smb-volume-release
@@ -61,7 +60,6 @@ groups:
   - cats-nfs
   - drats-nfs-smb
   - pats-csi-local
-  - pats-csi-nfs
   - pats-smb
   - pats-local
   - background-load-test
@@ -81,7 +79,6 @@ groups:
   - cats-nfs
   - drats-nfs-smb
   - pats-csi-local
-  - pats-csi-nfs
   - pats-smb
   - pats-local
   - background-load-test
@@ -109,12 +106,10 @@ groups:
   - csi-broker-unit
   - mapfs-unit
   - create-csi-local-volume-release
-  - create-csi-plugins-release
   - create-mapfs-release
   - bbl-up-gorgophone
   - deploy-cf
   - pats-csi-local
-  - pats-csi-nfs
   - drats-nfs-smb
 
 - name: build-docker-images
@@ -498,16 +493,6 @@ resources:
     region_name: us-east-1
     secret_access_key: {{csivolume-uploader_aws_secret}}
 
-- name: csi-plugins-version
-  type: semver
-  source:
-    access_key_id: {{csiplugins-uploader_aws_ID}}
-    bucket: csi-plugins-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{csiplugins-uploader_aws_secret}}
-
 - name: csi-local-volume-release-tarball
   type: s3
   source:
@@ -515,19 +500,6 @@ resources:
     bucket: csi-local-volume-release-tarballs
     regexp: csi-local-volume-(.*).tgz
     secret_access_key: {{csivolume-uploader_aws_secret}}
-
-- name: csi-plugins-release-tarball
-  type: s3
-  source:
-    access_key_id: {{csiplugins-uploader_aws_ID}}
-    bucket: csi-plugins-release-tarballs
-    regexp: csi-plugins-(.*).tgz
-    secret_access_key: {{csiplugins-uploader_aws_secret}}
-
-- name: csi-plugins-release
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/csi-plugins-release.git
 
 #### End CSI resources ###############################################################################################
 
@@ -1645,35 +1617,6 @@ jobs:
     privileged: true
     file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-plugin-certification.build.yml
 
-- name: create-csi-plugins-release
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: csi-plugins-release
-  #      passed:
-  #      - TODO: add unit and certification test
-        trigger: true
-      - get: csi-plugins-version
-        resource: csi-plugins-version
-        params:
-          pre: rc
-      - get: persi-ci
-  - put: csi-plugins-version
-    resource: csi-plugins-version
-    params:
-      file: csi-plugins-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: csi-plugins-release
-      release-version: csi-plugins-version
-    params:
-      RELEASE_NAME: csi-plugins
-  - put: csi-plugins-release-tarball
-    params:
-      file: release-tarball/csi-plugins-*.tgz
-
 - name: build-mapfs-tests-docker-image
   plan:
   - get: nightly
@@ -1792,48 +1735,6 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
-
-- name: pats-csi-nfs
-  serial_groups:
-  - csi-nfs
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: csi-plugins-release
-        passed:
-        - deploy-cf
-        trigger: true
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf
-        trigger: true
-      - get: persi-acceptance-tests
-      - get: persi-ci
-      - get: gorgophone-env-director-state
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      BIND_CONFIG: '["{}"]'
-      BROKER_PASSWORD_KEY: csi-nfsbroker-password
-      BROKER_URL: http://csi-nfsbroker.gorgophone.cf-app.com
-      BROKER_USER: csi-nfsbroker
-      CREATE_CONFIG: '{"name":"csi-nfs-storage","volume_capabilities":[{"mount":{}}],"parameters":{"server":"nfstestserver.service.cf.internal","share":"/export/users2000"}}'
-      PLAN_NAME: free
-      SERVICE_NAME: csi-nfs
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      TEST_MULTI_CELL: true
 
 #### END CSI related jobs ############################################################################################
 
@@ -2259,13 +2160,6 @@ jobs:
         trigger: true
       - get: csi-local-volume-version
         passed: [ create-csi-local-volume-release ]
-      - get: csi-plugins-release
-        passed: [ create-csi-plugins-release ]
-      - get: csi-plugins-release-tarball
-        passed: [ create-csi-plugins-release ]
-        trigger: true
-      - get: csi-plugins-version
-        passed: [ create-csi-plugins-release ]
       - get: mapfs-release
         passed: [ create-mapfs-release ]
       - get: mapfs-release-tarball
@@ -2290,7 +2184,6 @@ jobs:
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: nfsvolume-version #dummy
       csi-local-tarball: csi-local-volume-release-tarball
-      csi-plugins-tarball: csi-plugins-release-tarball
       mapfs-tarball: mapfs-release-tarball
       local-tarball: local-volume-release-tarball
       smb-tarball: smb-volume-release-tarball
@@ -2298,7 +2191,6 @@ jobs:
       nfs-version: nfsvolume-version
       efs-version: nfsvolume-version #dummy
       csi-local-version: csi-local-volume-version
-      csi-plugins-version: csi-plugins-version
       mapfs-version: mapfs-version
       local-version: localvolume-version
       smb-version: smb-volume-version
@@ -2321,14 +2213,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-local-volume-service.yml"
-  - task: collect-csi-plugins-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: csi-plugins-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/add-csi-nfs-plugin.yml"
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2348,7 +2232,6 @@ jobs:
                       nfs.tgz
                       local.tgz
                       csi-local.tgz
-                      csi-plugins.tgz
                       mapfs.tgz
                       smb.tgz"
   - task: generate-variables
@@ -2388,7 +2271,6 @@ jobs:
                   operations/test/enable-nfs-test-server.yml
                   operations/test/enable-smb-test-server.yml
                   operations/enable-csi-local-plugin.yml
-                  operations/add-csi-nfs-plugin.yml
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
@@ -2416,7 +2298,6 @@ jobs:
   - local
   - nfs
   - csi-local
-  - csi-nfs
   - smb
   plan:
   - in_parallel:
@@ -2639,7 +2520,6 @@ jobs:
       COLLECT_NFS_TARBALL: true
       COLLECT_EFS_TARBALL: true
       COLLECT_CSI_LOCAL_TARBALL: false
-      COLLECT_CSI_PLUGINS_TARBALL: false
       COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
@@ -2651,7 +2531,6 @@ jobs:
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: efsvolume-version #dummy
-      csi-plugins-tarball: efsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
       local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
@@ -2659,7 +2538,6 @@ jobs:
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
       csi-local-version: efsvolume-version #dummy
-      csi-plugins-version: efsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
       local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
@@ -2949,7 +2827,6 @@ jobs:
       COLLECT_NFS_TARBALL: true
       COLLECT_EFS_TARBALL: true
       COLLECT_CSI_LOCAL_TARBALL: false
-      COLLECT_CSI_PLUGINS_TARBALL: false
       COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
@@ -2961,7 +2838,6 @@ jobs:
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
       csi-local-tarball: efsvolume-version #dummy
-      csi-plugins-tarball: efsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
       local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
@@ -2969,7 +2845,6 @@ jobs:
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
       csi-local-version: efsvolume-version #dummy
-      csi-plugins-version: efsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
       local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
