@@ -9,6 +9,7 @@ groups:
   - nfsdriver-unit
   - nfsbroker-tests
   - nfs-volume-release-job-tests
+  - smb-volume-release-job-tests
   - nfsdriver-certification
   - efsdriver-unit
   - efsbroker-unit
@@ -167,6 +168,7 @@ groups:
   - smbdriver-unit
   - smb-azurefilebroker-unit
   - smbbroker-unit
+  - smb-volume-release-job-tests
   - smb-existingvolumebroker-unit
   - smb-volume-mount-options-unit
   - create-smb-volume-release
@@ -828,6 +830,19 @@ jobs:
       test-repo: nfs-volume-release
   - task: bosh-release-test
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+    privileged: true
+
+- name: smb-volume-release-job-tests
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: smb-volume-release-concourse-tasks
+      - get: smb-volume-release
+        trigger: true
+  - task: bosh-release-test
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
 
 - name: nfsdriver-certification
@@ -1864,6 +1879,7 @@ jobs:
         - smbbroker-unit
         - smb-volume-mount-options-unit
         - smbdriver-unit
+        - smb-volume-release-job-tests
         trigger: true
       - get: gorgophone-env-director-state
   - task: driver-cert
