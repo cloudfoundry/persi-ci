@@ -51,7 +51,6 @@ groups:
   - deploy-cf-heleus-sql
   - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
-  - bbl-destroy-heleus
   - deploy-nfs-brokers
   - pats-nfs
   - create-isilon-volume
@@ -97,7 +96,6 @@ groups:
   - deploy-cf-heleus-sql
   - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
-  - bbl-destroy-heleus
 
 - name: csi
   jobs:
@@ -148,7 +146,6 @@ groups:
   - deploy-cf-heleus-sql
   - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
-  - bbl-destroy-heleus
 
 - name: efs
   jobs:
@@ -161,7 +158,6 @@ groups:
   - deploy-cf-heleus
   - pats-efs-heleus
   - delete-cf-heleus
-  - bbl-destroy-heleus
 
 - name: smb
   jobs:
@@ -2992,38 +2988,9 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
-
-- name: bbl-destroy-heleus
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: cf-deployment-concourse-tasks
-      - get: env-creation-gate-lock
-        passed:
-        - delete-cf-heleus
-      - get: gorgophone-env-director-state
-        passed:
-        - delete-cf-heleus
-        trigger: true
-  - task: destroy
-    file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
-    params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
-      BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
-      BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-    ensure:
-      put: gorgophone-env-director-state
-      params:
-        repository: updated-bbl-state
-        rebase: true
   - put: env-creation-gate-lock
     params:
       release: env-creation-gate-lock
-
 #### END heleus related jobs #########################################################################################
 
 ###################################### END JOBS SECTION ##############################################################
