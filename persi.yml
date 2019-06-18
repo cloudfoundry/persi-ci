@@ -864,8 +864,6 @@ jobs:
     - task: driver-cert
       file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
       privileged: true
-      tags:
-      - aws
 
 - name: create-nfs-volume-release
   serial_groups:
