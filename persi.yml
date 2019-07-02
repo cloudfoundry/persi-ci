@@ -2301,7 +2301,7 @@ jobs:
       bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      CLEAN_ALL: false
+      CLEAN_ALL: true
 
 - name: drats-nfs-smb
   serial: true
