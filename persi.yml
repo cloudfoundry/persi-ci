@@ -128,6 +128,7 @@ groups:
   - mapfs-release-job-tests
   - nfsdriver-certification
   - create-nfs-volume-release
+  - create-mapfs-release
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-nfs-brokers
@@ -850,6 +851,7 @@ jobs:
   - task: bosh-release-test
     file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
+    timeout: 1h
 
 - name: smb-volume-release-job-tests
   plan:
