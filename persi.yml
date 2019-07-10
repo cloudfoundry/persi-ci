@@ -10,6 +10,7 @@ groups:
   - nfsbroker-tests
   - nfs-volume-release-job-tests
   - smb-volume-release-job-tests
+  - mapfs-release-job-tests
   - nfsdriver-certification
   - efsdriver-unit
   - efsbroker-unit
@@ -122,7 +123,9 @@ groups:
   jobs:
   - nfsdriver-unit
   - nfsbroker-tests
+  - mapfs-unit
   - nfs-volume-release-job-tests
+  - mapfs-release-job-tests
   - nfsdriver-certification
   - create-nfs-volume-release
   - bbl-up-gorgophone
@@ -574,6 +577,14 @@ resources:
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/mapfs-release.git
 
+- name: mapfs-release-concourse-tasks
+  type: git
+  source:
+    branch: master
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/mapfs-release.git
+
 - name: mapfs
   type: git
   source:
@@ -828,6 +839,18 @@ jobs:
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
 
+- name: mapfs-release-job-tests
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: mapfs-release
+        trigger: true
+      - get: mapfs-release-concourse-tasks
+  - task: bosh-release-test
+    file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+    privileged: true
+
 - name: smb-volume-release-job-tests
   plan:
   - in_parallel:
@@ -858,7 +881,9 @@ jobs:
         - nfs-volume-release-job-tests
         trigger: true
       - get: mapfs-release
-        passed: [ mapfs-unit ]
+        passed:
+        - mapfs-unit
+        - mapfs-release-job-tests
         trigger: true
   - do:
     - task: driver-cert
@@ -1655,6 +1680,7 @@ jobs:
       - get: mapfs-release
         passed:
         - mapfs-unit
+        - mapfs-release-job-tests
         trigger: true
       - get: mapfs-version
         resource: mapfs-version
