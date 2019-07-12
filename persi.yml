@@ -2585,6 +2585,8 @@ jobs:
     file: persi-ci/scripts/ci/upload-bosh-dns.build.yml
     params:
       BBL_STATE_DIR: bbl-state-aws-heleus
+    input_mapping:
+      director-state: gorgophone-env-director-state
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
