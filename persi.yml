@@ -261,10 +261,10 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
 
-- name: persi-acceptance-tests
+- name: cf-volume-services-acceptance-tests
   type: git
   source:
-    uri: https://github.com/cloudfoundry/persi-acceptance-tests.git
+    uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
 
 - name: cf-acceptance-tests
   type: git
@@ -767,7 +767,7 @@ jobs:
         passed:
         - deploy-cf
         trigger: true
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1151,7 +1151,7 @@ jobs:
       - get: mapfs-release-tarball
         passed:
         - deploy-cf
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1210,7 +1210,7 @@ jobs:
       - get: mapfs-release-tarball
         passed:
         - deploy-cf
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1257,7 +1257,7 @@ jobs:
       - get: nfs-volume-release-tarball
         passed:
         - deploy-cf
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1322,7 +1322,7 @@ jobs:
       - get: nightly
         trigger: true
       - get: persi-ci
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: gorgophone-env-director-state
   - task: run-test
     file: persi-ci/scripts/ci/run_background_load_test.build.yml
@@ -1409,7 +1409,7 @@ jobs:
         - create-isilon-volume
         - deploy-nfs-brokers
         trigger: true
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1749,7 +1749,7 @@ jobs:
         passed:
         - deploy-cf
         trigger: true
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: gorgophone-env-director-state
   - task: generate-pats-config
@@ -1967,7 +1967,7 @@ jobs:
       - get: smb-volume-release-tarball
         passed:
         - deploy-cf
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: gorgophone-env-director-state
   - in_parallel:
@@ -2676,7 +2676,7 @@ jobs:
         passed:
         - deploy-nfs-broker-heleus
         trigger: true
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
@@ -2714,7 +2714,7 @@ jobs:
         passed:
         - deploy-nfs-broker-heleus
         trigger: true
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
@@ -2751,7 +2751,7 @@ jobs:
         passed:
         - deploy-cf-heleus
         trigger: true
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: persi-ci
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
@@ -2968,7 +2968,7 @@ jobs:
       steps:
       - get: cf-deployment-concourse-tasks
       - get: persi-ci
-      - get: persi-acceptance-tests
+      - get: cf-volume-services-acceptance-tests
       - get: env-creation-gate-lock
         passed:
         - deploy-cf-heleus-sql
