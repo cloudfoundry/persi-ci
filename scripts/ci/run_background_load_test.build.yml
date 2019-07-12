@@ -9,7 +9,7 @@ image_resource:
 
 inputs:
   - name: persi-ci
-  - name: persi-acceptance-tests
+  - name: cf-volume-services-acceptance-tests
   - name: bbl-state
 
 params:

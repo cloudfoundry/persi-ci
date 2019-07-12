@@ -14,7 +14,7 @@ set +x
 source bosh-env/set-env.sh
 set -x
 
-pushd persi-acceptance-tests
+pushd cf-volume-services-acceptance-tests
   export GOPATH="${PWD}"
   export PATH="${GOPATH}/bin:${PATH}"
 

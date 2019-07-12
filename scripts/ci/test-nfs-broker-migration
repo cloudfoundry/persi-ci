@@ -28,7 +28,7 @@ function main() {
   echo "Enabling service access..."
   cf enable-service-access nfs -o ${org_name}
 
-  pushd persi-acceptance-tests/assets/pora
+  pushd cf-volume-services-acceptance-tests/assets/pora
     echo "Pushing ${app_name}..."
     cf push ${app_name} --no-start
   popd

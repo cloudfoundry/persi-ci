@@ -49,7 +49,7 @@ echo "Creating service..."
 cf create-service "${SERVICE_NAME}" "${PLAN_NAME}" "${SERVICE_INSTANCE_NAME}" -c "${CREATE_CONFIG}"
 
 echo "Pushing app..."
-cd persi-acceptance-tests/assets/pora
+cd cf-volume-services-acceptance-tests/assets/pora
 cf push "${APP_NAME}" --no-start
 
 echo "Binding service..."
