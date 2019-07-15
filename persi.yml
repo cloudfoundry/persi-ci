@@ -1555,6 +1555,7 @@ jobs:
     input_mapping:
       routing-release-master: routing-release
   - task: build
+    attempts: 3
     privileged: true
     file: persi-ci/scripts/ci/run_volman_inigo.build.yml
     params:
