@@ -54,8 +54,6 @@ groups:
   - delete-cf-heleus
   - deploy-nfs-brokers
   - pats-nfs
-  - create-isilon-volume
-  - pats-isilon
   - pats-nfs-docker
   - pats-nfs-legacy
   - cats-nfs
@@ -73,8 +71,6 @@ groups:
   - deploy-nfs-brokers
   - deploy-smb-broker
   - pats-nfs
-  - create-isilon-volume
-  - pats-isilon
   - pats-nfs-docker
   - pats-nfs-legacy
   - cats-nfs
@@ -139,8 +135,6 @@ groups:
   - pats-nfs-legacy
   - cats-nfs
   - drats-nfs-smb
-  - create-isilon-volume
-  - pats-isilon
   - background-load-test
   - acquire-lock-heleus
   - bbl-up-heleus
@@ -474,14 +468,6 @@ resources:
   source:
     repository: cloudfoundry-incubator/cf-routing-release
 #### End Diego resources ################################################################################################
-
-#### Persi resources ################################################################################################
-- name: deployments-persi
-  type: git
-  source:
-    private_key: {{deployments-persi-key}}
-    uri: git@github.com:cloudfoundry/deployments-persi.git
-#### End Persi resources ################################################################################################
 
 #### CSI resources ###################################################################################################
 - name: csi-local-volume-release
@@ -1349,7 +1335,7 @@ jobs:
       CF_USERNAME: admin
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       APPS_DOMAIN: gorgophone.cf-app.com
-      CREATE_CONFIG: '{"share":"isilon.persi.cf-app.com/ifs/persi-only"}'
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
     attempts: 3
 
@@ -1403,73 +1389,6 @@ jobs:
       params:
         build: smb-volume-release/dockerfiles/smb-unit-tests
 #### END NFS #########################################################################################################
-
-#### Isilon related jobs #############################################################################################
-- name: create-isilon-volume
-  serial_groups:
-  - isilon
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: nfs-volume-release
-        passed:
-        - deploy-cf
-        trigger: true
-      - get: persi-ci
-      - get: deployments-persi
-      - get: gorgophone-env-director-state
-  - task: create-share
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_IAAS: gcp
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-    file: deployments-persi/persi-ci/deployments/isilon-volume/create-share.build.yml
-
-- name: pats-isilon
-  serial_groups:
-  - nfs
-  - isilon
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf
-        trigger: true
-      - get: nfs-volume-release
-        passed:
-        - create-isilon-volume
-        - deploy-nfs-brokers
-        trigger: true
-      - get: cf-volume-services-acceptance-tests
-      - get: persi-ci
-      - get: gorgophone-env-director-state
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}"]'
-      CREATE_CONFIG: '{"share":"isilon.persi.cf-app.com/ifs/persi-pats"}'
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      TEST_MULTI_CELL: true
-      TEST_READ_ONLY: true
-#### END Isilon ######################################################################################################
-
 
 #### EFS related jobs ################################################################################################
 - name: efsdriver-unit
