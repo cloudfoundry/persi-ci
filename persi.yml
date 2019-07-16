@@ -485,7 +485,7 @@ resources:
 - name: csi-cert
   type: git
   source:
-    uri: https://github.com/paulcwarren/csi-cert
+    uri: https://github.com/cloudfoundry/csi-certification-test
 
 - name: csi-local-volume-version
   type: semver
