@@ -865,6 +865,7 @@ jobs:
   - task: bosh-release-test
     file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
+    attempts: 3
 
 - name: nfsdriver-certification
   serial: true
