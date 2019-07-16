@@ -118,6 +118,8 @@ groups:
   - build-mapfs-tests-docker-image
   - build-nfs-bosh-release-test-docker-image
   - build-nfs-broker-tests-docker-image
+  - build-nfs-unit-tests-docker-image
+  - build-smb-unit-tests-docker-image
 
 - name: nfs
   jobs:
@@ -252,6 +254,20 @@ resources:
   type: docker-image
   source:
     repository: cfpersi/nfs-broker-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: nfs-unit-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/nfs-unit-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: smb-unit-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/smb-unit-tests
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
@@ -1367,6 +1383,25 @@ jobs:
       params:
         build: nfs-volume-release/dockerfiles/nfs-broker-tests
 
+- name: build-nfs-unit-tests-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: nfs-volume-release
+      trigger: true
+    - put: nfs-unit-tests-docker-image
+      params:
+        build: nfs-volume-release/dockerfiles/nfs-unit-tests
+
+- name: build-smb-unit-tests-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: smb-volume-release
+      trigger: true
+    - put: smb-unit-tests-docker-image
+      params:
+        build: smb-volume-release/dockerfiles/smb-unit-tests
 #### END NFS #########################################################################################################
 
 #### Isilon related jobs #############################################################################################
