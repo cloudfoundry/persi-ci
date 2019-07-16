@@ -20,7 +20,6 @@ groups:
   - csi-broker-unit
   - csi-plugin-certification
   - smbdriver-unit
-  - smb-azurefilebroker-unit
   - smbbroker-unit
   - smb-existingvolumebroker-unit
   - smb-volume-mount-options-unit
@@ -162,7 +161,6 @@ groups:
 - name: smb
   jobs:
   - smbdriver-unit
-  - smb-azurefilebroker-unit
   - smbbroker-unit
   - smb-volume-release-job-tests
   - smb-existingvolumebroker-unit
@@ -1749,22 +1747,6 @@ jobs:
     params:
       SUBMODULE_NAME: smbdriver
 
-- name: smb-azurefilebroker-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smb-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: smb-volume-release
-        trigger: true
-  - task: azurefilebroker-unit
-    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
-    params:
-      SUBMODULE_NAME: azurefilebroker
-
 - name: smbbroker-unit
   public: true
   plan:
@@ -1820,7 +1802,6 @@ jobs:
       steps:
       - get: smb-volume-release
         passed:
-        - smb-azurefilebroker-unit
         - smb-existingvolumebroker-unit
         - smbdriver-certification
         trigger: true
