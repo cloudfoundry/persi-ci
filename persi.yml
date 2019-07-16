@@ -2542,6 +2542,7 @@ jobs:
 - name: deploy-cf-heleus
   public: true
   build_logs_to_retain: 100
+  serial_groups: [deploy-cf-heleus]
   plan:
   - in_parallel:
       fail_fast: true
@@ -2822,6 +2823,7 @@ jobs:
       TEST_MULTI_CELL: true
 
 - name: delete-cf-heleus-credhub
+  serial_groups: [deploy-cf-heleus]
   plan:
   - in_parallel:
       fail_fast: true
@@ -2846,6 +2848,7 @@ jobs:
       bbl-state: gorgophone-env-director-state
 
 - name: deploy-cf-heleus-sql
+  serial_groups: [deploy-cf-heleus]
   public: true
   build_logs_to_retain: 100
   plan:
@@ -3032,6 +3035,7 @@ jobs:
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
 
 - name: delete-cf-heleus
+  serial_groups: [deploy-cf-heleus]
   plan:
   - in_parallel:
       fail_fast: true
