@@ -396,8 +396,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
-    ignore_paths:
-    - scripts
 
 - name: efs-volume-release-concourse-tasks
   type: git
