@@ -11,10 +11,10 @@ groups:
   - nfs-volume-release-job-tests
   - smb-volume-release-job-tests
   - mapfs-release-job-tests
-  - nfsdriver-certification
+  - nfsdriver-integration
   - efsdriver-unit
   - efsbroker-unit
-  - efsdriver-certification
+  - efsdriver-integration
   - csi-local-controller-plugin-unit
   - csi-local-node-plugin-unit
   - csi-broker-unit
@@ -28,7 +28,7 @@ groups:
   - mapfs-unit
   - localdriver-certification
   - localdriver-docker-certification
-  - smbdriver-certification
+  - smbdriver-integration
   - deploy-smb-broker
   - create-local-volume-release
   - create-nfs-volume-release
@@ -109,7 +109,7 @@ groups:
 
 - name: build-docker-images
   jobs:
-  - build-nfs-driver-cert-docker-image
+  - build-nfs-driver-integration-tests-docker-image
   - build-mapfs-tests-docker-image
   - build-nfs-bosh-release-test-docker-image
   - build-nfs-broker-tests-docker-image
@@ -123,7 +123,7 @@ groups:
   - mapfs-unit
   - nfs-volume-release-job-tests
   - mapfs-release-job-tests
-  - nfsdriver-certification
+  - nfsdriver-integration
   - create-nfs-volume-release
   - create-mapfs-release
   - bbl-up-gorgophone
@@ -150,7 +150,7 @@ groups:
   jobs:
   - efsdriver-unit
   - efsbroker-unit
-  - efsdriver-certification
+  - efsdriver-integration
   - create-efs-volume-release
   - acquire-lock-heleus
   - bbl-up-heleus
@@ -166,7 +166,7 @@ groups:
   - smb-existingvolumebroker-unit
   - smb-volume-mount-options-unit
   - create-smb-volume-release
-  - smbdriver-certification
+  - smbdriver-integration
   - bbl-up-gorgophone
   - deploy-cf
   - deploy-smb-broker
@@ -228,10 +228,10 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-- name: nfs-driver-cert-docker-image
+- name: nfs-driver-integration-tests-docker-image
   type: docker-image
   source:
-    repository: cfpersi/nfs-certification
+    repository: cfpersi/nfs-integration-tests
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
@@ -867,7 +867,7 @@ jobs:
     privileged: true
     attempts: 3
 
-- name: nfsdriver-certification
+- name: nfsdriver-integration
   serial: true
   plan:
   - in_parallel:
@@ -889,8 +889,8 @@ jobs:
         - mapfs-release-job-tests
         trigger: true
   - do:
-    - task: driver-cert
-      file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
+    - task: run_docker_driver_integration_tests
+      file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
       privileged: true
 
 - name: create-nfs-volume-release
@@ -902,7 +902,7 @@ jobs:
       steps:
       - get: nfs-volume-release
         passed:
-        - nfsdriver-certification
+        - nfsdriver-integration
         trigger: true
       - get: nfs-volume-version
         resource: nfsvolume-version
@@ -1338,15 +1338,15 @@ jobs:
       BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
     attempts: 3
 
-- name: build-nfs-driver-cert-docker-image
+- name: build-nfs-driver-integration-tests-docker-image
   plan:
     - get: nightly
       trigger: true
     - get: nfs-volume-release
       trigger: true
-    - put: nfs-driver-cert-docker-image
+    - put: nfs-driver-integration-tests-docker-image
       params:
-        build: nfs-volume-release/dockerfiles/nfs-certification
+        build: nfs-volume-release/dockerfiles/nfs-integration-tests
 
 - name: build-nfs-bosh-release-test-docker-image
   plan:
@@ -1417,7 +1417,7 @@ jobs:
   - task: build
     file: efs-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
 
-- name: efsdriver-certification
+- name: efsdriver-integration
   plan:
   - in_parallel:
       fail_fast: true
@@ -1432,10 +1432,10 @@ jobs:
         - efsdriver-unit
         - efsbroker-unit
         trigger: true
-  - task: build
+  - task: run_docker_driver_integration_tests
     tags: ["aws"]
     privileged: true
-    file: efs-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
+    file: efs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
 - name: create-efs-volume-release
   plan:
@@ -1444,7 +1444,7 @@ jobs:
       steps:
       - get: efs-volume-release
         passed:
-        - efsdriver-certification
+        - efsdriver-integration
         trigger: true
       - get: efs-volume-version
         resource: efsvolume-version
@@ -1804,7 +1804,7 @@ jobs:
       - get: smb-volume-release
         passed:
         - smb-existingvolumebroker-unit
-        - smbdriver-certification
+        - smbdriver-integration
         trigger: true
       - get: smb-volume-version
         resource: smb-volume-version
@@ -1826,7 +1826,7 @@ jobs:
     params:
       file: release-tarball/smb-volume-*.tgz
 
-- name: smbdriver-certification
+- name: smbdriver-integration
   plan:
   - in_parallel:
       fail_fast: true
@@ -1843,7 +1843,7 @@ jobs:
         - smb-volume-release-job-tests
         trigger: true
       - get: gorgophone-env-director-state
-  - task: driver-cert
+  - task: run_docker_driver_integration_tests
     privileged: true
     input_mapping:
       director-state: gorgophone-env-director-state
@@ -1853,7 +1853,7 @@ jobs:
       SMB_PASSWORD: {{smb_cert_password}}
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       BBL_IAAS: gcp
-    file: smb-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
 - name: deploy-smb-broker
   serial_groups:
@@ -1899,7 +1899,7 @@ jobs:
       - get: smb-volume-release
         passed:
         - deploy-smb-broker
-        - smbdriver-certification
+        - smbdriver-integration
         trigger: true
       - get: smb-volume-release-tarball
         passed:
