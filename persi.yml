@@ -1229,6 +1229,7 @@ jobs:
       SERVICE_NAME: nfs-legacy
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
+    attempts: 3
     input_mapping:
       director-state: gorgophone-env-director-state
     params:
