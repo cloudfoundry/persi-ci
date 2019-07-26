@@ -2569,6 +2569,10 @@ jobs:
       LDAP_USER_FQDN: {{ldap-user-fqdn}}
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+    on_failure:
+     put: env-creation-gate-lock
+     params:
+       release: env-creation-gate-lock
     input_mapping:
       bbl-state: gorgophone-env-director-state
       cf-deployment: cf-deployment
