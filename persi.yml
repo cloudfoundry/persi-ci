@@ -60,7 +60,6 @@ groups:
   - pats-csi-local
   - pats-smb
   - pats-local
-  - background-load-test
 
 - name: gorgophone
   jobs:
@@ -77,7 +76,6 @@ groups:
   - pats-csi-local
   - pats-smb
   - pats-local
-  - background-load-test
 
 - name: heleus
   jobs:
@@ -134,7 +132,6 @@ groups:
   - pats-nfs-legacy
   - cats-nfs
   - drats-nfs-smb
-  - background-load-test
   - acquire-lock-heleus
   - bbl-up-heleus
   - deploy-cf-heleus
@@ -1311,31 +1308,6 @@ jobs:
       PLAN_NAME: Existing
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-
-- name: background-load-test
-  serial_groups:
-  - nfs
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: nightly
-        trigger: true
-      - get: persi-ci
-      - get: cf-volume-services-acceptance-tests
-      - get: gorgophone-env-director-state
-  - task: run-test
-    file: persi-ci/scripts/ci/run_background_load_test.build.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      CF_USERNAME: admin
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
-      BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
-    attempts: 3
 
 - name: build-nfs-driver-integration-tests-docker-image
   plan:
