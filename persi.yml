@@ -1160,10 +1160,10 @@ jobs:
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
       BIND_BOGUS_CONFIG: '{"uid":"1000","gid":"1000"}'
-      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}"]'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"3.0\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.1\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.2\",\"mount\": \"/var/vcap/data/foo\"}"]'
       CREATE_BOGUS_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/nonexistensevol"}'
-      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users", "version":"3.0"}'
-      CREATE_LAZY_UNMOUNT_CONFIG: '{"share":"nfstestservertwo.service.cf.internal/export/users", "version":"3.0"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+      CREATE_LAZY_UNMOUNT_CONFIG: '{"share":"nfstestservertwo.service.cf.internal/export/users"}'
       LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME: nfstestserver
       LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME: nfsd
       LAZY_UNMOUNT_VM_INSTANCE: nfstestservertwo
