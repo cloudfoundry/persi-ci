@@ -1175,6 +1175,7 @@ jobs:
       director-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
+      PARALLEL_NODES: 2
       TEST_LAZY_UNMOUNT: true
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
