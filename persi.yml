@@ -19,14 +19,9 @@ groups:
   - smbbroker-unit
   - smb-existingvolumebroker-unit
   - smb-volume-mount-options-unit
-  - localdriver-unit
-  - localbroker-unit
   - mapfs-unit
-  - localdriver-certification
-  - localdriver-docker-certification
   - smbdriver-integration
   - deploy-smb-broker
-  - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
   - create-mapfs-release
@@ -53,7 +48,6 @@ groups:
   - cats-nfs
   - drats-nfs-smb
   - pats-smb
-  - pats-local
 
 - name: gorgophone
   jobs:
@@ -68,7 +62,6 @@ groups:
   - cats-nfs
   - drats-nfs-smb
   - pats-smb
-  - pats-local
 
 - name: heleus
   jobs:
@@ -147,18 +140,6 @@ groups:
   - deploy-cf
   - deploy-smb-broker
   - pats-smb
-  - drats-nfs-smb
-
-- name: local
-  jobs:
-  - localdriver-unit
-  - localbroker-unit
-  - localdriver-certification
-  - localdriver-docker-certification
-  - create-local-volume-release
-  - bbl-up-gorgophone
-  - deploy-cf
-  - pats-local
   - drats-nfs-smb
 
 - name: diego
@@ -316,38 +297,6 @@ resources:
     drafts: true
     access_token: {{github-release-token-nfsvolumerelease}}
 #### END NFS resources ###############################################################################################
-
-#### local volume resources ##########################################################################################
-- name: local-volume-release-tarball
-  type: s3
-  source:
-    access_key_id: {{localvolume-uploader_aws_ID}}
-    bucket: local-volume-release-tarballs
-    regexp: local-volume-(.*).tgz
-    secret_access_key: {{localvolume-uploader_aws_secret}}
-
-- name: localvolume-version
-  type: semver
-  source:
-    access_key_id: {{localvolume-uploader_aws_ID}}
-    bucket: localvolume-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{localvolume-uploader_aws_secret}}
-
-- name: local-volume-release
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/local-volume-release.git
-    ignore_paths:
-    - scripts
-
-- name: local-volume-release-concourse-tasks
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/local-volume-release.git
-#### END local volume resources ######################################################################################
 
 #### EFS resources ################################################################################################
 - name: efs-volume-release-tarball
@@ -597,138 +546,6 @@ resource_types:
 ########################################### JOBS SECTION #############################################################
 ######################################################################################################################
 jobs:
-#### Local Volume related jobs ########################################################################################
-- name: localdriver-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: local-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: local-volume-release
-        trigger: true
-  - task: build
-    file: local-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
-
-- name: localbroker-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: local-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: local-volume-release
-        trigger: true
-  - task: build
-    file: local-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
-
-- name: localdriver-certification
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: local-volume-release
-        passed:
-        - localdriver-unit
-        trigger: true
-      - get: local-volume-release-concourse-tasks
-        params:
-          submodules: none
-  - task: build
-    file: local-volume-release-concourse-tasks/scripts/ci/run_driver_cert.build.yml
-
-- name: localdriver-docker-certification
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: local-volume-release
-        passed:
-        - localdriver-unit
-        trigger: true
-      - get: local-volume-release-concourse-tasks
-        params:
-          submodules: none
-  - task: build
-    privileged: true
-    file: local-volume-release-concourse-tasks/scripts/ci/run_docker_cert.build.yml
-
-- name: create-local-volume-release
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: local-volume-release
-        passed:
-        - localdriver-certification
-        - localdriver-docker-certification
-        - localbroker-unit
-        trigger: true
-      - get: local-volume-version
-        resource: localvolume-version
-        params:
-          pre: rc
-      - get: persi-ci
-  - put: local-volume-version
-    resource: localvolume-version
-    params:
-      file: local-volume-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: local-volume-release
-      release-version: local-volume-version
-    params:
-      RELEASE_NAME: local-volume
-  - put: local-volume-release-tarball
-    params:
-      file: release-tarball/local-volume-*.tgz
-
-- name: pats-local
-  serial_groups:
-  - local
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf
-        trigger: true
-      - get: local-volume-release
-        passed:
-        - deploy-cf
-        trigger: true
-      - get: cf-volume-services-acceptance-tests
-      - get: persi-ci
-      - get: gorgophone-env-director-state
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      BROKER_PASSWORD_KEY: local-broker-password
-      BROKER_URL: http://local-broker.gorgophone.cf-app.com
-      BROKER_USER: {{pats-broker-username}}
-      BIND_CONFIG: '[]'
-      PLAN_NAME: free-local-dist
-      SERVICE_NAME: local-volume
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-
-#### END Local volume #################################################################################################
 
 #### NFS related jobs #################################################################################################
 - name: nfsdriver-unit
@@ -1825,7 +1642,6 @@ jobs:
 
 - name: bbl-up-gorgophone
   serial_groups:
-  - local
   - nfs
   - smb
   public: true
@@ -1869,7 +1685,6 @@ jobs:
 
 - name: deploy-cf
   serial_groups:
-  - local
   - nfs
   - smb
   public: true
@@ -1897,13 +1712,6 @@ jobs:
         trigger: true
       - get: nfsvolume-version
         passed: [ create-nfs-volume-release ]
-      - get: local-volume-release
-        passed: [ create-local-volume-release ]
-      - get: local-volume-release-tarball
-        passed: [ create-local-volume-release ]
-        trigger: true
-      - get: localvolume-version
-        passed: [ create-local-volume-release ]
       - get: mapfs-release
         passed: [ create-mapfs-release ]
       - get: mapfs-release-tarball
@@ -1928,13 +1736,11 @@ jobs:
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: nfsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
-      local-tarball: local-volume-release-tarball
       smb-tarball: smb-volume-release-tarball
       diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: nfsvolume-version #dummy
       mapfs-version: mapfs-version
-      local-version: localvolume-version
       smb-version: smb-volume-version
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
@@ -1946,14 +1752,6 @@ jobs:
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/enable-nfs-test-server-two.yml
                       operations/enable-smb-test-server-two.yml"
-  - task: collect-local-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: local-volume-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-local-volume-service.yml"
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -1971,7 +1769,6 @@ jobs:
       BASE_OPS_FILE_DIR: "."
       NEW_OPS_FILES: "diego.tgz
                       nfs.tgz
-                      local.tgz
                       mapfs.tgz
                       smb.tgz"
   - task: generate-variables
@@ -2007,7 +1804,6 @@ jobs:
                   operations/use-gcs-blobstore-service-account.yml
                   operations/enable-nfs-volume-service.yml
                   operations/enable-nfs-test-server-two.yml
-                  operations/enable-local-volume-service.yml
                   operations/test/enable-nfs-test-server.yml
                   operations/test/enable-smb-test-server.yml
                   operations/backup-and-restore/enable-backup-restore.yml
@@ -2034,7 +1830,6 @@ jobs:
   serial: true
   serial_groups:
   - gorgophone
-  - local
   - nfs
   - smb
   plan:
@@ -2274,7 +2069,6 @@ jobs:
       COLLECT_DIEGO_TARBALL: true
       COLLECT_NFS_TARBALL: true
       COLLECT_EFS_TARBALL: true
-      COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
     #this task requires a lot of inputs that we don't need for this instance--we're feeding in
@@ -2285,13 +2079,11 @@ jobs:
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
       mapfs-tarball: mapfs-release-tarball
-      local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
       diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
       mapfs-version: mapfs-version #dummy
-      local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
   - task: upload-bosh-dns
     file: persi-ci/scripts/ci/upload-bosh-dns.build.yml
@@ -2587,7 +2379,6 @@ jobs:
       COLLECT_DIEGO_TARBALL: true
       COLLECT_NFS_TARBALL: true
       COLLECT_EFS_TARBALL: true
-      COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
     #this task requires a lot of inputs that we don't need for this instance--we're feeding in
@@ -2598,13 +2389,11 @@ jobs:
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
       mapfs-tarball: mapfs-release-tarball
-      local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
       diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
       mapfs-version: mapfs-version #dummy
-      local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml

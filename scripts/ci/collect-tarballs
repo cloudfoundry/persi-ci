@@ -22,13 +22,6 @@ collect_versions() {
       fi
       EFS_VERSION="$(cat efs-version/number)"
   fi
-  if [ "$COLLECT_LOCAL_TARBALL" = "true" ]; then
-      if [ ! -d ${ROOT_DIR}/local-version ]; then
-        echo "[ERROR] local-version input is missing."
-        exit 1
-      fi
-      LOCAL_VERSION="$(cat local-version/number)"
-  fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" ]; then
       if [ ! -d ${ROOT_DIR}/mapfs-version ]; then
         echo "[ERROR] mapfs-version input is missing."
@@ -58,10 +51,6 @@ check_params() {
     echo "[ERROR] efs-tarball input is missing."
     exit 1
   fi
-  if [ "$COLLECT_LOCAL_TARBALL" = "true" -a ! -d ${ROOT_DIR}/local-tarball ]; then
-    echo "[ERROR] local-tarball input is missing."
-    exit 1
-  fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" -a ! -d ${ROOT_DIR}/mapfs-tarball ]; then
     echo "[ERROR] mapfs-tarball input is missing."
     exit 1
@@ -80,10 +69,6 @@ check_params() {
   fi
   if [ "$COLLECT_EFS_TARBALL" = "true" -a -z "${EFS_VERSION}" ]; then
     echo "[ERROR] EFS_VERSION is missing."
-    exit 1
-  fi
-  if [ "$COLLECT_LOCAL_TARBALL" = "true" -a -z "${LOCAL_VERSION}" ]; then
-    echo "[ERROR] LOCAL_VERSION is missing."
     exit 1
   fi
   if [ "$COLLECT_SMB_TARBALL" = "true" -a -z "${SMB_VERSION}" ]; then
@@ -111,9 +96,6 @@ collect_tarballs() {
   fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" -a -n "${MAPFS_VERSION}" ]; then
       cp ${ROOT_DIR}/mapfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/mapfs.tgz
-  fi
-  if [ "$COLLECT_LOCAL_TARBALL" = "true" -a -n "${LOCAL_VERSION}" ]; then
-      cp ${ROOT_DIR}/local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/local.tgz
   fi
   if [ "$COLLECT_SMB_TARBALL" = "true" -a -n "${SMB_VERSION}" ]; then
       cp ${ROOT_DIR}/smb-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/smb.tgz
@@ -152,16 +134,6 @@ EOF
     name: efs-volume
     version: ${EFS_VERSION}
     url: ../ops-files/efs.tgz
-EOF
-  fi
-  if [ "$COLLECT_LOCAL_TARBALL" = "true" ]; then
-    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
-- type: replace
-  path: /releases/name=local-volume
-  value:
-    name: local-volume
-    version: ${LOCAL_VERSION}
-    url: ../ops-files/local.tgz
 EOF
   fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" ]; then
