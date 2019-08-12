@@ -17,6 +17,7 @@ inputs:
 - name: nfs-version
 - name: efs-version
 - name: mapfs-version
+- name: mapfs-tarball
 - name: smb-version
 
 outputs:
