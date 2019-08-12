@@ -15,10 +15,6 @@ groups:
   - efsdriver-unit
   - efsbroker-unit
   - efsdriver-integration
-  - csi-local-controller-plugin-unit
-  - csi-local-node-plugin-unit
-  - csi-broker-unit
-  - csi-plugin-certification
   - smbdriver-unit
   - smbbroker-unit
   - smb-existingvolumebroker-unit
@@ -33,7 +29,6 @@ groups:
   - create-local-volume-release
   - create-nfs-volume-release
   - create-efs-volume-release
-  - create-csi-local-volume-release
   - create-mapfs-release
   - create-diego-release
   - create-smb-volume-release
@@ -57,7 +52,6 @@ groups:
   - pats-nfs-legacy
   - cats-nfs
   - drats-nfs-smb
-  - pats-csi-local
   - pats-smb
   - pats-local
 
@@ -73,7 +67,6 @@ groups:
   - pats-nfs-legacy
   - cats-nfs
   - drats-nfs-smb
-  - pats-csi-local
   - pats-smb
   - pats-local
 
@@ -90,20 +83,6 @@ groups:
   - deploy-cf-heleus-sql
   - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
-
-- name: csi
-  jobs:
-  - csi-local-controller-plugin-unit
-  - csi-local-node-plugin-unit
-  - csi-plugin-certification
-  - csi-broker-unit
-  - mapfs-unit
-  - create-csi-local-volume-release
-  - create-mapfs-release
-  - bbl-up-gorgophone
-  - deploy-cf
-  - pats-csi-local
-  - drats-nfs-smb
 
 - name: build-docker-images
   jobs:
@@ -461,44 +440,6 @@ resources:
   source:
     repository: cloudfoundry-incubator/cf-routing-release
 #### End Diego resources ################################################################################################
-
-#### CSI resources ###################################################################################################
-- name: csi-local-volume-release
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/csi-local-volume-release.git
-    ignore_paths:
-    - scripts
-
-- name: csi-local-volume-release-concourse-tasks
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/csi-local-volume-release.git
-
-- name: csi-cert
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/csi-certification-test
-
-- name: csi-local-volume-version
-  type: semver
-  source:
-    access_key_id: {{csivolume-uploader_aws_ID}}
-    bucket: csi-local-volume-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{csivolume-uploader_aws_secret}}
-
-- name: csi-local-volume-release-tarball
-  type: s3
-  source:
-    access_key_id: {{csivolume-uploader_aws_ID}}
-    bucket: csi-local-volume-release-tarballs
-    regexp: csi-local-volume-(.*).tgz
-    secret_access_key: {{csivolume-uploader_aws_secret}}
-
-#### End CSI resources ###############################################################################################
 
 #### Start SMB resources ###############################################################################################
 - name: smb-volume-release
@@ -1519,68 +1460,6 @@ jobs:
 
 #### END CF ###########################################################################################################
 
-#### START CSI related jobs ###########################################################################################
-- name: csi-local-controller-plugin-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: csi-local-volume-release
-        trigger: true
-      - get: csi-local-volume-release-concourse-tasks
-        params:
-          submodules: none
-  - task: local-controller-plugin-unit
-    file: csi-local-volume-release-concourse-tasks/scripts/ci/local-controller-plugin-unit.build.yml
-
-- name: csi-local-node-plugin-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: csi-local-volume-release
-        trigger: true
-      - get: csi-local-volume-release-concourse-tasks
-        params:
-          submodules: none
-  - task: local-node-plugin-unit
-    file: csi-local-volume-release-concourse-tasks/scripts/ci/local-node-plugin-unit.build.yml
-
-- name: csi-broker-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: csi-local-volume-release
-        trigger: true
-      - get: csi-local-volume-release-concourse-tasks
-        params:
-          submodules: none
-  - task: csi-broker-unit
-    file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-broker-unit.build.yml
-
-- name: csi-plugin-certification
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: csi-local-volume-release
-        passed:
-        - csi-local-controller-plugin-unit
-        - csi-local-node-plugin-unit
-        trigger: true
-      - get: csi-cert
-        trigger: true
-      - get: csi-local-volume-release-concourse-tasks
-        params:
-          submodules: none
-  - task: csi-plugin-certification
-    privileged: true
-    file: csi-local-volume-release-concourse-tasks/scripts/ci/csi-plugin-certification.build.yml
-
 - name: build-mapfs-tests-docker-image
   plan:
   - get: nightly
@@ -1629,79 +1508,6 @@ jobs:
   - put: mapfs-release-tarball
     params:
       file: release-tarball/mapfs-*.tgz
-
-- name: create-csi-local-volume-release
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: csi-local-volume-release
-        passed:
-        - csi-plugin-certification
-        - csi-broker-unit
-        trigger: true
-      - get: csi-local-version
-        resource: csi-local-volume-version
-        params:
-          pre: rc
-      - get: persi-ci
-  - put: csi-local-version
-    resource: csi-local-volume-version
-    params:
-      file: csi-local-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: csi-local-volume-release
-      release-version: csi-local-version
-    params:
-      RELEASE_NAME: csi-local-volume
-  - put: csi-local-volume-release-tarball
-    params:
-      file: release-tarball/csi-local-volume-*.tgz
-
-- name: pats-csi-local
-  serial_groups:
-  - csi-local
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: csi-local-volume-release
-        passed:
-        - deploy-cf
-        trigger: true
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf
-        trigger: true
-      - get: cf-volume-services-acceptance-tests
-      - get: persi-ci
-      - get: gorgophone-env-director-state
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      BIND_CONFIG: '["{\"mount\":\"/var/vcap/store\"}"]'
-      BROKER_PASSWORD_KEY: csi-localbroker-password
-      BROKER_URL: http://csi-localbroker.gorgophone.cf-app.com
-      BROKER_USER: csi-localbroker
-      CREATE_CONFIG: '{"name":"csi-local-storage","volume_capabilities":[{"mount":{}}]}'
-      PLAN_NAME: free
-      SERVICE_NAME: csilocalfs
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: gorgophone-env-director-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-
-#### END CSI related jobs ############################################################################################
 
 #### START SMB related jobs ###########################################################################################
 - name: smbdriver-unit
@@ -2021,8 +1827,6 @@ jobs:
   serial_groups:
   - local
   - nfs
-  - csi-local
-  - csi-nfs
   - smb
   public: true
   build_logs_to_retain: 100
@@ -2067,8 +1871,6 @@ jobs:
   serial_groups:
   - local
   - nfs
-  - csi-local
-  - csi-nfs
   - smb
   public: true
   build_logs_to_retain: 100
@@ -2102,13 +1904,6 @@ jobs:
         trigger: true
       - get: localvolume-version
         passed: [ create-local-volume-release ]
-      - get: csi-local-volume-release
-        passed: [ create-csi-local-volume-release ]
-      - get: csi-local-volume-release-tarball
-        passed: [ create-csi-local-volume-release ]
-        trigger: true
-      - get: csi-local-volume-version
-        passed: [ create-csi-local-volume-release ]
       - get: mapfs-release
         passed: [ create-mapfs-release ]
       - get: mapfs-release-tarball
@@ -2132,14 +1927,12 @@ jobs:
       diego-tarball: diego-dev-release-tarball
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: nfsvolume-version #dummy
-      csi-local-tarball: csi-local-volume-release-tarball
       mapfs-tarball: mapfs-release-tarball
       local-tarball: local-volume-release-tarball
       smb-tarball: smb-volume-release-tarball
       diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: nfsvolume-version #dummy
-      csi-local-version: csi-local-volume-version
       mapfs-version: mapfs-version
       local-version: localvolume-version
       smb-version: smb-volume-version
@@ -2151,7 +1944,6 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
-                      operations/enable-csi-local-plugin.yml
                       operations/enable-nfs-test-server-two.yml
                       operations/enable-smb-test-server-two.yml"
   - task: collect-local-ops-files
@@ -2180,7 +1972,6 @@ jobs:
       NEW_OPS_FILES: "diego.tgz
                       nfs.tgz
                       local.tgz
-                      csi-local.tgz
                       mapfs.tgz
                       smb.tgz"
   - task: generate-variables
@@ -2219,7 +2010,6 @@ jobs:
                   operations/enable-local-volume-service.yml
                   operations/test/enable-nfs-test-server.yml
                   operations/test/enable-smb-test-server.yml
-                  operations/enable-csi-local-plugin.yml
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
@@ -2246,7 +2036,6 @@ jobs:
   - gorgophone
   - local
   - nfs
-  - csi-local
   - smb
   plan:
   - in_parallel:
@@ -2485,7 +2274,6 @@ jobs:
       COLLECT_DIEGO_TARBALL: true
       COLLECT_NFS_TARBALL: true
       COLLECT_EFS_TARBALL: true
-      COLLECT_CSI_LOCAL_TARBALL: false
       COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
@@ -2496,14 +2284,12 @@ jobs:
       diego-tarball: diego-dev-release-tarball
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
-      csi-local-tarball: efsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
       local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
       diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
-      csi-local-version: efsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
       local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy
@@ -2801,7 +2587,6 @@ jobs:
       COLLECT_DIEGO_TARBALL: true
       COLLECT_NFS_TARBALL: true
       COLLECT_EFS_TARBALL: true
-      COLLECT_CSI_LOCAL_TARBALL: false
       COLLECT_LOCAL_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
@@ -2812,14 +2597,12 @@ jobs:
       diego-tarball: diego-dev-release-tarball
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
-      csi-local-tarball: efsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
       local-tarball: efsvolume-version #dummy
       smb-tarball: efsvolume-version #dummy
       diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
-      csi-local-version: efsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
       local-version: efsvolume-version #dummy
       smb-version: efsvolume-version #dummy

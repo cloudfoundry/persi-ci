@@ -29,13 +29,6 @@ collect_versions() {
       fi
       LOCAL_VERSION="$(cat local-version/number)"
   fi
-  if [ "$COLLECT_CSI_LOCAL_TARBALL" = "true" ]; then
-      if [ ! -d ${ROOT_DIR}/csi-local-version ]; then
-        echo "[ERROR] csi-local-version input is missing."
-        exit 1
-      fi
-      CSI_LOCAL_VERSION="$(cat csi-local-version/number)"
-  fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" ]; then
       if [ ! -d ${ROOT_DIR}/mapfs-version ]; then
         echo "[ERROR] mapfs-version input is missing."
@@ -69,10 +62,6 @@ check_params() {
     echo "[ERROR] local-tarball input is missing."
     exit 1
   fi
-  if [ "$COLLECT_CSI_LOCAL_TARBALL" = "true" -a ! -d ${ROOT_DIR}/csi-local-tarball ]; then
-    echo "[ERROR] csi-local-tarball input is missing."
-    exit 1
-  fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" -a ! -d ${ROOT_DIR}/mapfs-tarball ]; then
     echo "[ERROR] mapfs-tarball input is missing."
     exit 1
@@ -97,10 +86,6 @@ check_params() {
     echo "[ERROR] LOCAL_VERSION is missing."
     exit 1
   fi
-  if [ "$COLLECT_CSI_LOCAL_TARBALL" = "true" -a -z "${CSI_LOCAL_VERSION}" ]; then
-    echo "[ERROR] CSI_LOCAL_VERSION is missing."
-    exit 1
-  fi
   if [ "$COLLECT_SMB_TARBALL" = "true" -a -z "${SMB_VERSION}" ]; then
     echo "[ERROR] SMB_VERSION is missing."
     exit 1
@@ -123,9 +108,6 @@ collect_tarballs() {
   fi
   if [ "$COLLECT_EFS_TARBALL" = "true" -a -n "${EFS_VERSION}" ]; then
       cp ${ROOT_DIR}/efs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/efs.tgz
-  fi
-  if [ "$COLLECT_CSI_LOCAL_TARBALL" = "true" -a -n "${CSI_LOCAL_VERSION}" ]; then
-      cp ${ROOT_DIR}/csi-local-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/csi-local.tgz
   fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" -a -n "${MAPFS_VERSION}" ]; then
       cp ${ROOT_DIR}/mapfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/mapfs.tgz
@@ -180,16 +162,6 @@ EOF
     name: local-volume
     version: ${LOCAL_VERSION}
     url: ../ops-files/local.tgz
-EOF
-  fi
-  if [ "$COLLECT_CSI_LOCAL_TARBALL" = "true" ]; then
-    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
-- type: replace
-  path: /releases/name=csi-local-volume
-  value:
-    name: csi-local-volume
-    version: ${CSI_LOCAL_VERSION}
-    url: ../ops-files/csi-local.tgz
 EOF
   fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" ]; then

@@ -12,14 +12,11 @@ inputs:
 - name: diego-tarball
 - name: nfs-tarball
 - name: efs-tarball
-- name: csi-local-tarball
-- name: mapfs-tarball
 - name: local-tarball
 - name: smb-tarball
 - name: diego-version
 - name: nfs-version
 - name: efs-version
-- name: csi-local-version
 - name: mapfs-version
 - name: local-version
 - name: smb-version
@@ -31,7 +28,6 @@ params:
   COLLECT_DIEGO_TARBALL: true
   COLLECT_NFS_TARBALL: true
   COLLECT_EFS_TARBALL: true
-  COLLECT_CSI_LOCAL_TARBALL: true
   COLLECT_LOCAL_TARBALL: true
   COLLECT_SMB_TARBALL: true
   COLLECT_MAPFS_TARBALL: true
