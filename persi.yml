@@ -2311,6 +2311,8 @@ jobs:
         - delete-cf-ephemeral-aws-environment-passed-pats
       - get: bbl-state
         trigger: true
+        passed:
+        - delete-cf-ephemeral-aws-environment-passed-pats
       - get: persi-ci
       - get: nfs-volume-release
         passed:
