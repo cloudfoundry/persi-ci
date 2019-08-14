@@ -4,9 +4,9 @@
 groups:
 - name: all-jobs
   jobs:
-  - acquire-lock-heleus
-  - bbl-up-gorgophone
-  - bbl-up-heleus
+  - acquire-lock-ephemeral-aws-environment
+  - bbl-up-long-running-gcp-environment
+  - bbl-up-ephemeral-aws-environment
   - build-mapfs-tests-docker-image
   - build-nfs-bosh-release-test-docker-image
   - build-nfs-broker-tests-docker-image
@@ -20,12 +20,12 @@ groups:
   - create-mapfs-release
   - create-nfs-volume-release
   - create-smb-volume-release
-  - delete-cf-heleus
-  - delete-cf-heleus-credhub
+  - delete-cf-ephemeral-aws-environment-passed-pats
+  - delete-cf-ephemeral-aws-environment-passed-migration
   - deploy-cf
-  - deploy-cf-heleus
-  - deploy-cf-heleus-sql
-  - deploy-nfs-broker-heleus
+  - deploy-cf-ephemeral-aws-environment
+  - deploy-cf-ephemeral-aws-environment-sql
+  - deploy-nfs-broker-ephemeral-aws-environment
   - deploy-nfs-brokers
   - deploy-smb-broker
   - drats-nfs-smb
@@ -43,16 +43,16 @@ groups:
   - manual-bump-smb-patch
   - mapfs-release-job-tests
   - mapfs-unit
-  - migrate-nfs-broker-to-credhub-heleus
+  - migrate-nfs-broker-to-credhub-ephemeral-aws-environment
   - nfs-volume-release-job-tests
   - nfsbroker-tests
   - nfsdriver-integration
   - nfsdriver-unit
-  - pats-efs-heleus
+  - pats-efs-ephemeral-aws-environment
   - pats-nfs
   - pats-nfs-docker
-  - pats-nfs-ldap-heleus
-  - pats-nfs-ldap-legacy-heleus
+  - pats-nfs-ldap-ephemeral-aws-environment
+  - pats-nfs-ldap-legacy-ephemeral-aws-environment
   - pats-nfs-legacy
   - pats-smb
   - shipit-mapfs
@@ -70,7 +70,7 @@ groups:
 - name: upgrade-environment-test-nfs-smb
   jobs:
   - cf-deployment-nightly
-  - bbl-up-gorgophone
+  - bbl-up-long-running-gcp-environment
   - create-nfs-volume-release
   - create-mapfs-release
   - create-smb-volume-release
@@ -86,20 +86,20 @@ groups:
 
 - name: new-environment-test-nfs-ldap-efs
   jobs:
-  - acquire-lock-heleus
-  - bbl-up-heleus
+  - acquire-lock-ephemeral-aws-environment
+  - bbl-up-ephemeral-aws-environment
   - create-nfs-volume-release
   - create-mapfs-release
   - create-efs-volume-release
-  - deploy-cf-heleus
-  - deploy-nfs-broker-heleus
-  - pats-nfs-ldap-heleus
-  - pats-nfs-ldap-legacy-heleus
-  - pats-efs-heleus
-  - delete-cf-heleus-credhub
-  - deploy-cf-heleus-sql
-  - migrate-nfs-broker-to-credhub-heleus
-  - delete-cf-heleus
+  - deploy-cf-ephemeral-aws-environment
+  - deploy-nfs-broker-ephemeral-aws-environment
+  - pats-nfs-ldap-ephemeral-aws-environment
+  - pats-nfs-ldap-legacy-ephemeral-aws-environment
+  - pats-efs-ephemeral-aws-environment
+  - delete-cf-ephemeral-aws-environment-passed-pats
+  - delete-cf-ephemeral-aws-environment-passed-migration
+  - deploy-cf-ephemeral-aws-environment-sql
+  - migrate-nfs-broker-to-credhub-ephemeral-aws-environment
 
 - name: build-docker-images
   jobs:
@@ -492,7 +492,7 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
 
-- name: gorgophone-env-director-state
+- name: bbl-state
   type: git
   source:
     uri: git@github.com:cloudfoundry/gorgophone-env.git
@@ -853,7 +853,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: gorgophone-env-director-state
+      - get: bbl-state
       - get: nfs-volume-release
         passed:
         - deploy-cf
@@ -865,8 +865,6 @@ jobs:
       - get: cf-deployment-concourse-tasks
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: nfsbrokerpush
@@ -898,11 +896,11 @@ jobs:
         - deploy-cf
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
-      - get: gorgophone-env-director-state
+      - get: bbl-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
@@ -921,7 +919,7 @@ jobs:
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       PARALLEL_NODES: 2
@@ -958,11 +956,11 @@ jobs:
         - deploy-cf
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
-      - get: gorgophone-env-director-state
+      - get: bbl-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
@@ -978,7 +976,7 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     attempts: 3
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_MOUNT_FAIL_LOGGING: true
@@ -1006,11 +1004,11 @@ jobs:
         - deploy-cf
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
-      - get: gorgophone-env-director-state
+      - get: bbl-state
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
@@ -1023,7 +1021,7 @@ jobs:
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_DOCKER_PORA: true
@@ -1043,12 +1041,12 @@ jobs:
         - deploy-nfs-brokers
         trigger: true
       - get: persi-ci
-      - get: gorgophone-env-director-state
+      - get: bbl-state
       - get: cf-acceptance-tests
   - task: run-cats
     file: persi-ci/scripts/ci/run_cats.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       BBL_IAAS: gcp
@@ -1428,11 +1426,11 @@ jobs:
         - smbdriver-unit
         - smb-volume-release-job-tests
         trigger: true
-      - get: gorgophone-env-director-state
+      - get: bbl-state
   - task: run_docker_driver_integration_tests
     privileged: true
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       SMB_REMOTE_PATH: {{smb_cert_remote_path}}
       SMB_USERNAME: {{smb_cert_username}}
@@ -1450,7 +1448,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: gorgophone-env-director-state
+      - get: bbl-state
       - get: smb-volume-release
         passed:
         - deploy-cf
@@ -1462,8 +1460,6 @@ jobs:
       - get: cf-deployment-concourse-tasks
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: smbbrokerpush
@@ -1492,7 +1488,7 @@ jobs:
         - deploy-cf
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
-      - get: gorgophone-env-director-state
+      - get: bbl-state
   - in_parallel:
       fail_fast: true
       steps:
@@ -1511,7 +1507,7 @@ jobs:
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       APPS_DOMAIN: gorgophone.cf-app.com
@@ -1526,7 +1522,7 @@ jobs:
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_LAZY_UNMOUNT: true
@@ -1631,7 +1627,7 @@ jobs:
       - get: cf-deployment
       - get: diego-release
 
-- name: bbl-up-gorgophone
+- name: bbl-up-long-running-gcp-environment
   serial_groups:
   - nfs
   - smb
@@ -1642,7 +1638,7 @@ jobs:
       fail_fast: true
       steps:
       - get: cf-deployment-concourse-tasks
-      - get: gorgophone-env-director-state
+      - get: bbl-state
       - get: cf-deployment
         passed:
         - cf-deployment-nightly
@@ -1661,15 +1657,14 @@ jobs:
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
       LB_DOMAIN: gorgophone.cf-app.com
     input_mapping:
-      bbl-state: gorgophone-env-director-state
-      bbl-config: gorgophone-env-director-state
+      bbl-config: bbl-state
     ensure:
-      put: gorgophone-env-director-state
+      put: bbl-state
       params:
         repository: updated-bbl-state
         rebase: true
       on_error:
-        put: gorgophone-env-director-state
+        put: bbl-state
         params:
           repository: updated-bbl-state
           rebase: true
@@ -1685,10 +1680,10 @@ jobs:
       fail_fast: true
       steps:
       - get: cf-deployment-concourse-tasks
-      - get: gorgophone-env-director-state
+      - get: bbl-state
       - get: cf-deployment
         passed:
-        - bbl-up-gorgophone
+        - bbl-up-long-running-gcp-environment
         trigger: true
       - get: persi-ci
       - get: diego-dev-release-tarball
@@ -1765,7 +1760,7 @@ jobs:
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: gcp
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
@@ -1780,7 +1775,6 @@ jobs:
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
-      bbl-state: gorgophone-env-director-state
       cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
@@ -1804,15 +1798,11 @@ jobs:
                   operations/update-releases.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: smoke_tests
   - task: bosh-cleanup
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       CLEAN_ALL: true
@@ -1841,12 +1831,11 @@ jobs:
         trigger: true
       - get: bbr-binary-release
       - get: disaster-recovery-acceptance-tests
-      - get: gorgophone-env-director-state
+      - get: bbl-state
       - get: persi-ci
   - task: update-integration-config
     file: disaster-recovery-acceptance-tests/ci/credhub-compatible/update-integration-config/task.yml
     input_mapping:
-      bbl-state: gorgophone-env-director-state
       integration-configs: persi-ci
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
@@ -1878,9 +1867,9 @@ jobs:
 
 #### END cf-deployment related jobs ##################################################################################
 
-#### START heleus related jobs #######################################################################################
+#### START ephemeral-aws-environment related jobs #######################################################################################
 
-- name: acquire-lock-heleus
+- name: acquire-lock-ephemeral-aws-environment
   build_logs_to_retain: 100
   serial: true
   plan:
@@ -1926,11 +1915,11 @@ jobs:
         - create-diego-release
   - put: env-creation-gate-lock
     params:
-      claim: heleus
+      claim: ephemeral-aws-environment
     timeout: 3h
 
-- name: bbl-up-heleus
-  serial_groups: [deploy-cf-heleus]
+- name: bbl-up-ephemeral-aws-environment
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   build_logs_to_retain: 100
   plan:
   - in_parallel:
@@ -1939,43 +1928,43 @@ jobs:
       - get: cf-deployment-concourse-tasks
       - get: env-creation-gate-lock
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
         trigger: true
-      - get: gorgophone-env-director-state
+      - get: bbl-state
       - get: nfs-volume-release
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: nfs-volume-release-tarball
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: nfsvolume-version
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: mapfs-release
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: mapfs-release-tarball
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: mapfs-version
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: persi-ci
       - get: efs-volume-release
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: efs-volume-release-tarball
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: efsvolume-version
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: diego-dev-release-tarball
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
       - get: diego-version
         passed:
-        - acquire-lock-heleus
+        - acquire-lock-ephemeral-aws-environment
   - task: bbl-up
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -1983,30 +1972,29 @@ jobs:
       BBL_AWS_ACCESS_KEY_ID: {{gorgophone_aws_access_key_id}}
       BBL_AWS_SECRET_ACCESS_KEY: {{gorgophone_aws_secret_access_key}}
       BBL_AWS_REGION: us-east-1
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      BBL_LB_CERT: {{heleus_lbs_ssl_cert}}
-      BBL_LB_KEY: {{heleus_lbs_ssl_private_key}}
-      LB_DOMAIN: heleus.persi.cf-app.com
-      BBL_ENV_NAME: heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
+      BBL_LB_CERT: {{ephemeral-aws-environment_lbs_ssl_cert}}
+      BBL_LB_KEY: {{ephemeral-aws-environment_lbs_ssl_private_key}}
+      LB_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
+      BBL_ENV_NAME: ephemeral-aws-environment
       GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
     input_mapping:
-      bbl-state: gorgophone-env-director-state
-      bbl-config: gorgophone-env-director-state
+      bbl-config: bbl-state
     ensure:
-      put: gorgophone-env-director-state
+      put: bbl-state
       params:
         repository: updated-bbl-state
         rebase: true
       on_error:
-        put: gorgophone-env-director-state
+        put: bbl-state
         params:
           repository: updated-bbl-state
           rebase: true
 
-- name: deploy-cf-heleus
+- name: deploy-cf-ephemeral-aws-environment
   public: true
   build_logs_to_retain: 100
-  serial_groups: [deploy-cf-heleus]
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   plan:
   - in_parallel:
       fail_fast: true
@@ -2015,45 +2003,45 @@ jobs:
       - get: cf-deployment-concourse-tasks
       - get: env-creation-gate-lock
         passed:
-        - bbl-up-heleus
-      - get: gorgophone-env-director-state
+        - bbl-up-ephemeral-aws-environment
+      - get: bbl-state
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
         trigger: true
       - get: persi-ci
       - get: nfs-volume-release
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: nfs-volume-release-tarball
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: nfsvolume-version
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: mapfs-release
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: mapfs-release-tarball
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: mapfs-version
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: efs-volume-release
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: efs-volume-release-tarball
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: efsvolume-version
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: diego-dev-release-tarball
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
       - get: diego-version
         passed:
-        - bbl-up-heleus
+        - bbl-up-ephemeral-aws-environment
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -2079,9 +2067,9 @@ jobs:
   - task: upload-bosh-dns
     file: persi-ci/scripts/ci/upload-bosh-dns.build.yml
     params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2109,10 +2097,10 @@ jobs:
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       GENERATE_EFS_VARS: true
       GENERATE_NFS_VARS: true
       GENERATE_S3_BLOBSTORE_VARS: true
@@ -2131,13 +2119,12 @@ jobs:
      params:
        release: env-creation-gate-lock
     input_mapping:
-      bbl-state: gorgophone-env-director-state
       cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      SYSTEM_DOMAIN: heleus.persi.cf-app.com
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
+      SYSTEM_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
       VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
                   operations/use-compiled-releases.yml \
@@ -2148,8 +2135,8 @@ jobs:
                   operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
 
-- name: deploy-nfs-broker-heleus
-  serial_groups: [deploy-cf-heleus]
+- name: deploy-nfs-broker-ephemeral-aws-environment
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   plan:
   - in_parallel:
       fail_fast: true
@@ -2157,43 +2144,41 @@ jobs:
       - get: cf-deployment-concourse-tasks
       - get: env-creation-gate-lock
         passed:
-        - deploy-cf-heleus
-      - get: gorgophone-env-director-state
+        - deploy-cf-ephemeral-aws-environment
+      - get: bbl-state
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
         trigger: true
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       ERRAND_NAME: nfsbrokerpush
 
-- name: pats-nfs-ldap-heleus
-  serial_groups: [deploy-cf-heleus]
+- name: pats-nfs-ldap-ephemeral-aws-environment
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   plan:
   - in_parallel:
       fail_fast: true
       steps:
       - get: env-creation-gate-lock
         passed:
-        - deploy-nfs-broker-heleus
-      - get: gorgophone-env-director-state
+        - deploy-nfs-broker-ephemeral-aws-environment
+      - get: bbl-state
         passed:
-        - deploy-nfs-broker-heleus
+        - deploy-nfs-broker-ephemeral-aws-environment
         trigger: true
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      APPS_DOMAIN: heleus.persi.cf-app.com
-      CF_API_ENDPOINT: api.heleus.persi.cf-app.com
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
+      APPS_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
+      CF_API_ENDPOINT: api.ephemeral-aws-environment.persi.cf-app.com
       CF_USERNAME: admin
       BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
@@ -2203,36 +2188,36 @@ jobs:
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       TEST_DOCKER_PORA: true
 
-- name: pats-nfs-ldap-legacy-heleus
-  serial_groups: [deploy-cf-heleus]
+- name: pats-nfs-ldap-legacy-ephemeral-aws-environment
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   plan:
   - in_parallel:
       fail_fast: true
       steps:
       - get: env-creation-gate-lock
         passed:
-        - deploy-nfs-broker-heleus
-      - get: gorgophone-env-director-state
+        - deploy-nfs-broker-ephemeral-aws-environment
+      - get: bbl-state
         passed:
-        - deploy-nfs-broker-heleus
+        - deploy-nfs-broker-ephemeral-aws-environment
         trigger: true
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      APPS_DOMAIN: heleus.persi.cf-app.com
-      CF_API_ENDPOINT: api.heleus.persi.cf-app.com
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
+      APPS_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
+      CF_API_ENDPOINT: api.ephemeral-aws-environment.persi.cf-app.com
       CF_USERNAME: admin
       BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
@@ -2242,54 +2227,54 @@ jobs:
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
 
-- name: pats-efs-heleus
-  serial_groups: [deploy-cf-heleus]
+- name: pats-efs-ephemeral-aws-environment
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   plan:
   - in_parallel:
       fail_fast: true
       steps:
       - get: env-creation-gate-lock
         passed:
-        - deploy-cf-heleus
-      - get: gorgophone-env-director-state
+        - deploy-cf-ephemeral-aws-environment
+      - get: bbl-state
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
         trigger: true
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      APPS_DOMAIN: heleus.persi.cf-app.com
-      CF_API_ENDPOINT: api.heleus.persi.cf-app.com
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
+      APPS_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
+      CF_API_ENDPOINT: api.ephemeral-aws-environment.persi.cf-app.com
       CF_USERNAME: admin
       DEFAULT_TIMEOUT: 300
       BIND_CONFIG: '[]'
       BROKER_PASSWORD_KEY: efs-broker-password
-      BROKER_URL: http://efs-broker.heleus.persi.cf-app.com
+      BROKER_URL: http://efs-broker.ephemeral-aws-environment.persi.cf-app.com
       BROKER_USER: admin
       PLAN_NAME: generalPurpose
       SERVICE_NAME: efs
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       TEST_MULTI_CELL: true
 
-- name: delete-cf-heleus-credhub
-  serial_groups: [deploy-cf-heleus]
+- name: delete-cf-ephemeral-aws-environment-passed-pats
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   plan:
   - in_parallel:
       fail_fast: true
@@ -2297,24 +2282,22 @@ jobs:
       - get: cf-deployment-concourse-tasks
       - get: env-creation-gate-lock
         passed:
-        - pats-nfs-ldap-heleus
-        - pats-nfs-ldap-legacy-heleus
-        - pats-efs-heleus
-      - get: gorgophone-env-director-state
+        - pats-nfs-ldap-ephemeral-aws-environment
+        - pats-nfs-ldap-legacy-ephemeral-aws-environment
+        - pats-efs-ephemeral-aws-environment
+      - get: bbl-state
         passed:
-        - pats-nfs-ldap-heleus
-        - pats-nfs-ldap-legacy-heleus
-        - pats-efs-heleus
+        - pats-nfs-ldap-ephemeral-aws-environment
+        - pats-nfs-ldap-legacy-ephemeral-aws-environment
+        - pats-efs-ephemeral-aws-environment
         trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
     params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
 
-- name: deploy-cf-heleus-sql
-  serial_groups: [deploy-cf-heleus]
+- name: deploy-cf-ephemeral-aws-environment-sql
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   public: true
   build_logs_to_retain: 100
   plan:
@@ -2325,45 +2308,43 @@ jobs:
       - get: cf-deployment-concourse-tasks
       - get: env-creation-gate-lock
         passed:
-        - delete-cf-heleus-credhub
-      - get: gorgophone-env-director-state
-        passed:
-        - delete-cf-heleus-credhub
+        - delete-cf-ephemeral-aws-environment-passed-pats
+      - get: bbl-state
         trigger: true
       - get: persi-ci
       - get: nfs-volume-release
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: nfs-volume-release-tarball
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: nfsvolume-version
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: mapfs-release
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: mapfs-release-tarball
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: mapfs-version
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: efs-volume-release
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: efs-volume-release-tarball
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: efsvolume-version
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: diego-dev-release-tarball
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
       - get: diego-version
         passed:
-        - deploy-cf-heleus
+        - deploy-cf-ephemeral-aws-environment
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -2422,10 +2403,10 @@ jobs:
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       GENERATE_EFS_VARS: true
       GENERATE_NFS_VARS: true
       GENERATE_S3_BLOBSTORE_VARS: true
@@ -2440,13 +2421,12 @@ jobs:
   - task: bosh-deploy-cf
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
-      bbl-state: gorgophone-env-director-state
       cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      SYSTEM_DOMAIN: heleus.persi.cf-app.com
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
+      SYSTEM_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
       VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
                   operations/use-compiled-releases.yml \
@@ -2459,15 +2439,13 @@ jobs:
                   operations/update-releases.yml"
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       ERRAND_NAME: nfsbrokerpush
       INSTANCE: nfs-broker-push
 
-- name: migrate-nfs-broker-to-credhub-heleus
-  serial_groups: [deploy-cf-heleus]
+- name: migrate-nfs-broker-to-credhub-ephemeral-aws-environment
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   plan:
   - in_parallel:
       fail_fast: true
@@ -2477,26 +2455,26 @@ jobs:
       - get: cf-volume-services-acceptance-tests
       - get: env-creation-gate-lock
         passed:
-        - deploy-cf-heleus-sql
-      - get: gorgophone-env-director-state
+        - deploy-cf-ephemeral-aws-environment-sql
+      - get: bbl-state
         passed:
-        - deploy-cf-heleus-sql
+        - deploy-cf-ephemeral-aws-environment-sql
         trigger: true
   - task: test-migration
     file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
     input_mapping:
-      director-state: gorgophone-env-director-state
+      director-state: bbl-state
     params:
       BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-heleus
-      APPS_DOMAIN: heleus.persi.cf-app.com
-      CF_API_ENDPOINT: api.heleus.persi.cf-app.com
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
+      APPS_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
+      CF_API_ENDPOINT: api.ephemeral-aws-environment.persi.cf-app.com
       CF_USERNAME: admin
       BIND_CONFIG: '{"username":"user1000","password":"secret"}'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
 
-- name: delete-cf-heleus
-  serial_groups: [deploy-cf-heleus]
+- name: delete-cf-ephemeral-aws-environment-passed-migration
+  serial_groups: [deploy-cf-ephemeral-aws-environment]
   plan:
   - in_parallel:
       fail_fast: true
@@ -2504,26 +2482,22 @@ jobs:
       - get: cf-deployment-concourse-tasks
       - get: env-creation-gate-lock
         passed:
-        - migrate-nfs-broker-to-credhub-heleus
-      - get: gorgophone-env-director-state
+        - migrate-nfs-broker-to-credhub-ephemeral-aws-environment
+      - get: bbl-state
         passed:
-        - migrate-nfs-broker-to-credhub-heleus
+        - migrate-nfs-broker-to-credhub-ephemeral-aws-environment
         trigger: true
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
     params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
   - task: bosh-cleanup
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
-    input_mapping:
-      bbl-state: gorgophone-env-director-state
     params:
-      BBL_STATE_DIR: bbl-state-aws-heleus
+      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
   - put: env-creation-gate-lock
     params:
       release: env-creation-gate-lock
-#### END heleus related jobs #########################################################################################
+#### END ephemeral-aws-environment related jobs #########################################################################################
 
 ###################################### END JOBS SECTION ##############################################################
