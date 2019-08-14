@@ -13,7 +13,7 @@ groups:
   - build-nfs-driver-integration-tests-docker-image
   - build-nfs-unit-tests-docker-image
   - build-smb-unit-tests-docker-image
-  - cats-nfs
+  - cats-nfs-long-running-gcp-environment
   - cf-deployment-nightly
   - create-diego-release
   - create-efs-volume-release
@@ -49,12 +49,12 @@ groups:
   - nfsdriver-integration
   - nfsdriver-unit
   - pats-efs-ephemeral-aws-environment
-  - pats-nfs
-  - pats-nfs-docker
+  - pats-nfs-long-running-gcp-environment
+  - pats-nfs-docker-long-running-gcp-environment
   - pats-nfs-ldap-ephemeral-aws-environment
   - pats-nfs-ldap-legacy-ephemeral-aws-environment
-  - pats-nfs-legacy
-  - pats-smb
+  - pats-nfs-legacy-long-running-gcp-environment
+  - pats-smb-long-running-gcp-environment
   - shipit-mapfs
   - shipit-nfs
   - shipit-smb
@@ -77,12 +77,12 @@ groups:
   - deploy-cf
   - deploy-nfs-brokers
   - deploy-smb-broker
-  - pats-nfs
-  - pats-nfs-docker
-  - pats-nfs-legacy
-  - cats-nfs
+  - pats-nfs-long-running-gcp-environment
+  - pats-nfs-docker-long-running-gcp-environment
+  - pats-nfs-legacy-long-running-gcp-environment
+  - cats-nfs-long-running-gcp-environment
   - drats-nfs-smb
-  - pats-smb
+  - pats-smb-long-running-gcp-environment
 
 - name: new-environment-test-nfs-ldap-efs
   jobs:
@@ -679,11 +679,11 @@ jobs:
       - get: release-tarball
         resource: nfs-volume-release-tarball
         passed:
-        - pats-nfs
+        - pats-nfs-long-running-gcp-environment
       - get: release
         resource: nfs-volume-release
         passed:
-        - pats-nfs
+        - pats-nfs-long-running-gcp-environment
       - get: version
         resource: nfsvolume-version
         params:
@@ -769,13 +769,13 @@ jobs:
       - get: release-tarball
         resource: mapfs-release-tarball
         passed:
-        - pats-nfs
-        - pats-nfs-legacy
+        - pats-nfs-long-running-gcp-environment
+        - pats-nfs-legacy-long-running-gcp-environment
       - get: release
         resource: mapfs-release
         passed:
-        - pats-nfs
-        - pats-nfs-legacy
+        - pats-nfs-long-running-gcp-environment
+        - pats-nfs-legacy-long-running-gcp-environment
       - get: version
         resource: mapfs-version
         params:
@@ -869,7 +869,7 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: nfsbrokerpush
 
-- name: pats-nfs
+- name: pats-nfs-long-running-gcp-environment
   serial_groups:
   - nfs
   plan:
@@ -929,7 +929,7 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 
-- name: pats-nfs-legacy
+- name: pats-nfs-legacy-long-running-gcp-environment
   serial_groups:
   - nfs
   plan:
@@ -984,7 +984,7 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 
-- name: pats-nfs-docker
+- name: pats-nfs-docker-long-running-gcp-environment
   serial_groups:
   - nfs
   plan:
@@ -1029,7 +1029,7 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 
-- name: cats-nfs
+- name: cats-nfs-long-running-gcp-environment
   serial_groups:
   - nfs
   plan:
@@ -1464,7 +1464,7 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: smbbrokerpush
 
-- name: pats-smb
+- name: pats-smb-long-running-gcp-environment
   serial_groups:
   - smb
   plan:
@@ -1539,11 +1539,11 @@ jobs:
       - get: release-tarball
         resource: smb-volume-release-tarball
         passed:
-        - pats-smb
+        - pats-smb-long-running-gcp-environment
       - get: release
         resource: smb-volume-release
         passed:
-        - pats-smb
+        - pats-smb-long-running-gcp-environment
       - get: version
         resource: smb-volume-version
         params:
