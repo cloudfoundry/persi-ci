@@ -2,52 +2,70 @@
 ###################################### GROUPS SECTION ################################################################
 ######################################################################################################################
 groups:
-- name: persi
+- name: all-jobs
   jobs:
-  - volman-unit
-  - volman-inigo
-  - nfsdriver-unit
-  - nfsbroker-tests
-  - nfs-volume-release-job-tests
-  - smb-volume-release-job-tests
-  - mapfs-release-job-tests
-  - nfsdriver-integration
-  - efsdriver-unit
-  - efsbroker-unit
-  - efsdriver-integration
-  - smbdriver-unit
-  - smbbroker-unit
-  - smb-existingvolumebroker-unit
-  - smb-volume-mount-options-unit
-  - mapfs-unit
-  - smbdriver-integration
-  - deploy-smb-broker
-  - create-nfs-volume-release
+  - acquire-lock-heleus
+  - bbl-up-gorgophone
+  - bbl-up-heleus
+  - build-mapfs-tests-docker-image
+  - build-nfs-bosh-release-test-docker-image
+  - build-nfs-broker-tests-docker-image
+  - build-nfs-driver-integration-tests-docker-image
+  - build-nfs-unit-tests-docker-image
+  - build-smb-unit-tests-docker-image
+  - cats-nfs
+  - cf-deployment-nightly
+  - create-diego-release
   - create-efs-volume-release
   - create-mapfs-release
-  - create-diego-release
+  - create-nfs-volume-release
   - create-smb-volume-release
-  - cf-deployment-nightly
-  - bbl-up-gorgophone
-  - deploy-cf
-  - acquire-lock-heleus
-  - bbl-up-heleus
-  - deploy-cf-heleus
-  - deploy-nfs-broker-heleus
-  - pats-nfs-ldap-heleus
-  - pats-nfs-ldap-legacy-heleus
-  - pats-efs-heleus
-  - delete-cf-heleus-credhub
-  - deploy-cf-heleus-sql
-  - migrate-nfs-broker-to-credhub-heleus
   - delete-cf-heleus
+  - delete-cf-heleus-credhub
+  - deploy-cf
+  - deploy-cf-heleus
+  - deploy-cf-heleus-sql
+  - deploy-nfs-broker-heleus
   - deploy-nfs-brokers
+  - deploy-smb-broker
+  - drats-nfs-smb
+  - efsbroker-unit
+  - efsdriver-integration
+  - efsdriver-unit
+  - manual-bump-mapfs-major
+  - manual-bump-mapfs-minor
+  - manual-bump-mapfs-patch
+  - manual-bump-nfs-major
+  - manual-bump-nfs-minor
+  - manual-bump-nfs-patch
+  - manual-bump-smb-major
+  - manual-bump-smb-minor
+  - manual-bump-smb-patch
+  - mapfs-release-job-tests
+  - mapfs-unit
+  - migrate-nfs-broker-to-credhub-heleus
+  - nfs-volume-release-job-tests
+  - nfsbroker-tests
+  - nfsdriver-integration
+  - nfsdriver-unit
+  - pats-efs-heleus
   - pats-nfs
   - pats-nfs-docker
+  - pats-nfs-ldap-heleus
+  - pats-nfs-ldap-legacy-heleus
   - pats-nfs-legacy
-  - cats-nfs
-  - drats-nfs-smb
   - pats-smb
+  - shipit-mapfs
+  - shipit-nfs
+  - shipit-smb
+  - smb-existingvolumebroker-unit
+  - smb-volume-mount-options-unit
+  - smb-volume-release-job-tests
+  - smbbroker-unit
+  - smbdriver-integration
+  - smbdriver-unit
+  - volman-inigo
+  - volman-unit
 
 - name: gorgophone
   jobs:
