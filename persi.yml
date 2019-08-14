@@ -67,10 +67,13 @@ groups:
   - volman-inigo
   - volman-unit
 
-- name: gorgophone
+- name: upgrade-environment-test-nfs-smb
   jobs:
   - cf-deployment-nightly
   - bbl-up-gorgophone
+  - create-nfs-volume-release
+  - create-mapfs-release
+  - create-smb-volume-release
   - deploy-cf
   - deploy-nfs-brokers
   - deploy-smb-broker
@@ -81,10 +84,13 @@ groups:
   - drats-nfs-smb
   - pats-smb
 
-- name: heleus
+- name: new-environment-test-nfs-ldap-efs
   jobs:
   - acquire-lock-heleus
   - bbl-up-heleus
+  - create-nfs-volume-release
+  - create-mapfs-release
+  - create-efs-volume-release
   - deploy-cf-heleus
   - deploy-nfs-broker-heleus
   - pats-nfs-ldap-heleus
@@ -104,7 +110,7 @@ groups:
   - build-nfs-unit-tests-docker-image
   - build-smb-unit-tests-docker-image
 
-- name: nfs
+- name: nfs-units-integration
   jobs:
   - nfsdriver-unit
   - nfsbroker-tests
@@ -112,53 +118,21 @@ groups:
   - nfs-volume-release-job-tests
   - mapfs-release-job-tests
   - nfsdriver-integration
-  - create-nfs-volume-release
-  - create-mapfs-release
-  - bbl-up-gorgophone
-  - deploy-cf
-  - deploy-nfs-brokers
-  - pats-nfs
-  - pats-nfs-docker
-  - pats-nfs-legacy
-  - cats-nfs
-  - drats-nfs-smb
-  - acquire-lock-heleus
-  - bbl-up-heleus
-  - deploy-cf-heleus
-  - deploy-nfs-broker-heleus
-  - pats-nfs-ldap-heleus
-  - pats-nfs-ldap-legacy-heleus
-  - delete-cf-heleus-credhub
-  - deploy-cf-heleus-sql
-  - migrate-nfs-broker-to-credhub-heleus
-  - delete-cf-heleus
 
-- name: efs
+- name: efs-units-integration
   jobs:
   - efsdriver-unit
   - efsbroker-unit
   - efsdriver-integration
-  - create-efs-volume-release
-  - acquire-lock-heleus
-  - bbl-up-heleus
-  - deploy-cf-heleus
-  - pats-efs-heleus
-  - delete-cf-heleus
 
-- name: smb
+- name: smb-units-integration
   jobs:
   - smbdriver-unit
   - smbbroker-unit
   - smb-volume-release-job-tests
   - smb-existingvolumebroker-unit
   - smb-volume-mount-options-unit
-  - create-smb-volume-release
   - smbdriver-integration
-  - bbl-up-gorgophone
-  - deploy-cf
-  - deploy-smb-broker
-  - pats-smb
-  - drats-nfs-smb
 
 - name: diego
   jobs:
@@ -166,7 +140,6 @@ groups:
   - volman-unit
   - volman-inigo
   - create-diego-release
-  - deploy-cf
 
 - name: release-nfs
   jobs:
