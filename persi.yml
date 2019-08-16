@@ -64,8 +64,6 @@ groups:
   - smbbroker-unit
   - smbdriver-integration
   - smbdriver-unit
-  - volman-inigo
-  - volman-unit
 
 - name: upgrade-environment-test-nfs-smb
   jobs:
@@ -133,13 +131,6 @@ groups:
   - smb-existingvolumebroker-unit
   - smb-volume-mount-options-unit
   - smbdriver-integration
-
-- name: diego
-  jobs:
-  - cf-deployment-nightly
-  - volman-unit
-  - volman-inigo
-  - create-diego-release
 
 - name: release-nfs
   jobs:
@@ -340,22 +331,6 @@ resources:
     region_name: us-east-1
     secret_access_key: {{diego-uploader_aws_secret}}
 
-- name: garden-runc-release-tarball
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry/garden-runc-release
-
-- name: garden-runc-release-master
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/garden-runc-release
-    branch: master
-
-- name: diego-ci
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry-incubator/diego-ci
-
 - name: diego-release
   type: git
   source:
@@ -368,17 +343,6 @@ resources:
     - releases
     - .final_builds
     uri: https://github.com/cloudfoundry/diego-release
-
-- name: routing-release
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry-incubator/routing-release.git
-
-- name: routing-release-tarball
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry-incubator/cf-routing-release
 #### End Diego resources ################################################################################################
 
 #### Start SMB resources ###############################################################################################
@@ -1190,51 +1154,6 @@ jobs:
 
 
 #### CF related jobs ##################################################################################################
-- name: volman-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: diego-release
-        passed:
-        - cf-deployment-nightly
-        trigger: true
-      - get: persi-ci
-  - task: run-unit
-    file: persi-ci/scripts/ci/run_volman_unit.build.yml
-
-- name: volman-inigo
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: diego-release
-        passed:
-        - cf-deployment-nightly
-        trigger: true
-      - get: garden-runc-release-tarball
-      - get: garden-runc-release-master
-        params: {submodules: none}
-      - get: routing-release
-        params: { submodules: none }
-      - get: routing-release-tarball
-      - get: diego-ci
-      - get: persi-ci
-  - task: garden-runc-release
-    file: diego-ci/concourse/checkout_garden.build.yml
-  - task: routing-release
-    file: diego-ci/concourse/checkout_routing.build.yml
-    input_mapping:
-      routing-release-master: routing-release
-  - task: build
-    attempts: 3
-    privileged: true
-    file: persi-ci/scripts/ci/run_volman_inigo.build.yml
-    params:
-      DEFAULT_EVENTUALLY_TIMEOUT: 10m
-      GINKGO_PARALLEL: false
-
 - name: create-diego-release
   plan:
   - in_parallel:
@@ -1242,9 +1161,6 @@ jobs:
       steps:
       - get: diego-release
         trigger: true
-        passed:
-        - volman-unit
-        - volman-inigo
       - get: persi-ci
       - get: version
         resource: diego-version
