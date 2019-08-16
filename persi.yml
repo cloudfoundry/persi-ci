@@ -920,6 +920,7 @@ jobs:
     file: persi-ci/scripts/ci/run-pats.build.yml
     input_mapping:
       director-state: bbl-state
+    attempts: 3
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       PARALLEL_NODES: 2
