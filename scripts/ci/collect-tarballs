@@ -1,13 +1,6 @@
 #!/bin/bash -e
 
 collect_versions() {
-  if [ "$COLLECT_DIEGO_TARBALL" = "true" ]; then
-      if [ ! -d ${ROOT_DIR}/diego-version ]; then
-        echo "[ERROR] diego-version input is missing."
-        exit 1
-      fi
-      DIEGO_VERSION="$(cat diego-version/number)"
-  fi
   if [ "$COLLECT_NFS_TARBALL" = "true" ]; then
       if [ ! -d ${ROOT_DIR}/nfs-version ]; then
         echo "[ERROR] nfs-version input is missing."
@@ -39,10 +32,6 @@ collect_versions() {
 }
 
 check_params() {
-  if [ "$COLLECT_DIEGO_TARBALL" = "true" -a ! -d ${ROOT_DIR}/diego-tarball ]; then
-    echo "[ERROR] diego-tarball input is missing."
-    exit 1
-  fi
   if [ "$COLLECT_NFS_TARBALL" = "true" -a ! -d ${ROOT_DIR}/nfs-tarball ]; then
     echo "[ERROR] nfs-tarball input is missing."
     exit 1
@@ -57,10 +46,6 @@ check_params() {
   fi
   if [ "$COLLECT_SMB_TARBALL" = "true" -a ! -d ${ROOT_DIR}/smb-tarball ]; then
     echo "[ERROR] smb-tarball input is missing."
-    exit 1
-  fi
-  if [ "$COLLECT_DIEGO_TARBALL" = "true" -a -z "${DIEGO_VERSION}" ]; then
-    echo "[ERROR] DIEGO_VERSION is missing."
     exit 1
   fi
   if [ "$COLLECT_NFS_TARBALL" = "true" -a -z "${NFS_VERSION}" ]; then
@@ -85,9 +70,6 @@ create_collection_directory() {
 
 # Copy tarballs to collection with easy names
 collect_tarballs() {
-  if [ "$COLLECT_DIEGO_TARBALL" = "true" -a -n "${DIEGO_VERSION}" ]; then
-      cp ${ROOT_DIR}/diego-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/diego.tgz
-  fi
   if [ "$COLLECT_NFS_TARBALL" = "true" -a -n "${NFS_VERSION}" ]; then
       cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
   fi
@@ -106,16 +88,6 @@ collect_tarballs() {
 create_operation_file() {
     echo -e "---" > ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 
-  if [ "$COLLECT_DIEGO_TARBALL" = "true" ]; then
-    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
-- type: replace
-  path: /releases/name=diego
-  value:
-    name: diego
-    version: ${DIEGO_VERSION}
-    url: ../ops-files/diego.tgz
-EOF
-  fi
   if [ "$COLLECT_NFS_TARBALL" = "true" ]; then
     cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
 - type: replace

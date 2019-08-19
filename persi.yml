@@ -15,7 +15,6 @@ groups:
   - build-smb-unit-tests-docker-image
   - cats-nfs-long-running-gcp-environment
   - cf-deployment-nightly
-  - create-diego-release
   - create-efs-volume-release
   - create-mapfs-release
   - create-nfs-volume-release
@@ -311,39 +310,6 @@ resources:
     password: {{github-password}}
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
 #### END EFS resources ################################################################################################
-
-#### Diego resources ################################################################################################
-- name: diego-dev-release-tarball
-  type: s3
-  source:
-    access_key_id: {{diego-uploader_aws_ID}}
-    bucket: persi-diego-dev-releases
-    regexp: diego-0\.1476\.1-dev\.(\d+)\.tgz
-    secret_access_key: {{diego-uploader_aws_secret}}
-
-- name: diego-version
-  type: semver
-  source:
-    access_key_id: {{diego-uploader_aws_ID}}
-    bucket: persi-diego-release-versions
-    initial_version: 9999.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{diego-uploader_aws_secret}}
-
-- name: diego-release
-  type: git
-  source:
-    branch: develop
-    fetch:
-    - develop
-    ignore_paths:
-    - dev_releases
-    - git-hooks
-    - releases
-    - .final_builds
-    uri: https://github.com/cloudfoundry/diego-release
-#### End Diego resources ################################################################################################
 
 #### Start SMB resources ###############################################################################################
 - name: smb-volume-release
@@ -840,10 +806,6 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf
-        trigger: true
       - get: nfs-volume-release
         passed:
         - deploy-nfs-brokers
@@ -901,10 +863,6 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf
-        trigger: true
       - get: nfs-volume-release
         passed:
         - deploy-nfs-brokers
@@ -956,10 +914,6 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf
-        trigger: true
       - get: nfs-volume-release
         passed:
         - deploy-nfs-brokers
@@ -1152,36 +1106,6 @@ jobs:
 
 #### END EFS ##########################################################################################################
 
-
-#### CF related jobs ##################################################################################################
-- name: create-diego-release
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: diego-release
-        trigger: true
-      - get: persi-ci
-      - get: version
-        resource: diego-version
-        params:
-          pre: dev
-  - put: version
-    resource: diego-version
-    params:
-      file: version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: diego-release
-      release-version: version
-    params:
-      RELEASE_NAME: diego
-  - put: diego-dev-release-tarball
-    params:
-      file: release-tarball/diego-*.tgz
-
-#### END CF ###########################################################################################################
 
 - name: build-mapfs-tests-docker-image
   plan:
@@ -1388,10 +1312,6 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf
-        trigger: true
       - get: smb-volume-release-concourse-tasks
         params:
           submodules: none
@@ -1542,7 +1462,6 @@ jobs:
       - get: nightly
         trigger: true
       - get: cf-deployment
-      - get: diego-release
 
 - name: bbl-up-long-running-gcp-environment
   serial_groups:
@@ -1603,11 +1522,6 @@ jobs:
         - bbl-up-long-running-gcp-environment
         trigger: true
       - get: persi-ci
-      - get: diego-dev-release-tarball
-        passed: [ create-diego-release ]
-        trigger: true
-      - get: diego-version
-        passed: [ create-diego-release ]
       - get: nfs-volume-release
         passed: [ create-nfs-volume-release ]
       - get: nfs-volume-release-tarball
@@ -1635,12 +1549,10 @@ jobs:
       COLLECT_EFS_TARBALL: false
     input_mapping:
       persi-ci: persi-ci
-      diego-tarball: diego-dev-release-tarball
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: nfsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
       smb-tarball: smb-volume-release-tarball
-      diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: nfsvolume-version #dummy
       mapfs-version: mapfs-version
@@ -1670,8 +1582,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz
-                      nfs.tgz
+      NEW_OPS_FILES: "nfs.tgz
                       mapfs.tgz
                       smb.tgz"
   - task: generate-variables
@@ -1734,10 +1645,6 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf
-        trigger: true
       - get: nfs-volume-release
         passed:
         - deploy-nfs-brokers
@@ -1823,13 +1730,6 @@ jobs:
       - get: efsvolume-version
         passed:
         - create-efs-volume-release
-      - get: diego-dev-release-tarball
-        passed:
-        - create-diego-release
-        trigger: true
-      - get: diego-version
-        passed:
-        - create-diego-release
   - put: env-creation-gate-lock
     params:
       claim: ephemeral-aws-environment
@@ -1874,12 +1774,6 @@ jobs:
         passed:
         - acquire-lock-ephemeral-aws-environment
       - get: efsvolume-version
-        passed:
-        - acquire-lock-ephemeral-aws-environment
-      - get: diego-dev-release-tarball
-        passed:
-        - acquire-lock-ephemeral-aws-environment
-      - get: diego-version
         passed:
         - acquire-lock-ephemeral-aws-environment
   - task: bbl-up
@@ -1953,16 +1847,9 @@ jobs:
       - get: efsvolume-version
         passed:
         - bbl-up-ephemeral-aws-environment
-      - get: diego-dev-release-tarball
-        passed:
-        - bbl-up-ephemeral-aws-environment
-      - get: diego-version
-        passed:
-        - bbl-up-ephemeral-aws-environment
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
-      COLLECT_DIEGO_TARBALL: true
       COLLECT_NFS_TARBALL: true
       COLLECT_EFS_TARBALL: true
       COLLECT_SMB_TARBALL: false
@@ -1971,12 +1858,10 @@ jobs:
     #efsvolume-version as a dummy input because it is tiny and easy to copy
     input_mapping:
       persi-ci: persi-ci
-      diego-tarball: diego-dev-release-tarball
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
       mapfs-tarball: mapfs-release-tarball
       smb-tarball: efsvolume-version #dummy
-      diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
       mapfs-version: mapfs-version #dummy
@@ -2010,7 +1895,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz mapfs.tgz efs.tgz"
+      NEW_OPS_FILES: "nfs.tgz mapfs.tgz efs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
@@ -2258,16 +2143,9 @@ jobs:
       - get: efsvolume-version
         passed:
         - deploy-cf-ephemeral-aws-environment
-      - get: diego-dev-release-tarball
-        passed:
-        - deploy-cf-ephemeral-aws-environment
-      - get: diego-version
-        passed:
-        - deploy-cf-ephemeral-aws-environment
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
-      COLLECT_DIEGO_TARBALL: true
       COLLECT_NFS_TARBALL: true
       COLLECT_EFS_TARBALL: true
       COLLECT_SMB_TARBALL: false
@@ -2276,12 +2154,10 @@ jobs:
     #efsvolume-version as a dummy input because it is tiny and easy to copy
     input_mapping:
       persi-ci: persi-ci
-      diego-tarball: diego-dev-release-tarball
       nfs-tarball: nfs-volume-release-tarball
       efs-tarball: efs-volume-release-tarball
       mapfs-tarball: mapfs-release-tarball
       smb-tarball: efsvolume-version #dummy
-      diego-version: diego-version
       nfs-version: nfsvolume-version
       efs-version: efsvolume-version
       mapfs-version: mapfs-version #dummy
@@ -2318,7 +2194,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "diego.tgz nfs.tgz mapfs.tgz efs.tgz"
+      NEW_OPS_FILES: "nfs.tgz mapfs.tgz efs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:

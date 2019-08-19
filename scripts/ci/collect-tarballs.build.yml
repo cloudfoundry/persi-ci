@@ -9,11 +9,9 @@ image_resource:
 
 inputs:
 - name: persi-ci
-- name: diego-tarball
 - name: nfs-tarball
 - name: efs-tarball
 - name: smb-tarball
-- name: diego-version
 - name: nfs-version
 - name: efs-version
 - name: mapfs-version
@@ -24,7 +22,6 @@ outputs:
 - name: collected-tarballs
 
 params:
-  COLLECT_DIEGO_TARBALL: true
   COLLECT_NFS_TARBALL: true
   COLLECT_EFS_TARBALL: true
   COLLECT_SMB_TARBALL: true
