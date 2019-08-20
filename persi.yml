@@ -13,6 +13,7 @@ groups:
   - build-nfs-driver-integration-tests-docker-image
   - build-nfs-unit-tests-docker-image
   - build-smb-unit-tests-docker-image
+  - build-nfs-cats-docker-image
   - cats-nfs-long-running-gcp-environment
   - cf-deployment-nightly
   - create-efs-volume-release
@@ -106,6 +107,7 @@ groups:
   - build-nfs-broker-tests-docker-image
   - build-nfs-unit-tests-docker-image
   - build-smb-unit-tests-docker-image
+  - build-nfs-cats-docker-image
 
 - name: nfs-units-integration
   jobs:
@@ -198,6 +200,13 @@ resources:
   type: docker-image
   source:
     repository: cfpersi/smb-unit-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: nfs-cats-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/nfs-cats
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
@@ -1025,6 +1034,17 @@ jobs:
     - put: smb-unit-tests-docker-image
       params:
         build: smb-volume-release/dockerfiles/smb-unit-tests
+
+- name: build-nfs-cats-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: nfs-volume-release
+      trigger: true
+    - put: nfs-cats-docker-image
+      params:
+        build: nfs-volume-release/dockerfiles/nfs-cats
+
 #### END NFS #########################################################################################################
 
 #### EFS related jobs ################################################################################################
