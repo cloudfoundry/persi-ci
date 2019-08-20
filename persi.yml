@@ -1,6 +1,3 @@
-######################################################################################################################
-###################################### GROUPS SECTION ################################################################
-######################################################################################################################
 groups:
 - name: all-jobs
   jobs:
@@ -154,11 +151,6 @@ groups:
   - manual-bump-mapfs-minor
   - manual-bump-mapfs-major
 
-###################################### END GROUPS SECTION ############################################################
-
-######################################################################################################################
-###################################### RESOURCES SECTION #############################################################
-######################################################################################################################
 resources:
 
 - name: mapfs-tests-docker-image
@@ -210,7 +202,6 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-#### Misc resources ###############################################################################################
 - name: persi-ci
   type: git
   source:
@@ -240,10 +231,6 @@ resources:
     stop: 1:00 AM
     location: America/Los_Angeles
 
-
-#### END Misc resources ###############################################################################################
-
-#### NFS resources ###############################################################################################
 - name: nfs-volume-release-tarball
   type: s3
   source:
@@ -286,9 +273,7 @@ resources:
     repository: nfs-volume-release
     drafts: true
     access_token: {{github-release-token-nfsvolumerelease}}
-#### END NFS resources ###############################################################################################
 
-#### EFS resources ################################################################################################
 - name: efs-volume-release-tarball
   type: s3
   source:
@@ -318,9 +303,7 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
-#### END EFS resources ################################################################################################
 
-#### Start SMB resources ###############################################################################################
 - name: smb-volume-release
   type: git
   source:
@@ -364,9 +347,6 @@ resources:
     drafts: true
     access_token: {{github-release-token-smbvolumerelease}}
 
-#### End SMB resources ###############################################################################################
-
-#### mapfs resources ###################################################################################################
 - name: mapfs-release-tarball
   type: s3
   source:
@@ -416,9 +396,7 @@ resources:
     repository: mapfs-release
     drafts: true
     access_token: {{github-release-token-mapfs}}
-#### End mapfs resources ###############################################################################################
 
-#### cf-deployment resources #########################################################################################
 - name: cf-deployment
   type: git
   source:
@@ -457,27 +435,15 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
-#### End cf-deployment resources #####################################################################################
 
-###################################### END RESOURCES SECTION #########################################################
-
-######################################################################################################################
-###################################### RESOURCE_TYPES SECTION ########################################################
-######################################################################################################################
 resource_types:
 - name: pivnet
   type: docker-image
   source:
     repository: pivotalcf/pivnet-resource
     tag: latest-final
-###################################### END RESOURCE_TYPES SECTION ####################################################
 
-######################################################################################################################
-########################################### JOBS SECTION #############################################################
-######################################################################################################################
 jobs:
-
-#### NFS related jobs #################################################################################################
 - name: nfsdriver-unit
   public: true
   plan:
@@ -536,19 +502,6 @@ jobs:
     privileged: true
     timeout: 1h
 
-- name: smb-volume-release-job-tests
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: smb-volume-release-concourse-tasks
-      - get: smb-volume-release
-        trigger: true
-  - task: bosh-release-test
-    file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
-    attempts: 3
 
 - name: nfsdriver-integration
   serial: true
@@ -1025,16 +978,6 @@ jobs:
       params:
         build: nfs-volume-release/dockerfiles/nfs-unit-tests
 
-- name: build-smb-unit-tests-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: smb-volume-release
-      trigger: true
-    - put: smb-unit-tests-docker-image
-      params:
-        build: smb-volume-release/dockerfiles/smb-unit-tests
-
 - name: build-nfs-cats-docker-image
   plan:
     - get: nightly
@@ -1045,9 +988,55 @@ jobs:
       params:
         build: nfs-volume-release/dockerfiles/nfs-cats
 
-#### END NFS #########################################################################################################
+- name: build-mapfs-tests-docker-image
+  plan:
+  - get: nightly
+    trigger: true
+  - get: mapfs
+    trigger: true
+  - put: mapfs-tests-docker-image
+    params:
+      build: mapfs/ci/dockerfiles/perf
 
-#### EFS related jobs ################################################################################################
+- name: mapfs-unit
+  public: true
+  plan:
+  - get: mapfs-release
+    trigger: true
+  - task: run-unit
+    file: mapfs-release/scripts/ci/run_tests.build.yml
+    privileged: true
+
+- name: create-mapfs-release
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: mapfs-release
+        passed:
+        - mapfs-unit
+        - mapfs-release-job-tests
+        trigger: true
+      - get: mapfs-version
+        resource: mapfs-version
+        params:
+          pre: rc
+      - get: persi-ci
+  - put: mapfs-version
+    resource: mapfs-version
+    params:
+      file: mapfs-version/number
+  - task: create-release
+    file: persi-ci/scripts/ci/create-release.build.yml
+    input_mapping:
+      release: mapfs-release
+      release-version: mapfs-version
+    params:
+      RELEASE_NAME: mapfs
+  - put: mapfs-release-tarball
+    params:
+      file: release-tarball/mapfs-*.tgz
+
 - name: efsdriver-unit
   public: true
   plan:
@@ -1124,59 +1113,30 @@ jobs:
     params:
       file: release-tarball/efs-volume-*.tgz
 
-#### END EFS ##########################################################################################################
-
-
-- name: build-mapfs-tests-docker-image
+- name: build-smb-unit-tests-docker-image
   plan:
-  - get: nightly
-    trigger: true
-  - get: mapfs
-    trigger: true
-  - put: mapfs-tests-docker-image
-    params:
-      build: mapfs/ci/dockerfiles/perf
+    - get: nightly
+      trigger: true
+    - get: smb-volume-release
+      trigger: true
+    - put: smb-unit-tests-docker-image
+      params:
+        build: smb-volume-release/dockerfiles/smb-unit-tests
 
-- name: mapfs-unit
-  public: true
-  plan:
-  - get: mapfs-release
-    trigger: true
-  - task: run-unit
-    file: mapfs-release/scripts/ci/run_tests.build.yml
-    privileged: true
-
-- name: create-mapfs-release
+- name: smb-volume-release-job-tests
   plan:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: mapfs-release
-        passed:
-        - mapfs-unit
-        - mapfs-release-job-tests
-        trigger: true
-      - get: mapfs-version
-        resource: mapfs-version
-        params:
-          pre: rc
       - get: persi-ci
-  - put: mapfs-version
-    resource: mapfs-version
-    params:
-      file: mapfs-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: mapfs-release
-      release-version: mapfs-version
-    params:
-      RELEASE_NAME: mapfs
-  - put: mapfs-release-tarball
-    params:
-      file: release-tarball/mapfs-*.tgz
+      - get: smb-volume-release-concourse-tasks
+      - get: smb-volume-release
+        trigger: true
+  - task: bosh-release-test
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+    privileged: true
+    attempts: 3
 
-#### START SMB related jobs ###########################################################################################
 - name: smbdriver-unit
   public: true
   plan:
@@ -1469,10 +1429,6 @@ jobs:
     params:
       bump: major
 
-#### END SMB related jobs ###########################################################################################
-
-#### START cf-deployment related jobs ################################################################################
-
 - name: cf-deployment-nightly
   public: true
   plan:
@@ -1708,10 +1664,6 @@ jobs:
       drats-integration-config: updated-integration-configs-timeout
     params:
       CONFIG_FILE_PATH: config/drats.json
-
-#### END cf-deployment related jobs ##################################################################################
-
-#### START ephemeral-aws-environment related jobs #######################################################################################
 
 - name: acquire-lock-ephemeral-aws-environment
   build_logs_to_retain: 100
@@ -2313,6 +2265,3 @@ jobs:
   - put: env-creation-gate-lock
     params:
       release: env-creation-gate-lock
-#### END ephemeral-aws-environment related jobs #########################################################################################
-
-###################################### END JOBS SECTION ##############################################################
