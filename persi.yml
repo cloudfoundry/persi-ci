@@ -1787,10 +1787,8 @@ jobs:
       - get: env-creation-gate-lock
         passed:
         - bbl-up-ephemeral-aws-environment
-      - get: bbl-state
-        passed:
-        - bbl-up-ephemeral-aws-environment
         trigger: true
+      - get: bbl-state
       - get: persi-ci
       - get: nfs-volume-release
         passed:
@@ -1919,10 +1917,8 @@ jobs:
       - get: env-creation-gate-lock
         passed:
         - deploy-cf-ephemeral-aws-environment
-      - get: bbl-state
-        passed:
-        - deploy-cf-ephemeral-aws-environment
         trigger: true
+      - get: bbl-state
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     params:
@@ -1938,10 +1934,8 @@ jobs:
       - get: env-creation-gate-lock
         passed:
         - deploy-nfs-broker-ephemeral-aws-environment
-      - get: bbl-state
-        passed:
-        - deploy-nfs-broker-ephemeral-aws-environment
         trigger: true
+      - get: bbl-state
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
   - task: generate-pats-config
@@ -1977,10 +1971,8 @@ jobs:
       - get: env-creation-gate-lock
         passed:
         - deploy-nfs-broker-ephemeral-aws-environment
-      - get: bbl-state
-        passed:
-        - deploy-nfs-broker-ephemeral-aws-environment
         trigger: true
+      - get: bbl-state
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
   - task: generate-pats-config
@@ -2015,10 +2007,8 @@ jobs:
       - get: env-creation-gate-lock
         passed:
         - deploy-cf-ephemeral-aws-environment
-      - get: bbl-state
-        passed:
-        - deploy-cf-ephemeral-aws-environment
         trigger: true
+      - get: bbl-state
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
   - task: generate-pats-config
@@ -2059,12 +2049,8 @@ jobs:
         - pats-nfs-ldap-ephemeral-aws-environment
         - pats-nfs-ldap-legacy-ephemeral-aws-environment
         - pats-efs-ephemeral-aws-environment
-      - get: bbl-state
-        passed:
-        - pats-nfs-ldap-ephemeral-aws-environment
-        - pats-nfs-ldap-legacy-ephemeral-aws-environment
-        - pats-efs-ephemeral-aws-environment
         trigger: true
+      - get: bbl-state
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
     params:
@@ -2083,10 +2069,8 @@ jobs:
       - get: env-creation-gate-lock
         passed:
         - delete-cf-ephemeral-aws-environment-passed-pats
-      - get: bbl-state
         trigger: true
-        passed:
-        - delete-cf-ephemeral-aws-environment-passed-pats
+      - get: bbl-state
       - get: persi-ci
       - get: nfs-volume-release
         passed:
@@ -2223,10 +2207,8 @@ jobs:
       - get: env-creation-gate-lock
         passed:
         - deploy-cf-ephemeral-aws-environment-sql
-      - get: bbl-state
-        passed:
-        - deploy-cf-ephemeral-aws-environment-sql
         trigger: true
+      - get: bbl-state
   - task: test-migration
     file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
     input_mapping:
@@ -2250,10 +2232,8 @@ jobs:
       - get: env-creation-gate-lock
         passed:
         - migrate-nfs-broker-to-credhub-ephemeral-aws-environment
-      - get: bbl-state
-        passed:
-        - migrate-nfs-broker-to-credhub-ephemeral-aws-environment
         trigger: true
+      - get: bbl-state
   - task: delete-cf
     file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
     params:
