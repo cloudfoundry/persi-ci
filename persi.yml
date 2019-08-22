@@ -806,11 +806,8 @@ jobs:
       SERVICE_NAME: nfs
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: bbl-state
     attempts: 3
     params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       PARALLEL_NODES: 2
       TEST_LAZY_UNMOUNT: true
       TEST_MOUNT_FAIL_LOGGING: true
@@ -860,10 +857,7 @@ jobs:
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
     attempts: 3
-    input_mapping:
-      director-state: bbl-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -901,10 +895,7 @@ jobs:
       SERVICE_NAME: nfs
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: bbl-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_DOCKER_PORA: true
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -1338,10 +1329,7 @@ jobs:
       SERVICE_NAME: smb
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: bbl-state
     params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
       TEST_LAZY_UNMOUNT: true
       TEST_READ_ONLY: true
 
@@ -1955,11 +1943,7 @@ jobs:
       SERVICE_NAME: nfs
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: bbl-state
     params:
-      BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       TEST_DOCKER_PORA: true
 
 - name: pats-nfs-ldap-legacy-ephemeral-aws-environment
@@ -1992,11 +1976,6 @@ jobs:
       SERVICE_NAME: nfs-legacy
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: bbl-state
-    params:
-      BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
 
 - name: pats-efs-ephemeral-aws-environment
   serial_groups: [deploy-cf-ephemeral-aws-environment]
@@ -2030,11 +2009,7 @@ jobs:
       SERVICE_NAME: efs
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: bbl-state
     params:
-      BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       TEST_MULTI_CELL: true
 
 - name: delete-cf-ephemeral-aws-environment-passed-pats
