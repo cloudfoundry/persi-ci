@@ -1824,12 +1824,6 @@ jobs:
       efs-version: efsvolume-version
       mapfs-version: mapfs-version #dummy
       smb-version: efsvolume-version #dummy
-  - task: upload-bosh-dns
-    file: persi-ci/scripts/ci/upload-bosh-dns.build.yml
-    params:
-      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
-    input_mapping:
-      director-state: bbl-state
   - task: collect-efs-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
