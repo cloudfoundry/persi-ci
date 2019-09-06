@@ -9,6 +9,11 @@ fi
 
 export CONFIG="${PWD}/${CONFIG_FILE_PATH}"
 
+set +x
+"${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
+source bosh-env/set-env.sh
+set -x
+
 pushd cf-volume-services-acceptance-tests
   export GOPATH="${PWD}"
   export PATH="${GOPATH}/bin:${PATH}"

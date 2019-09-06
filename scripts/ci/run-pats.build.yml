@@ -8,11 +8,14 @@ image_resource:
     tag: latest
 
 inputs:
+- name: director-state
 - name: pats-config
 - name: persi-ci
 - name: cf-volume-services-acceptance-tests
 
 params:
+  BBL_IAAS: gcp
+  BBL_STATE_DIR:
   CONFIG_FILE_PATH: pats-config/pats.json
   PARALLEL_NODES:
   TEST_DOCKER_PORA: false
