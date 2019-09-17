@@ -528,6 +528,9 @@ jobs:
     - task: run_docker_driver_integration_tests
       file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
       privileged: true
+    - task: run_docker_driver_lazy_unmount_integration_tests
+      file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_lazy_unmount_integration_tests.build.yml
+      privileged: true
 
 - name: create-nfs-volume-release
   serial_groups:
