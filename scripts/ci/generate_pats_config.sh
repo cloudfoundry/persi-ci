@@ -33,9 +33,6 @@ function write_config_to_file() {
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
   "isolation_segment": "${TEST_ISOLATION_SEGMENT}",
-  "lazy_unmount_remote_server_job_name": "${LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME}",
-  "lazy_unmount_remote_server_process_name": "${LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME}",
-  "lazy_unmount_vm_instance": "${LAZY_UNMOUNT_VM_INSTANCE}",
   "plan_name": "${PLAN_NAME}",
   "service_name": "${SERVICE_NAME}"
 }
@@ -81,16 +78,7 @@ EOF
   updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.disallowed_override_bind_config=$bindConfig' "${CONFIG_FILE}")
   echo "${updated_config}" > "${CONFIG_FILE}"
 
-  if [[ -r "${PWD}/lazy-unmount-bind-create-config/bind-config.json" ]]; then
-    cp "${PWD}/lazy-unmount-bind-create-config/bind-config.json" "${bind_config_file}"
-  elif [[ -n "${BIND_LAZY_UNMOUNT_CONFIG}" ]]; then
-    echo "${BIND_LAZY_UNMOUNT_CONFIG}" > "${bind_config_file}"
-  else
-    echo "" > "${bind_config_file}"
-  fi
-
-  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_lazy_unmount_config=$bindConfig' "${CONFIG_FILE}")
-  echo "${updated_config}" > "${CONFIG_FILE}"
+  echo "" > "${bind_config_file}"
 
   local create_config_file="${PWD}/pats-config/create-config.json"
 
@@ -114,16 +102,7 @@ EOF
   updated_config=$(jq --arg createConfig "$(cat "${create_config_file}")" '.create_bogus_config=$createConfig' "${CONFIG_FILE}")
   echo "${updated_config}" > "${CONFIG_FILE}"
 
-  if [[ -r "${PWD}/lazy-unmount-bind-create-config/create-config.json" ]]; then
-    cp "${PWD}/lazy-unmount-bind-create-config/create-config.json" "${create_config_file}"
-  elif [[ -n "${CREATE_LAZY_UNMOUNT_CONFIG}" ]]; then
-    echo "${CREATE_LAZY_UNMOUNT_CONFIG}" > "${create_config_file}"
-  else
-    echo "" > "${create_config_file}"
-  fi
-
-  updated_config=$(jq --arg createConfig "$(cat "${create_config_file}")" '.create_lazy_unmount_config=$createConfig' "${CONFIG_FILE}")
-  echo "${updated_config}" > "${CONFIG_FILE}"
+  echo "" > "${create_config_file}"
 
   if [[ -n "${BROKER_PASSWORD_KEY}" ]]; then
     broker_password="$(get_password_from_credhub "${BROKER_PASSWORD_KEY}")"

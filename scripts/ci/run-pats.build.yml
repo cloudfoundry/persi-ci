@@ -19,7 +19,6 @@ params:
   CONFIG_FILE_PATH: pats-config/pats.json
   PARALLEL_NODES:
   TEST_DOCKER_PORA: false
-  TEST_LAZY_UNMOUNT: false
   TEST_MOUNT_FAIL_LOGGING: false
   TEST_MOUNT_OPTIONS: false
   TEST_MULTI_CELL: false

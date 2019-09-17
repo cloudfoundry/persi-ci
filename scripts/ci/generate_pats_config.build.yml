@@ -12,8 +12,6 @@ inputs:
 - name: persi-ci
 - name: bind-create-config
   optional: true
-- name: lazy-unmount-bind-create-config
-  optional: true
 
 outputs:
 - name: pats-config
@@ -27,19 +25,14 @@ params:
 
   BIND_BOGUS_CONFIG:
   BIND_CONFIG:
-  BIND_LAZY_UNMOUNT_CONFIG:
   BROKER_PASSWORD_KEY:
   BROKER_URL:
   BROKER_USER:
   CREATE_BOGUS_CONFIG:
   CREATE_CONFIG:
-  CREATE_LAZY_UNMOUNT_CONFIG:
   DEFAULT_TIMEOUT: 30
   DISALLOWED_LDAP_BIND_CONFIG:
   DISALLOWED_OVERRIDE_BIND_CONFIG:
-  LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME:
-  LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME:
-  LAZY_UNMOUNT_VM_INSTANCE:
   PLAN_NAME: replace-me
   SERVICE_NAME: replace-me
   TEST_ISOLATION_SEGMENT:

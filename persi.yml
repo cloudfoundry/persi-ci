@@ -801,10 +801,6 @@ jobs:
       BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"3.0\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.1\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.2\",\"mount\": \"/var/vcap/data/foo\"}"]'
       CREATE_BOGUS_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/nonexistensevol"}'
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
-      CREATE_LAZY_UNMOUNT_CONFIG: '{"share":"nfstestservertwo.service.cf.internal/export/users"}'
-      LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME: nfstestserver
-      LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME: nfsd
-      LAZY_UNMOUNT_VM_INSTANCE: nfstestservertwo
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
   - task: run-pats
@@ -815,7 +811,6 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       PARALLEL_NODES: 2
-      TEST_LAZY_UNMOUNT: true
       TEST_MOUNT_FAIL_LOGGING: true
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
@@ -1318,12 +1313,6 @@ jobs:
           SMB_REMOTE_PATH: {{smb_pats_remote_path}}
           SMB_USERNAME: {{smb_pats_username}}
           SMB_PASSWORD: {{smb_pats_password}}
-      - task: generate-bind-create-configs-two
-        file: smb-volume-release-concourse-tasks/scripts/ci/generate_lazy_unmount_bind_create_config.build.yml
-        params:
-          SMB_REMOTE_PATH: //smbtestservertwo.service.cf.internal/vol2
-          SMB_USERNAME: {{smb_pats_username_two}}
-          SMB_PASSWORD: {{smb_pats_password_two}}
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -1333,9 +1322,6 @@ jobs:
       APPS_DOMAIN: gorgophone.cf-app.com
       CF_API_ENDPOINT: api.gorgophone.cf-app.com
       CF_USERNAME: admin
-      LAZY_UNMOUNT_REMOTE_SERVER_JOB_NAME: smbtestserver
-      LAZY_UNMOUNT_REMOTE_SERVER_PROCESS_NAME: smbd
-      LAZY_UNMOUNT_VM_INSTANCE: smbtestservertwo
       DISALLOWED_OVERRIDE_BIND_CONFIG: '{"share"://smbtestservertwo.service.cf.internal/vol2}'
       PLAN_NAME: Existing
       SERVICE_NAME: smb
@@ -1345,7 +1331,6 @@ jobs:
       director-state: bbl-state
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      TEST_LAZY_UNMOUNT: true
       TEST_READ_ONLY: true
 
 - name: shipit-smb
