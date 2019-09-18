@@ -1584,7 +1584,7 @@ jobs:
                   operations/test/enable-nfs-test-server.yml
                   operations/test/enable-smb-test-server.yml
                   operations/backup-and-restore/enable-backup-restore.yml
-                  operations/backup-and-restore/enable-backup-restore-nfs-broker.yml
+                  operations/backup-and-restore/enable-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
                   operations/enable-smb-test-server-two.yml
                   operations/update-releases.yml"
