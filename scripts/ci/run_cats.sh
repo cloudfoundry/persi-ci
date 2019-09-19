@@ -45,8 +45,7 @@ cat > /tmp/cats_integration_config.json <<EOF
   "include_volume_services": true,
   "volume_service_name": "${SERVICE_NAME}",
   "volume_service_plan_name": "${PLAN_NAME}",
-  "volume_service_create_config": "${CREATE_CONFIG}",
-  "volume_service_bind_config": "${BIND_CONFIG}"
+  "volume_service_create_config": "${CREATE_CONFIG}"
 }
 EOF
 
