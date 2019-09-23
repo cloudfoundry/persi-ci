@@ -14,7 +14,6 @@ groups:
   - cats-nfs-long-running-gcp-environment
   - cats-smb-long-running-gcp-environment
   - cf-deployment-nightly
-  - create-efs-volume-release
   - create-mapfs-release
   - create-nfs-volume-release
   - create-smb-volume-release
@@ -27,9 +26,6 @@ groups:
   - deploy-nfs-brokers
   - deploy-smb-broker
   - drats-nfs-smb
-  - efsbroker-unit
-  - efsdriver-integration
-  - efsdriver-unit
   - manual-bump-mapfs-major
   - manual-bump-mapfs-minor
   - manual-bump-mapfs-patch
@@ -46,7 +42,6 @@ groups:
   - nfsbroker-tests
   - nfsdriver-integration
   - nfsdriver-unit
-  - pats-efs-ephemeral-aws-environment
   - pats-nfs-long-running-gcp-environment
   - pats-nfs-docker-long-running-gcp-environment
   - pats-nfs-ldap-ephemeral-aws-environment
@@ -81,18 +76,16 @@ groups:
   - drats-nfs-smb
   - pats-smb-long-running-gcp-environment
 
-- name: new-environment-test-nfs-ldap-efs
+- name: new-environment-test-nfs-ldap
   jobs:
   - acquire-lock-ephemeral-aws-environment
   - bbl-up-ephemeral-aws-environment
   - create-nfs-volume-release
   - create-mapfs-release
-  - create-efs-volume-release
   - deploy-cf-ephemeral-aws-environment
   - deploy-nfs-broker-ephemeral-aws-environment
   - pats-nfs-ldap-ephemeral-aws-environment
   - pats-nfs-ldap-legacy-ephemeral-aws-environment
-  - pats-efs-ephemeral-aws-environment
   - delete-cf-ephemeral-aws-environment-passed-pats
   - delete-cf-ephemeral-aws-environment-passed-migration
   - deploy-cf-ephemeral-aws-environment-sql
@@ -116,12 +109,6 @@ groups:
   - nfs-volume-release-job-tests
   - mapfs-release-job-tests
   - nfsdriver-integration
-
-- name: efs-units-integration
-  jobs:
-  - efsdriver-unit
-  - efsbroker-unit
-  - efsdriver-integration
 
 - name: smb-units-integration
   jobs:
@@ -275,36 +262,6 @@ resources:
     repository: nfs-volume-release
     drafts: true
     access_token: {{github-release-token-nfsvolumerelease}}
-
-- name: efs-volume-release-tarball
-  type: s3
-  source:
-    access_key_id: {{efsvolume-uploader_aws_ID}}
-    bucket: efs-volume-release-tarballs
-    regexp: efs-volume-(.*).tgz
-    secret_access_key: {{efsvolume-uploader_aws_secret}}
-
-- name: efsvolume-version
-  type: semver
-  source:
-    access_key_id: {{efsvolume-uploader_aws_ID}}
-    bucket: efsvolume-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{efsvolume-uploader_aws_secret}}
-
-- name: efs-volume-release
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
-
-- name: efs-volume-release-concourse-tasks
-  type: git
-  source:
-    username: {{github-user}}
-    password: {{github-password}}
-    uri: https://github.com/cloudfoundry-incubator/efs-volume-release.git
 
 - name: smb-volume-release
   type: git
@@ -1064,82 +1021,6 @@ jobs:
     params:
       file: release-tarball/mapfs-*.tgz
 
-- name: efsdriver-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: efs-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: efs-volume-release
-        trigger: true
-  - task: build
-    file: efs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
-- name: efsbroker-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: efs-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: efs-volume-release
-        trigger: true
-  - task: build
-    file: efs-volume-release-concourse-tasks/scripts/ci/run_broker_unit.build.yml
-
-- name: efsdriver-integration
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: efs-volume-release-concourse-tasks
-        params:
-          submodules: none
-        tags: ["aws"]
-      - get: efs-volume-release
-        tags: ["aws"]
-        passed:
-        - efsdriver-unit
-        - efsbroker-unit
-        trigger: true
-  - task: run_docker_driver_integration_tests
-    tags: ["aws"]
-    privileged: true
-    file: efs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-
-- name: create-efs-volume-release
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: efs-volume-release
-        passed:
-        - efsdriver-integration
-        trigger: true
-      - get: efs-volume-version
-        resource: efsvolume-version
-        params:
-          pre: rc
-      - get: persi-ci
-  - put: efs-volume-version
-    resource: efsvolume-version
-    params:
-      file: efs-volume-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: efs-volume-release
-      release-version: efs-volume-version
-    params:
-      RELEASE_NAME: efs-volume
-  - put: efs-volume-release-tarball
-    params:
-      file: release-tarball/efs-volume-*.tgz
-
 - name: build-smb-unit-tests-docker-image
   plan:
     - get: nightly
@@ -1709,16 +1590,6 @@ jobs:
       - get: mapfs-version
         passed:
         - create-mapfs-release
-      - get: efs-volume-release
-        passed:
-        - create-efs-volume-release
-      - get: efs-volume-release-tarball
-        passed:
-        - create-efs-volume-release
-        trigger: true
-      - get: efsvolume-version
-        passed:
-        - create-efs-volume-release
   - put: env-creation-gate-lock
     params:
       claim: ephemeral-aws-environment
@@ -1756,15 +1627,6 @@ jobs:
         passed:
         - acquire-lock-ephemeral-aws-environment
       - get: persi-ci
-      - get: efs-volume-release
-        passed:
-        - acquire-lock-ephemeral-aws-environment
-      - get: efs-volume-release-tarball
-        passed:
-        - acquire-lock-ephemeral-aws-environment
-      - get: efsvolume-version
-        passed:
-        - acquire-lock-ephemeral-aws-environment
   - task: bbl-up
     file: cf-deployment-concourse-tasks/bbl-up/task.yml
     params:
@@ -1825,15 +1687,6 @@ jobs:
       - get: mapfs-version
         passed:
         - bbl-up-ephemeral-aws-environment
-      - get: efs-volume-release
-        passed:
-        - bbl-up-ephemeral-aws-environment
-      - get: efs-volume-release-tarball
-        passed:
-        - bbl-up-ephemeral-aws-environment
-      - get: efsvolume-version
-        passed:
-        - bbl-up-ephemeral-aws-environment
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
@@ -1842,25 +1695,17 @@ jobs:
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
     #this task requires a lot of inputs that we don't need for this instance--we're feeding in
-    #efsvolume-version as a dummy input because it is tiny and easy to copy
+    #nfsvolume-version as a dummy input because it is tiny and easy to copy
     input_mapping:
       persi-ci: persi-ci
       nfs-tarball: nfs-volume-release-tarball
-      efs-tarball: efs-volume-release-tarball
+      efs-tarball: nfsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
-      smb-tarball: efsvolume-version #dummy
+      smb-tarball: nfsvolume-version #dummy
       nfs-version: nfsvolume-version
-      efs-version: efsvolume-version
+      efs-version: nfsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
-      smb-version: efsvolume-version #dummy
-  - task: collect-efs-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: cf-deployment
-      new-ops-files: efs-volume-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
+      smb-version: nfsvolume-version #dummy
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -1876,7 +1721,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "nfs.tgz mapfs.tgz efs.tgz"
+      NEW_OPS_FILES: "nfs.tgz mapfs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
@@ -1884,11 +1729,9 @@ jobs:
     params:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
-      GENERATE_EFS_VARS: true
+      GENERATE_EFS_VARS: false
       GENERATE_NFS_VARS: true
       GENERATE_S3_BLOBSTORE_VARS: true
-      AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
       LDAP_SVC_USER: {{ldap-svc-user}}
       LDAP_SVC_PASS: {{ldap-svc-pass}}
@@ -1908,14 +1751,13 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       SYSTEM_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
-      VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
+      VARS_FILES: "nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
                   operations/use-compiled-releases.yml \
                   operations/enable-nfs-volume-service.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
                   operations/test/enable-nfs-test-ldapserver.yml \
-                  operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
 
 - name: deploy-nfs-broker-ephemeral-aws-environment
@@ -2009,45 +1851,6 @@ jobs:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
 
-- name: pats-efs-ephemeral-aws-environment
-  serial_groups: [deploy-cf-ephemeral-aws-environment]
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: env-creation-gate-lock
-        passed:
-        - deploy-cf-ephemeral-aws-environment
-        trigger: true
-      - get: bbl-state
-      - get: cf-volume-services-acceptance-tests
-      - get: persi-ci
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: bbl-state
-    params:
-      BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
-      APPS_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
-      CF_API_ENDPOINT: api.ephemeral-aws-environment.persi.cf-app.com
-      CF_USERNAME: admin
-      DEFAULT_TIMEOUT: 300
-      BIND_CONFIG: '[]'
-      BROKER_PASSWORD_KEY: efs-broker-password
-      BROKER_URL: http://efs-broker.ephemeral-aws-environment.persi.cf-app.com
-      BROKER_USER: admin
-      PLAN_NAME: generalPurpose
-      SERVICE_NAME: efs
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: bbl-state
-    params:
-      BBL_IAAS: aws
-      BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
-      TEST_MULTI_CELL: true
-
 - name: delete-cf-ephemeral-aws-environment-passed-pats
   serial_groups: [deploy-cf-ephemeral-aws-environment]
   plan:
@@ -2059,7 +1862,6 @@ jobs:
         passed:
         - pats-nfs-ldap-ephemeral-aws-environment
         - pats-nfs-ldap-legacy-ephemeral-aws-environment
-        - pats-efs-ephemeral-aws-environment
         trigger: true
       - get: bbl-state
   - task: delete-cf
@@ -2101,42 +1903,25 @@ jobs:
       - get: mapfs-version
         passed:
         - deploy-cf-ephemeral-aws-environment
-      - get: efs-volume-release
-        passed:
-        - deploy-cf-ephemeral-aws-environment
-      - get: efs-volume-release-tarball
-        passed:
-        - deploy-cf-ephemeral-aws-environment
-      - get: efsvolume-version
-        passed:
-        - deploy-cf-ephemeral-aws-environment
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
       COLLECT_NFS_TARBALL: true
-      COLLECT_EFS_TARBALL: true
+      COLLECT_EFS_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
     #this task requires a lot of inputs that we don't need for this instance--we're feeding in
-    #efsvolume-version as a dummy input because it is tiny and easy to copy
+    #nfsvolume-version as a dummy input because it is tiny and easy to copy
     input_mapping:
       persi-ci: persi-ci
       nfs-tarball: nfs-volume-release-tarball
-      efs-tarball: efs-volume-release-tarball
+      efs-tarball: nfsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
       smb-tarball: efsvolume-version #dummy
       nfs-version: nfsvolume-version
-      efs-version: efsvolume-version
+      efs-version: nfsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
       smb-version: efsvolume-version #dummy
-  - task: collect-efs-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: cf-deployment
-      new-ops-files: efs-volume-release
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/deploy-efs-broker-and-install-driver.yml"
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2161,7 +1946,7 @@ jobs:
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "nfs.tgz mapfs.tgz efs.tgz"
+      NEW_OPS_FILES: "nfs.tgz mapfs.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
@@ -2169,11 +1954,9 @@ jobs:
     params:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
-      GENERATE_EFS_VARS: true
+      GENERATE_EFS_VARS: false
       GENERATE_NFS_VARS: true
       GENERATE_S3_BLOBSTORE_VARS: true
-      AWS_ACCESS_KEY_ID: {{efs-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{efs-secret-access-key}}
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
       LDAP_SVC_USER: {{ldap-svc-user}}
       LDAP_SVC_PASS: {{ldap-svc-pass}}
@@ -2189,7 +1972,7 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
       SYSTEM_DOMAIN: ephemeral-aws-environment.persi.cf-app.com
-      VARS_FILES: "efs-vars.yml nfs-vars.yml s3-blobstore-vars.yml"
+      VARS_FILES: "nfs-vars.yml s3-blobstore-vars.yml"
       OPS_FILES: "operations/scale-to-one-az.yml \
                   operations/use-compiled-releases.yml \
                   operations/enable-nfs-volume-service-with-sqlstore.yml \
@@ -2197,7 +1980,6 @@ jobs:
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
                   operations/test/enable-nfs-test-ldapserver.yml \
-                  operations/deploy-efs-broker-and-install-driver.yml \
                   operations/update-releases.yml"
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
