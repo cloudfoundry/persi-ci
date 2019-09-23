@@ -220,12 +220,6 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
 
-- name: cf-acceptance-tests-pw
-  type: git
-  source:
-    branch: develop
-    uri: https://github.com/paulcwarren/cf-acceptance-tests.git
-
 - name: credhub
   type: git
   source:
@@ -955,12 +949,12 @@ jobs:
         trigger: true
       - get: persi-ci
       - get: bbl-state
-      - get: cf-acceptance-tests-pw
+      - get: cf-acceptance-tests
   - task: run-cats
     file: persi-ci/scripts/ci/run_cats.build.yml
     input_mapping:
       director-state: bbl-state
-      cf-acceptance-tests: cf-acceptance-tests-pw
+      cf-acceptance-tests: cf-acceptance-tests
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       BBL_IAAS: gcp
