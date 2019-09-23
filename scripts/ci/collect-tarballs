@@ -8,13 +8,6 @@ collect_versions() {
       fi
       NFS_VERSION="$(cat nfs-version/number)"
   fi
-  if [ "$COLLECT_EFS_TARBALL" = "true" ]; then
-      if [ ! -d ${ROOT_DIR}/efs-version ]; then
-        echo "[ERROR] efs-version input is missing."
-        exit 1
-      fi
-      EFS_VERSION="$(cat efs-version/number)"
-  fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" ]; then
       if [ ! -d ${ROOT_DIR}/mapfs-version ]; then
         echo "[ERROR] mapfs-version input is missing."
@@ -36,10 +29,6 @@ check_params() {
     echo "[ERROR] nfs-tarball input is missing."
     exit 1
   fi
-  if [ "$COLLECT_EFS_TARBALL" = "true" -a ! -d ${ROOT_DIR}/efs-tarball ]; then
-    echo "[ERROR] efs-tarball input is missing."
-    exit 1
-  fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" -a ! -d ${ROOT_DIR}/mapfs-tarball ]; then
     echo "[ERROR] mapfs-tarball input is missing."
     exit 1
@@ -50,10 +39,6 @@ check_params() {
   fi
   if [ "$COLLECT_NFS_TARBALL" = "true" -a -z "${NFS_VERSION}" ]; then
     echo "[ERROR] NFS_VERSION is missing."
-    exit 1
-  fi
-  if [ "$COLLECT_EFS_TARBALL" = "true" -a -z "${EFS_VERSION}" ]; then
-    echo "[ERROR] EFS_VERSION is missing."
     exit 1
   fi
   if [ "$COLLECT_SMB_TARBALL" = "true" -a -z "${SMB_VERSION}" ]; then
@@ -72,9 +57,6 @@ create_collection_directory() {
 collect_tarballs() {
   if [ "$COLLECT_NFS_TARBALL" = "true" -a -n "${NFS_VERSION}" ]; then
       cp ${ROOT_DIR}/nfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/nfs.tgz
-  fi
-  if [ "$COLLECT_EFS_TARBALL" = "true" -a -n "${EFS_VERSION}" ]; then
-      cp ${ROOT_DIR}/efs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/efs.tgz
   fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" -a -n "${MAPFS_VERSION}" ]; then
       cp ${ROOT_DIR}/mapfs-tarball/*.tgz ${ROOT_DIR}/collected-tarballs/mapfs.tgz
@@ -96,16 +78,6 @@ create_operation_file() {
     name: nfs-volume
     version: ${NFS_VERSION}
     url: ../ops-files/nfs.tgz
-EOF
-  fi
-  if [ "$COLLECT_EFS_TARBALL" = "true" ]; then
-    cat << EOF >> ${ROOT_DIR}/collected-tarballs/operations/update-releases.yml
-- type: replace
-  path: /releases/name=efs-volume
-  value:
-    name: efs-volume
-    version: ${EFS_VERSION}
-    url: ../ops-files/efs.tgz
 EOF
   fi
   if [ "$COLLECT_MAPFS_TARBALL" = "true" ]; then

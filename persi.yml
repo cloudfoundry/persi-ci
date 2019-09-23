@@ -1419,16 +1419,13 @@ jobs:
         passed: [ create-smb-volume-release ]
   - task: collect-tarballs
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
-    params:
-      COLLECT_EFS_TARBALL: false
+    params: {}
     input_mapping:
       persi-ci: persi-ci
       nfs-tarball: nfs-volume-release-tarball
-      efs-tarball: nfsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
       smb-tarball: smb-volume-release-tarball
       nfs-version: nfsvolume-version
-      efs-version: nfsvolume-version #dummy
       mapfs-version: mapfs-version
       smb-version: smb-volume-version
   - task: collect-persi-ci-ops-files
@@ -1691,7 +1688,6 @@ jobs:
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
       COLLECT_NFS_TARBALL: true
-      COLLECT_EFS_TARBALL: true
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
     #this task requires a lot of inputs that we don't need for this instance--we're feeding in
@@ -1699,11 +1695,9 @@ jobs:
     input_mapping:
       persi-ci: persi-ci
       nfs-tarball: nfs-volume-release-tarball
-      efs-tarball: nfsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
       smb-tarball: nfsvolume-version #dummy
       nfs-version: nfsvolume-version
-      efs-version: nfsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
       smb-version: nfsvolume-version #dummy
   - task: collect-tarball-ops-files
@@ -1729,7 +1723,6 @@ jobs:
     params:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
-      GENERATE_EFS_VARS: false
       GENERATE_NFS_VARS: true
       GENERATE_S3_BLOBSTORE_VARS: true
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
@@ -1907,7 +1900,6 @@ jobs:
     file: persi-ci/scripts/ci/collect-tarballs.build.yml
     params:
       COLLECT_NFS_TARBALL: true
-      COLLECT_EFS_TARBALL: false
       COLLECT_SMB_TARBALL: false
       COLLECT_MAPFS_TARBALL: true
     #this task requires a lot of inputs that we don't need for this instance--we're feeding in
@@ -1915,13 +1907,11 @@ jobs:
     input_mapping:
       persi-ci: persi-ci
       nfs-tarball: nfs-volume-release-tarball
-      efs-tarball: nfsvolume-version #dummy
       mapfs-tarball: mapfs-release-tarball
-      smb-tarball: efsvolume-version #dummy
+      smb-tarball: nfsvolume-version #dummy
       nfs-version: nfsvolume-version
-      efs-version: nfsvolume-version #dummy
       mapfs-version: mapfs-version #dummy
-      smb-version: efsvolume-version #dummy
+      smb-version: nfsvolume-version #dummy
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -1954,7 +1944,6 @@ jobs:
     params:
       BBL_IAAS: aws
       BBL_STATE_DIR: bbl-state-aws-ephemeral-aws-environment
-      GENERATE_EFS_VARS: false
       GENERATE_NFS_VARS: true
       GENERATE_S3_BLOBSTORE_VARS: true
       LDAP_HOST: "nfstestldapserver.service.cf.internal"

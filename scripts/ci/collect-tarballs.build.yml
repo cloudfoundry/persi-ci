@@ -10,12 +10,10 @@ image_resource:
 inputs:
 - name: persi-ci
 - name: nfs-tarball
-- name: efs-tarball
 - name: smb-tarball
-- name: nfs-version
-- name: efs-version
-- name: mapfs-version
 - name: mapfs-tarball
+- name: nfs-version
+- name: mapfs-version
 - name: smb-version
 
 outputs:
@@ -23,7 +21,6 @@ outputs:
 
 params:
   COLLECT_NFS_TARBALL: true
-  COLLECT_EFS_TARBALL: true
   COLLECT_SMB_TARBALL: true
   COLLECT_MAPFS_TARBALL: true
 

@@ -23,34 +23,6 @@ nfstestldapserver_static_ips: ${NFSTESTLDAPSERVER_STATIC_IP}
 EOF
 }
 
-generate_efs_vars() {
-  pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
-    if [ -z "${AWS_SECURITY_GROUP}" ]; then
-      AWS_SECURITY_GROUP="$(bbl outputs | yq -r '.internal_security_group')"
-    fi
-
-    if [ -z "${AWS_REGION}" ]; then
-      AWS_REGION="$(bbl outputs | yq -r '.region')"
-    fi
-
-    AWS_AZ="${AWS_REGION}a"
-
-    if [ -z "${AWS_SUBNET_ID}" ]; then
-      AWS_SUBNET_ID=$(bbl outputs | yq -r ".internal_az_subnet_id_mapping.\"${AWS_AZ}\"" )
-    fi
-  popd
-
-    cat << EOF > ${ROOT_DIR}/generated-vars/efs-vars.yml
----
-aws-access-key-id: ${AWS_ACCESS_KEY_ID}
-aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
-aws-subnet-ids: ${AWS_SUBNET_ID}
-aws-security-groups: ${AWS_SECURITY_GROUP}
-aws-region: "${AWS_REGION}"
-aws-azs: ${AWS_AZ}
-EOF
-}
-
 generate_gcs_blobstore_vars() {
   pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
     if [ -z "${GCS_BLOBSTORE_PROJECT_ID}" ]; then
@@ -166,10 +138,6 @@ main() {
 
   if [ "$GENERATE_NFS_VARS" = "true" ]; then
     generate_nfs_vars
-  fi
-
-  if [ "$GENERATE_EFS_VARS" = "true" ]; then
-    generate_efs_vars
   fi
 
   if [ "$GENERATE_GCS_BLOBSTORE_VARS" = "true" ]; then
