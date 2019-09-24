@@ -1915,7 +1915,7 @@ jobs:
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: collected-ops-files
+      base-ops-files: cf-deployment
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
