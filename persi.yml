@@ -216,6 +216,12 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
 
+- name: docker_driver_integration_tests
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/docker_driver_integration_tests
+
 - name: credhub
   type: git
   source:
@@ -1175,6 +1181,7 @@ jobs:
         - smb-volume-release-job-tests
         trigger: true
       - get: bbl-state
+      - get: docker_driver_integration_tests
   - task: run_docker_driver_integration_tests
     privileged: true
     input_mapping:
@@ -1185,6 +1192,16 @@ jobs:
       SMB_PASSWORD: {{smb_cert_password}}
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       BBL_IAAS: gcp
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+  - task: run_driver_broker_compatibility_tests
+    privileged: true
+    input_mapping:
+      director-state: bbl-state
+    params:
+      SMB_REMOTE_PATH: //localhost/example1
+      SMB_USERNAME: example1
+      SMB_PASSWORD: badpass
+      TEST_PACKAGE: docker_driver_integration_tests/compatibility
     file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
 - name: deploy-smb-broker
