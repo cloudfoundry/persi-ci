@@ -1747,7 +1747,7 @@ jobs:
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: collected-ops-files
+      base-ops-files: cf-deployment
       new-ops-files: collected-tarballs
     params:
       BASE_OPS_FILE_DIR: "operations"
