@@ -1796,6 +1796,14 @@ jobs:
                   operations/test/enable-nfs-test-server.yml \
                   operations/test/enable-nfs-test-ldapserver.yml \
                   operations/update-releases.yml"
+  - task: enable-docker
+    attempts: 2
+    file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
+    params:
+      BBL_STATE_DIR: bbl-state-gcp-gorgophone
+      SYSTEM_DOMAIN: gorgophone.cf-app.com
+      ENABLED_FEATURE_FLAGS: |
+        diego_docker
 
 - name: deploy-nfs-broker-ephemeral-aws-environment
   serial_groups: [deploy-cf-ephemeral-aws-environment]
