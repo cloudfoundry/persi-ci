@@ -502,7 +502,6 @@ jobs:
         passed:
         - nfsdriver-unit
         - nfsbroker-tests
-        - nfs-volume-release-job-tests
         trigger: true
       - get: mapfs-release
         passed:
@@ -527,6 +526,7 @@ jobs:
       - get: nfs-volume-release
         passed:
         - nfsdriver-integration
+        - nfs-volume-release-job-tests
         trigger: true
       - get: nfs-volume-version
         resource: nfsvolume-version
@@ -1144,6 +1144,7 @@ jobs:
         passed:
         - smb-existingvolumebroker-unit
         - smbdriver-integration
+        - smb-volume-release-job-tests
         trigger: true
       - get: smb-volume-version
         resource: smb-volume-version
@@ -1179,7 +1180,6 @@ jobs:
         - smbbroker-unit
         - smb-volume-mount-options-unit
         - smbdriver-unit
-        - smb-volume-release-job-tests
         trigger: true
       - get: bbl-state
       - get: docker_driver_integration_tests
@@ -1243,6 +1243,7 @@ jobs:
         passed:
         - deploy-smb-broker
         - smbdriver-integration
+        - smb-volume-release-job-tests
         trigger: true
       - get: smb-volume-release-tarball
         passed:
