@@ -508,13 +508,15 @@ jobs:
         - mapfs-unit
         - mapfs-release-job-tests
         trigger: true
-  - do:
-    - task: run_docker_driver_integration_tests
-      file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-      privileged: true
-    - task: run_docker_driver_lazy_unmount_integration_tests
-      file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_lazy_unmount_integration_tests.build.yml
-      privileged: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: run_docker_driver_integration_tests
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+        privileged: true
+      - task: run_docker_driver_lazy_unmount_integration_tests
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_lazy_unmount_integration_tests.build.yml
+        privileged: true
 
 - name: create-nfs-volume-release
   serial_groups:
@@ -1183,26 +1185,29 @@ jobs:
         trigger: true
       - get: bbl-state
       - get: docker_driver_integration_tests
-  - task: run_docker_driver_integration_tests
-    privileged: true
-    input_mapping:
-      director-state: bbl-state
-    params:
-      SMB_REMOTE_PATH: {{smb_cert_remote_path}}
-      SMB_USERNAME: {{smb_cert_username}}
-      SMB_PASSWORD: {{smb_cert_password}}
-      TEST_PACKAGE: docker_driver_integration_tests
-    file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-  - task: run_driver_broker_compatibility_tests
-    privileged: true
-    input_mapping:
-      director-state: bbl-state
-    params:
-      SMB_REMOTE_PATH: //localhost/example1
-      SMB_USERNAME: example1
-      SMB_PASSWORD: badpass
-      TEST_PACKAGE: docker_driver_integration_tests/compatibility
-    file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: run_docker_driver_integration_tests
+        privileged: true
+        input_mapping:
+          director-state: bbl-state
+        params:
+          SMB_REMOTE_PATH: {{smb_cert_remote_path}}
+          SMB_USERNAME: {{smb_cert_username}}
+          SMB_PASSWORD: {{smb_cert_password}}
+          TEST_PACKAGE: docker_driver_integration_tests
+        file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+      - task: run_driver_broker_compatibility_tests
+        privileged: true
+        input_mapping:
+          director-state: bbl-state
+        params:
+          SMB_REMOTE_PATH: //localhost/example1
+          SMB_USERNAME: example1
+          SMB_PASSWORD: badpass
+          TEST_PACKAGE: docker_driver_integration_tests/compatibility
+        file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
 - name: deploy-smb-broker
   serial_groups:
