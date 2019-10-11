@@ -1,0 +1,13 @@
+#!/bin/bash
+set -ex
+
+export GOROOT=/usr/local/go
+export PATH=$GOROOT/bin:$PATH
+export GOPATH=$PWD
+export PATH=$PWD/bin:$PATH
+
+go get -u github.com/onsi/ginkgo/ginkgo
+
+cd gomod
+export GO111MODULE=on
+ginkgo -r -keepGoing -p -race -trace -randomizeAllSpecs -progress -mod=vendor

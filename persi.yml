@@ -205,6 +205,21 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
 
+- name: existingvolumebroker
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/existingvolumebroker.git
+
+- name: volumedriver
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/volumedriver.git
+
+- name: volume-mount-options
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/volume-mount-options.git
+
 - name: cf-volume-services-acceptance-tests
   type: git
   source:
@@ -1105,37 +1120,47 @@ jobs:
     params:
       SUBMODULE_NAME: smbbroker
 
-- name: smb-existingvolumebroker-unit
+- name: existingvolumebroker-unit
   public: true
   plan:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: smb-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: smb-volume-release
+      - get: persi-ci
+      - get: existingvolumebroker
         trigger: true
   - task: existingvolumebroker-unit
-    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
-    params:
-      SUBMODULE_NAME: existingvolumebroker
+    file: persi-ci/scripts/ci/run-unit.build.yml
+    input_mapping:
+      gomod: existingvolumebroker
 
-- name: smb-volume-mount-options-unit
+- name: volumedriver-unit
   public: true
   plan:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: smb-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: smb-volume-release
+      - get: persi-ci
+      - get: volumedriver
+        trigger: true
+  - task: volumedriver-unit
+    file: persi-ci/scripts/ci/run-unit.build.yml
+    input_mapping:
+      gomod: volumedriver
+
+- name: volume-mount-options-unit
+  public: true
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: volume-mount-options
         trigger: true
   - task: volume-mount-options-unit
-    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
-    params:
-      SUBMODULE_NAME: volume-mount-options
+    file: persi-ci/scripts/ci/run-unit.build.yml
+    input_mapping:
+      gomod: volume-mount-options
 
 - name: create-smb-volume-release
   plan:
