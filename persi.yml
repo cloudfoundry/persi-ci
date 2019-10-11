@@ -51,8 +51,9 @@ groups:
   - shipit-mapfs
   - shipit-nfs
   - shipit-smb
-  - smb-existingvolumebroker-unit
-  - smb-volume-mount-options-unit
+  - existingvolumebroker-unit
+  - volumedriver-unit
+  - volume-mount-options-unit
   - smb-volume-release-job-tests
   - smbbroker-unit
   - smbdriver-integration
@@ -118,8 +119,8 @@ groups:
   - smbdriver-unit
   - smbbroker-unit
   - smb-volume-release-job-tests
-  - smb-existingvolumebroker-unit
-  - smb-volume-mount-options-unit
+  - existingvolumebroker-unit
+  - volume-mount-options-unit
   - smbdriver-integration
 
 - name: release-nfs
@@ -1169,7 +1170,6 @@ jobs:
       steps:
       - get: smb-volume-release
         passed:
-        - smb-existingvolumebroker-unit
         - smbdriver-integration
         - smb-volume-release-job-tests
         trigger: true
@@ -1205,7 +1205,6 @@ jobs:
       - get: smb-volume-release
         passed:
         - smbbroker-unit
-        - smb-volume-mount-options-unit
         - smbdriver-unit
         trigger: true
       - get: bbl-state
