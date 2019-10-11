@@ -120,6 +120,7 @@ groups:
   - smbbroker-unit
   - smb-volume-release-job-tests
   - existingvolumebroker-unit
+  - volumedriver-unit
   - volume-mount-options-unit
   - smbdriver-integration
 
