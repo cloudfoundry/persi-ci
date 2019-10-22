@@ -2002,7 +2002,8 @@ jobs:
     params:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/enable-nfs-volume-service-with-sqlstore.yml \
-                      operations/enable-nfs-volume-service-migration-test.yml"
+                      operations/enable-nfs-volume-service-migration-test.yml \
+                      operations/use-nfs-volume-release-allows-db-properties.yml"
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -2051,13 +2052,32 @@ jobs:
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
                   operations/test/enable-nfs-test-ldapserver.yml \
-                  operations/update-releases.yml"
+                  operations/update-releases.yml \
+                  operations/use-nfs-volume-release-allows-db-properties.yml"
   - task: run-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     params:
       BBL_STATE_DIR: bbl-state-ephemeral-environment
       ERRAND_NAME: nfsbrokerpush
       INSTANCE: nfs-broker-push
+  - task: bosh-deploy-cf-with-latest-nfs-volume-release
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+    input_mapping:
+      cf-deployment: cf-deployment
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+    params:
+      BBL_STATE_DIR: bbl-state-ephemeral-environment
+      SYSTEM_DOMAIN: ephemeral-environment.persi.cf-app.com
+      VARS_FILES: "nfs-vars.yml s3-blobstore-vars.yml"
+      OPS_FILES: "operations/scale-to-one-az.yml \
+                  operations/use-compiled-releases.yml \
+                  operations/enable-nfs-volume-service-with-sqlstore.yml \
+                  operations/enable-nfs-volume-service-migration-test.yml \
+                  operations/enable-nfs-ldap.yml \
+                  operations/test/enable-nfs-test-server.yml \
+                  operations/test/enable-nfs-test-ldapserver.yml \
+                  operations/update-releases.yml"
 
 - name: migrate-nfs-broker-to-credhub-ephemeral-environment
   serial_groups: [deploy-cf-ephemeral-environment]
