@@ -487,6 +487,7 @@ jobs:
     input_mapping:
       test-repo: nfs-volume-release
   - task: bosh-release-test
+    attempts: 3
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
 
