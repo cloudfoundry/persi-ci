@@ -1505,7 +1505,8 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/enable-nfs-test-server-two.yml
-                      operations/enable-smb-test-server-two.yml"
+                      operations/enable-smb-test-server-two.yml
+                      operations/fix-bbr-link.yml"
   - task: collect-tarball-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -1562,7 +1563,8 @@ jobs:
                   operations/backup-and-restore/enable-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
                   operations/enable-smb-test-server-two.yml
-                  operations/update-releases.yml"
+                  operations/update-releases.yml
+                  operations/fix-bbr-link.yml"
   - task: enable-docker
     attempts: 2
     file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
