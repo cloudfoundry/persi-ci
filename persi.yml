@@ -1219,9 +1219,6 @@ jobs:
         input_mapping:
           director-state: bbl-state
         params:
-          SMB_REMOTE_PATH: {{smb_cert_remote_path}}
-          SMB_USERNAME: {{smb_cert_username}}
-          SMB_PASSWORD: {{smb_cert_password}}
           TEST_PACKAGE: docker_driver_integration_tests
         file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
       - task: run_driver_broker_compatibility_tests
@@ -1229,9 +1226,6 @@ jobs:
         input_mapping:
           director-state: bbl-state
         params:
-          SMB_REMOTE_PATH: //localhost/example1
-          SMB_USERNAME: example1
-          SMB_PASSWORD: badpass
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
         file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
