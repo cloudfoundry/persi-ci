@@ -539,6 +539,13 @@ jobs:
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
+      - task: run_driver_broker_compatibility_tests
+        privileged: true
+        input_mapping:
+          director-state: bbl-state
+        params:
+          TEST_PACKAGE: docker_driver_integration_tests/compatibility
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
 - name: create-nfs-volume-release
   serial_groups:
