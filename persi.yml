@@ -1228,6 +1228,13 @@ jobs:
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
         file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+      - task: run_driver_broker_lazy_unmount_tests
+        privileged: true
+        input_mapping:
+          director-state: bbl-state
+        params:
+          TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
+        file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
 - name: deploy-smb-broker
   serial_groups:
