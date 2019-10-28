@@ -230,8 +230,8 @@ resources:
 - name: cf-acceptance-tests
   type: git
   source:
-    branch: master
-    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
+    branch: develop
+    uri: https://github.com/paulcwarren/cf-acceptance-tests.git
 
 - name: docker_driver_integration_tests
   type: git
