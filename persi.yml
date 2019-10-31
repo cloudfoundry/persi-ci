@@ -935,6 +935,10 @@ jobs:
         passed:
         - deploy-nfs-brokers
         trigger: true
+      - get: cf-deployment
+        passed:
+        - deploy-nfs-brokers
+        trigger: true
       - get: persi-ci
       - get: bbl-state
       - get: cf-acceptance-tests
@@ -958,6 +962,10 @@ jobs:
       fail_fast: true
       steps:
       - get: smb-volume-release
+        passed:
+        - deploy-smb-broker
+        trigger: true
+      - get: cf-deployment
         passed:
         - deploy-smb-broker
         trigger: true
