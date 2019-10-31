@@ -1,7 +1,0 @@
-- type: replace
-  path: /instance_groups/name=backup-restore/jobs/name=nfsbrokerpush/provides/nfsbrokerpush
-  value: {as: local-nfsbrokerpush}
-
-- type: replace
-  path: /instance_groups/name=backup-restore/jobs/name=nfsbroker-bbr-lock/consumes/nfsbrokerpush
-  value: {from: local-nfsbrokerpush}
