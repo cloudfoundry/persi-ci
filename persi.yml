@@ -42,6 +42,7 @@ groups:
   - nfsbroker-tests
   - nfsdriver-integration
   - nfsdriver-unit
+  - nfs-security-scan
   - pats-nfs-long-running-gcp-environment
   - pats-nfs-docker-long-running-gcp-environment
   - pats-nfs-ldap-ephemeral-environment
@@ -107,6 +108,7 @@ groups:
 
 - name: nfs-units-integration
   jobs:
+  - nfs-security-scan
   - nfsdriver-unit
   - nfsbroker-tests
   - mapfs-unit
@@ -445,6 +447,20 @@ resource_types:
     tag: latest-final
 
 jobs:
+- name: nfs-security-scan
+  plan:
+    - in_parallel:
+        - get: persi-ci
+        - get: nfs-volume-release
+          trigger: true
+    - task: build
+      file: persi-ci/scripts/ci/security-scan.build.yml
+      params:
+        PATHS: "src/code.cloudfoundry.org/nfsv3driver/:src/code.cloudfoundry.org/nfsbroker/"
+        RELEASE_DIR: nfs-volume-release
+      input_mapping:
+        release-dir: nfs-volume-release
+
 - name: nfsdriver-unit
   public: true
   plan:
