@@ -36,6 +36,7 @@ groups:
   - manual-bump-smb-minor
   - manual-bump-smb-patch
   - mapfs-release-job-tests
+  - mapfs-security-scan
   - mapfs-unit
   - migrate-nfs-broker-to-credhub-ephemeral-environment
   - nfs-volume-release-job-tests
@@ -56,6 +57,7 @@ groups:
   - volumedriver-unit
   - volume-mount-options-unit
   - smb-volume-release-job-tests
+  - smb-security-scan
   - smbbroker-unit
   - smbdriver-integration
   - smbdriver-unit
@@ -114,10 +116,12 @@ groups:
   - mapfs-unit
   - nfs-volume-release-job-tests
   - mapfs-release-job-tests
+  - mapfs-security-scan
   - nfsdriver-integration
 
 - name: smb-units-integration
   jobs:
+  - smb-security-scan
   - smbdriver-unit
   - smbbroker-unit
   - smb-volume-release-job-tests
@@ -506,6 +510,19 @@ jobs:
     attempts: 3
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
+
+- name: mapfs-security-scan
+  plan:
+    - in_parallel:
+        - get: persi-ci
+        - get: mapfs-release
+          trigger: true
+    - task: build
+      file: persi-ci/scripts/ci/security-scan.build.yml
+      params:
+        PATHS: "src/mapfs/"
+      input_mapping:
+        release-dir: mapfs-release
 
 - name: mapfs-release-job-tests
   plan:
@@ -1125,6 +1142,19 @@ jobs:
     file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
     attempts: 3
+
+- name: smb-security-scan
+  plan:
+    - in_parallel:
+        - get: persi-ci
+        - get: smb-volume-release
+          trigger: true
+    - task: build
+      file: persi-ci/scripts/ci/security-scan.build.yml
+      params:
+        PATHS: "src/code.cloudfoundry.org/smbbroker:src/code.cloudfoundry.org/smbdriver"
+      input_mapping:
+        release-dir: smb-volume-release
 
 - name: smbdriver-unit
   public: true
