@@ -1,0 +1,20 @@
+#!/bin/bash
+set -eux
+
+export GOROOT=/usr/local/go
+export PATH=$GOROOT/bin:$PATH
+
+pushd release-dir
+
+    export GOPATH=$PWD
+    export PATH=$PWD/bin:$PATH
+
+    go get github.com/securego/gosec/cmd/gosec
+
+    IFS=':' read -r -a array <<< "$PATHS"
+
+    for path in "${array[@]}"; do
+        gosec "$path/..."
+    done
+
+popd

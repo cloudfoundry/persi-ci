@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: cfpersi/nfs-unit-tests
+    tag: latest
+
+inputs:
+- name: persi-ci
+- name: release-dir
+
+params:
+  PATHS: ~
+
+run:
+  path: persi-ci/scripts/ci/security-scan
