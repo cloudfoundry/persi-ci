@@ -10,11 +10,14 @@ pushd release-dir
     export PATH=$PWD/bin:$PATH
 
     go get github.com/securego/gosec/cmd/gosec
+    unset GOPATH
 
     IFS=':' read -r -a array <<< "$PATHS"
 
     for path in "${array[@]}"; do
-        gosec "$path/..."
+      pushd $path
+        GO111MODULE=on gosec "./..."
+      popd
     done
 
 popd
