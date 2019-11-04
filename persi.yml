@@ -2,23 +2,24 @@ groups:
 - name: all-jobs
   jobs:
   - acquire-lock-ephemeral-environment
-  - bbl-up-long-running-gcp-environment
+  - bbl-destroy-cf-ephemeral-environment-passed-migration
   - bbl-up-ephemeral-environment
+  - bbl-up-long-running-gcp-environment
   - build-mapfs-tests-docker-image
   - build-nfs-bosh-release-test-docker-image
   - build-nfs-broker-tests-docker-image
+  - build-nfs-cats-docker-image
   - build-nfs-driver-integration-tests-docker-image
   - build-nfs-unit-tests-docker-image
   - build-smb-unit-tests-docker-image
-  - build-nfs-cats-docker-image
   - cats-nfs-long-running-gcp-environment
   - cats-smb-long-running-gcp-environment
   - cf-deployment-nightly
   - create-mapfs-release
   - create-nfs-volume-release
   - create-smb-volume-release
-  - delete-cf-ephemeral-environment-passed-pats
   - delete-cf-ephemeral-environment-passed-migration
+  - delete-cf-ephemeral-environment-passed-pats
   - deploy-cf
   - deploy-cf-ephemeral-environment
   - deploy-cf-ephemeral-environment-sql
@@ -26,6 +27,7 @@ groups:
   - deploy-nfs-brokers
   - deploy-smb-broker
   - drats-nfs-smb
+  - existingvolumebroker-unit
   - manual-bump-mapfs-major
   - manual-bump-mapfs-minor
   - manual-bump-mapfs-patch
@@ -44,31 +46,30 @@ groups:
   - nfsdriver-integration
   - nfsdriver-unit
   - nfs-security-scan
-  - pats-nfs-long-running-gcp-environment
+  - norsk-status-mapfs
+  - norsk-status-nfs
+  - norsk-status-smb
   - pats-nfs-docker-long-running-gcp-environment
   - pats-nfs-ldap-ephemeral-environment
   - pats-nfs-ldap-legacy-ephemeral-environment
   - pats-nfs-legacy-long-running-gcp-environment
+  - pats-nfs-long-running-gcp-environment
   - pats-smb-long-running-gcp-environment
   - shipit-mapfs
   - shipit-nfs
   - shipit-smb
-  - existingvolumebroker-unit
-  - volumedriver-unit
-  - volume-mount-options-unit
   - smb-volume-release-job-tests
   - smb-security-scan
   - smbbroker-unit
   - smbdriver-integration
   - smbdriver-unit
-  - norsk-status-nfs
-  - norsk-status-mapfs
-  - norsk-status-smb
+  - volume-mount-options-unit
+  - volumedriver-unit
 
 - name: upgrade-environment-test-nfs-smb
   jobs:
-  - cf-deployment-nightly
   - bbl-up-long-running-gcp-environment
+  - cf-deployment-nightly
   - create-nfs-volume-release
   - create-mapfs-release
   - create-smb-volume-release
@@ -86,6 +87,7 @@ groups:
 - name: new-environment-test-nfs-ldap
   jobs:
   - acquire-lock-ephemeral-environment
+  - bbl-destroy-cf-ephemeral-environment-passed-migration
   - bbl-up-ephemeral-environment
   - create-nfs-volume-release
   - create-mapfs-release
@@ -398,7 +400,7 @@ resources:
   type: git
   source:
     branch: release-candidate
-    uri: https://github.com/cloudfoundry/cf-deployment.git
+    uri: https://github.com/lisamcho/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
   type: git
@@ -1890,6 +1892,8 @@ jobs:
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
                   operations/test/enable-nfs-test-ldapserver.yml \
+                  operations/backup-and-restore/enable-backup-restore.yml \
+                  operations/backup-and-restore/enable-restore-nfs-broker.yml \
                   operations/update-releases.yml"
   - task: enable-docker
     attempts: 2
@@ -2191,9 +2195,47 @@ jobs:
     file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
     params:
       BBL_STATE_DIR: bbl-state-ephemeral-environment
+
+- name: bbl-destroy-cf-ephemeral-environment-passed-migration
+  serial_groups: [deploy-cf-ephemeral-environment]
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment-concourse-tasks
+      - get: env-creation-gate-lock
+        passed:
+        - delete-cf-ephemeral-environment-passed-migration
+        trigger: true
+      - get: bbl-state
+  - task: bbl-destroy
+    file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
+    params:
+      BBL_IAAS: gcp
+      BBL_ENV_NAME: ephemeral-environment
+      BBL_GCP_REGION: us-west1
+      BBL_GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
+      BBL_LB_CERT: {{ephemeral-environment_lbs_ssl_cert}}
+      BBL_LB_KEY: {{ephemeral-environment_lbs_ssl_private_key}}
+      BBL_STATE_DIR: bbl-state-ephemeral-environment
+      LB_DOMAIN: ephemeral-environment.persi.cf-app.com
+      GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
+    input_mapping:
+      bbl-config: bbl-state
+    ensure:
+      put: bbl-state
+      params:
+        repository: updated-bbl-state
+        rebase: true
+      on_error:
+        put: bbl-state
+        params:
+          repository: updated-bbl-state
+          rebase: true
   - put: env-creation-gate-lock
     params:
       release: env-creation-gate-lock
+
 
 - name: norsk-status-nfs
   plan:
