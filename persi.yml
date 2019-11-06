@@ -1809,6 +1809,16 @@ jobs:
         params:
           repository: updated-bbl-state
           rebase: true
+  - task: update-route-53
+    file: persi-ci/scripts/ci/update_route_53.build.yml
+    params:
+      BBL_STATE_DIR: bbl-state-ephemeral-environment
+      AWS_ACCESS_KEY_ID: {{route53-updater_aws_ID}}
+      AWS_SECRET_ACCESS_KEY: {{route53-updater_aws_secret}}
+      AWS_DEFAULT_REGION: us-east-1
+    input_mapping:
+      director-state: bbl-state
+
 
 - name: deploy-cf-ephemeral-environment
   public: true
