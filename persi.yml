@@ -12,6 +12,7 @@ groups:
   - build-nfs-driver-integration-tests-docker-image
   - build-nfs-unit-tests-docker-image
   - build-smb-unit-tests-docker-image
+  - build-awscli-docker-image
   - cats-nfs-long-running-gcp-environment
   - cats-smb-long-running-gcp-environment
   - cf-deployment-nightly
@@ -109,6 +110,7 @@ groups:
   - build-nfs-unit-tests-docker-image
   - build-smb-unit-tests-docker-image
   - build-nfs-cats-docker-image
+  - build-awscli-docker-image
 
 - name: nfs-units-integration
   jobs:
@@ -165,6 +167,13 @@ resources:
   type: docker-image
   source:
     repository: cfpersi/mapfs-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: awscli-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/awscli
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
@@ -1081,6 +1090,16 @@ jobs:
   - put: mapfs-tests-docker-image
     params:
       build: mapfs/ci/dockerfiles/perf
+
+- name: build-awscli-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: persi-ci
+      trigger: true
+    - put: awscli-docker-image
+      params:
+        build: persi-ci/dockerfiles/awscli
 
 - name: mapfs-unit
   public: true
