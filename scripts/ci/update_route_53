@@ -1,0 +1,42 @@
+#!/bin/bash
+
+set -e -u
+
+aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+aws configure set default.region $AWS_DEFAULT_REGION
+
+persi-ci/scripts/ci/bbl_get_bosh_env
+source bosh-env/set-env.sh
+
+pushd director-state/$BBL_STATE_DIR/
+    NS0=$(bbl outputs | yq -r '.system_domain_dns_servers[0]')
+    NS1=$(bbl outputs | yq -r '.system_domain_dns_servers[1]')
+    NS2=$(bbl outputs | yq -r '.system_domain_dns_servers[2]')
+    NS3=$(bbl outputs | yq -r '.system_domain_dns_servers[3]')
+popd
+
+cat << EOF > file.txt
+{
+  "Comment": "test updating the persi ephemeral name servers",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "ephemeral-environment.persi.cf-app.com.",
+        "Type": "NS",
+        "TTL": 0,
+        "ResourceRecords": [
+          {"Value": "$NS0"},
+          {"Value": "$NS1"},
+          {"Value": "$NS2"},
+          {"Value": "$NS3"}
+        ]
+      }
+    }
+  ]
+}
+EOF
+
+aws route53 change-resource-record-sets --hosted-zone-id /hostedzone/Z1OE08QT9BJFFU --change-batch "$(cat ./file.txt)"
+
