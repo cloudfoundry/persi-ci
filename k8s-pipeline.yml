@@ -1,0 +1,20 @@
+groups:
+- name: all-jobs
+  jobs:
+  - smb-broker-unit-tests
+
+
+resources:
+- name: smb-volume-k8s-release
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/smb-volume-k8s-release
+
+jobs:
+- name: smb-broker-unit-tests
+  plan:
+    - in_parallel:
+        - get: smb-volume-k8s-release
+          trigger: true
+    - task: unit-tests
+      file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
