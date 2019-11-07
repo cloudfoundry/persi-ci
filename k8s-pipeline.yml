@@ -62,4 +62,5 @@ jobs:
     - put: smb-broker-docker-image
       params:
         tag_file: smb-broker-version/version
+        tag_as_latest: true
         build: smb-volume-k8s-release/smb-broker
