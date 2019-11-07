@@ -676,7 +676,40 @@ jobs:
   - put: nfsvolume-version
     params:
       bump: patch
-
+  - task: pipeline-success
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: johnajimenez/ubuntu-bash-jq-curl-git
+          tag: latest
+      inputs:
+        - name: nfs-volume-release
+      run:
+        path: bash
+        args:
+          - -exc
+          - |
+            cd nfs-volume-release
+            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/7b387f7f765bae4500147d6ca1100093" | jq -r '.latest_git_sha')
+            git config --global core.pager cat
+            if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
+              true # all is well
+            else
+              echo "$LATEST_GIT_SHA missing, assuming the worst"
+              export LATEST_GIT_SHA=null
+            fi
+            export NEW_LATEST_GIT_SHA=$(git rev-parse HEAD)
+            if [ "$LATEST_GIT_SHA" == "null" ]; then
+              export STORY_IDS=($(git log -10 | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+            else
+              export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+            fi
+            if [ -z "$STORY_IDS" ]; then
+              STORY_IDS=[]
+            fi
+            curl -X POST -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"7b387f7f765bae4500147d6ca1100093", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
 - name: manual-bump-nfs-patch
   serial_groups:
   - nfs-version
@@ -1483,6 +1516,40 @@ jobs:
   - put: smb-volume-version
     params:
       bump: patch
+  - task: pipeline-success
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: johnajimenez/ubuntu-bash-jq-curl-git
+          tag: latest
+      inputs:
+        - name: smb-volume-release
+      run:
+        path: bash
+        args:
+          - -exc
+          - |
+            cd smb-volume-release
+            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/d526b7901a2001a6f01869ef334b3068" | jq -r '.latest_git_sha')
+            git config --global core.pager cat
+            if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
+              true # all is well
+            else
+              echo "$LATEST_GIT_SHA missing, assuming the worst"
+              export LATEST_GIT_SHA=null
+            fi
+            export NEW_LATEST_GIT_SHA=$(git rev-parse HEAD)
+            if [ "$LATEST_GIT_SHA" == "null" ]; then
+              export STORY_IDS=($(git log -10 | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+            else
+              export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+            fi
+            if [ -z "$STORY_IDS" ]; then
+              STORY_IDS=[]
+            fi
+            curl -X POST -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"d526b7901a2001a6f01869ef334b3068", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
 - name: manual-bump-smb-patch
   serial_groups:
   - smb-version
