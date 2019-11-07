@@ -8,13 +8,35 @@ resources:
 - name: smb-volume-k8s-release
   type: git
   source:
-    uri: https://github.com/cloudfoundry/smb-volume-k8s-release
+    uri: git@github.com:cloudfoundry/smb-volume-k8s-release
+    branch: master
+    private_key: {{smb-broker-k8s-github-deploy-key}}
+
+- name: smb-broker-version
+  type: semver
+  source:
+    access_key_id: {{smb-broker-k8s-uploader_aws_ID}}
+    bucket: smb-broker-versions-k8s
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{smb-broker-k8s-uploader_aws_secret}}
 
 jobs:
 - name: smb-broker-unit-tests
   plan:
-    - in_parallel:
-        - get: smb-volume-k8s-release
-          trigger: true
+    - get: smb-volume-k8s-release
+      trigger: true
     - task: unit-tests
       file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
+    - get: smb-broker-version
+      params:
+        bump: minor
+    - put: smb-volume-k8s-release
+      params:
+        repository: smb-volume-k8s-release
+        tag: smb-broker-version/version
+        only_tag: true
+    - put: smb-broker-version
+      params:
+        bump: minor
