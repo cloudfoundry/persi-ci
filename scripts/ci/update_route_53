@@ -1,10 +1,6 @@
 #!/bin/bash
 
-set -e -u
-
-aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-aws configure set default.region $AWS_DEFAULT_REGION
+set -eu pipefail
 
 persi-ci/scripts/ci/bbl_get_bosh_env
 source bosh-env/set-env.sh
@@ -18,7 +14,7 @@ popd
 
 cat << EOF > file.txt
 {
-  "Comment": "test updating the persi ephemeral name servers",
+  "Comment": "bbl up CI task updating the persi ephemeral name servers",
   "Changes": [
     {
       "Action": "UPSERT",
@@ -38,5 +34,7 @@ cat << EOF > file.txt
 }
 EOF
 
-aws route53 change-resource-record-sets --hosted-zone-id /hostedzone/Z1OE08QT9BJFFU --change-batch "$(cat ./file.txt)"
+aws route53 change-resource-record-sets \
+  --hosted-zone-id /hostedzone/$AWS_HOSTED_ZONE \
+  --change-batch "$(cat ./file.txt)"
 
