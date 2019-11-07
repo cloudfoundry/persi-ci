@@ -2,7 +2,7 @@ groups:
 - name: all-jobs
   jobs:
   - smb-broker-unit-tests
-
+  - build-smb-broker-docker-image
 
 resources:
 - name: smb-volume-k8s-release
@@ -11,6 +11,14 @@ resources:
     uri: git@github.com:cloudfoundry/smb-volume-k8s-release
     branch: master
     private_key: {{smb-broker-k8s-github-deploy-key}}
+
+- name: smb-broker-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/smb-broker
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 
 - name: smb-broker-version
   type: semver
@@ -40,3 +48,18 @@ jobs:
     - put: smb-broker-version
       params:
         bump: minor
+
+
+- name: build-smb-broker-docker-image
+  plan:
+    - get: smb-volume-k8s-release
+      passed:
+      - smb-broker-unit-tests
+      trigger: true
+    - get: smb-broker-version
+      passed:
+      - smb-broker-unit-tests
+    - put: smb-broker-docker-image
+      params:
+        tag_file: smb-broker-version/version
+        build: smb-volume-k8s-release/smb-broker
