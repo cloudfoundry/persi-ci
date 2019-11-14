@@ -407,7 +407,7 @@ resources:
   type: git
   source:
     branch: release-candidate
-    uri: https://github.com/lisamcho/cf-deployment.git
+    uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
   type: git
