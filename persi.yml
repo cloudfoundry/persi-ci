@@ -319,8 +319,6 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/smb-volume-release.git
-    ignore_paths:
-    - scripts
 
 - name: smb-volume-release-concourse-tasks
   type: git
