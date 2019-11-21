@@ -409,3 +409,21 @@ jobs:
         SYSTEM_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
         ENABLED_FEATURE_FLAGS: |
           diego_docker
+
+- name: deploy-nfs-broker-ephemeral-environment
+  serial_groups: [deploy-cf-ephemeral-environment]
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: cf-deployment-concourse-tasks
+          - get: env-creation-gate-lock
+            passed:
+              - deploy-cf-ephemeral-environment
+            trigger: true
+          - get: bbl-state
+    - task: run-broker-errand
+      file: cf-deployment-concourse-tasks/run-errand/task.yml
+      params:
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        ERRAND_NAME: nfsbrokerpush
