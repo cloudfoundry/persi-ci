@@ -505,3 +505,236 @@ jobs:
       params:
         BBL_IAAS: gcp
         BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+
+- name: delete-cf-ephemeral-environment-passed-pats
+  serial_groups: [deploy-cf-ephemeral-environment]
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: cf-deployment-concourse-tasks
+          - get: env-creation-gate-lock
+            passed:
+              - pats-nfs-ldap-ephemeral-environment
+              - pats-nfs-ldap-legacy-ephemeral-environment
+            trigger: true
+          - get: bbl-state
+    - task: delete-cf
+      file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
+      params:
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+
+- name: deploy-cf-ephemeral-environment-sql
+  serial_groups: [deploy-cf-ephemeral-environment]
+  public: true
+  build_logs_to_retain: 100
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: cf-deployment
+          - get: cf-deployment-concourse-tasks
+          - get: env-creation-gate-lock
+            passed:
+              - delete-cf-ephemeral-environment-passed-pats
+            trigger: true
+          - get: bbl-state
+          - get: persi-ci
+          - get: nfs-volume-release
+            passed:
+              - deploy-cf-ephemeral-environment
+          - get: nfs-volume-release-tarball
+            passed:
+              - deploy-cf-ephemeral-environment
+          - get: nfsvolume-version
+            passed:
+              - deploy-cf-ephemeral-environment
+    - task: collect-tarballs
+      file: persi-ci/scripts/ci/collect-tarballs.build.yml
+      params:
+        COLLECT_NFS_TARBALL: true
+        COLLECT_SMB_TARBALL: false
+        COLLECT_MAPFS_TARBALL: false
+      #this task requires a lot of inputs that we don't need for this instance--we're feeding in
+      #nfsvolume-version as a dummy input because it is tiny and easy to copy
+      input_mapping:
+        persi-ci: persi-ci
+        nfs-tarball: nfs-volume-release-tarball
+        mapfs-tarball: nfsvolume-version #dummy
+        smb-tarball: nfsvolume-version #dummy
+        nfs-version: nfsvolume-version
+        mapfs-version: nfsvolume-version #dummy
+        smb-version: nfsvolume-version #dummy
+    - task: collect-persi-ci-ops-files
+      file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+      input_mapping:
+        base-ops-files: cf-deployment
+        new-ops-files: persi-ci
+      params:
+        BASE_OPS_FILE_DIR: "operations"
+        NEW_OPS_FILES: "operations/enable-nfs-volume-service-with-sqlstore.yml \
+                      operations/enable-nfs-volume-service-migration-test.yml \
+                      operations/use-nfs-volume-release-allows-db-properties.yml"
+    - task: collect-tarball-ops-files
+      file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+      input_mapping:
+        base-ops-files: collected-ops-files
+        new-ops-files: collected-tarballs
+      params:
+        BASE_OPS_FILE_DIR: "operations"
+        NEW_OPS_FILES: "operations/update-releases.yml"
+    - task: add-tarballs
+      file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+      input_mapping:
+        base-ops-files: collected-ops-files
+        new-ops-files: collected-tarballs
+      params:
+        BASE_OPS_FILE_DIR: "."
+        NEW_OPS_FILES: "nfs.tgz"
+    - task: generate-variables
+      file: persi-ci/scripts/ci/generate_variables.build.yml
+      input_mapping:
+        director-state: bbl-state
+      params:
+        BBL_IAAS: gcp
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        GENERATE_NFS_VARS: true
+        GENERATE_S3_BLOBSTORE_VARS: false
+        LDAP_HOST: "nfstestldapserver.service.cf.internal"
+        LDAP_SVC_USER: {{ldap-svc-user}}
+        LDAP_SVC_PASS: {{ldap-svc-pass}}
+        LDAP_PORT: 636
+        LDAP_PROTO: tcp
+        LDAP_USER_FQDN: {{ldap-user-fqdn}}
+    - task: bosh-deploy-cf
+      file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+      input_mapping:
+        cf-deployment: cf-deployment
+        ops-files: collected-ops-files
+        vars-files: generated-vars
+      params:
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        SYSTEM_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
+        VARS_FILES: "nfs-vars.yml"
+        OPS_FILES: "operations/scale-to-one-az.yml \
+                  operations/use-compiled-releases.yml \
+                  operations/enable-nfs-volume-service-with-sqlstore.yml \
+                  operations/enable-nfs-volume-service-migration-test.yml \
+                  operations/enable-nfs-ldap.yml \
+                  operations/test/enable-nfs-test-server.yml \
+                  operations/test/enable-nfs-test-ldapserver.yml \
+                  operations/update-releases.yml \
+                  operations/use-nfs-volume-release-allows-db-properties.yml"
+    - task: run-broker-errand
+      file: cf-deployment-concourse-tasks/run-errand/task.yml
+      params:
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        ERRAND_NAME: nfsbrokerpush
+        INSTANCE: nfs-broker-push
+    - task: bosh-deploy-cf-with-latest-nfs-volume-release
+      file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+      input_mapping:
+        cf-deployment: cf-deployment
+        ops-files: collected-ops-files
+        vars-files: generated-vars
+      params:
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        SYSTEM_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
+        VARS_FILES: "nfs-vars.yml"
+        OPS_FILES: "operations/scale-to-one-az.yml \
+                  operations/use-compiled-releases.yml \
+                  operations/enable-nfs-volume-service-with-sqlstore.yml \
+                  operations/enable-nfs-volume-service-migration-test.yml \
+                  operations/enable-nfs-ldap.yml \
+                  operations/test/enable-nfs-test-server.yml \
+                  operations/test/enable-nfs-test-ldapserver.yml \
+                  operations/update-releases.yml"
+
+
+- name: migrate-nfs-broker-to-credhub-ephemeral-environment
+  serial_groups: [deploy-cf-ephemeral-environment]
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: cf-deployment-concourse-tasks
+          - get: persi-ci
+          - get: cf-volume-services-acceptance-tests
+          - get: env-creation-gate-lock
+            passed:
+              - deploy-cf-ephemeral-environment-sql
+            trigger: true
+          - get: bbl-state
+    - task: test-migration
+      file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
+      input_mapping:
+        director-state: bbl-state
+      params:
+        BBL_IAAS: gcp
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        APPS_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
+        CF_API_ENDPOINT: api.lts-ephemeral-environment.persi.cf-app.com
+        CF_USERNAME: admin
+        BIND_CONFIG: '{"username":"user1000","password":"secret"}'
+        CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+
+- name: delete-cf-ephemeral-environment-passed-migration
+  serial_groups: [deploy-cf-ephemeral-environment]
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: cf-deployment-concourse-tasks
+          - get: env-creation-gate-lock
+            passed:
+              - migrate-nfs-broker-to-credhub-ephemeral-environment
+            trigger: true
+          - get: bbl-state
+    - task: delete-cf
+      file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
+      params:
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+    - task: bosh-cleanup
+      file: cf-deployment-concourse-tasks/bosh-cleanup/task.yml
+      params:
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+
+- name: bbl-destroy-cf-ephemeral-environment-passed-migration
+  serial_groups: [deploy-cf-ephemeral-environment]
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: cf-deployment-concourse-tasks
+          - get: env-creation-gate-lock
+            passed:
+              - delete-cf-ephemeral-environment-passed-migration
+            trigger: true
+          - get: bbl-state
+    - task: bbl-destroy
+      file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
+      params:
+        BBL_IAAS: gcp
+        BBL_ENV_NAME: lts-ephemeral-environment
+        BBL_GCP_REGION: us-west1
+        BBL_GCP_SERVICE_ACCOUNT_KEY: {{gcp_service_account_key}}
+        BBL_LB_CERT: {{ephemeral-environment_lbs_ssl_cert}}
+        BBL_LB_KEY: {{ephemeral-environment_lbs_ssl_private_key}}
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        LB_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
+        GIT_COMMIT_EMAIL: cf-diego-persistence@pivotal.io
+      input_mapping:
+        bbl-config: bbl-state
+      ensure:
+        put: bbl-state
+        params:
+          repository: updated-bbl-state
+          rebase: true
+        on_error:
+          put: bbl-state
+          params:
+            repository: updated-bbl-state
+            rebase: true
+    - put: env-creation-gate-lock
+      params:
+        release: env-creation-gate-lock
