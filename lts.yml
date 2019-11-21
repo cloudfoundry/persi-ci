@@ -49,6 +49,11 @@ resources:
     tag_filter: {{cf-d-tasks-version-tag}} #e.g. v10.9.0
     uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
 
+- name: cf-volume-services-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+
 - name: bbl-state
   type: git
   source:
@@ -427,3 +432,76 @@ jobs:
       params:
         BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
         ERRAND_NAME: nfsbrokerpush
+
+- name: pats-nfs-ldap-ephemeral-environment
+  serial_groups: [deploy-cf-ephemeral-environment]
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: env-creation-gate-lock
+            passed:
+              - deploy-nfs-broker-ephemeral-environment
+            trigger: true
+          - get: bbl-state
+          - get: cf-volume-services-acceptance-tests
+          - get: persi-ci
+    - task: generate-pats-config
+      file: persi-ci/scripts/ci/generate_pats_config.build.yml
+      input_mapping:
+        director-state: bbl-state
+      params:
+        BBL_IAAS: gcp
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        APPS_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
+        CF_API_ENDPOINT: api.lts-ephemeral-environment.persi.cf-app.com
+        CF_USERNAME: admin
+        BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+        CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+        DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+        PLAN_NAME: Existing
+        SERVICE_NAME: nfs
+    - task: run-pats
+      file: persi-ci/scripts/ci/run-pats.build.yml
+      input_mapping:
+        director-state: bbl-state
+      params:
+        BBL_IAAS: gcp
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        TEST_DOCKER_PORA: true
+
+- name: pats-nfs-ldap-legacy-ephemeral-environment
+  serial_groups: [deploy-cf-ephemeral-environment]
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: env-creation-gate-lock
+            passed:
+              - deploy-nfs-broker-ephemeral-environment
+            trigger: true
+          - get: bbl-state
+          - get: cf-volume-services-acceptance-tests
+          - get: persi-ci
+    - task: generate-pats-config
+      file: persi-ci/scripts/ci/generate_pats_config.build.yml
+      input_mapping:
+        director-state: bbl-state
+      params:
+        BBL_IAAS: gcp
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
+        APPS_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
+        CF_API_ENDPOINT: api.lts-ephemeral-environment.persi.cf-app.com
+        CF_USERNAME: admin
+        BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+        CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+        DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+        PLAN_NAME: Existing
+        SERVICE_NAME: nfs-legacy
+    - task: run-pats
+      file: persi-ci/scripts/ci/run-pats.build.yml
+      input_mapping:
+        director-state: bbl-state
+      params:
+        BBL_IAAS: gcp
+        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
