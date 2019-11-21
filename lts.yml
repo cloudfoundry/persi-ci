@@ -304,6 +304,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: {{route53-updater_aws_secret}}
         AWS_DEFAULT_REGION: us-east-1
         AWS_HOSTED_ZONE: {{route53-aws-hosted-zone}}
+        NS_RECORD_NAME: lts-ephemeral-environment.persi.cf-app.com.
       input_mapping:
         director-state: bbl-state
 

@@ -19,7 +19,7 @@ cat << EOF > file.txt
     {
       "Action": "UPSERT",
       "ResourceRecordSet": {
-        "Name": "ephemeral-environment.persi.cf-app.com.",
+        "Name": "${NS_RECORD_NAME}",
         "Type": "NS",
         "TTL": 0,
         "ResourceRecords": [

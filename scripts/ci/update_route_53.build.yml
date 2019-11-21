@@ -17,6 +17,7 @@ params:
   AWS_SECRET_ACCESS_KEY: ~
   AWS_DEFAULT_REGION: ~
   AWS_HOSTED_ZONE: ~
+  NS_RECORD_NAME: ~
 
 run:
   path: persi-ci/scripts/ci/update_route_53
