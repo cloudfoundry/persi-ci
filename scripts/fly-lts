@@ -2,12 +2,13 @@
 set -u
 
 NFS_LTS_VERSION="$1"
+NFS_LTS_INITIAL_VERSION="$2"
 fly -t persi sp \
   -p "lts-${NFS_LTS_VERSION}" \
   -c lts.yml \
   --load-vars-from <( lpass show pipeline-secrets --notes ) \
   -v lts-nfs-branch="v${NFS_LTS_VERSION}" \
-  -v nfs-semver-initial-version=2.3.3 \
+  -v nfs-semver-initial-version="${NFS_LTS_INITIAL_VERSION}" \
   -v mapfs-tag=v1.2.0 \
   -v cf-d-version-tag=v12.1.0 \
   -v cf-d-tasks-version-tag=v10.9.0
