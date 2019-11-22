@@ -1,1 +1,1 @@
-$(dirname $0)/fly -p persi
+$(dirname $0)/fly -p cf-volume-services-diego
