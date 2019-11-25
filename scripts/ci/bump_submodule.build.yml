@@ -1,0 +1,22 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: concourse/git-resource
+    tag: latest
+
+inputs:
+- name: persi-ci
+- name: release-repo
+- name: submodule-repo
+
+outputs:
+  - name: bumped-repo
+
+params:
+  SUBMODULE_PATH: replace-me
+
+run:
+  path: persi-ci/scripts/ci/bump_submodule

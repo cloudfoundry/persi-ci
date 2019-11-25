@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e -x -u
+source $(pwd)/persi-ci/scripts/ci/utils.sh
+check_param $SUBMODULE_PATH
+
+pushd submodule-repo
+  commit_sha=`git rev-parse HEAD`
+popd
+
+pushd release-repo
+  pushd ${SUBMODULE_PATH}
+    git checkout $commit_sha
+  popd
+
+  ./scipts
+popd
+
+cp -a release-repo bumped-repo/
