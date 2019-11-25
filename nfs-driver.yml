@@ -8,8 +8,8 @@ resources:
   type: git
   source:
     branch: master
-    # username: {{github-user}}
-    # password: {{github-password}}
+    # username: {#{github-user}#}
+    # password: {#{github-password}#}
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
 
 - name: persi-ci
@@ -108,14 +108,14 @@ jobs:
       release-repo: nfs-volume-release
       submodule-repo: nfsv3driver
     params:
-      submodule-path: src/code.cloudfoundry.org/nfsv3driver
+      SUBMODULE_PATH: src/code.cloudfoundry.org/nfsv3driver
   - task: rspec
     file: persi-ci/scripts/ci/run-rspec.build.yml
     input_mapping:
-      test-repo: bumped-release
+      test-repo: bumped-repo
   - task: bosh-release-test
     attempts: 3
     input_mapping:
-      nfs-volume-release: bumped-release
+      nfs-volume-release: bumped-repo
     file: nfs-volume-release/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
