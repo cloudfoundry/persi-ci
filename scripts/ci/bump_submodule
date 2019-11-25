@@ -13,6 +13,7 @@ pushd release-repo
     git checkout $commit_sha
   popd
 
+  git add ${SUBMODULE_PATH}
   git config --global alias.ci commit
   ./scripts/commit-with-submodule-logs
 popd
