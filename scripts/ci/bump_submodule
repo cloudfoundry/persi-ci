@@ -18,4 +18,4 @@ pushd release-repo
   ./scripts/commit-with-submodule-logs
 popd
 
-cp -a release-repo bumped-repo/
+cp -a release-repo/* bumped-repo/
