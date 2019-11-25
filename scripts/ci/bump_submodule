@@ -13,7 +13,7 @@ pushd release-repo
     git checkout $commit_sha
   popd
 
-  ./scipts/commit-with-submodule-logs
+  ./scripts/commit-with-submodule-logs
 popd
 
 cp -a release-repo bumped-repo/
