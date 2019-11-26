@@ -24,16 +24,23 @@ resources:
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/mapfs-release.git
 
-
 - name: nfsvolume-version
   type: semver
   source:
     access_key_id: {{lts-nfsvolume-uploader_aws_ID}}
     bucket: lts-nfsvolume-release-versions
     initial_version: {{nfs-semver-initial-version}}
-    key: current-version
+    key: {{lts-nfs-branch}}
     region_name: us-west-2
     secret_access_key: {{lts-nfsvolume-uploader_aws_secret}}
+
+- name: github-release-nfs
+  type: github-release
+  source:
+    user: cloudfoundry
+    repository: nfs-volume-release
+    drafts: true
+    access_token: {{github-release-token-nfsvolumerelease}}
 
 - name: cf-deployment
   type: git
@@ -93,7 +100,7 @@ resources:
   source:
     access_key_id: {{lts-nfsvolume-uploader_aws_ID}}
     bucket: nfs-volume-release-tarballs
-    regexp: nfs-volume-(.*).tgz
+    regexp: {{nfs-volume-release-tarball-regexp}}
     secret_access_key: {{lts-nfsvolume-uploader_aws_secret}}
 
 jobs:
@@ -665,6 +672,15 @@ jobs:
               - deploy-cf-ephemeral-environment-sql
             trigger: true
           - get: bbl-state
+          - get: nfs-volume-release
+            passed:
+              - deploy-cf-ephemeral-environment-sql
+          - get: nfs-volume-release-tarball
+            passed:
+              - deploy-cf-ephemeral-environment-sql
+          - get: nfsvolume-version
+            passed:
+              - deploy-cf-ephemeral-environment-sql
     - task: test-migration
       file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
       input_mapping:
@@ -738,3 +754,54 @@ jobs:
     - put: env-creation-gate-lock
       params:
         release: env-creation-gate-lock
+
+- name: shipit-nfs
+  serial_groups:
+    - nfs-version
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: nfs-volume-release-tarball
+            passed:
+              - migrate-nfs-broker-to-credhub-ephemeral-environment
+          - get: nfs-volume-release
+            passed:
+              - migrate-nfs-broker-to-credhub-ephemeral-environment
+          - get: nfsvolume-version
+            params:
+              bump: final
+    - task: finalize-release
+      file: persi-ci/scripts/ci/finalize_release.build.yml
+      params:
+        BASE_RELEASE_NAME: nfs-volume
+        GIT_USER: {{github-user}}
+        GIT_EMAIL: {{github-email}}
+        S3_ACCESS_KEY_ID: {{lts-nfsvolume-uploader_aws_ID}}
+        S3_ACCESS_KEY: {{lts-nfsvolume-uploader_aws_secret}}
+      input_mapping:
+        release: nfs-volume-release
+        version: nfsvolume-version
+        release-tarball: nfs-volume-release-tarball
+    - task: generate-github-release
+      file: persi-ci/scripts/ci/generate_github_release.build.yml
+      params:
+        BASE_RELEASE_NAME: nfs-volume
+      input_mapping:
+        release: nfs-volume-release
+        version: nfsvolume-version
+    - put: nfs-volume-release
+      params:
+        repository: finalized-release/release
+        tag: nfsvolume-version/number
+        tag_prefix: v
+    - put: github-release-nfs
+      params:
+        commitish: generated-release/commitish
+        name: generated-release/name
+        tag: generated-release/version
+        globs: []
+    - put: nfsvolume-version
+      params:
+        bump: patch
