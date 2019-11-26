@@ -15,7 +15,7 @@ pushd release-repo
 
   # gather submodule logs
   git add ${SUBMODULE_PATH}
-  ./scripts/submodule-logs > ../notes/notes.txt
+  ./scripts/submodule-log > ../notes/notes.txt
   git reset HEAD
 popd
 
