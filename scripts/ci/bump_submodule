@@ -19,4 +19,4 @@ pushd release-repo
   git reset HEAD
 popd
 
-cp -a release-repo/* bumped-repo/
+cp -a release-repo/. bumped-repo
