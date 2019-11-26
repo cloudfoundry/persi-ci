@@ -13,10 +13,9 @@ pushd release-repo
     git checkout $commit_sha
   popd
 
-  # gather submodule logs
   git add ${SUBMODULE_PATH}
   ./scripts/submodule-log > ../notes/notes.txt
-  git reset HEAD
+  ./scripts/commit-with-submodule-log
 popd
 
 cp -a release-repo/. bumped-repo
