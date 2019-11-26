@@ -3,6 +3,12 @@ set -u
 
 NFS_LTS_VERSION="$1"
 NFS_LTS_INITIAL_VERSION="$2"
+
+if [[ "${NFS_LTS_VERSION}" = "1.7" ]]; then
+  CF_D_VERSION_TAG="v7.6.0"
+else
+  CF_D_VERSION_TAG="v12.1.0"
+fi
 fly -t persi sp \
   -p "lts-${NFS_LTS_VERSION}" \
   -c lts.yml \
@@ -10,6 +16,6 @@ fly -t persi sp \
   -v lts-nfs-branch="v${NFS_LTS_VERSION}" \
   -v nfs-semver-initial-version="${NFS_LTS_INITIAL_VERSION}" \
   -v mapfs-tag=v1.2.0 \
-  -v cf-d-version-tag=v12.1.0 \
+  -v cf-d-version-tag="${CF_D_VERSION_TAG}" \
   -v nfs-volume-release-tarball-regexp="nfs-volume-(${NFS_LTS_VERSION}.*).tgz" \
   -v cf-d-tasks-version-tag=v10.9.0
