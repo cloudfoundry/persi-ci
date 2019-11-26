@@ -17,8 +17,9 @@ pushd release-repo
   git config user.email "cf-diego-persistence@pivotal.io"
   git config user.name "persi-ci"
   git add ${SUBMODULE_PATH}
-  ./scripts/submodule-log > ../notes/notes.txt
-  ./scripts/commit-with-submodule-logs
+  set +e
+    ./scripts/commit-with-submodule-logs
+  set -e
 popd
 
 cp -a release-repo/. bumped-repo

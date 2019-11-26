@@ -14,7 +14,6 @@ inputs:
 
 outputs:
   - name: bumped-repo
-  - name: notes
 
 params:
   SUBMODULE_PATH: replace-me
