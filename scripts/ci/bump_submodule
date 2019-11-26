@@ -14,6 +14,8 @@ pushd release-repo
   popd
 
   git config --global alias.ci commit
+  git config user.email "cf-diego-persistence@pivotal.io"
+  git config user.name "persi-ci"
   git add ${SUBMODULE_PATH}
   ./scripts/submodule-log > ../notes/notes.txt
   ./scripts/commit-with-submodule-logs
