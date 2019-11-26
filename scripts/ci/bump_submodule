@@ -15,7 +15,7 @@ pushd release-repo
 
   git add ${SUBMODULE_PATH}
   ./scripts/submodule-log > ../notes/notes.txt
-  ./scripts/commit-with-submodule-log
+  ./scripts/commit-with-submodule-logs
 popd
 
 cp -a release-repo/. bumped-repo
