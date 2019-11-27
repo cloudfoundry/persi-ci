@@ -39,14 +39,8 @@ groups:
   - manual-bump-smb-minor
   - manual-bump-smb-patch
   - mapfs-release-job-tests
-  - mapfs-security-scan
-  - mapfs-unit
   - migrate-nfs-broker-to-credhub-ephemeral-environment
   - nfs-volume-release-job-tests
-  - nfsbroker-tests
-  - nfsdriver-integration
-  - nfsdriver-unit
-  - nfs-security-scan
   - norsk-status-mapfs
   - norsk-status-nfs
   - norsk-status-smb
@@ -60,10 +54,6 @@ groups:
   - shipit-nfs
   - shipit-smb
   - smb-volume-release-job-tests
-  - smb-security-scan
-  - smbbroker-unit
-  - smbdriver-integration
-  - smbdriver-unit
   - volume-mount-options-unit
   - volumedriver-unit
 
@@ -112,27 +102,11 @@ groups:
   - build-nfs-cats-docker-image
   - build-awscli-docker-image
 
-- name: nfs-units-integration
+- name: shared-units-integration
   jobs:
-  - nfs-security-scan
-  - nfsdriver-unit
-  - nfsbroker-tests
-  - mapfs-unit
-  - nfs-volume-release-job-tests
-  - mapfs-release-job-tests
-  - mapfs-security-scan
-  - nfsdriver-integration
-
-- name: smb-units-integration
-  jobs:
-  - smb-security-scan
-  - smbdriver-unit
-  - smbbroker-unit
-  - smb-volume-release-job-tests
   - existingvolumebroker-unit
   - volumedriver-unit
   - volume-mount-options-unit
-  - smbdriver-integration
 
 - name: release-nfs
   jobs:
@@ -249,18 +223,6 @@ resources:
   source:
     branch: develop
     uri: https://github.com/lisamcho/cf-acceptance-tests.git
-
-- name: docker_driver_integration_tests
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry/docker_driver_integration_tests
-
-- name: credhub
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry-incubator/credhub
 
 - name: nightly
   type: time
@@ -453,46 +415,6 @@ resources:
     - mapfs-release/*
 
 jobs:
-- name: nfs-security-scan
-  plan:
-    - in_parallel:
-        - get: persi-ci
-        - get: nfs-volume-release
-          trigger: true
-    - task: build
-      file: persi-ci/scripts/ci/security-scan.build.yml
-      params:
-        PATHS: "src/code.cloudfoundry.org/nfsv3driver/:src/code.cloudfoundry.org/nfsbroker/"
-        RELEASE_DIR: nfs-volume-release
-      input_mapping:
-        release-dir: nfs-volume-release
-
-- name: nfsdriver-unit
-  public: true
-  plan:
-  - in_parallel:
-    - get: nfs-volume-release-concourse-tasks
-      params:
-        submodules: none
-    - get: nfs-volume-release
-      trigger: true
-  - task: build
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
-
-- name: nfsbroker-tests
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: nfs-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: nfs-volume-release
-        trigger: true
-      - get: credhub
-  - task: run-test
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
 
 - name: nfs-volume-release-job-tests
   plan:
@@ -513,19 +435,6 @@ jobs:
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
 
-- name: mapfs-security-scan
-  plan:
-    - in_parallel:
-        - get: persi-ci
-        - get: mapfs-release
-          trigger: true
-    - task: build
-      file: persi-ci/scripts/ci/security-scan.build.yml
-      params:
-        PATHS: "src/mapfs/"
-      input_mapping:
-        release-dir: mapfs-release
-
 - name: mapfs-release-job-tests
   plan:
   - in_parallel:
@@ -539,49 +448,6 @@ jobs:
     privileged: true
     timeout: 1h
 
-
-- name: nfsdriver-integration
-  serial: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: docker_driver_integration_tests
-      - get: nfs-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: nfs-volume-release
-        passed:
-        - nfsdriver-unit
-        - nfsbroker-tests
-        trigger: true
-      - get: mapfs-release
-        passed:
-        - mapfs-unit
-        - mapfs-release-job-tests
-        trigger: true
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - task: run_docker_driver_integration_tests
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-        privileged: true
-        params:
-          TEST_PACKAGE: docker_driver_integration_tests/
-      - task: run_docker_driver_lazy_unmount_integration_tests
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-        privileged: true
-        params:
-          TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
-      - task: run_driver_broker_compatibility_tests
-        privileged: true
-        input_mapping:
-          director-state: bbl-state
-        params:
-          TEST_PACKAGE: docker_driver_integration_tests/compatibility
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-
 - name: create-nfs-volume-release
   serial_groups:
   - nfs-version
@@ -591,7 +457,6 @@ jobs:
       steps:
       - get: nfs-volume-release
         passed:
-        - nfsdriver-integration
         - nfs-volume-release-job-tests
         trigger: true
       - get: nfs-volume-version
@@ -1160,15 +1025,6 @@ jobs:
       params:
         build: persi-ci/dockerfiles/awscli
 
-- name: mapfs-unit
-  public: true
-  plan:
-  - get: mapfs-release
-    trigger: true
-  - task: run-unit
-    file: mapfs-release/scripts/ci/run_tests.build.yml
-    privileged: true
-
 - name: create-mapfs-release
   plan:
   - in_parallel:
@@ -1176,7 +1032,6 @@ jobs:
       steps:
       - get: mapfs-release
         passed:
-        - mapfs-unit
         - mapfs-release-job-tests
         trigger: true
       - get: mapfs-version
@@ -1222,51 +1077,6 @@ jobs:
     file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
     attempts: 3
-
-- name: smb-security-scan
-  plan:
-    - in_parallel:
-        - get: persi-ci
-        - get: smb-volume-release
-          trigger: true
-    - task: build
-      file: persi-ci/scripts/ci/security-scan.build.yml
-      params:
-        PATHS: "src/code.cloudfoundry.org/smbbroker:src/code.cloudfoundry.org/smbdriver"
-      input_mapping:
-        release-dir: smb-volume-release
-
-- name: smbdriver-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smb-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: smb-volume-release
-        trigger: true
-  - task: smbdriver-unit
-    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
-    params:
-      SUBMODULE_NAME: smbdriver
-
-- name: smbbroker-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smb-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: smb-volume-release
-        trigger: true
-  - task: smbbroker-unit
-    file: smb-volume-release-concourse-tasks/scripts/ci/run-submodule-unit.build.yml
-    params:
-      SUBMODULE_NAME: smbbroker
 
 - name: existingvolumebroker-unit
   public: true
@@ -1317,7 +1127,6 @@ jobs:
       steps:
       - get: smb-volume-release
         passed:
-        - smbdriver-integration
         - smb-volume-release-job-tests
         trigger: true
       - get: smb-volume-version
@@ -1339,47 +1148,6 @@ jobs:
   - put: smb-volume-release-tarball
     params:
       file: release-tarball/smb-volume-*.tgz
-
-- name: smbdriver-integration
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: smb-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: smb-volume-release
-        passed:
-        - smbbroker-unit
-        - smbdriver-unit
-        trigger: true
-      - get: bbl-state
-      - get: docker_driver_integration_tests
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - task: run_docker_driver_integration_tests
-        privileged: true
-        input_mapping:
-          director-state: bbl-state
-        params:
-          TEST_PACKAGE: docker_driver_integration_tests
-        file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-      - task: run_driver_broker_compatibility_tests
-        privileged: true
-        input_mapping:
-          director-state: bbl-state
-        params:
-          TEST_PACKAGE: docker_driver_integration_tests/compatibility
-        file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-      - task: run_driver_broker_lazy_unmount_tests
-        privileged: true
-        input_mapping:
-          director-state: bbl-state
-        params:
-          TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
-        file: smb-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
 - name: deploy-smb-broker
   serial_groups:
@@ -1419,7 +1187,6 @@ jobs:
       - get: smb-volume-release
         passed:
         - deploy-smb-broker
-        - smbdriver-integration
         - smb-volume-release-job-tests
         trigger: true
       - get: smb-volume-release-tarball
