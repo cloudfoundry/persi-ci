@@ -10,6 +10,7 @@ popd
 
 pushd release-repo
   pushd ${SUBMODULE_PATH}
+    git fetch
     git checkout $commit_sha
   popd
 
