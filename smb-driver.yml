@@ -95,10 +95,6 @@ jobs:
       submodule-repo: smbdriver
     params:
       SUBMODULE_PATH: src/code.cloudfoundry.org/smbdriver
-  - task: rspec
-    file: persi-ci/scripts/ci/run-rspec.build.yml
-    input_mapping:
-      test-repo: bumped-repo
   - task: bosh-release-test
     attempts: 3
     input_mapping:
