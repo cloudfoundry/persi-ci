@@ -3,15 +3,18 @@ set -u
 
 NFS_LTS_VERSION="$1"
 NFS_LTS_INITIAL_VERSION="$2"
+PIPELINE_NAME="lts.yml"
 
 if [[ "${NFS_LTS_VERSION}" = "1.7" ]]; then
-  CF_D_VERSION_TAG="v7.6.0"
+  CF_D_VERSION_TAG="v7.5.0"
+  NFS_LTS_INITIAL_VERSION='1.7.13'
+  PIPELINE_NAME="lts-1-7.yml"
 else
   CF_D_VERSION_TAG="v12.1.0"
 fi
 fly -t persi sp \
   -p "lts-${NFS_LTS_VERSION}" \
-  -c lts.yml \
+  -c $PIPELINE_NAME \
   --load-vars-from <( lpass show pipeline-secrets --notes ) \
   -v lts-nfs-branch="v${NFS_LTS_VERSION}" \
   -v nfs-semver-initial-version="${NFS_LTS_INITIAL_VERSION}" \
