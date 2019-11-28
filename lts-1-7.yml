@@ -589,6 +589,7 @@ jobs:
         BASE_OPS_FILE_DIR: "operations"
         NEW_OPS_FILES: "operations/enable-nfs-volume-service-with-sqlstore.yml \
                       operations/enable-nfs-volume-service-migration-test.yml \
+                      operations/enable-nfs-test-ldapserver.yml \
                       operations/use-nfs-volume-release-allows-db-properties.yml"
     - task: collect-tarball-ops-files
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
@@ -637,7 +638,7 @@ jobs:
                   operations/enable-nfs-volume-service-migration-test.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
-                  operations/test/enable-nfs-test-ldapserver.yml \
+                  operations/enable-nfs-test-ldapserver.yml \
                   operations/update-releases.yml \
                   operations/use-nfs-volume-release-allows-db-properties.yml"
     - task: run-broker-errand
@@ -662,7 +663,7 @@ jobs:
                   operations/enable-nfs-volume-service-migration-test.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
-                  operations/test/enable-nfs-test-ldapserver.yml \
+                  operations/enable-nfs-test-ldapserver.yml \
                   operations/update-releases.yml"
 
 
