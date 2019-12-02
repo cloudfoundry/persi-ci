@@ -667,42 +667,6 @@ jobs:
                   operations/update-releases.yml"
 
 
-- name: migrate-nfs-broker-to-credhub-ephemeral-environment
-  serial_groups: [deploy-cf-ephemeral-environment]
-  plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: cf-deployment-concourse-tasks
-          - get: persi-ci
-          - get: cf-volume-services-acceptance-tests
-          - get: env-creation-gate-lock
-            passed:
-              - deploy-cf-ephemeral-environment-sql
-            trigger: true
-          - get: bbl-state
-          - get: nfs-volume-release
-            passed:
-              - deploy-cf-ephemeral-environment-sql
-          - get: nfs-volume-release-tarball
-            passed:
-              - deploy-cf-ephemeral-environment-sql
-          - get: nfsvolume-version
-            passed:
-              - deploy-cf-ephemeral-environment-sql
-    - task: test-migration
-      file: persi-ci/scripts/ci/test-nfs-broker-migration.build.yml
-      input_mapping:
-        director-state: bbl-state
-      params:
-        BBL_IAAS: gcp
-        BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
-        APPS_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
-        CF_API_ENDPOINT: api.lts-ephemeral-environment.persi.cf-app.com
-        CF_USERNAME: admin
-        BIND_CONFIG: '{"username":"user1000","password":"secret"}'
-        CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
-
 - name: delete-cf-ephemeral-environment-passed-migration
   serial_groups: [deploy-cf-ephemeral-environment]
   plan:
@@ -712,7 +676,7 @@ jobs:
           - get: cf-deployment-concourse-tasks
           - get: env-creation-gate-lock
             passed:
-              - migrate-nfs-broker-to-credhub-ephemeral-environment
+              - deploy-cf-ephemeral-environment-sql
             trigger: true
           - get: bbl-state
     - task: delete-cf
@@ -774,10 +738,10 @@ jobs:
           - get: persi-ci
           - get: nfs-volume-release-tarball
             passed:
-              - migrate-nfs-broker-to-credhub-ephemeral-environment
+              - deploy-cf-ephemeral-environment-sql
           - get: nfs-volume-release
             passed:
-              - migrate-nfs-broker-to-credhub-ephemeral-environment
+              - deploy-cf-ephemeral-environment-sql
           - get: nfsvolume-version
             params:
               bump: final
