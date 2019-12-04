@@ -5,6 +5,11 @@ export GOROOT=/usr/local/go
 export PATH=$GOROOT/bin:$PATH
 
 pushd release-dir
+    if [[ ! -z "${RELEASE_DIR}" ]]; then
+        export GOPATH=$PWD
+        export PATH=$PWD/bin:$PATH
+    fi
+
     go get github.com/securego/gosec/cmd/gosec
 
     IFS=':' read -r -a array <<< "$PATHS"

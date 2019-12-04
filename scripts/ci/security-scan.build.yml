@@ -13,6 +13,7 @@ inputs:
 
 params:
   PATHS: ~
+  RELEASE_DIR: ""
 
 run:
   path: persi-ci/scripts/ci/security-scan
