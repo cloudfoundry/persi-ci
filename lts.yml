@@ -743,15 +743,18 @@ jobs:
         bbl-config: bbl-state
       ensure:
         put: bbl-state
+        attempts: 3
         params:
           repository: updated-bbl-state
           rebase: true
         on_error:
           put: bbl-state
+          attempts: 3
           params:
             repository: updated-bbl-state
             rebase: true
     - put: env-creation-gate-lock
+      attempts: 3
       params:
         release: env-creation-gate-lock
 
