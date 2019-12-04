@@ -16,7 +16,7 @@ pushd release-dir
 
     for path in "${array[@]}"; do
       pushd $path
-        GO111MODULE=on gosec "./..."
+        GO111MODULE=auto gosec "./..."
       popd
     done
 
