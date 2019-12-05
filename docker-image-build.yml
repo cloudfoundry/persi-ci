@@ -1,0 +1,169 @@
+resources:
+
+- name: nightly
+  type: time
+  source:
+    start: 12:00 AM
+    stop: 1:00 AM
+    location: America/Los_Angeles
+
+- name: mapfs-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/mapfs-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: awscli-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/awscli
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: nfs-driver-integration-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/nfs-integration-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: nfs-bosh-release-test-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/bosh-release-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: nfs-broker-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/nfs-broker-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: nfs-unit-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/nfs-unit-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: smb-unit-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/smb-unit-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: nfs-cats-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/nfs-cats
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: smb-volume-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/smb-volume-release.git
+
+- name: nfs-volume-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/nfs-volume-release.git
+
+- name: mapfs
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/mapfs.git
+
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci.git
+
+jobs:
+- name: build-nfs-driver-integration-tests-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: nfs-volume-release
+      trigger: true
+    - put: nfs-driver-integration-tests-docker-image
+      params:
+        build: nfs-volume-release/dockerfiles/nfs-integration-tests
+
+- name: build-nfs-bosh-release-test-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: nfs-volume-release
+      trigger: true
+    - put: nfs-bosh-release-test-docker-image
+      params:
+        build: nfs-volume-release/dockerfiles/bosh-release-tests
+
+- name: build-nfs-broker-tests-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: nfs-volume-release
+      trigger: true
+    - put: nfs-broker-tests-docker-image
+      params:
+        build: nfs-volume-release/dockerfiles/nfs-broker-tests
+
+- name: build-nfs-unit-tests-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: nfs-volume-release
+      trigger: true
+    - put: nfs-unit-tests-docker-image
+      params:
+        build: nfs-volume-release/dockerfiles/nfs-unit-tests
+
+- name: build-nfs-cats-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: nfs-volume-release
+      trigger: true
+    - put: nfs-cats-docker-image
+      params:
+        build: nfs-volume-release/dockerfiles/nfs-cats
+
+- name: build-mapfs-tests-docker-image
+  plan:
+  - get: nightly
+    trigger: true
+  - get: mapfs
+    trigger: true
+  - put: mapfs-tests-docker-image
+    params:
+      build: mapfs/ci/dockerfiles/perf
+
+- name: build-awscli-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: persi-ci
+      trigger: true
+    - put: awscli-docker-image
+      params:
+        build: persi-ci/dockerfiles/awscli
+
+- name: build-smb-unit-tests-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: smb-volume-release
+      trigger: true
+    - put: smb-unit-tests-docker-image
+      params:
+        build: smb-volume-release/dockerfiles/smb-unit-tests
+

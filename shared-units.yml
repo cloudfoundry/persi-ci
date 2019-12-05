@@ -1,0 +1,65 @@
+resources:
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci.git
+
+- name: existingvolumebroker
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/existingvolumebroker.git
+
+- name: volumedriver
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/volumedriver.git
+
+- name: volume-mount-options
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/volume-mount-options.git
+
+jobs:
+- name: existingvolumebroker-unit
+  public: true
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: existingvolumebroker
+        trigger: true
+  - task: existingvolumebroker-unit
+    file: persi-ci/scripts/ci/run_unit.build.yml
+    input_mapping:
+      gomod: existingvolumebroker
+
+- name: volumedriver-unit
+  public: true
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: volumedriver
+        trigger: true
+  - task: volumedriver-unit
+    file: persi-ci/scripts/ci/run_unit.build.yml
+    input_mapping:
+      gomod: volumedriver
+
+- name: volume-mount-options-unit
+  public: true
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: volume-mount-options
+        trigger: true
+  - task: volume-mount-options-unit
+    file: persi-ci/scripts/ci/run_unit.build.yml
+    input_mapping:
+      gomod: volume-mount-options
+
+

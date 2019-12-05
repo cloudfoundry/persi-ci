@@ -1,0 +1,98 @@
+resources:
+- name: oslo-scan-status
+  type: git
+  source:
+    private_key: {{norsk_mirror_private_key}}
+    uri: git@github.com:pivotal/oslo-scan-status.git
+    paths:
+    - nfs-volume-release/*
+    - smb-volume-release/*
+    - mapfs-release/*
+
+jobs:
+- name: norsk-status-nfs
+  plan:
+  - get: oslo-scan-status
+    trigger: true
+  - task: check-status-file
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: { repository: ubuntu }
+      inputs:
+      - name: oslo-scan-status
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          status_file=oslo-scan-status/nfs-volume-release/status.json
+          cat "$status_file"
+          num_failures="$(grep -c '"status": "failed"' $status_file)"
+          echo ""
+          if [ "$num_failures" -eq 0 ]; then
+            echo "No failures found"
+            exit 0
+          else
+            echo "$num_failures failures found! Please check your norsk-viewers pipelines specified in the status.json and resolve the errors. Contact the OSL team if you need help."
+            exit 1
+          fi
+
+- name: norsk-status-mapfs
+  plan:
+  - get: oslo-scan-status
+    trigger: true
+  - task: check-status-file
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: { repository: ubuntu }
+      inputs:
+      - name: oslo-scan-status
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          status_file=oslo-scan-status/mapfs-release/status.json
+          cat "$status_file"
+          num_failures="$(grep -c '"status": "failed"' $status_file)"
+          echo ""
+          if [ "$num_failures" -eq 0 ]; then
+            echo "No failures found"
+            exit 0
+          else
+            echo "$num_failures failures found! Please check your norsk-viewers pipelines specified in the status.json and resolve the errors. Contact the OSL team if you need help."
+            exit 1
+          fi
+
+- name: norsk-status-smb
+  plan:
+  - get: oslo-scan-status
+    trigger: true
+  - task: check-status-file
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: { repository: ubuntu }
+      inputs:
+      - name: oslo-scan-status
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          status_file=oslo-scan-status/smb-volume-release/status.json
+          cat "$status_file"
+          num_failures="$(grep -c '"status": "failed"' $status_file)"
+          echo ""
+          if [ "$num_failures" -eq 0 ]; then
+            echo "No failures found"
+            exit 0
+          else
+            echo "$num_failures failures found! Please check your norsk-viewers pipelines specified in the status.json and resolve the errors. Contact the OSL team if you need help."
+            exit 1
+          fi

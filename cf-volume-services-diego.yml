@@ -5,14 +5,6 @@ groups:
   - bbl-destroy-cf-ephemeral-environment
   - bbl-up-ephemeral-environment
   - bbl-up-long-running-gcp-environment
-  - build-mapfs-tests-docker-image
-  - build-nfs-bosh-release-test-docker-image
-  - build-nfs-broker-tests-docker-image
-  - build-nfs-cats-docker-image
-  - build-nfs-driver-integration-tests-docker-image
-  - build-nfs-unit-tests-docker-image
-  - build-smb-unit-tests-docker-image
-  - build-awscli-docker-image
   - cats-nfs-long-running-gcp-environment
   - cats-smb-long-running-gcp-environment
   - cf-deployment-nightly
@@ -26,7 +18,6 @@ groups:
   - deploy-nfs-brokers
   - deploy-smb-broker
   - drats-nfs-smb
-  - existingvolumebroker-unit
   - manual-bump-mapfs-major
   - manual-bump-mapfs-minor
   - manual-bump-mapfs-patch
@@ -38,9 +29,6 @@ groups:
   - manual-bump-smb-patch
   - mapfs-release-job-tests
   - nfs-volume-release-job-tests
-  - norsk-status-mapfs
-  - norsk-status-nfs
-  - norsk-status-smb
   - pats-nfs-docker-long-running-gcp-environment
   - pats-nfs-ldap-ephemeral-environment
   - pats-nfs-ldap-legacy-ephemeral-environment
@@ -51,8 +39,6 @@ groups:
   - shipit-nfs
   - shipit-smb
   - smb-volume-release-job-tests
-  - volume-mount-options-unit
-  - volumedriver-unit
 
 - name: upgrade-environment-test-nfs-smb
   jobs:
@@ -85,23 +71,6 @@ groups:
   - pats-nfs-ldap-legacy-ephemeral-environment
   - delete-cf-ephemeral-environment-passed-pats
 
-- name: build-docker-images
-  jobs:
-  - build-nfs-driver-integration-tests-docker-image
-  - build-mapfs-tests-docker-image
-  - build-nfs-bosh-release-test-docker-image
-  - build-nfs-broker-tests-docker-image
-  - build-nfs-unit-tests-docker-image
-  - build-smb-unit-tests-docker-image
-  - build-nfs-cats-docker-image
-  - build-awscli-docker-image
-
-- name: shared-units-integration
-  jobs:
-  - existingvolumebroker-unit
-  - volumedriver-unit
-  - volume-mount-options-unit
-
 - name: release-nfs
   jobs:
   - shipit-nfs
@@ -123,89 +92,12 @@ groups:
   - manual-bump-mapfs-minor
   - manual-bump-mapfs-major
 
-- name: norsk
-  jobs:
-  - norsk-status-nfs
-  - norsk-status-mapfs
-  - norsk-status-smb
-
 resources:
-
-- name: mapfs-tests-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/mapfs-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
-- name: awscli-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/awscli
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
-- name: nfs-driver-integration-tests-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/nfs-integration-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
-- name: nfs-bosh-release-test-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/bosh-release-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
-- name: nfs-broker-tests-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/nfs-broker-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
-- name: nfs-unit-tests-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/nfs-unit-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
-- name: smb-unit-tests-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/smb-unit-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
-- name: nfs-cats-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/nfs-cats
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
 
 - name: persi-ci
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
-
-- name: existingvolumebroker
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/existingvolumebroker.git
-
-- name: volumedriver
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/volumedriver.git
-
-- name: volume-mount-options
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/volume-mount-options.git
 
 - name: cf-volume-services-acceptance-tests
   type: git
@@ -343,14 +235,6 @@ resources:
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/mapfs-release.git
 
-- name: mapfs
-  type: git
-  source:
-    branch: master
-    username: {{github-user}}
-    password: {{github-password}}
-    uri: https://github.com/cloudfoundry/mapfs.git
-
 - name: github-release-mapfs
   type: github-release
   source:
@@ -397,16 +281,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
-
-- name: oslo-scan-status
-  type: git
-  source:
-    private_key: {{norsk_mirror_private_key}}
-    uri: git@github.com:pivotal/oslo-scan-status.git
-    paths:
-    - nfs-volume-release/*
-    - smb-volume-release/*
-    - mapfs-release/*
 
 jobs:
 
@@ -949,76 +823,6 @@ jobs:
       CREATE_CONFIG: '{\"share\": \"((smb_cats_remote_path))\", \"username\": \"((smb_cats_username))\", \"password\": \"((smb_cats_password))\"}'
 
 
-- name: build-nfs-driver-integration-tests-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: nfs-volume-release
-      trigger: true
-    - put: nfs-driver-integration-tests-docker-image
-      params:
-        build: nfs-volume-release/dockerfiles/nfs-integration-tests
-
-- name: build-nfs-bosh-release-test-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: nfs-volume-release
-      trigger: true
-    - put: nfs-bosh-release-test-docker-image
-      params:
-        build: nfs-volume-release/dockerfiles/bosh-release-tests
-
-- name: build-nfs-broker-tests-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: nfs-volume-release
-      trigger: true
-    - put: nfs-broker-tests-docker-image
-      params:
-        build: nfs-volume-release/dockerfiles/nfs-broker-tests
-
-- name: build-nfs-unit-tests-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: nfs-volume-release
-      trigger: true
-    - put: nfs-unit-tests-docker-image
-      params:
-        build: nfs-volume-release/dockerfiles/nfs-unit-tests
-
-- name: build-nfs-cats-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: nfs-volume-release
-      trigger: true
-    - put: nfs-cats-docker-image
-      params:
-        build: nfs-volume-release/dockerfiles/nfs-cats
-
-- name: build-mapfs-tests-docker-image
-  plan:
-  - get: nightly
-    trigger: true
-  - get: mapfs
-    trigger: true
-  - put: mapfs-tests-docker-image
-    params:
-      build: mapfs/ci/dockerfiles/perf
-
-- name: build-awscli-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: persi-ci
-      trigger: true
-    - put: awscli-docker-image
-      params:
-        build: persi-ci/dockerfiles/awscli
-
 - name: create-mapfs-release
   plan:
   - in_parallel:
@@ -1048,16 +852,6 @@ jobs:
     params:
       file: release-tarball/mapfs-*.tgz
 
-- name: build-smb-unit-tests-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: smb-volume-release
-      trigger: true
-    - put: smb-unit-tests-docker-image
-      params:
-        build: smb-volume-release/dockerfiles/smb-unit-tests
-
 - name: smb-volume-release-job-tests
   plan:
   - in_parallel:
@@ -1071,48 +865,6 @@ jobs:
     file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
     attempts: 3
-
-- name: existingvolumebroker-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: existingvolumebroker
-        trigger: true
-  - task: existingvolumebroker-unit
-    file: persi-ci/scripts/ci/run_unit.build.yml
-    input_mapping:
-      gomod: existingvolumebroker
-
-- name: volumedriver-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: volumedriver
-        trigger: true
-  - task: volumedriver-unit
-    file: persi-ci/scripts/ci/run_unit.build.yml
-    input_mapping:
-      gomod: volumedriver
-
-- name: volume-mount-options-unit
-  public: true
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: volume-mount-options
-        trigger: true
-  - task: volume-mount-options-unit
-    file: persi-ci/scripts/ci/run_unit.build.yml
-    input_mapping:
-      gomod: volume-mount-options
 
 - name: create-smb-volume-release
   plan:
@@ -1942,89 +1694,3 @@ jobs:
       release: env-creation-gate-lock
 
 
-- name: norsk-status-nfs
-  plan:
-  - get: oslo-scan-status
-    trigger: true
-  - task: check-status-file
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: { repository: ubuntu }
-      inputs:
-      - name: oslo-scan-status
-      run:
-        path: sh
-        args:
-        - -c
-        - |
-          status_file=oslo-scan-status/nfs-volume-release/status.json
-          cat "$status_file"
-          num_failures="$(grep -c '"status": "failed"' $status_file)"
-          echo ""
-          if [ "$num_failures" -eq 0 ]; then
-            echo "No failures found"
-            exit 0
-          else
-            echo "$num_failures failures found! Please check your norsk-viewers pipelines specified in the status.json and resolve the errors. Contact the OSL team if you need help."
-            exit 1
-          fi
-
-- name: norsk-status-mapfs
-  plan:
-  - get: oslo-scan-status
-    trigger: true
-  - task: check-status-file
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: { repository: ubuntu }
-      inputs:
-      - name: oslo-scan-status
-      run:
-        path: sh
-        args:
-        - -c
-        - |
-          status_file=oslo-scan-status/mapfs-release/status.json
-          cat "$status_file"
-          num_failures="$(grep -c '"status": "failed"' $status_file)"
-          echo ""
-          if [ "$num_failures" -eq 0 ]; then
-            echo "No failures found"
-            exit 0
-          else
-            echo "$num_failures failures found! Please check your norsk-viewers pipelines specified in the status.json and resolve the errors. Contact the OSL team if you need help."
-            exit 1
-          fi
-
-- name: norsk-status-smb
-  plan:
-  - get: oslo-scan-status
-    trigger: true
-  - task: check-status-file
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: { repository: ubuntu }
-      inputs:
-      - name: oslo-scan-status
-      run:
-        path: sh
-        args:
-        - -c
-        - |
-          status_file=oslo-scan-status/smb-volume-release/status.json
-          cat "$status_file"
-          num_failures="$(grep -c '"status": "failed"' $status_file)"
-          echo ""
-          if [ "$num_failures" -eq 0 ]; then
-            echo "No failures found"
-            exit 0
-          else
-            echo "$num_failures failures found! Please check your norsk-viewers pipelines specified in the status.json and resolve the errors. Contact the OSL team if you need help."
-            exit 1
-          fi
