@@ -28,7 +28,7 @@ jobs:
       action: claim
     tags: [ toolsmiths-shared-vsphere ]
   - task: output-env-details
-    file: scripts/ci/claim-pooled-env.build.yml
+    file: persi-ci/scripts/ci/claim-pooled-env.build.yml
     input_mapping:
       pooled-env: smith-env
 
