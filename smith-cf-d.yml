@@ -1,0 +1,43 @@
+resources:
+- name: smith-env
+  type: pcf-pool
+  source:
+    api_token: ((persi_toolsmiths_env_api_token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: cf-deployment
+  tags: [ toolsmiths-shared-vsphere ]
+
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci
+    branch: master
+
+resource_types:
+- name: pcf-pool
+  type: docker-image
+  source:
+    repository: cftoolsmiths/toolsmiths-envs-resource
+
+jobs:
+- name: claim-env
+  plan:
+  - get: persi-ci
+  - put: smith-env
+    params:
+      action: claim
+    tags: [ toolsmiths-shared-vsphere ]
+  - task: output-env-details
+    file: scripts/ci/claim-pooled-env.build.yml
+    input_mapping:
+      pooled-env: smith-env
+
+- name: unclaim-env
+  plan:
+    - get: smith-env
+      tags: [ toolsmiths-shared-vsphere ]
+    - put: smith-env
+      params:
+        action: unclaim
+        env_file: smith-env/metadata
+      tags: [ toolsmiths-shared-vsphere ]
