@@ -5,9 +5,9 @@ mkdir -p bosh-env
 set +x
 if [ -d smith-env ]; then
   eval "$(bbl print-env --metadata-file toolsmiths-env/metadata)"
-  bbl --metadata-file smith-env/metadata print-env > bosh-env/set-env.sh
-  bbl --metadata-file smith-env/metadata ssh-key > bosh-env/ssh-key
-  bbl --metadata-file smith-env/metadata director-ca-cert > bosh-env/ca-cert.pem
+  bbl print-env --metadata-file smith-env/metadata > bosh-env/set-env.sh
+  bbl ssh-key --metadata-file smith-env/metadata > bosh-env/ssh-key
+  bbl director-ca-cert --metadata-file smith-env/metadata > bosh-env/ca-cert.pem
 else
   if [ -d director-state ]; then
     bbl --state-dir director-state/${BBL_STATE_DIR} print-env > bosh-env/set-env.sh
