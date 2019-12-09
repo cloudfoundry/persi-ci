@@ -10,6 +10,9 @@ image_resource:
 inputs:
 - name: persi-ci
 - name: director-state
+  optional: true
+- name: smith-env
+  optional: true
 
 outputs:
 - name: generated-vars

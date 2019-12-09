@@ -1,6 +1,22 @@
 #!/bin/bash -eu
 
 mkdir -p bosh-env
-bbl --state-dir director-state/${BBL_STATE_DIR} print-env > bosh-env/set-env.sh
-bbl --state-dir director-state/${BBL_STATE_DIR} ssh-key > bosh-env/ssh-key
-bbl --state-dir director-state/${BBL_STATE_DIR} director-ca-cert > bosh-env/ca-cert.pem
+
+set +x
+if [ -d smith-env ]; then
+  eval "$(bbl print-env --metadata-file toolsmiths-env/metadata)"
+  bbl --metadata-file smith-env/metadata print-env > bosh-env/set-env.sh
+  bbl --metadata-file smith-env/metadata ssh-key > bosh-env/ssh-key
+  bbl --metadata-file smith-env/metadata director-ca-cert > bosh-env/ca-cert.pem
+else
+  if [ -d director-state ]; then
+    bbl --state-dir director-state/${BBL_STATE_DIR} print-env > bosh-env/set-env.sh
+    bbl --state-dir director-state/${BBL_STATE_DIR} ssh-key > bosh-env/ssh-key
+    bbl --state-dir director-state/${BBL_STATE_DIR} director-ca-cert > bosh-env/ca-cert.pem
+  else
+    echo "Must provide either toolsmiths-env or bbl-state as an input"
+    exit 1
+  fi
+fi
+set -x
+
