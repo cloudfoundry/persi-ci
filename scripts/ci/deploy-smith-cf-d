@@ -1,0 +1,23 @@
+#!/bin/bash -eux
+
+export ENV=`cat "toolsmiths-env/metadata" | jq -r ".name"`
+export BOSH_DEPLOYMENT="${ENV}.cf-app.com"
+
+# shellcheck disable=SC1091
+source cf-deployment-concourse-tasks/shared-functions
+
+function main() {
+  load_from_json_config
+
+  check_input_params
+  setup_bosh_env_vars
+  bosh_interpolate
+  if [ "$REGENERATE_CREDENTIALS" == true ]; then
+    remove_credentials_from_credhub
+  fi
+  upload_stemcells
+  # shellcheck disable=SC2086
+  bosh_deploy ${BOSH_DEPLOY_ARGS}
+}
+
+main

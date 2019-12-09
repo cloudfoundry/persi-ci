@@ -13,6 +13,98 @@ resources:
     uri: https://github.com/cloudfoundry/persi-ci
     branch: master
 
+- name: nfs-volume-release-tarball
+  type: s3
+  source:
+    access_key_id: {{nfsvolume-uploader_aws_ID}}
+    bucket: nfs-volume-release-tarballs
+    regexp: nfs-volume-(.*).tgz
+    secret_access_key: {{nfsvolume-uploader_aws_secret}}
+
+- name: nfsvolume-version
+  type: semver
+  source:
+    access_key_id: {{nfsvolume-uploader_aws_ID}}
+    bucket: nfsvolume-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{nfsvolume-uploader_aws_secret}}
+
+- name: nfs-volume-release
+  type: git
+  source:
+    branch: master
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/nfs-volume-release.git
+    ignore_paths:
+    - scripts
+
+- name: smb-volume-release
+  type: git
+  source:
+    branch: master
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/smb-volume-release.git
+
+- name: smb-volume-version
+  type: semver
+  source:
+    access_key_id: {{smbvolume-uploader_aws_ID}}
+    bucket: smb-volume-release-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{smbvolume-uploader_aws_secret}}
+
+- name: smb-volume-release-tarball
+  type: s3
+  source:
+    bucket: smb-volume-release-tarballs
+    regexp: smb-volume-(.*).tgz
+    access_key_id: {{smbvolume-uploader_aws_ID}}
+    secret_access_key: {{smbvolume-uploader_aws_secret}}
+
+- name: mapfs-release-tarball
+  type: s3
+  source:
+    access_key_id: {{mapfs-uploader_aws_ID}}
+    bucket: mapfs-release-tarballs
+    regexp: mapfs-(.*).tgz
+    secret_access_key: {{mapfs-uploader_aws_secret}}
+
+- name: mapfs-version
+  type: semver
+  source:
+    access_key_id: {{mapfs-uploader_aws_ID}}
+    bucket: mapfs-versions
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{mapfs-uploader_aws_secret}}
+
+- name: mapfs-release
+  type: git
+  source:
+    branch: master
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/mapfs-release.git
+
+- name: cf-deployment
+  type: git
+  source:
+    branch: release-candidate
+    uri: https://github.com/cloudfoundry/cf-deployment.git
+
+- name: cf-deployment-concourse-tasks
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
+
 resource_types:
 - name: pcf-pool
   type: docker-image
@@ -41,3 +133,111 @@ jobs:
         action: unclaim
         env_file: smith-env/metadata
       tags: [ toolsmiths-shared-vsphere ]
+
+- name: deploy-cf
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smith-env
+        tags: [ toolsmiths-shared-vsphere ]
+      - get: cf-deployment-concourse-tasks
+      - get: cf-deployment
+      - get: persi-ci
+      - get: nfs-volume-release
+      - get: nfs-volume-release-tarball
+      - get: nfsvolume-version
+      - get: mapfs-release
+      - get: mapfs-release-tarball
+      - get: mapfs-version
+      - get: smb-volume-release
+      - get: smb-volume-release-tarball
+      - get: smb-volume-version
+  - task: collect-tarballs
+    file: persi-ci/scripts/ci/collect-tarballs.build.yml
+    params: {}
+    input_mapping:
+      persi-ci: persi-ci
+      nfs-tarball: nfs-volume-release-tarball
+      mapfs-tarball: mapfs-release-tarball
+      smb-tarball: smb-volume-release-tarball
+      nfs-version: nfsvolume-version
+      mapfs-version: mapfs-version
+      smb-version: smb-volume-version
+  - task: collect-persi-ci-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
+                      operations/enable-nfs-test-server-two.yml
+                      operations/enable-smb-test-server-two.yml"
+  - task: collect-tarball-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: collected-tarballs
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/update-releases.yml"
+  - task: add-tarballs
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: collected-ops-files
+      new-ops-files: collected-tarballs
+    params:
+      BASE_OPS_FILE_DIR: "."
+      NEW_OPS_FILES: "nfs.tgz
+                      mapfs.tgz
+                      smb.tgz"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate_variables.build.yml
+    params:
+      # BBL_IAAS: gcp
+      GENERATE_DATADOG_VARS: false
+      GENERATE_NFS_VARS: true
+      GENERATE_SMB_VARS: true
+      GENERATE_GCS_BLOBSTORE_VARS: false
+      SMB_USERNAME: {{smb_pats_username_two}}
+      SMB_PASSWORD: {{smb_pats_password_two}}
+  - task: bosh-deploy-cf
+    file: persi-ci/scripts/ci/deploy-smith-cf-d.build.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+      cf-deployment: cf-deployment
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+    params:
+      SYSTEM_DOMAIN: idk.cf-app.com # not used, this is required by the task
+      VARS_FILES: "nfs-vars.yml smb-vars.yml"
+      OPS_FILES: "operations/use-compiled-releases.yml
+                  operations/scale-to-one-az.yml
+                  operations/scale-up-routers-and-cells.yml
+                  operations/enable-nfs-volume-service.yml
+                  operations/enable-nfs-test-server-two.yml
+                  operations/test/enable-nfs-test-server.yml
+                  operations/test/enable-smb-test-server.yml
+                  operations/backup-and-restore/enable-backup-restore.yml
+                  operations/backup-and-restore/enable-restore-nfs-broker.yml
+                  operations/enable-smb-volume-service.yml
+                  operations/enable-smb-test-server-two.yml
+                  operations/update-releases.yml"
+  - task: enable-docker
+    attempts: 2
+    file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      SYSTEM_DOMAIN: idk.cf-app.com
+      ENABLED_FEATURE_FLAGS: |
+        diego_docker
+  - task: run-smoke-tests
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smoke_tests
