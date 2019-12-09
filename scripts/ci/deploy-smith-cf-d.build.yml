@@ -19,7 +19,7 @@ inputs:
   optional: true
 
 run:
-  path: persi-ci/scrips/ci/deploy-smith-cf-d
+  path: persi-ci/scripts/ci/deploy-smith-cf-d
 
 params:
   MANIFEST_FILE: cf-deployment.yml
