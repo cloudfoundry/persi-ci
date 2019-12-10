@@ -7,6 +7,13 @@ resources:
     stop: 1:00 AM
     location: America/Los_Angeles
 
+- name: eirini-build-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/eirini-build
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 - name: mapfs-tests-docker-image
   type: docker-image
   source:
@@ -87,6 +94,16 @@ resources:
     uri: https://github.com/cloudfoundry/persi-ci.git
 
 jobs:
+- name: build-eirini-build-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: persi-ci
+      trigger: true
+    - put: eirini-build-docker-image
+      params:
+        build: persi-ci/dockerfiles/eirini-build
+
 - name: build-nfs-driver-integration-tests-docker-image
   plan:
     - get: nightly
