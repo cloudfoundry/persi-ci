@@ -9,6 +9,9 @@ image_resource:
 
 inputs:
 - name: director-state
+  optional: true
+- name: smith-env
+  optional: true
 - name: persi-ci
 - name: bind-create-config
   optional: true
@@ -21,7 +24,7 @@ params:
 
   APPS_DOMAIN: replace-me
   CF_API_ENDPOINT: replace-me
-  CF_USERNAME: replace-me
+  CF_USERNAME: admin
 
   BIND_BOGUS_CONFIG:
   BIND_CONFIG:

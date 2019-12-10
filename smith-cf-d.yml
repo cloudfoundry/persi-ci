@@ -143,6 +143,8 @@ jobs:
       steps:
       - get: smith-env
         tags: [ toolsmiths-shared-vsphere ]
+        passed: [ claim-env ]
+        trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
       - get: persi-ci
@@ -227,11 +229,10 @@ jobs:
                   operations/update-releases.yml"
   - task: enable-docker
     attempts: 2
-    file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
+    file: persi-ci/scripts/ci/set-feature-flags.build.yml
     input_mapping:
       toolsmiths-env: smith-env
     params:
-      SYSTEM_DOMAIN: idk.cf-app.com
       ENABLED_FEATURE_FLAGS: |
         diego_docker
   - task: run-smoke-tests
@@ -240,3 +241,59 @@ jobs:
       toolsmiths-env: smith-env
     params:
       ERRAND_NAME: smoke_tests
+
+- name: deploy-nfs-smb-brokers
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-deployment-concourse-tasks
+      - get: smith-env
+        tags: [ toolsmiths-shared-vsphere ]
+        passed: [ deploy-cf ]
+        trigger: true
+  - task: run-nfs-broker-errand
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: nfsbrokerpush
+  - task: run-smb-broker-errand
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smbbrokerpush
+
+- name: pats-nfs
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-volume-services-acceptance-tests
+      - get: persi-ci
+      - get: smith-env
+        tags: [ toolsmiths-shared-vsphere ]
+        passed: [ deploy-nfs-smb-brokers ]
+        trigger: true
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    params:
+      CF_USERNAME: admin
+      BIND_BOGUS_CONFIG: '{"uid":"1000","gid":"1000"}'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"3.0\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.1\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.2\",\"mount\": \"/var/vcap/data/foo\"}"]'
+      CREATE_BOGUS_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/nonexistensevol"}'
+      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+  - task: run-pats
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    input_mapping:
+      director-state: bbl-state
+    attempts: 3
+    params:
+      PARALLEL_NODES: 2
+      TEST_MOUNT_FAIL_LOGGING: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_MULTI_CELL: true
+      TEST_READ_ONLY: true
