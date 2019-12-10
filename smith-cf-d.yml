@@ -105,6 +105,11 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
 
+- name: cf-volume-services-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+
 resource_types:
 - name: pcf-pool
   type: docker-image

@@ -115,7 +115,7 @@ scripts_path="$(dirname "$0")"
 source "${scripts_path}/utils.sh"
 
 set +x
-"${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
+source "${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
 source bosh-env/set-env.sh
 set -x
 
