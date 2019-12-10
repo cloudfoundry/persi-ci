@@ -212,7 +212,6 @@ jobs:
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
-      SYSTEM_DOMAIN: idk.cf-app.com # not used, this is required by the task
       VARS_FILES: "nfs-vars.yml smb-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
