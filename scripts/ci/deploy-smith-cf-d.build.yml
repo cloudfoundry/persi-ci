@@ -8,6 +8,7 @@ image_resource:
     tag: latest
 
 inputs:
+- name: persi-ci
 - name: toolsmiths-env  # - Directory containing Toolsmiths metadata file
 - name: cf-deployment  # - The cf-deployment manifest
 - name: ops-files  # - Operations files to be made available
