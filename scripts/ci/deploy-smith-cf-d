@@ -36,7 +36,7 @@ function main() {
     url: file://${root_dir}/mapfs-release
 EOF
 
-  export OPS_FILE="${OPS_FILE} ${root_dir}/updated-releases.yml"
+  export OPS_FILES="${OPS_FILES} ${root_dir}/updated-releases.yml"
   bosh_interpolate
   if [ "$REGENERATE_CREDENTIALS" == true ]; then
     remove_credentials_from_credhub

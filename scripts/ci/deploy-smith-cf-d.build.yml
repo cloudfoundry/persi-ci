@@ -30,7 +30,7 @@ params:
   # - The path is relative to root of the `cf-deployment` input
 
   OPS_FILES:
-  # - Optional
+  # - Required
   # - of operations files to be applied to the manifest
   # - Quoted and space-separated
   # - Ops will be applied in the order they're listed
