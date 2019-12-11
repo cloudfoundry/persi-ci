@@ -14,7 +14,7 @@ function main() {
 
   check_input_params
   setup_bosh_env_vars
-  cat <<EOF > ${root_dir}/updated-releases.yml
+  cat <<EOF > ops-files/updated-releases.yml
 ---
 - type: replace
   path: /releases/name=nfs-volume
@@ -36,7 +36,7 @@ function main() {
     url: file://${root_dir}/mapfs-release
 EOF
 
-  export OPS_FILES="${OPS_FILES} ${root_dir}/updated-releases.yml"
+  export OPS_FILES="${OPS_FILES} updated-releases.yml"
   bosh_interpolate
   if [ "$REGENERATE_CREDENTIALS" == true ]; then
     remove_credentials_from_credhub
