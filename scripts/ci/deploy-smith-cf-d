@@ -7,10 +7,36 @@ export SYSTEM_DOMAIN="${ENV}.cf-app.com"
 source cf-deployment-concourse-tasks/shared-functions
 
 function main() {
+  local root_dir
+  root_dir="${PWD}"
+
   load_from_json_config
 
   check_input_params
   setup_bosh_env_vars
+  cat <<EOF > ${root_dir}/updated-releases.yml
+---
+- type: replace
+  path: /releases/name=nfs-volume
+  value:
+    name: nfs-volume
+    version: create
+    url: file://${root_dir}/nfs-volume-release
+- type: replace
+  path: /releases/name=smb-volume
+  value:
+    name: smb-volume
+    version: create
+    url: file://${root_dir}/smb-volume-release
+- type: replace
+  path: /releases/name=mapfs
+  value:
+    name: mapfs
+    version: create
+    url: file://${root_dir}/mapfs-release
+EOF
+
+  export OPS_FILE="${OPS_FILE} ${root_dir}/updated-releases.yml"
   bosh_interpolate
   if [ "$REGENERATE_CREDENTIALS" == true ]; then
     remove_credentials_from_credhub

@@ -16,8 +16,9 @@ inputs:
 - name: vars-files  # - Variable files to be made available
   optional: true
 - name: cf-deployment-concourse-tasks  # - This repo
-- name: pool-lock
-  optional: true
+- name: nfs-volume-release
+- name: mapfs-release
+- name: smb-volume-release
 
 run:
   path: persi-ci/scripts/ci/deploy-smith-cf-d
