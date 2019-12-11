@@ -22,24 +22,6 @@ resources:
     uri: https://github.com/cloudfoundry/persi-ci
     branch: master
 
-- name: nfs-volume-release-tarball
-  type: s3
-  source:
-    access_key_id: {{nfsvolume-uploader_aws_ID}}
-    bucket: nfs-volume-release-tarballs
-    regexp: nfs-volume-(.*).tgz
-    secret_access_key: {{nfsvolume-uploader_aws_secret}}
-
-- name: nfsvolume-version
-  type: semver
-  source:
-    access_key_id: {{nfsvolume-uploader_aws_ID}}
-    bucket: nfsvolume-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{nfsvolume-uploader_aws_secret}}
-
 - name: nfs-volume-release
   type: git
   source:
@@ -56,46 +38,10 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/smb-volume-release.git
 
-- name: smb-volume-version
-  type: semver
-  source:
-    access_key_id: {{smbvolume-uploader_aws_ID}}
-    bucket: smb-volume-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{smbvolume-uploader_aws_secret}}
-
-- name: smb-volume-release-tarball
-  type: s3
-  source:
-    bucket: smb-volume-release-tarballs
-    regexp: smb-volume-(.*).tgz
-    access_key_id: {{smbvolume-uploader_aws_ID}}
-    secret_access_key: {{smbvolume-uploader_aws_secret}}
-
 - name: smb-volume-release-concourse-tasks
   type: git
   source:
     uri: https://github.com/cloudfoundry/smb-volume-release.git
-
-- name: mapfs-release-tarball
-  type: s3
-  source:
-    access_key_id: {{mapfs-uploader_aws_ID}}
-    bucket: mapfs-release-tarballs
-    regexp: mapfs-(.*).tgz
-    secret_access_key: {{mapfs-uploader_aws_secret}}
-
-- name: mapfs-version
-  type: semver
-  source:
-    access_key_id: {{mapfs-uploader_aws_ID}}
-    bucket: mapfs-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{mapfs-uploader_aws_secret}}
 
 - name: mapfs-release
   type: git
@@ -157,25 +103,8 @@ jobs:
       - get: cf-deployment
       - get: persi-ci
       - get: nfs-volume-release
-      - get: nfs-volume-release-tarball
-      - get: nfsvolume-version
       - get: mapfs-release
-      - get: mapfs-release-tarball
-      - get: mapfs-version
       - get: smb-volume-release
-      - get: smb-volume-release-tarball
-      - get: smb-volume-version
-  - task: collect-tarballs
-    file: persi-ci/scripts/ci/collect-tarballs.build.yml
-    params: {}
-    input_mapping:
-      persi-ci: persi-ci
-      nfs-tarball: nfs-volume-release-tarball
-      mapfs-tarball: mapfs-release-tarball
-      smb-tarball: smb-volume-release-tarball
-      nfs-version: nfsvolume-version
-      mapfs-version: mapfs-version
-      smb-version: smb-volume-version
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -186,24 +115,6 @@ jobs:
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/enable-nfs-test-server-two.yml
                       operations/enable-smb-test-server-two.yml"
-  - task: collect-tarball-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: collected-tarballs
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/update-releases.yml"
-  - task: add-tarballs
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: collected-tarballs
-    params:
-      BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "nfs.tgz
-                      mapfs.tgz
-                      smb.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
@@ -233,8 +144,7 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
-                  operations/enable-smb-test-server-two.yml
-                  operations/update-releases.yml"
+                  operations/enable-smb-test-server-two.yml"
   - task: enable-docker
     attempts: 2
     file: persi-ci/scripts/ci/set-feature-flags.build.yml
