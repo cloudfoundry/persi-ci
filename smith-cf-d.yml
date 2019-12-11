@@ -1,3 +1,12 @@
+shared_functions:
+- on_failure: &on_failure_unclaim
+    do:
+    - put: smith-env
+      params:
+        action: unclaim
+        env_file: smith-env/metadata
+      tags: [ toolsmiths-shared-vsphere ]
+
 resources:
 - name: smith-env
   type: pcf-pool
@@ -132,19 +141,10 @@ jobs:
     input_mapping:
       pooled-env: smith-env
 
-- name: unclaim-env
-  plan:
-    - get: smith-env
-      tags: [ toolsmiths-shared-vsphere ]
-    - put: smith-env
-      params:
-        action: unclaim
-        env_file: smith-env/metadata
-      tags: [ toolsmiths-shared-vsphere ]
-
 - name: deploy-cf
   public: true
   build_logs_to_retain: 100
+  on_failure: *on_failure_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -251,6 +251,7 @@ jobs:
       ERRAND_NAME: smoke_tests
 
 - name: deploy-nfs-smb-brokers
+  on_failure: *on_failure_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -274,6 +275,7 @@ jobs:
       ERRAND_NAME: smbbrokerpush
 
 - name: pats-nfs
+  on_failure: *on_failure_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -307,6 +309,7 @@ jobs:
 - name: pats-smb
   serial_groups:
   - smb
+  on_failure: *on_failure_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -338,3 +341,14 @@ jobs:
     params:
       TEST_READ_ONLY: true
 
+- name: unclaim-env
+  plan:
+  - get: smith-env
+    tags: [ toolsmiths-shared-vsphere ]
+    passed: [ pats-smb ]
+    trigger: true
+  - put: smith-env
+    params:
+      action: unclaim
+      env_file: smith-env/metadata
+    tags: [ toolsmiths-shared-vsphere ]
