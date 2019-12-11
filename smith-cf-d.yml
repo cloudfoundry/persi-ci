@@ -112,13 +112,11 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
-                      operations/enable-nfs-test-server-two.yml
+      NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml
                       operations/enable-smb-test-server-two.yml"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
-      # BBL_IAAS: gcp
       GENERATE_DATADOG_VARS: false
       GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: true
@@ -136,7 +134,6 @@ jobs:
       VARS_FILES: "nfs-vars.yml smb-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
-                  operations/scale-up-routers-and-cells.yml
                   operations/enable-nfs-volume-service.yml
                   operations/enable-nfs-test-server-two.yml
                   operations/test/enable-nfs-test-server.yml
