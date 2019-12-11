@@ -45,8 +45,6 @@ resources:
   type: git
   source:
     branch: master
-    username: {{github-user}}
-    password: {{github-password}}
     uri: https://github.com/cloudfoundry/smb-volume-release.git
 
 - name: smb-volume-version
@@ -66,6 +64,11 @@ resources:
     regexp: smb-volume-(.*).tgz
     access_key_id: {{smbvolume-uploader_aws_ID}}
     secret_access_key: {{smbvolume-uploader_aws_secret}}
+
+- name: smb-volume-release-concourse-tasks
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/smb-volume-release.git
 
 - name: mapfs-release-tarball
   type: s3
@@ -293,8 +296,6 @@ jobs:
       SERVICE_NAME: nfs
   - task: run-pats
     file: persi-ci/scripts/ci/run-pats.build.yml
-    input_mapping:
-      director-state: bbl-state
     attempts: 3
     params:
       PARALLEL_NODES: 2
@@ -302,3 +303,38 @@ jobs:
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
+
+- name: pats-smb
+  serial_groups:
+  - smb
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
+      - get: cf-volume-services-acceptance-tests
+      - get: persi-ci
+      - get: smith-env
+        tags: [ toolsmiths-shared-vsphere ]
+        passed: [ pats-nfs ]
+        trigger: true
+  - task: generate-bind-create-configs
+    file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
+    params:
+      SMB_REMOTE_PATH: {{smb_pats_remote_path}}
+      SMB_USERNAME: {{smb_pats_username}}
+      SMB_PASSWORD: {{smb_pats_password}}
+  - task: generate-pats-config
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    params:
+      CF_USERNAME: admin
+      DISALLOWED_OVERRIDE_BIND_CONFIG: '{"share"://smbtestservertwo.service.cf.internal/vol2}'
+      PLAN_NAME: Existing
+      SERVICE_NAME: smb
+  - task: run-pats
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    params:
+      TEST_READ_ONLY: true
+
