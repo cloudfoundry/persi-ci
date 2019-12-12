@@ -352,14 +352,72 @@ jobs:
       toolsmiths-env: smith-env
     params:
       ERRAND_NAME: smoke_tests
+
+- name: pats-nfs-ldap
+  on_failure: *on_failure_unclaim
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smith-env
+        tags: [ toolsmiths-shared-vsphere ]
+        passed:
+        - deploy-cf-with-ldap
+        trigger: true
+      - get: cf-volume-services-acceptance-tests
+      - get: persi-ci
+      - get: nfs-volume-release
+        passed:
+        - deploy-cf-with-ldap
+      - get: mapfs-release
+        passed:
+        - deploy-cf-with-ldap
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: generate-legacy-pats-config
+        file: persi-ci/scripts/ci/generate_pats_config.build.yml
+        params:
+          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+          CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+          DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+          PLAN_NAME: Existing
+          SERVICE_NAME: nfs-legacy
+        output_mapping:
+          pats-config: nfs-legacy-pats-config
+      - task: generate-pats-config
+        file: persi-ci/scripts/ci/generate_pats_config.build.yml
+        params:
+          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+          CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
+          DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+          PLAN_NAME: Existing
+          SERVICE_NAME: nfs
+        output_mapping:
+          pats-config: nfs-pats-config
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: run-legacy-pats
+        input_mapping:
+          pats-config: nfs-legacy-pats-config
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        params:
+          TEST_DOCKER_PORA: true
+      - task: run-pats
+        input_mapping:
+          pats-config: nfs-pats-config
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        params:
+          TEST_DOCKER_PORA: true
+
 - name: unclaim-env
   plan:
   - get: smith-env
     tags: [ toolsmiths-shared-vsphere ]
     passed:
-    - pats-smb
-    - pats-nfs
-  #  trigger: true
+    - pats-nfs-ldap
+    trigger: true
   - put: smith-env
     params:
       action: unclaim
