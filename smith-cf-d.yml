@@ -77,7 +77,16 @@ resource_types:
 jobs:
 - name: claim-env
   plan:
-  - get: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: nfs-volume-release
+        trigger: true
+      - get: mapfs-release
+        trigger: true
+      - get: smb-volume-release
+        trigger: true
   - put: smith-env
     params:
       action: claim
@@ -103,8 +112,11 @@ jobs:
       - get: cf-deployment
       - get: persi-ci
       - get: nfs-volume-release
+        passed: [ claim-env ]
       - get: mapfs-release
+        passed: [ claim-env ]
       - get: smb-volume-release
+        passed: [ claim-env ]
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -168,6 +180,12 @@ jobs:
         tags: [ toolsmiths-shared-vsphere ]
         passed: [ deploy-cf ]
         trigger: true
+      - get: nfs-volume-release
+        passed: [ deploy-cf ]
+      - get: mapfs-release
+        passed: [ deploy-cf ]
+      - get: smb-volume-release
+        passed: [ deploy-cf ]
   - task: run-nfs-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -193,6 +211,10 @@ jobs:
         tags: [ toolsmiths-shared-vsphere ]
         passed: [ deploy-nfs-smb-brokers ]
         trigger: true
+      - get: nfs-volume-release
+        passed: [ deploy-nfs-smb-brokers ]
+      - get: mapfs-release
+        passed: [ deploy-nfs-smb-brokers ]
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
@@ -228,8 +250,10 @@ jobs:
       - get: persi-ci
       - get: smith-env
         tags: [ toolsmiths-shared-vsphere ]
-        passed: [ pats-nfs ]
+        passed: [ deploy-nfs-smb-brokers ]
         trigger: true
+      - get: smb-volume-release
+        passed: [ deploy-nfs-smb-brokers ]
   - task: generate-bind-create-configs
     file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
     params:
