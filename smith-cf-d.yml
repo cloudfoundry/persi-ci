@@ -168,24 +168,6 @@ jobs:
       toolsmiths-env: smith-env
     params:
       ERRAND_NAME: smoke_tests
-
-- name: deploy-nfs-smb-brokers
-  on_failure: *on_failure_unclaim
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: cf-deployment-concourse-tasks
-      - get: smith-env
-        tags: [ toolsmiths-shared-vsphere ]
-        passed: [ deploy-cf ]
-        trigger: true
-      - get: nfs-volume-release
-        passed: [ deploy-cf ]
-      - get: mapfs-release
-        passed: [ deploy-cf ]
-      - get: smb-volume-release
-        passed: [ deploy-cf ]
   - task: run-nfs-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -199,7 +181,7 @@ jobs:
     params:
       ERRAND_NAME: smbbrokerpush
 
-- name: pats-nfs
+- name: pats-nfs-smb
   on_failure: *on_failure_unclaim
   plan:
   - in_parallel:
@@ -209,12 +191,17 @@ jobs:
       - get: persi-ci
       - get: smith-env
         tags: [ toolsmiths-shared-vsphere ]
-        passed: [ deploy-nfs-smb-brokers ]
+        passed: [ deploy-cf ]
         trigger: true
       - get: nfs-volume-release
-        passed: [ deploy-nfs-smb-brokers ]
+        passed: [ deploy-cf ]
       - get: mapfs-release
-        passed: [ deploy-nfs-smb-brokers ]
+        passed: [ deploy-cf ]
+      - get: smb-volume-release
+        passed: [ deploy-cf ]
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
   - task: generate-pats-config
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
@@ -225,35 +212,8 @@ jobs:
       CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    attempts: 3
-    params:
-      PARALLEL_NODES: 2
-      TEST_MOUNT_FAIL_LOGGING: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_MULTI_CELL: true
-      TEST_READ_ONLY: true
-
-- name: pats-smb
-  serial_groups:
-  - smb
-  on_failure: *on_failure_unclaim
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smb-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: cf-volume-services-acceptance-tests
-      - get: persi-ci
-      - get: smith-env
-        tags: [ toolsmiths-shared-vsphere ]
-        passed: [ deploy-nfs-smb-brokers ]
-        trigger: true
-      - get: smb-volume-release
-        passed: [ deploy-nfs-smb-brokers ]
+    output_mapping:
+      pats-config: nfs-pats-config
   - task: generate-bind-create-configs
     file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
     params:
@@ -267,10 +227,33 @@ jobs:
       DISALLOWED_OVERRIDE_BIND_CONFIG: '{"share"://smbtestservertwo.service.cf.internal/vol2}'
       PLAN_NAME: Existing
       SERVICE_NAME: smb
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    params:
-      TEST_READ_ONLY: true
+    output_mapping:
+      pats-config: smb-pats-config
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: run-pats-nfs
+        input_mapping:
+          pats-config: nfs-pats-config
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        attempts: 3
+        params:
+          PARALLEL_NODES: 2
+          TEST_MOUNT_FAIL_LOGGING: true
+          TEST_MOUNT_OPTIONS: true
+          TEST_MULTI_CELL: true
+          TEST_READ_ONLY: true
+      - task: run-pats-smb
+        input_mapping:
+          pats-config: smb-pats-config
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        attempts: 3
+        params:
+          PARALLEL_NODES: 2
+          TEST_MOUNT_FAIL_LOGGING: true
+          TEST_MOUNT_OPTIONS: true
+          TEST_MULTI_CELL: true
+          TEST_READ_ONLY: true
 
 - name: deploy-cf-with-ldap
   public: true
@@ -283,24 +266,20 @@ jobs:
       - get: smith-env
         tags: [ toolsmiths-shared-vsphere ]
         passed:
-        - pats-smb
-        - pats-nfs
+        - pats-nfs-smb
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
       - get: persi-ci
       - get: nfs-volume-release
         passed:
-        - pats-nfs
+        - pats-nfs-smb
       - get: mapfs-release
         passed:
-        - pats-nfs
+        - pats-nfs-smb
       - get: smb-volume-release
         passed:
-        - pats-smb
-    passed:
-    - pats-smb
-    - pats-nfs
+        - pats-nfs-smb
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -352,6 +331,18 @@ jobs:
       toolsmiths-env: smith-env
     params:
       ERRAND_NAME: smoke_tests
+  - task: run-nfs-broker-errand
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: nfsbrokerpush
+  - task: run-smb-broker-errand
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smbbrokerpush
 
 - name: pats-nfs-ldap
   on_failure: *on_failure_unclaim
