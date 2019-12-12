@@ -272,12 +272,94 @@ jobs:
     params:
       TEST_READ_ONLY: true
 
+- name: deploy-cf-with-ldap
+  public: true
+  build_logs_to_retain: 100
+  on_failure: *on_failure_unclaim
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smith-env
+        tags: [ toolsmiths-shared-vsphere ]
+        passed:
+        - pats-smb
+        - pats-nfs
+        trigger: true
+      - get: cf-deployment-concourse-tasks
+      - get: cf-deployment
+      - get: persi-ci
+      - get: nfs-volume-release
+        passed:
+        - pats-nfs
+      - get: mapfs-release
+        passed:
+        - pats-nfs
+      - get: smb-volume-release
+        passed:
+        - pats-smb
+    passed:
+    - pats-smb
+    - pats-nfs
+  - task: collect-persi-ci-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml
+                      operations/enable-smb-test-server-two.yml"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate_variables.build.yml
+    params:
+      GENERATE_DATADOG_VARS: false
+      GENERATE_NFS_VARS: true
+      GENERATE_SMB_VARS: true
+      GENERATE_GCS_BLOBSTORE_VARS: false
+      SMB_USERNAME: {{smb_pats_username_two}}
+      SMB_PASSWORD: {{smb_pats_password_two}}
+      LDAP_HOST: "nfstestldapserver.service.cf.internal"
+      LDAP_SVC_USER: "user1000"
+      LDAP_SVC_PASS: "secret"
+      LDAP_PORT: 636
+      LDAP_PROTO: tcp
+      LDAP_USER_FQDN: "ou=Users,dc=domain,dc=com"
+  - task: bosh-deploy-cf
+    file: persi-ci/scripts/ci/deploy-smith-cf-d.build.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+      cf-deployment: cf-deployment
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+    params:
+      VARS_FILES: "nfs-vars.yml smb-vars.yml"
+      OPS_FILES: "operations/use-compiled-releases.yml
+                  operations/scale-to-one-az.yml
+                  operations/enable-nfs-volume-service.yml
+                  operations/enable-nfs-test-server-two.yml
+                  operations/enable-nfs-ldap.yml
+                  operations/test/enable-nfs-test-server.yml
+                  operations/test/enable-nfs-test-ldapserver.yml
+                  operations/test/enable-smb-test-server.yml
+                  operations/backup-and-restore/enable-backup-restore.yml
+                  operations/backup-and-restore/enable-restore-nfs-broker.yml
+                  operations/enable-smb-volume-service.yml
+                  operations/enable-smb-test-server-two.yml"
+  - task: run-smoke-tests
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smoke_tests
 - name: unclaim-env
   plan:
   - get: smith-env
     tags: [ toolsmiths-shared-vsphere ]
-    passed: [ pats-smb ]
-    trigger: true
+    passed:
+    - pats-smb
+    - pats-nfs
+  #  trigger: true
   - put: smith-env
     params:
       action: unclaim
