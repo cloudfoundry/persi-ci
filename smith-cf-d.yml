@@ -139,7 +139,6 @@ jobs:
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
       toolsmiths-env: smith-env
-      cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
