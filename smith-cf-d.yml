@@ -136,7 +136,7 @@ jobs:
       SMB_USERNAME: {{smb_pats_username_two}}
       SMB_PASSWORD: {{smb_pats_password_two}}
   - task: bosh-deploy-cf
-    file: persi-ci/scripts/ci/deploy-smith-cf-d.build.yml
+    file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
       toolsmiths-env: smith-env
       cf-deployment: cf-deployment
@@ -310,7 +310,7 @@ jobs:
       LDAP_PROTO: tcp
       LDAP_USER_FQDN: "ou=Users,dc=domain,dc=com"
   - task: bosh-deploy-cf
-    file: persi-ci/scripts/ci/deploy-smith-cf-d.build.yml
+    file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
       toolsmiths-env: smith-env
       cf-deployment: cf-deployment

@@ -10,6 +10,9 @@ image_resource:
 inputs:
 - name: persi-ci
 - name: toolsmiths-env  # - Directory containing Toolsmiths metadata file
+  optional: true
+- name: bbl-state # - The repo containing the Director's bbl state dir
+  optional: true
 - name: cf-deployment  # - The cf-deployment manifest
 - name: ops-files  # - Operations files to be made available
   optional: true
@@ -21,9 +24,15 @@ inputs:
 - name: smb-volume-release
 
 run:
-  path: persi-ci/scripts/ci/deploy-smith-cf-d
+  path: persi-ci/scripts/ci/deploy-cf-with-multiple-releases
 
 params:
+  BBL_STATE_DIR: bbl-state
+  # - Path to the directory containing the `bbl-state.json` file
+  # - The path is relative to the `bbl-state` input
+  # - If blank or '.', uses `bbl-state` input as the location for bbl state
+  # - If the specified path does not exist, it will be created
+
   MANIFEST_FILE: cf-deployment.yml
   # - Required
   # - Filepath to the manifest file within the cf-deployment resource

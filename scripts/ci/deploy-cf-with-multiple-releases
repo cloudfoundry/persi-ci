@@ -1,7 +1,9 @@
 #!/bin/bash -eux
 
-export ENV=`cat "toolsmiths-env/metadata" | jq -r ".name"`
-export SYSTEM_DOMAIN="${ENV}.cf-app.com"
+if [ -d toolsmiths-env ]; then
+  export ENV=`cat "toolsmiths-env/metadata" | jq -r ".name"`
+  export SYSTEM_DOMAIN="${ENV}.cf-app.com"
+fi
 
 # shellcheck disable=SC1091
 source cf-deployment-concourse-tasks/shared-functions
