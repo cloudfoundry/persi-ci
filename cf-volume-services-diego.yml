@@ -5,9 +5,6 @@ groups:
   - cats-nfs-long-running-gcp-environment
   - cats-smb-long-running-gcp-environment
   - cf-deployment-nightly
-  - create-mapfs-release
-  - create-nfs-volume-release
-  - create-smb-volume-release
   - deploy-cf
   - deploy-nfs-brokers
   - deploy-smb-broker
@@ -36,9 +33,6 @@ groups:
   jobs:
   - bbl-up-long-running-gcp-environment
   - cf-deployment-nightly
-  - create-nfs-volume-release
-  - create-mapfs-release
-  - create-smb-volume-release
   - deploy-cf
   - deploy-nfs-brokers
   - deploy-smb-broker
@@ -95,14 +89,6 @@ resources:
     start: 12:00 AM
     stop: 1:00 AM
     location: America/Los_Angeles
-
-- name: nfs-volume-release-tarball
-  type: s3
-  source:
-    access_key_id: {{nfsvolume-uploader_aws_ID}}
-    bucket: nfs-volume-release-tarballs
-    regexp: nfs-volume-(.*).tgz
-    secret_access_key: {{nfsvolume-uploader_aws_secret}}
 
 - name: nfsvolume-version
   type: semver
@@ -164,14 +150,6 @@ resources:
     region_name: us-east-1
     secret_access_key: {{smbvolume-uploader_aws_secret}}
 
-- name: smb-volume-release-tarball
-  type: s3
-  source:
-    bucket: smb-volume-release-tarballs
-    regexp: smb-volume-(.*).tgz
-    access_key_id: {{smbvolume-uploader_aws_ID}}
-    secret_access_key: {{smbvolume-uploader_aws_secret}}
-
 - name: github-release-smb
   type: github-release
   source:
@@ -179,14 +157,6 @@ resources:
     repository: smb-volume-release
     drafts: true
     access_token: {{github-release-token-smbvolumerelease}}
-
-- name: mapfs-release-tarball
-  type: s3
-  source:
-    access_key_id: {{mapfs-uploader_aws_ID}}
-    bucket: mapfs-release-tarballs
-    regexp: mapfs-(.*).tgz
-    secret_access_key: {{mapfs-uploader_aws_secret}}
 
 - name: mapfs-version
   type: semver
@@ -287,37 +257,6 @@ jobs:
     privileged: true
     timeout: 1h
 
-- name: create-nfs-volume-release
-  serial_groups:
-  - nfs-version
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: nfs-volume-release
-        passed:
-        - nfs-volume-release-job-tests
-        trigger: true
-      - get: nfs-volume-version
-        resource: nfsvolume-version
-        params:
-          pre: rc
-      - get: persi-ci
-  - put: nfs-volume-version
-    resource: nfsvolume-version
-    params:
-      file: nfs-volume-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: nfs-volume-release
-      release-version: nfs-volume-version
-    params:
-      RELEASE_NAME: nfs-volume
-  - put: nfs-volume-release-tarball
-    params:
-      file: release-tarball/nfs-volume-*.tgz
-
 - name: shipit-nfs
   serial_groups:
   - nfs-version
@@ -326,10 +265,6 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: release-tarball
-        resource: nfs-volume-release-tarball
-        passed:
-        - pats-nfs-long-running-gcp-environment
       - get: release
         resource: nfs-volume-release
         passed:
@@ -449,11 +384,6 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: release-tarball
-        resource: mapfs-release-tarball
-        passed:
-        - pats-nfs-long-running-gcp-environment
-        - pats-nfs-legacy-long-running-gcp-environment
       - get: release
         resource: mapfs-release
         passed:
@@ -598,16 +528,10 @@ jobs:
         passed:
         - deploy-nfs-brokers
         trigger: true
-      - get: nfs-volume-release-tarball
-        passed:
-        - deploy-cf
       - get: mapfs-release
         passed:
         - deploy-cf
         trigger: true
-      - get: mapfs-release-tarball
-        passed:
-        - deploy-cf
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: bbl-state
@@ -650,16 +574,10 @@ jobs:
         passed:
         - deploy-nfs-brokers
         trigger: true
-      - get: nfs-volume-release-tarball
-        passed:
-        - deploy-cf
       - get: mapfs-release
         passed:
         - deploy-cf
         trigger: true
-      - get: mapfs-release-tarball
-        passed:
-        - deploy-cf
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: bbl-state
@@ -701,9 +619,6 @@ jobs:
         passed:
         - deploy-nfs-brokers
         trigger: true
-      - get: nfs-volume-release-tarball
-        passed:
-        - deploy-cf
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: bbl-state
@@ -794,35 +709,6 @@ jobs:
       CREATE_CONFIG: '{\"share\": \"((smb_cats_remote_path))\", \"username\": \"((smb_cats_username))\", \"password\": \"((smb_cats_password))\"}'
 
 
-- name: create-mapfs-release
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: mapfs-release
-        passed:
-        - mapfs-release-job-tests
-        trigger: true
-      - get: mapfs-version
-        resource: mapfs-version
-        params:
-          pre: rc
-      - get: persi-ci
-  - put: mapfs-version
-    resource: mapfs-version
-    params:
-      file: mapfs-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: mapfs-release
-      release-version: mapfs-version
-    params:
-      RELEASE_NAME: mapfs
-  - put: mapfs-release-tarball
-    params:
-      file: release-tarball/mapfs-*.tgz
-
 - name: smb-volume-release-job-tests
   plan:
   - in_parallel:
@@ -836,35 +722,6 @@ jobs:
     file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
     attempts: 3
-
-- name: create-smb-volume-release
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smb-volume-release
-        passed:
-        - smb-volume-release-job-tests
-        trigger: true
-      - get: smb-volume-version
-        resource: smb-volume-version
-        params:
-          pre: rc
-      - get: persi-ci
-  - put: smb-volume-version
-    resource: smb-volume-version
-    params:
-      file: smb-volume-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: smb-volume-release
-      release-version: smb-volume-version
-    params:
-      RELEASE_NAME: smb-volume
-  - put: smb-volume-release-tarball
-    params:
-      file: release-tarball/smb-volume-*.tgz
 
 - name: deploy-smb-broker
   serial_groups:
@@ -906,9 +763,6 @@ jobs:
         - deploy-smb-broker
         - smb-volume-release-job-tests
         trigger: true
-      - get: smb-volume-release-tarball
-        passed:
-        - deploy-cf
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: bbl-state
@@ -949,10 +803,6 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: release-tarball
-        resource: smb-volume-release-tarball
-        passed:
-        - pats-smb-long-running-gcp-environment
       - get: release
         resource: smb-volume-release
         passed:
@@ -1129,37 +979,11 @@ jobs:
         trigger: true
       - get: persi-ci
       - get: nfs-volume-release
-        passed: [ create-nfs-volume-release ]
-      - get: nfs-volume-release-tarball
-        passed: [ create-nfs-volume-release ]
-        trigger: true
-      - get: nfsvolume-version
-        passed: [ create-nfs-volume-release ]
+        passed: [ nfs-volume-release-job-tests ]
       - get: mapfs-release
-        passed: [ create-mapfs-release ]
-      - get: mapfs-release-tarball
-        passed: [ create-mapfs-release ]
-        trigger: true
-      - get: mapfs-version
-        passed: [ create-mapfs-release ]
+        passed: [ mapfs-release-job-tests ]
       - get: smb-volume-release
-        passed: [ create-smb-volume-release ]
-      - get: smb-volume-release-tarball
-        passed: [ create-smb-volume-release ]
-        trigger: true
-      - get: smb-volume-version
-        passed: [ create-smb-volume-release ]
-  - task: collect-tarballs
-    file: persi-ci/scripts/ci/collect-tarballs.build.yml
-    params: {}
-    input_mapping:
-      persi-ci: persi-ci
-      nfs-tarball: nfs-volume-release-tarball
-      mapfs-tarball: mapfs-release-tarball
-      smb-tarball: smb-volume-release-tarball
-      nfs-version: nfsvolume-version
-      mapfs-version: mapfs-version
-      smb-version: smb-volume-version
+        passed: [ smb-volume-release-job-tests ]
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
@@ -1170,24 +994,6 @@ jobs:
       NEW_OPS_FILES: "operations/scale-up-routers-and-cells.yml
                       operations/enable-nfs-test-server-two.yml
                       operations/enable-smb-test-server-two.yml"
-  - task: collect-tarball-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: collected-tarballs
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/update-releases.yml"
-  - task: add-tarballs
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: collected-ops-files
-      new-ops-files: collected-tarballs
-    params:
-      BASE_OPS_FILE_DIR: "."
-      NEW_OPS_FILES: "nfs.tgz
-                      mapfs.tgz
-                      smb.tgz"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
@@ -1204,14 +1010,13 @@ jobs:
       SMB_USERNAME: {{smb_pats_username_two}}
       SMB_PASSWORD: {{smb_pats_password_two}}
   - task: bosh-deploy-cf
-    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+    file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
-      cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      SYSTEM_DOMAIN: gorgophone.cf-app.com # not used, this is required by the task
+      SYSTEM_DOMAIN: gorgophone.cf-app.com
       VARS_FILES: "nfs-vars.yml datadog-vars.yml smb-vars.yml gcs-blobstore-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
@@ -1223,8 +1028,7 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
-                  operations/enable-smb-test-server-two.yml
-                  operations/update-releases.yml"
+                  operations/enable-smb-test-server-two.yml"
   - task: enable-docker
     attempts: 2
     file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
