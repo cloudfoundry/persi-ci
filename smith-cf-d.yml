@@ -202,7 +202,7 @@ jobs:
       - get: smb-volume-release-concourse-tasks
         params:
           submodules: none
-  - task: generate-pats-config
+  - task: generate-pats-config-nfs
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       CF_USERNAME: admin
@@ -220,13 +220,18 @@ jobs:
       SMB_REMOTE_PATH: {{smb_pats_remote_path}}
       SMB_USERNAME: {{smb_pats_username}}
       SMB_PASSWORD: {{smb_pats_password}}
-  - task: generate-pats-config
+    output_mapping:
+      bind-create-config: smb-bind-create-config
+  - task: generate-pats-config-smb
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       CF_USERNAME: admin
       DISALLOWED_OVERRIDE_BIND_CONFIG: '{"share"://smbtestservertwo.service.cf.internal/vol2}'
+      CREATE_BOGUS_CONFIG: '{"share":"//smb.bogus/export/nonexistensevol"}'
       PLAN_NAME: Existing
       SERVICE_NAME: smb
+    input_mapping:
+      bind-create-config: smb-bind-create-config
     output_mapping:
       pats-config: smb-pats-config
   - in_parallel:
@@ -250,8 +255,8 @@ jobs:
         attempts: 3
         params:
           PARALLEL_NODES: 2
+          TEST_MOUNT_OPTIONS: false
           TEST_MOUNT_FAIL_LOGGING: true
-          TEST_MOUNT_OPTIONS: true
           TEST_MULTI_CELL: true
           TEST_READ_ONLY: true
 
