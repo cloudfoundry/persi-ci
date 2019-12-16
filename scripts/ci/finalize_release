@@ -11,7 +11,6 @@ check_param S3_ACCESS_KEY_ID
 check_param S3_ACCESS_KEY
 
 RELEASE=release
-TARBALL=release-tarball
 VERSION=version
 
 echo "----- Copy private blobstore credentials into release"
@@ -24,21 +23,17 @@ blobstore:
 EOF
 
 FINAL_RELEASE_VERSION="$(cat "${VERSION}/number")"
-DEV_RELEASE_TARBALL="$(ls "${PWD}/${TARBALL}"/*.tgz)"
 
 pushd "${RELEASE}"
   RELEASE_YML="${PWD}/releases/${BASE_RELEASE_NAME}/${BASE_RELEASE_NAME}-${FINAL_RELEASE_VERSION}.yml"
 
-  git pull
-
-  # idempotently create tarball in case later parts of shipit fail
   if [[ ! -e "${RELEASE_YML}" ]]; then
     echo "----- Set git identity"
     git config user.email "${GIT_EMAIL}"
     git config user.name "${GIT_USER}"
 
     echo "----- Create final release"
-    bosh -n finalize-release "${DEV_RELEASE_TARBALL}" --version="${FINAL_RELEASE_VERSION}"
+    bosh -n create-release --final --version="${FINAL_RELEASE_VERSION}"
 
     echo "----- Update master and develop branches on origin"
     git add -A
