@@ -107,7 +107,7 @@ resources:
 - name: cf-acceptance-tests
   type: git
   source:
-    branch: develop
+    branch: master
     uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
 
 - name: nightly
