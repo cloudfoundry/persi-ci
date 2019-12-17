@@ -95,14 +95,6 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry-incubator/credhub
 
-- name: nfs-volume-release-tarball
-  type: s3
-  source:
-    access_key_id: {{lts-nfsvolume-uploader_aws_ID}}
-    bucket: nfs-volume-release-tarballs
-    regexp: {{nfs-volume-release-tarball-regexp}}
-    secret_access_key: {{lts-nfsvolume-uploader_aws_secret}}
-
 jobs:
 - name: nfsdriver-unit
   public: true
@@ -189,40 +181,6 @@ jobs:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
-- name: create-nfs-volume-release
-  serial_groups:
-  - nfs-version
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: nfs-volume-release
-        passed:
-        - nfsdriver-integration
-        - nfs-volume-release-job-tests
-        trigger: true
-      - get: nfs-volume-version
-        resource: nfsvolume-version
-        params:
-          pre: rc
-      - get: persi-ci
-  - put: nfs-volume-version
-    resource: nfsvolume-version
-    params:
-      file: nfs-volume-version/number
-  - task: create-release
-    file: persi-ci/scripts/ci/create-release.build.yml
-    input_mapping:
-      release: nfs-volume-release
-      release-version: nfs-volume-version
-    params:
-      RELEASE_NAME: nfs-volume
-  - put: nfs-volume-release-tarball
-    params:
-      file: release-tarball/nfs-volume-*.tgz
-
-
-
 - name: acquire-lock-ephemeral-environment
   build_logs_to_retain: 100
   serial: true
@@ -232,20 +190,12 @@ jobs:
         steps:
           - get: nfs-volume-release
             passed:
-              - create-nfs-volume-release
-          - get: nfs-volume-release-tarball
-            passed:
-              - create-nfs-volume-release
-            trigger: true
-          - get: nfsvolume-version
-            passed:
-              - create-nfs-volume-release
+              - nfsdriver-integration
+              - nfs-volume-release-job-tests
     - put: env-creation-gate-lock
       params:
         claim: lts-ephemeral-environment
       timeout: 3h
-
-
 
 - name: bbl-up-ephemeral-environment
   serial_groups: [deploy-cf-ephemeral-environment]
@@ -262,12 +212,6 @@ jobs:
             trigger: true
           - get: bbl-state
           - get: nfs-volume-release
-            passed:
-              - acquire-lock-ephemeral-environment
-          - get: nfs-volume-release-tarball
-            passed:
-              - acquire-lock-ephemeral-environment
-          - get: nfsvolume-version
             passed:
               - acquire-lock-ephemeral-environment
     - task: bbl-up
@@ -325,52 +269,14 @@ jobs:
           - get: nfs-volume-release
             passed:
               - bbl-up-ephemeral-environment
-          - get: nfs-volume-release-tarball
-            passed:
-              - bbl-up-ephemeral-environment
-          - get: nfsvolume-version
-            passed:
-              - bbl-up-ephemeral-environment
-    - task: collect-tarballs
-      file: persi-ci/scripts/ci/collect-tarballs.build.yml
-      params:
-        COLLECT_NFS_TARBALL: true
-        COLLECT_SMB_TARBALL: false
-        COLLECT_MAPFS_TARBALL: false
-      #this task requires a lot of inputs that we don't need for this instance--we're feeding in
-      #nfsvolume-version as a dummy input because it is tiny and easy to copy
-      input_mapping:
-        persi-ci: persi-ci
-        nfs-tarball: nfs-volume-release-tarball
-        mapfs-tarball: nfsvolume-version #dummy
-        smb-tarball: nfsvolume-version #dummy
-        nfs-version: nfsvolume-version
-        mapfs-version: nfsvolume-version #dummy
-        smb-version: nfsvolume-version #dummy
-    - task: collect-tarball-ops-files
-      file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-      input_mapping:
-        base-ops-files: cf-deployment
-        new-ops-files: collected-tarballs
-      params:
-        BASE_OPS_FILE_DIR: "operations"
-        NEW_OPS_FILES: "operations/update-releases.yml"
     - task: collect-enable-nfs-ldap-ops-files
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
-        base-ops-files: collected-ops-files
+        base-ops-files: cf-deployment
         new-ops-files: persi-ci
       params:
         BASE_OPS_FILE_DIR: "operations"
         NEW_OPS_FILES: "operations/enable-nfs-test-ldapserver.yml"
-    - task: add-tarballs
-      file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-      input_mapping:
-        base-ops-files: collected-ops-files
-        new-ops-files: collected-tarballs
-      params:
-        BASE_OPS_FILE_DIR: "."
-        NEW_OPS_FILES: "nfs.tgz"
     - task: generate-variables
       file: persi-ci/scripts/ci/generate_variables.build.yml
       input_mapping:
@@ -381,21 +287,18 @@ jobs:
         GENERATE_NFS_VARS: true
         GENERATE_S3_BLOBSTORE_VARS: true
         LDAP_HOST: "nfstestldapserver.service.cf.internal"
-        LDAP_SVC_USER: {{ldap-svc-user}}
-        LDAP_SVC_PASS: {{ldap-svc-pass}}
+        LDAP_SVC_USER: "cn=admin,dc=domain,dc=com"
+        LDAP_SVC_PASS: "secret"
         LDAP_PORT: 636
         LDAP_PROTO: tcp
-        LDAP_USER_FQDN: {{ldap-user-fqdn}}
+        LDAP_USER_FQDN: "ou=Users,dc=domain,dc=com"
     - task: bosh-deploy-cf
-      file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
-#      on_failure:
-#        put: env-creation-gate-lock
-#        params:
-#          release: env-creation-gate-lock
+      file: cf-deployment-concourse-tasks/bosh-deploy-with-created-release/task.yml
       input_mapping:
         cf-deployment: cf-deployment
         ops-files: collected-ops-files
         vars-files: generated-vars
+        release: nfs-volume-release
       params:
         BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
         SYSTEM_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
@@ -405,8 +308,7 @@ jobs:
                   operations/enable-nfs-volume-service.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
-                  operations/enable-nfs-test-ldapserver.yml \
-                  operations/update-releases.yml"
+                  operations/enable-nfs-test-ldapserver.yml"
     - task: enable-docker
       attempts: 2
       file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
@@ -576,9 +478,6 @@ jobs:
         fail_fast: true
         steps:
           - get: persi-ci
-          - get: nfs-volume-release-tarball
-            passed:
-              - deploy-cf-ephemeral-environment
           - get: nfs-volume-release
             passed:
               - deploy-cf-ephemeral-environment
@@ -596,7 +495,6 @@ jobs:
       input_mapping:
         release: nfs-volume-release
         version: nfsvolume-version
-        release-tarball: nfs-volume-release-tarball
     - task: generate-github-release
       file: persi-ci/scripts/ci/generate_github_release.build.yml
       params:
