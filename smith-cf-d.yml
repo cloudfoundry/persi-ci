@@ -303,7 +303,7 @@ jobs:
       SMB_USERNAME: {{smb_pats_username_two}}
       SMB_PASSWORD: {{smb_pats_password_two}}
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
-      LDAP_SVC_USER: "user1000"
+      LDAP_SVC_USER: "cn=admin,dc=domain,dc=com"
       LDAP_SVC_PASS: "secret"
       LDAP_PORT: 636
       LDAP_PROTO: tcp
