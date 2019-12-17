@@ -59,15 +59,10 @@ spec:
 
     until helm version | grep Server; do sleep 1; done
 
-#    export GOOGLE_APPLICATION_CREDENTIALS_SECRET=$(cat ${GOOGLE_APPLICATION_CREDENTIALS_FILE} | base64 -w0)
-#
-#    sleep 30
-
     kubectl apply --validate=false -f resources/cert-manager/crds.yaml
 
-#    cp envs/example-gke/values.yaml ${ENV_DIR}values.yaml
     until helmfile --state-values-file ${ENV_DIR}values.yaml diff; do sleep 1; done
     helmfile --state-values-file ${ENV_DIR}values.yaml apply
 popd
 
-sleep 36000
+sleep 3600
