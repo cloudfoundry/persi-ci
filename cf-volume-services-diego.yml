@@ -289,9 +289,6 @@ jobs:
     file: persi-ci/scripts/ci/generate_github_release.build.yml
     params:
       BASE_RELEASE_NAME: nfs-volume
-    input_mapping:
-      volume-release: release
-      volume-version: version
   - put: nfs-volume-release
     params:
       repository: finalized-release/release
