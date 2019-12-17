@@ -33,10 +33,6 @@ pushd helmfile-eirini
     gcloud projects add-iam-policy-binding ${GOOGLE_PROJECT_ID} \
     --member serviceAccount:${CERT_MANAGER_EMAIL} --role roles/dns.admin
 
-    sleep 30
-
-    gcloud config list account --format "value(core.account)"
-
     gcloud iam service-accounts keys create \
     ${GOOGLE_APPLICATION_CREDENTIALS_FILE} --iam-account=$CERT_MANAGER_EMAIL
 
@@ -64,5 +60,3 @@ spec:
     until helmfile --state-values-file ${ENV_DIR}values.yaml diff; do sleep 1; done
     helmfile --state-values-file ${ENV_DIR}values.yaml apply
 popd
-
-sleep 3600
