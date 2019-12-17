@@ -10,7 +10,7 @@ image_resource:
 
 inputs:
   - name: persi-ci
-  - name: helmfile-eirini
+
 
 params:
   GOOGLE_PROJECT_ID: ~
