@@ -16,6 +16,7 @@ params:
   GOOGLE_PROJECT_ID: ~
   GOOGLE_SERVICE_KEY: ~
   GOOGLE_ZONE: us-east1-b
+  EIRINI_ENV_DIR: ephemeral-eirini-gke
   ENV_NAME: ephemeral-eirini-gke
 
 run:

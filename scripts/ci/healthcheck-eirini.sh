@@ -8,7 +8,7 @@ gcloud auth activate-service-account --key-file=/tmp/key.json
 gcloud config set project cff-diego-persistence
 gcloud config set compute/zone ${GOOGLE_ZONE}
 
-. .eirini-env/${ENV_NAME}/envs.sh
+. ./eirini-env/${EIRINI_ENV_DIR}/envs.sh
 
 gcloud container clusters get-credentials $ENV_NAME
 
