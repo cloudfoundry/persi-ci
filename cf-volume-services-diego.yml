@@ -322,7 +322,7 @@ jobs:
           - -exc
           - |
             cd nfs-volume-release
-            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/7b387f7f765bae4500147d6ca1100093" | jq -r '.latest_git_sha')
+            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/7b387f7f765bae4500147d6ca1100093" | jq -r '.latest_git_sha')
             git config --global core.pager cat
             if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
               true # all is well
@@ -339,7 +339,7 @@ jobs:
             if [ -z "$STORY_IDS" ]; then
               STORY_IDS=[]
             fi
-            curl -X POST -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"7b387f7f765bae4500147d6ca1100093", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
+            curl -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"7b387f7f765bae4500147d6ca1100093", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
 - name: manual-bump-nfs-patch
   serial_groups:
   - nfs-version
@@ -439,7 +439,7 @@ jobs:
           - -exc
           - |
             cd mapfs-release
-            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/134ec8d86be91855383cce879ea79eae" | jq -r '.latest_git_sha')
+            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/134ec8d86be91855383cce879ea79eae" | jq -r '.latest_git_sha')
             git config --global core.pager cat
             if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
               true # all is well
@@ -456,7 +456,7 @@ jobs:
             if [ -z "$STORY_IDS" ]; then
               STORY_IDS=[]
             fi
-            curl -X POST -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"134ec8d86be91855383cce879ea79eae", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
+            curl -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"134ec8d86be91855383cce879ea79eae", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
 
 - name: manual-bump-mapfs-patch
   serial_groups:
@@ -857,7 +857,7 @@ jobs:
           - -exc
           - |
             cd smb-volume-release
-            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/d526b7901a2001a6f01869ef334b3068" | jq -r '.latest_git_sha')
+            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/d526b7901a2001a6f01869ef334b3068" | jq -r '.latest_git_sha')
             git config --global core.pager cat
             if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
               true # all is well
@@ -874,7 +874,7 @@ jobs:
             if [ -z "$STORY_IDS" ]; then
               STORY_IDS=[]
             fi
-            curl -X POST -H "X-TrackerToken: 362c51fbe83dee2a2a5a57ac98fd306d" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"d526b7901a2001a6f01869ef334b3068", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
+            curl -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"d526b7901a2001a6f01869ef334b3068", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
 - name: manual-bump-smb-patch
   serial_groups:
   - smb-version
