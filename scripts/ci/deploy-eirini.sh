@@ -63,7 +63,7 @@ spec:
     helmfile --state-values-file ${ENV_DIR}values.yaml apply
 
     mkdir -p ../updated-eirini-env
-    shopt -o dotglob
+    shopt -s dotglob
     cp -R ../eirini-env/* ../updated-eirini-env/
     cp -R ./envs/${ENV_NAME}/* ../updated-eirini-env/${EIRINI_ENV_DIR}/
 
