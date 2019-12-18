@@ -1,15 +1,11 @@
 #!/bin/bash
 
 set -ex
-#set -x
 
 export MZ_NAME=${ENV_NAME}
 export DNS_NAME=${ENV_NAME}-dns
 
-pushd helmfile-eirini
-
-    mkdir ./envs/${ENV_NAME}
-    cp -R ../eirini-env/${EIRINI_ENV_DIR}/* ./envs/${ENV_NAME}
+pushd eirini-env/helm-state-ephemeral-eirini-gke
 
     echo ${GOOGLE_SERVICE_KEY} > /tmp/key.json
     gcloud auth activate-service-account --key-file=/tmp/key.json
@@ -36,8 +32,8 @@ pushd helmfile-eirini
 
         gcloud iam service-accounts keys create \
         ${GOOGLE_APPLICATION_CREDENTIALS_FILE} --iam-account=$CERT_MANAGER_EMAIL
-
     fi
+
     . ./envs/${ENV_NAME}/envs.sh
 
     kubectl -n kube-system create serviceaccount tiller
@@ -62,13 +58,11 @@ spec:
     until helmfile --state-values-file ${ENV_DIR}values.yaml diff; do sleep 1; done
     helmfile --state-values-file ${ENV_DIR}values.yaml apply
 
-    mkdir -p ../updated-eirini-env
-    shopt -s dotglob
-    cp -R ../eirini-env/* ../updated-eirini-env/
-    cp -R ./envs/${ENV_NAME}/* ../updated-eirini-env/${EIRINI_ENV_DIR}/
-
 popd
 
+mkdir -p ./updated-eirini-env
+shopt -s dotglob
+cp -R ./eirini-env/* ./updated-eirini-env/
 
 pushd ./updated-eirini-env/
     git config user.email "${GIT_EMAIL}"
