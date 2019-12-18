@@ -61,4 +61,19 @@ spec:
 
     until helmfile --state-values-file ${ENV_DIR}values.yaml diff; do sleep 1; done
     helmfile --state-values-file ${ENV_DIR}values.yaml apply
+
+    mkdir -p ../updated-eirini-env
+    shopt -o dotglob
+    cp -R ../eirini-env/* ../updated-eirini-env/
+    cp -R ./envs/${ENV_NAME}/* ../updated-eirini-env/${EIRINI_ENV_DIR}/
+
+popd
+
+
+pushd ./updated-eirini-env/
+    git config user.email "${GIT_EMAIL}"
+    git config user.name "${GIT_USER}"
+
+    git add -A .
+    git commit -m "Update eirini env [ci skip]"
 popd

@@ -13,12 +13,16 @@ inputs:
   - name: helmfile-eirini
   - name: eirini-env
 
+outputs:
+  - name: updated-eirini-env
+
 params:
   EIRINI_ENV_DIR: ephemeral-eirini-gke
   GOOGLE_PROJECT_ID: ~
   GOOGLE_SERVICE_KEY: ~
   GOOGLE_ZONE: us-east1-b
   ENV_NAME: ephemeral-eirini-gke
-
+  GIT_USER: replace-me
+  GIT_EMAIL: replace-me
 run:
   path: persi-ci/scripts/ci/deploy-eirini.sh
