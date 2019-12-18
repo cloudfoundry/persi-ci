@@ -19,23 +19,25 @@ pushd helmfile-eirini
 
     . ./envs/${ENV_NAME}/envs.sh
 
-    gcloud container clusters create $ENV_NAME --num-nodes 5
+    if ! gcloud container clusters describe ${ENV_NAME}; then
+        gcloud container clusters create $ENV_NAME --num-nodes 5
 
-    gcloud container clusters get-credentials $ENV_NAME
+        gcloud container clusters get-credentials $ENV_NAME
 
-    gcloud dns managed-zones create ${MZ_NAME} \
-      --dns-name $EXTERNAL_DNS_DOMAIN \
-      --description "Managed zone for ${ENV_NAME}"
+        gcloud dns managed-zones create ${MZ_NAME} \
+          --dns-name $EXTERNAL_DNS_DOMAIN \
+          --description "Managed zone for ${ENV_NAME}"
 
-    gcloud iam service-accounts create \
-    ${DNS_NAME} --display-name "DNS Management for ${ENV_NAME}"
+        gcloud iam service-accounts create \
+        ${DNS_NAME} --display-name "DNS Management for ${ENV_NAME}"
 
-    gcloud projects add-iam-policy-binding ${GOOGLE_PROJECT_ID} \
-    --member serviceAccount:${CERT_MANAGER_EMAIL} --role roles/dns.admin
+        gcloud projects add-iam-policy-binding ${GOOGLE_PROJECT_ID} \
+        --member serviceAccount:${CERT_MANAGER_EMAIL} --role roles/dns.admin
 
-    gcloud iam service-accounts keys create \
-    ${GOOGLE_APPLICATION_CREDENTIALS_FILE} --iam-account=$CERT_MANAGER_EMAIL
+        gcloud iam service-accounts keys create \
+        ${GOOGLE_APPLICATION_CREDENTIALS_FILE} --iam-account=$CERT_MANAGER_EMAIL
 
+    fi
     . ./envs/${ENV_NAME}/envs.sh
 
     kubectl -n kube-system create serviceaccount tiller
