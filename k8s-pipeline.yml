@@ -3,6 +3,9 @@ groups:
   jobs:
   - smb-broker-unit-tests
   - build-smb-broker-docker-image
+  - acquire-lock-ephemeral-eirini-env
+  - deploy-ephemeral-eirini-env
+  - undeploy-ephemeral-eirini-env
 
 resources:
 - name: smb-volume-k8s-release
@@ -29,6 +32,34 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: {{smb-broker-k8s-uploader_aws_secret}}
+
+- name: helmfile-eirini
+  type: git
+  source:
+    uri: https://github.com/paulczar/helmfile-eirini.git
+    branch: master
+
+- name: eirini-env
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/gorgophone-env.git
+    branch: master
+    private_key: {{deployments-persi-key}}
+    paths:
+      - ephemeral-eirini-gke
+
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci.git
+
+- name: ephemeral-eirini-env-gate-lock
+  type: pool
+  source:
+    uri: git@github.com:cloudfoundry/gorgophone-env.git
+    branch: master
+    pool: gate-locks
+    private_key: {{deployments-persi-key}}
 
 jobs:
 - name: smb-broker-unit-tests
@@ -64,3 +95,61 @@ jobs:
         tag_file: smb-broker-version/version
         tag_as_latest: true
         build: smb-volume-k8s-release/smb-broker
+
+- name: acquire-lock-ephemeral-eirini-env
+  build_logs_to_retain: 100
+  serial: true
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: helmfile-eirini
+            trigger: true
+          - get: eirini-env
+            trigger: true
+    - put: ephemeral-eirini-env-gate-lock
+      params:
+        claim: ephemeral-eirini-env
+      timeout: 3h
+
+- name: deploy-ephemeral-eirini-env
+  plan:
+    - get: ephemeral-eirini-env-gate-lock
+      passed:
+        - acquire-lock-ephemeral-eirini-env
+      trigger: true
+    - get: persi-ci
+    - get: helmfile-eirini
+      passed:
+        - acquire-lock-ephemeral-eirini-env
+    - get: eirini-env
+      passed:
+        - acquire-lock-ephemeral-eirini-env
+    - task: deploy
+      file: persi-ci/scripts/ci/deploy-eirini.build.yml
+      params:
+        GOOGLE_PROJECT_ID: ((gcp_project))
+        GOOGLE_SERVICE_KEY: ((gcp_service_account_key))
+    - task: healthcheck
+      file: persi-ci/scripts/ci/healthcheck-eirini.build.yml
+      params:
+        GOOGLE_PROJECT_ID: ((gcp_project))
+        GOOGLE_SERVICE_KEY: ((gcp_service_account_key))
+
+- name: undeploy-ephemeral-eirini-env
+  plan:
+    - get: ephemeral-eirini-env-gate-lock
+      passed:
+        - deploy-ephemeral-eirini-env
+      trigger: true
+    - get: persi-ci
+    - task: undeploy
+      file: persi-ci/scripts/ci/undeploy-eirini.build.yml
+      params:
+        GOOGLE_PROJECT_ID: ((gcp_project))
+        GOOGLE_SERVICE_KEY: ((gcp_service_account_key))
+    - put: ephemeral-eirini-env-gate-lock
+      attempts: 3
+      params:
+        release: ephemeral-eirini-env-gate-lock
