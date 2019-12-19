@@ -32,32 +32,34 @@ pushd eirini-env/helm-state-ephemeral-eirini-gke
 
         gcloud iam service-accounts keys create \
         ${GOOGLE_APPLICATION_CREDENTIALS_FILE} --iam-account=$CERT_MANAGER_EMAIL
+
+        . ./envs/${ENV_NAME}/envs.sh
+
+        kubectl -n kube-system create serviceaccount tiller
+        kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+        helm init --service-account=tiller
+        kubectl -n kube-system delete service tiller-deploy
+        kubectl -n kube-system patch deployment tiller-deploy --patch '
+    spec:
+      template:
+        spec:
+          containers:
+            - name: tiller
+              ports: []
+              command: ["/tiller"]
+              args: ["--listen=localhost:44134"]
+    '
+
+        until helm version | grep Server; do sleep 1; done
+
     fi
 
     . ./envs/${ENV_NAME}/envs.sh
-
-    kubectl -n kube-system create serviceaccount tiller
-    kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
-    helm init --service-account=tiller
-    kubectl -n kube-system delete service tiller-deploy
-    kubectl -n kube-system patch deployment tiller-deploy --patch '
-spec:
-  template:
-    spec:
-      containers:
-        - name: tiller
-          ports: []
-          command: ["/tiller"]
-          args: ["--listen=localhost:44134"]
-'
-
-    until helm version | grep Server; do sleep 1; done
 
     kubectl apply --validate=false -f resources/cert-manager/crds.yaml
 
     until helmfile --state-values-file ${ENV_DIR}values.yaml diff; do sleep 1; done
     helmfile --state-values-file ${ENV_DIR}values.yaml apply
-
 popd
 
 mkdir -p ./updated-eirini-env
