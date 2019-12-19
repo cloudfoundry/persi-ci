@@ -66,6 +66,7 @@ mkdir -p ./updated-eirini-env
 shopt -s dotglob
 cp -R ./eirini-env/* ./updated-eirini-env/
 
+set +e
 pushd ./updated-eirini-env/
     git config user.email "${GIT_EMAIL}"
     git config user.name "${GIT_USER}"
@@ -73,3 +74,4 @@ pushd ./updated-eirini-env/
     git add -A .
     git commit -m "Update eirini env [ci skip]"
 popd
+set -e
