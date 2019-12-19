@@ -55,9 +55,9 @@ pushd eirini-env/helm-state-ephemeral-eirini-gke
     fi
 
     . ./envs/${ENV_NAME}/envs.sh
+    gcloud container clusters get-credentials $ENV_NAME
 
     kubectl apply --validate=false -f resources/cert-manager/crds.yaml
-
     until helmfile --state-values-file ${ENV_DIR}values.yaml diff; do sleep 1; done
     helmfile --state-values-file ${ENV_DIR}values.yaml apply
 popd
