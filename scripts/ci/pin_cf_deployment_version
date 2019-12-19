@@ -1,0 +1,12 @@
+#!/bin/bash -eux
+
+if [ -d toolsmiths-env ]; then
+  VERS=`cat "toolsmiths-env/metadata" | jq -r '."cf-deployment_version"'`
+
+  cp -a cf-deployment/. cf-deployment-pinned/
+
+  pushd cf-deployment-pinned
+    git fetch --tags
+    git checkout $VERS
+  popd
+fi
