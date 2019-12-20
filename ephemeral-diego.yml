@@ -117,10 +117,14 @@ jobs:
         passed: [ claim-env ]
       - get: smb-volume-release
         passed: [ claim-env ]
+  - task: pin-cf-deployment-version
+    file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+    input_mapping:
+      toolsmiths-env: smith-env
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment
+      base-ops-files: cf-deployment-pinned
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -138,6 +142,7 @@ jobs:
   - task: bosh-deploy-cf
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
+      cf-deployment: cf-deployment-pinned
       toolsmiths-env: smith-env
       ops-files: collected-ops-files
       vars-files: generated-vars
@@ -284,10 +289,14 @@ jobs:
       - get: smb-volume-release
         passed:
         - pats-nfs-smb
+  - task: pin-cf-deployment-version
+    file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+    input_mapping:
+      toolsmiths-env: smith-env
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment
+      base-ops-files: cf-deployment-pinned
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -312,7 +321,7 @@ jobs:
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
       toolsmiths-env: smith-env
-      cf-deployment: cf-deployment
+      cf-deployment: cf-deployment-pinned
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
