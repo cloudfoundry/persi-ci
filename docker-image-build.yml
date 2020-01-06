@@ -205,5 +205,5 @@ jobs:
       trigger: true
     - put: smb-broker-k8s-tests-docker-image
       params:
-        build: smb-volume-k8s-release/ci/dockerfiles/tests
+        build: smb-volume-k8s-release/smb-broker/ci/dockerfiles/tests
 
