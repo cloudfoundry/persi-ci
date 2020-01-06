@@ -60,6 +60,7 @@ jobs:
       trigger: true
     - task: unit-tests
       file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
+      privileged: true
     - get: smb-broker-version
       params:
         bump: minor
