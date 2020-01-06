@@ -70,6 +70,13 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
+- name: smb-broker-k8s-tests-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/smb-broker-k8s-tests
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 - name: smb-volume-release
   type: git
   source:
@@ -87,6 +94,12 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry/mapfs.git
+
+- name: smb-volume-k8s-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/smb-volume-k8s-release.git
 
 - name: persi-ci
   type: git
@@ -183,4 +196,14 @@ jobs:
     - put: smb-unit-tests-docker-image
       params:
         build: smb-volume-release/dockerfiles/smb-unit-tests
+
+- name: build-smb-broker-k8s-tests-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: smb-volume-k8s-release
+      trigger: true
+    - put: smb-broker-k8s-tests-docker-image
+      params:
+        build: smb-volume-k8s-release/ci/dockerfiles/tests
 
