@@ -466,8 +466,7 @@ jobs:
       params:
         BASE_OPS_FILE_DIR: "operations"
         NEW_OPS_FILES: "operations/enable-nfs-volume-service-with-sqlstore.yml \
-                      operations/enable-nfs-volume-service-migration-test.yml \
-                      operations/use-nfs-volume-release-allows-db-properties.yml"
+                      operations/enable-nfs-volume-service-migration-test.yml"
     - task: generate-variables
       file: persi-ci/scripts/ci/generate_variables.build.yml
       input_mapping:
@@ -484,12 +483,11 @@ jobs:
         LDAP_PROTO: tcp
         LDAP_USER_FQDN: "ou=Users,dc=domain,dc=com"
     - task: bosh-deploy-cf
-      file: cf-deployment-concourse-tasks/bosh-deploy-with-created-release/task.yml
+      file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
       input_mapping:
         cf-deployment: cf-deployment
         ops-files: collected-ops-files
         vars-files: generated-vars
-        release: nfs-volume-release
       params:
         BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
         SYSTEM_DOMAIN: lts-ephemeral-environment.persi.cf-app.com
@@ -500,8 +498,7 @@ jobs:
                   operations/enable-nfs-volume-service-migration-test.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
-                  operations/test/enable-nfs-test-ldapserver.yml \
-                  operations/use-nfs-volume-release-allows-db-properties.yml"
+                  operations/test/enable-nfs-test-ldapserver.yml"
     - task: run-broker-errand
       file: cf-deployment-concourse-tasks/run-errand/task.yml
       params:
