@@ -977,10 +977,13 @@ jobs:
       - get: persi-ci
       - get: nfs-volume-release
         passed: [ nfs-volume-release-job-tests ]
+        trigger: true
       - get: mapfs-release
         passed: [ mapfs-release-job-tests ]
+        trigger: true
       - get: smb-volume-release
         passed: [ smb-volume-release-job-tests ]
+        trigger: true
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
