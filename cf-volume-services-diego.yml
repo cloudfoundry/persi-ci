@@ -715,6 +715,10 @@ jobs:
       - get: smb-volume-release-concourse-tasks
       - get: smb-volume-release
         trigger: true
+  - task: rspec
+    file: persi-ci/scripts/ci/run-rspec.build.yml
+    input_mapping:
+      test-repo: smb-volume-release
   - task: bosh-release-test
     file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
