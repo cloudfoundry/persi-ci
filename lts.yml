@@ -6,6 +6,7 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
+    disable_ci_skip: true
 
 - name: nfs-volume-release-concourse-tasks
   type: git
