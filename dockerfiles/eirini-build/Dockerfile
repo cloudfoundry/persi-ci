@@ -17,6 +17,9 @@ RUN tar -xvf helm-v2.14.3-linux-amd64.tar.gz -C /tmp/
 RUN mv /tmp/linux-amd64/helm /usr/local/bin/helm
 RUN mv /tmp/linux-amd64/tiller /usr/local/bin/tiller
 
+RUN wget https://get.helm.sh/helm-v3.0.2-linux-amd64.tar.gz
+RUN tar -xvf helm-v3.0.2-linux-amd64.tar.gz -C /tmp/
+RUN mv /tmp/linux-amd64/helm /usr/local/bin/helm3
 
 RUN helm init --client-only
 RUN helm plugin install https://github.com/databus23/helm-diff --version master
