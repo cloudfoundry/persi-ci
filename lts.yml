@@ -301,6 +301,14 @@ jobs:
         LDAP_PORT: 636
         LDAP_PROTO: tcp
         LDAP_USER_FQDN: "ou=Users,dc=domain,dc=com"
+    - task: collect-persi-ci-ops-files
+      file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+      input_mapping:
+        base-ops-files: cf-deployment
+        new-ops-files: persi-ci
+      params:
+        BASE_OPS_FILE_DIR: "operations"
+        NEW_OPS_FILES: "operations/use-mapfs-1.2.0.yml"
     - task: bosh-deploy-cf
       file: cf-deployment-concourse-tasks/bosh-deploy-with-created-release/task.yml
       on_failure:
@@ -310,7 +318,7 @@ jobs:
       input_mapping:
         cf-deployment: cf-deployment
         vars-files: generated-vars
-        ops-files: cf-deployment
+        ops-files: collected-ops-files
         release: nfs-volume-release
       params:
         BBL_STATE_DIR: lts-bbl-state-ephemeral-environment
@@ -321,7 +329,8 @@ jobs:
                   operations/enable-nfs-volume-service.yml \
                   operations/enable-nfs-ldap.yml \
                   operations/test/enable-nfs-test-server.yml \
-                  operations/test/enable-nfs-test-ldapserver.yml"
+                  operations/test/enable-nfs-test-ldapserver.yml \
+                  operations/use-mapfs-1.2.0.yml"
     - task: enable-docker
       attempts: 2
       file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
