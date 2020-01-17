@@ -14,6 +14,13 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
+- name: eirini-persi-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/eirini-persi
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 - name: mapfs-tests-docker-image
   type: docker-image
   source:
@@ -116,6 +123,16 @@ jobs:
     - put: eirini-build-docker-image
       params:
         build: persi-ci/dockerfiles/eirini-build
+
+- name: build-eirini-persi-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: smb-volume-k8s-release
+      trigger: true
+    - put: eirini-persi-docker-image
+      params:
+        build: smb-volume-k8s-release/eirini-persi/ci/dockerfiles/eirini-persi
 
 - name: build-nfs-driver-integration-tests-docker-image
   plan:
