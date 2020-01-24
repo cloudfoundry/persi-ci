@@ -3,6 +3,7 @@ groups:
   jobs:
   - smb-broker-unit-tests
   - build-smb-broker-docker-image
+  - pats
 
 resources:
 - name: smb-volume-k8s-release
@@ -30,6 +31,16 @@ resources:
     region_name: us-east-1
     secret_access_key: {{smb-broker-k8s-uploader_aws_secret}}
 
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci.git
+
+- name: cf-volume-services-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+    
 jobs:
 - name: smb-broker-unit-tests
   plan:
@@ -66,3 +77,35 @@ jobs:
         tag_as_latest: true
         build: smb-volume-k8s-release/smb-broker
 
+- name: pats
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: smb-volume-k8s-release
+            passed:
+              - build-smb-broker-docker-image
+            trigger: true
+          - get: cf-volume-services-acceptance-tests
+          - get: persi-ci
+    - task: generate-pats-config
+      file: persi-ci/scripts/ci/generate_pats_config.build.yml
+      params:
+        APPS_DOMAIN: app.cf.ephemeral-eirini-gke-2.cf-app.com
+        CF_API_ENDPOINT: api.app.cf.ephemeral-eirini-gke-2.cf-app.com
+        CF_USERNAME: admin
+        CF_ADMIN_PASSWORD: ((eirini_cf_admin_password))
+        BIND_CONFIG: '["{\"mount\":\"/home/vcap/data\"}"]'
+        CREATE_BOGUS_CONFIG: ''
+        CREATE_CONFIG: '{"share":"can-be-anything-for-now"}'
+        PLAN_NAME: Existing
+        SERVICE_NAME: SMB
+    - task: run-pats
+      file: persi-ci/scripts/ci/run-pats.build.yml
+      attempts: 3
+      params:
+        PARALLEL_NODES: 2
+        TEST_MOUNT_FAIL_LOGGING: false
+        TEST_MOUNT_OPTIONS: false
+        TEST_MULTI_CELL: false
+        TEST_READ_ONLY: false
