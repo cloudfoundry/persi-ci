@@ -6,6 +6,13 @@ shared_functions:
         action: unclaim
         env_file: smith-env/metadata
       tags: [ toolsmiths-shared-vsphere ]
+- on_error: &on_error_unclaim
+    do:
+      - put: smith-env
+        params:
+          action: unclaim
+          env_file: smith-env/metadata
+        tags: [ toolsmiths-shared-vsphere ]
 
 resources:
 - name: smith-env
@@ -100,6 +107,7 @@ jobs:
   public: true
   build_logs_to_retain: 100
   on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -187,6 +195,7 @@ jobs:
 
 - name: pats-nfs-smb
   on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -268,6 +277,7 @@ jobs:
   public: true
   build_logs_to_retain: 100
   on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -359,6 +369,7 @@ jobs:
 
 - name: pats-nfs-ldap
   on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
