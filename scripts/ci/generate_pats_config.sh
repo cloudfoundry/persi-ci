@@ -15,13 +15,24 @@ function validate_required_params() {
   check_param SERVICE_NAME
 }
 
+function set_cf_admin_password() {
+  if [ -z "$CF_ADMIN_PASSWORD" ]
+  then
+    set +x
+    source "${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
+    source bosh-env/set-env.sh
+    set -x
+    CF_ADMIN_PASSWORD=$(get_password_from_credhub cf_admin_password)
+  fi
+}
+
 function write_config_to_file() {
   # This config file contains fields from both the standard CATs config AND
   # the PATs config structs.
   CONFIG_FILE="pats-config/pats.json"
   cat << EOF > ${CONFIG_FILE}
 {
-  "admin_password": "$(get_password_from_credhub cf_admin_password)",
+  "admin_password": "$CF_ADMIN_PASSWORD",
   "admin_user": "${CF_USERNAME}",
   "api": "${CF_API_ENDPOINT}",
   "apps_domain": "${APPS_DOMAIN}",
@@ -114,10 +125,6 @@ EOF
 scripts_path="$(dirname "$0")"
 source "${scripts_path}/utils.sh"
 
-set +x
-source "${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
-source bosh-env/set-env.sh
-set -x
-
+set_cf_admin_password
 validate_required_params
 write_config_to_file

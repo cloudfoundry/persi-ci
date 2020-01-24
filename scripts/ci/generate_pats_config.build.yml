@@ -25,7 +25,7 @@ params:
   APPS_DOMAIN: replace-me
   CF_API_ENDPOINT: replace-me
   CF_USERNAME: admin
-
+  CF_ADMIN_PASSWORD:
   BIND_BOGUS_CONFIG:
   BIND_CONFIG:
   BROKER_PASSWORD_KEY:
