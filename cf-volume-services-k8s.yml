@@ -2,6 +2,7 @@ groups:
 - name: all-jobs
   jobs:
   - smb-broker-unit-tests
+  - smb-csi-driver-integration-tests
   - build-smb-broker-docker-image
   - pats
 
@@ -61,6 +62,12 @@ jobs:
       params:
         bump: minor
 
+- name: smb-csi-driver-integration-tests
+  plan:
+    - get: smb-volume-k8s-release
+      trigger: true
+    - task: integration-tests
+      file: smb-volume-k8s-release/smb-csi-driver/ci/integration-tests.yml
 
 - name: build-smb-broker-docker-image
   plan:
