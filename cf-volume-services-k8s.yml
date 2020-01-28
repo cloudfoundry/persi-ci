@@ -44,6 +44,7 @@ resources:
     
 jobs:
 - name: smb-broker-unit-tests
+  serial: true
   plan:
     - get: smb-volume-k8s-release
       trigger: true
