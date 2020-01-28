@@ -68,6 +68,7 @@ jobs:
     - get: smb-volume-k8s-release
       trigger: true
     - task: integration-tests
+      privileged: true
       file: smb-volume-k8s-release/smb-csi-driver/ci/integration-tests.yml
 
 - name: build-smb-broker-docker-image
