@@ -42,12 +42,12 @@ resources:
 - name: smb-csi-driver-version
   type: semver
   source:
-    access_key_id: {{smb-broker-k8s-uploader_aws_ID}}
+    access_key_id: {{smb-csi-driver-k8s-uploader_aws_ID}}
     bucket: smb-csi-driver-versions-k8s
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{smb-broker-k8s-uploader_aws_secret}}
+    secret_access_key: {{smb-csi-driver-k8s-uploader_aws_secret}}
 
 - name: persi-ci
   type: git
