@@ -4,6 +4,7 @@ groups:
   - smb-broker-unit-tests
   - smb-csi-driver-integration-tests
   - build-smb-broker-docker-image
+  - build-smb-csi-driver-docker-image
   - pats
 
 resources:
@@ -21,12 +22,28 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
+- name: smb-csi-driver-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/smb-csi-driver
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
 
 - name: smb-broker-version
   type: semver
   source:
     access_key_id: {{smb-broker-k8s-uploader_aws_ID}}
     bucket: smb-broker-versions-k8s
+    initial_version: 0.0.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{smb-broker-k8s-uploader_aws_secret}}
+
+- name: smb-csi-driver-version
+  type: semver
+  source:
+    access_key_id: {{smb-broker-k8s-uploader_aws_ID}}
+    bucket: smb-csi-driver-versions-k8s
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
@@ -70,6 +87,18 @@ jobs:
     - task: integration-tests
       privileged: true
       file: smb-volume-k8s-release/smb-csi-driver/ci/integration-tests.yml
+    - get: smb-csi-driver-version
+      params:
+        bump: minor
+    - put: smb-volume-k8s-release
+      params:
+        repository: smb-volume-k8s-release
+        tag: smb-csi-driver-version/version
+        tag_prefix: smb-csi-driver
+        only_tag: true
+    - put: smb-csi-driver-version
+      params:
+        bump: minor
 
 - name: build-smb-broker-docker-image
   plan:
@@ -85,6 +114,22 @@ jobs:
         tag_file: smb-broker-version/version
         tag_as_latest: true
         build: smb-volume-k8s-release/smb-broker
+
+- name: build-smb-csi-driver-docker-image
+  plan:
+    - get: smb-volume-k8s-release
+      passed:
+        - smb-csi-driver-integration-tests
+      trigger: true
+    - get: smb-csi-driver-version
+      passed:
+        - smb-csi-driver-integration-tests
+    - put: smb-csi-driver-docker-image
+      params:
+        tag_file: smb-csi-driver-version/version
+        tag_prefix: smb-csi-driver
+        tag_as_latest: true
+        build: smb-volume-k8s-release/smb-csi-driver
 
 - name: pats
   plan:
