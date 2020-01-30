@@ -3,6 +3,7 @@ groups:
   jobs:
   - smb-broker-unit-tests
   - smb-csi-driver-integration-tests
+  - create-github-tag
   - build-smb-broker-docker-image
   - build-smb-csi-driver-docker-image
   - pats
@@ -29,25 +30,15 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-- name: smb-broker-version
+- name: smb-release-version
   type: semver
   source:
-    access_key_id: {{smb-broker-k8s-uploader_aws_ID}}
-    bucket: smb-broker-versions-k8s
+    access_key_id: {{smb-release-k8s-uploader_aws_ID}}
+    bucket: smb-release-versions-k8s
     initial_version: 0.0.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{smb-broker-k8s-uploader_aws_secret}}
-
-- name: smb-csi-driver-version
-  type: semver
-  source:
-    access_key_id: {{smb-csi-driver-k8s-uploader_aws_ID}}
-    bucket: smb-csi-driver-versions-k8s
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{smb-csi-driver-k8s-uploader_aws_secret}}
+    secret_access_key: {{smb-release-k8s-uploader_aws_secret}}
 
 - name: persi-ci
   type: git
@@ -65,53 +56,58 @@ jobs:
   plan:
     - get: smb-volume-k8s-release
       trigger: true
+    - get: smb-release-version
+      params:
+        bump: minor
     - task: unit-tests
       file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
       privileged: true
-    - get: smb-broker-version
-      params:
-        bump: minor
-    - put: smb-volume-k8s-release
-      params:
-        repository: smb-volume-k8s-release
-        tag: smb-broker-version/version
-        only_tag: true
-    - put: smb-broker-version
-      params:
-        bump: minor
 
 - name: smb-csi-driver-integration-tests
   plan:
     - get: smb-volume-k8s-release
       trigger: true
+    - get: smb-release-version
+      params:
+        bump: minor
     - task: integration-tests
       privileged: true
       file: smb-volume-k8s-release/smb-csi-driver/ci/integration-tests.yml
-    - get: smb-csi-driver-version
-      params:
-        bump: minor
+
+- name: create-github-tag
+  serial: true
+  plan:
+    - get: smb-volume-k8s-release
+      trigger: true
+      passed:
+        - smb-broker-unit-tests
+        - smb-csi-driver-integration-tests
+    - get: smb-release-version
+      passed:
+        - smb-broker-unit-tests
+        - smb-csi-driver-integration-tests
     - put: smb-volume-k8s-release
       params:
         repository: smb-volume-k8s-release
-        tag: smb-csi-driver-version/version
-        tag_prefix: smb-csi-driver
+        tag: smb-release-version/version
         only_tag: true
-    - put: smb-csi-driver-version
+    - put: smb-release-version
       params:
         bump: minor
+
 
 - name: build-smb-broker-docker-image
   plan:
     - get: smb-volume-k8s-release
       passed:
-      - smb-broker-unit-tests
+      - create-github-tag
       trigger: true
-    - get: smb-broker-version
+    - get: smb-release-version
       passed:
-      - smb-broker-unit-tests
+      - create-github-tag
     - put: smb-broker-docker-image
       params:
-        tag_file: smb-broker-version/version
+        tag_file: smb-release-version/version
         tag_as_latest: true
         build: smb-volume-k8s-release/smb-broker
 
@@ -119,15 +115,14 @@ jobs:
   plan:
     - get: smb-volume-k8s-release
       passed:
-        - smb-csi-driver-integration-tests
+        - create-github-tag
       trigger: true
-    - get: smb-csi-driver-version
+    - get: smb-release-version
       passed:
-        - smb-csi-driver-integration-tests
+        - create-github-tag
     - put: smb-csi-driver-docker-image
       params:
-        tag_file: smb-csi-driver-version/version
-        tag_prefix: smb-csi-driver
+        tag_file: smb-release-version/version
         tag_as_latest: true
         build: smb-volume-k8s-release/smb-csi-driver
 
