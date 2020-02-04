@@ -115,7 +115,6 @@ resources:
 
 jobs:
 - name: build-eirini-build-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
@@ -126,7 +125,6 @@ jobs:
         build: persi-ci/dockerfiles/eirini-build
 
 - name: build-eirini-persi-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
@@ -137,7 +135,6 @@ jobs:
         build: smb-volume-k8s-release/eirini-persi/ci/dockerfiles/eirini-persi
 
 - name: build-nfs-driver-integration-tests-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
@@ -148,7 +145,6 @@ jobs:
         build: nfs-volume-release/dockerfiles/nfs-integration-tests
 
 - name: build-nfs-bosh-release-test-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
@@ -159,7 +155,6 @@ jobs:
         build: nfs-volume-release/dockerfiles/bosh-release-tests
 
 - name: build-nfs-broker-tests-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
@@ -170,7 +165,6 @@ jobs:
         build: nfs-volume-release/dockerfiles/nfs-broker-tests
 
 - name: build-nfs-unit-tests-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
@@ -181,7 +175,6 @@ jobs:
         build: nfs-volume-release/dockerfiles/nfs-unit-tests
 
 - name: build-nfs-cats-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
@@ -192,7 +185,6 @@ jobs:
         build: nfs-volume-release/dockerfiles/nfs-cats
 
 - name: build-mapfs-tests-docker-image
-  serial_groups: ["build"]
   plan:
   - get: nightly
     trigger: true
@@ -203,7 +195,6 @@ jobs:
       build: mapfs/ci/dockerfiles/perf
 
 - name: build-awscli-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
@@ -214,7 +205,6 @@ jobs:
         build: persi-ci/dockerfiles/awscli
 
 - name: build-smb-unit-tests-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
@@ -225,7 +215,6 @@ jobs:
         build: smb-volume-release/dockerfiles/smb-unit-tests
 
 - name: build-smb-k8s-kind-docker-image
-  serial_groups: ["build"]
   plan:
     - get: nightly
       trigger: true
