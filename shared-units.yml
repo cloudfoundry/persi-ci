@@ -7,7 +7,19 @@ resources:
 - name: existingvolumebroker
   type: git
   source:
-    uri: https://github.com/cloudfoundry/existingvolumebroker.git
+    uri: git@github.com:cloudfoundry/existingvolumebroker.git
+    branch: master
+    private_key: {{existingvolumebroker-github-deploy-key}}
+
+- name: existingvolumebroker-version
+  type: semver
+  source:
+    access_key_id: {{existingvolumebroker-uploader_aws_ID}}
+    bucket: existingvolumebroker-versions
+    initial_version: 0.1.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{existingvolumebroker-uploader_aws_secret}}
 
 - name: volumedriver
   type: git
@@ -29,10 +41,30 @@ jobs:
       - get: persi-ci
       - get: existingvolumebroker
         trigger: true
+      - get: existingvolumebroker-version
   - task: existingvolumebroker-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
       gomod: existingvolumebroker
+
+- name: bump-minor-version
+  serial: true
+  plan:
+    - get: existingvolumebroker
+      trigger: true
+      passed:
+        - existingvolumebroker-unit
+    - get: existingvolumebroker-version
+      passed:
+        - existingvolumebroker-unit
+    - put: existingvolumebroker
+      params:
+        repository: existingvolumebroker
+        tag: existingvolumebroker-version/version
+        only_tag: true
+    - put: existingvolumebroker-version
+      params:
+        bump: minor
 
 - name: volumedriver-unit
   public: true
