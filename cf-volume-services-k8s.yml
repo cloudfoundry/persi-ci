@@ -86,6 +86,8 @@ jobs:
       passed:
         - smb-broker-unit-tests
         - smb-csi-driver-integration-tests
+      params:
+        bump: minor
     - put: smb-volume-k8s-release
       params:
         repository: smb-volume-k8s-release
@@ -94,7 +96,6 @@ jobs:
     - put: smb-release-version
       params:
         bump: minor
-
 
 - name: build-smb-broker-docker-image
   plan:
