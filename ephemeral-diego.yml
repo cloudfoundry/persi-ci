@@ -1,6 +1,15 @@
 shared_functions:
 - on_failure: &on_failure_unclaim
     do:
+    - task: wait-1-hour
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: {repository: alpine}
+        run:
+          path: sleep
+          args: [ 3600 ]
     - put: smith-env
       params:
         action: unclaim
@@ -8,6 +17,15 @@ shared_functions:
       tags: [ toolsmiths-shared-vsphere ]
 - on_error: &on_error_unclaim
     do:
+      - task: wait-1-hour
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: {repository: alpine}
+          run:
+            path: sleep
+            args: [ 3600 ]
       - put: smith-env
         params:
           action: unclaim
