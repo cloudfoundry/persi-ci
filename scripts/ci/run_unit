@@ -10,4 +10,4 @@ go get -u github.com/onsi/ginkgo/ginkgo
 
 cd gomod
 export GO111MODULE=on
-ginkgo -r -keepGoing -p -race -trace -randomizeAllSpecs -progress -mod=vendor
+ginkgo -r -keepGoing -p -race -trace -randomizeAllSpecs -progress -mod=vendor -nodes $NODES

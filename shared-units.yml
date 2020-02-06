@@ -105,6 +105,8 @@ jobs:
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
       gomod: volumedriver
+    params:
+      NODES: 1
 
 - name: bump-minor-volumedriver-version
   serial: true

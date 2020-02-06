@@ -13,3 +13,7 @@ inputs:
 
 run:
   path: persi-ci/scripts/ci/run_unit
+
+
+params:
+  NODES: 4
