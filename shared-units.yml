@@ -24,12 +24,36 @@ resources:
 - name: volumedriver
   type: git
   source:
-    uri: https://github.com/cloudfoundry/volumedriver.git
+    uri: git@github.com:cloudfoundry/volumedriver.git
+    branch: master
+    private_key: {{volumedriver-github-deploy-key}}
+
+- name: volumedriver-version
+  type: semver
+  source:
+    access_key_id: {{volumedriver-uploader_aws_ID}}
+    bucket: volumedriver-versions
+    initial_version: 0.1.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{volumedriver-uploader_aws_secret}}
 
 - name: volume-mount-options
   type: git
   source:
-    uri: https://github.com/cloudfoundry/volume-mount-options.git
+    uri: git@github.com:cloudfoundry/volume-mount-options.git
+    branch: master
+    private_key: {{volume-mount-options--github-deploy-key}}
+
+- name: volume-mount-options-version
+  type: semver
+  source:
+    access_key_id: {{volume-mount-options-uploader_aws_ID}}
+    bucket: volume-mount-options-versions
+    initial_version: 0.1.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{volume-mount-options-uploader_aws_secret}}
 
 jobs:
 - name: existingvolumebroker-unit
@@ -47,7 +71,7 @@ jobs:
     input_mapping:
       gomod: existingvolumebroker
 
-- name: bump-minor-version
+- name: bump-minor-existingvolumebroker-version
   serial: true
   plan:
     - get: existingvolumebroker
@@ -61,6 +85,7 @@ jobs:
       params:
         repository: existingvolumebroker
         tag: existingvolumebroker-version/version
+        tag_prefix: "v"
         only_tag: true
     - put: existingvolumebroker-version
       params:
@@ -75,10 +100,31 @@ jobs:
       - get: persi-ci
       - get: volumedriver
         trigger: true
+      - get: volumedriver-version
   - task: volumedriver-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
       gomod: volumedriver
+
+- name: bump-minor-volumedriver-version
+  serial: true
+  plan:
+    - get: volumedriver
+      trigger: true
+      passed:
+        - volumedriver-unit
+    - get: volumedriver-version
+      passed:
+        - volumedriver-unit
+    - put: volumedriver
+      params:
+        repository: volumedriver
+        tag: volumedriver-version/version
+        tag_prefix: "v"
+        only_tag: true
+    - put: volumedriver-version
+      params:
+        bump: minor
 
 - name: volume-mount-options-unit
   public: true
@@ -89,9 +135,30 @@ jobs:
       - get: persi-ci
       - get: volume-mount-options
         trigger: true
+      - get: volume-mount-options-version
   - task: volume-mount-options-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
       gomod: volume-mount-options
+
+- name: bump-minor-volume-mount-options-version
+  serial: true
+  plan:
+    - get: volume-mount-options
+      trigger: true
+      passed:
+        - volume-mount-options-unit
+    - get: volume-mount-options-version
+      passed:
+        - volume-mount-options-unit
+    - put: volume-mount-options
+      params:
+        repository: volume-mount-options
+        tag: volume-mount-options-version/version
+        tag_prefix: "v"
+        only_tag: true
+    - put: volume-mount-options-version
+      params:
+        bump: minor
 
 
