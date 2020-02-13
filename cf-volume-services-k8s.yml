@@ -1,14 +1,3 @@
-groups:
-- name: all-jobs
-  jobs:
-  - smb-broker-unit-tests
-  - smb-csi-driver-integration-tests
-  - smb-csi-driver-e2e-tests
-  - create-github-tag
-  - build-smb-broker-docker-image
-  - build-smb-csi-driver-docker-image
-  - pats
-
 resources:
 - name: smb-volume-k8s-release
   type: git
@@ -61,13 +50,21 @@ jobs:
       file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
       privileged: true
 
-- name: smb-csi-driver-integration-tests
+- name: smb-csi-driver-unit-and-sanity-tests
   plan:
     - get: smb-volume-k8s-release
       trigger: true
-    - task: integration-tests
+    - task: run-test
       privileged: true
-      file: smb-volume-k8s-release/smb-csi-driver/ci/integration-tests.yml
+      file: smb-volume-k8s-release/smb-csi-driver/ci/unit-and-sanity-tests.yml
+
+- name: integration-tests
+  plan:
+    - get: smb-volume-k8s-release
+      trigger: true
+    - task: run-test
+      privileged: true
+      file: smb-volume-k8s-release/ci/integration-tests.yml
 
 - name: smb-csi-driver-e2e-tests
   plan:
@@ -84,8 +81,9 @@ jobs:
       trigger: true
       passed:
         - smb-broker-unit-tests
-        - smb-csi-driver-integration-tests
+        - smb-csi-driver-unit-and-sanity-tests
         - smb-csi-driver-e2e-tests
+        - integration-tests
     - get: smb-release-version
       params:
         bump: minor
