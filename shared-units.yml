@@ -11,6 +11,23 @@ resources:
     branch: master
     private_key: {{existingvolumebroker-github-deploy-key}}
 
+- name: goshims
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/goshims.git
+    branch: master
+    private_key: {{goshims-github-deploy-key}}
+
+- name: goshims-version
+  type: semver
+  source:
+    access_key_id: {{goshims-uploader_aws_ID}}
+    bucket: goshims-versions
+    initial_version: 0.1.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{goshims-uploader_aws_secret}}
+
 - name: existingvolumebroker-version
   type: semver
   source:
@@ -215,4 +232,50 @@ jobs:
       params:
         bump: minor
 
+- name: goshims-build
+  public: true
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: goshims
+            trigger: true
+          - get: goshims-version
+    - task: build
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: golang
+            tag: latest
+        inputs:
+          - name: goshims
+        run:
+          path: bash
+          args:
+            - -exc
+            - |
+              cd goshims
+              go build ./...
 
+- name: bump-minor-goshims-version
+  serial: true
+  plan:
+    - get: goshims
+      trigger: true
+      passed:
+        - goshims-build
+    - get: goshims-version
+      passed:
+        - goshims-build
+    - put: goshims
+      params:
+        repository: goshims
+        tag: goshims-version/version
+        tag_prefix: "v"
+        only_tag: true
+    - put: goshims-version
+      params:
+        bump: minor
