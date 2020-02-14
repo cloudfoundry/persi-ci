@@ -146,7 +146,7 @@ jobs:
         CF_ADMIN_PASSWORD: ((eirini_cf_admin_password))
         BIND_CONFIG: '["{\"mount\":\"/home/vcap/data\"}"]'
         CREATE_BOGUS_CONFIG: ''
-        CREATE_CONFIG: '{"share":"can-be-anything-for-now"}'
+        CREATE_CONFIG: '{"share": "((smb_cats_remote_path))", "username": "((smb_cats_username))", "password": "((smb_cats_password))"}'
         PLAN_NAME: Existing
         SERVICE_NAME: SMB
     - task: run-pats
