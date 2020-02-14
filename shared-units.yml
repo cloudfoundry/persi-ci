@@ -21,6 +21,23 @@ resources:
     region_name: us-east-1
     secret_access_key: {{existingvolumebroker-uploader_aws_secret}}
 
+- name: service-broker-store
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/service-broker-store.git
+    branch: master
+    private_key: {{service-broker-store-github-deploy-key}}
+
+- name: service-broker-store-version
+  type: semver
+  source:
+    access_key_id: {{service-broker-store-uploader_aws_ID}}
+    bucket: service-broker-store-versions
+    initial_version: 0.1.0
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{service-broker-store-uploader_aws_secret}}
+
 - name: volumedriver
   type: git
   source:
@@ -88,6 +105,41 @@ jobs:
         tag_prefix: "v"
         only_tag: true
     - put: existingvolumebroker-version
+      params:
+        bump: minor
+
+- name: service-broker-store-unit
+  public: true
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: service-broker-store
+            trigger: true
+          - get: service-broker-store-version
+    - task: service-broker-store-unit
+      file: persi-ci/scripts/ci/run_unit.build.yml
+      input_mapping:
+        gomod: service-broker-store
+
+- name: bump-minor-service-broker-store-version
+  serial: true
+  plan:
+    - get: service-broker-store
+      trigger: true
+      passed:
+        - service-broker-store-unit
+    - get: service-broker-store-version
+      passed:
+        - service-broker-store-unit
+    - put: service-broker-store
+      params:
+        repository: service-broker-store
+        tag: service-broker-store-version/version
+        tag_prefix: "v"
+        only_tag: true
+    - put: service-broker-store-version
       params:
         bump: minor
 
