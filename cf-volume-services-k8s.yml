@@ -45,6 +45,7 @@ jobs:
     - get: smb-volume-k8s-release
       trigger: true
     - task: run-test
+      attempts: 3
       privileged: true
       file: smb-volume-k8s-release/smb-csi-driver/ci/unit-and-sanity-tests.yml
 
@@ -53,6 +54,7 @@ jobs:
     - get: smb-volume-k8s-release
       trigger: true
     - task: run-test
+      attempts: 3
       privileged: true
       file: smb-volume-k8s-release/ci/integration-tests.yml
 
@@ -61,6 +63,7 @@ jobs:
     - get: smb-volume-k8s-release
       trigger: true
     - task: e2e-tests
+      attempts: 3
       privileged: true
       file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
 
