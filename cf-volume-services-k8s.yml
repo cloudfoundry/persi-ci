@@ -37,6 +37,7 @@ jobs:
     - get: smb-volume-k8s-release
       trigger: true
     - task: unit-tests
+      attempts: 3
       file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
       privileged: true
 
