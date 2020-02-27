@@ -41,14 +41,14 @@ jobs:
       file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
       privileged: true
 
-- name: smb-csi-driver-unit-and-sanity-tests
+- name: smb-csi-driver-units
   plan:
     - get: smb-volume-k8s-release
       trigger: true
     - task: run-test
       attempts: 3
       privileged: true
-      file: smb-volume-k8s-release/smb-csi-driver/ci/unit-and-sanity-tests.yml
+      file: smb-volume-k8s-release/smb-csi-driver/ci/unit-tests.yml
 
 - name: integration-tests
   plan:
@@ -75,7 +75,7 @@ jobs:
       trigger: true
       passed:
         - smb-broker-unit-tests
-        - smb-csi-driver-unit-and-sanity-tests
+        - smb-csi-driver-units
         - smb-csi-driver-e2e-tests
         - integration-tests
     - get: smb-release-version
