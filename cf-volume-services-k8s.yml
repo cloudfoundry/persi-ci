@@ -1,5 +1,5 @@
 resources:
-- name: smb-broker-image
+- name: smb-broker-kpack-image
   type: s3
   source:
     region_name: us-east-2
@@ -50,7 +50,7 @@ jobs:
       attempts: 3
       file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
       privileged: true
-    - put: smb-broker-image
+    - put: smb-broker-kpack-image
       params:
         file: built-images/smb-broker.tgz
 
@@ -94,7 +94,7 @@ jobs:
     - get: smb-release-version
       params:
         bump: minor
-    - get: smb-broker-image
+    - get: smb-broker-kpack-image
       passed:
       - smb-broker-unit-tests
     - put: smb-volume-k8s-release
@@ -115,13 +115,13 @@ jobs:
     - get: smb-release-version
       passed:
       - create-github-tag
-    - get: smb-broker-image
+    - get: smb-broker-kpack-image
       passed:
         - create-github-tag
     - put: smb-broker-docker-image
       params:
         load_repository: localhost:5000/cfpersi/smb-broker
-        load_file: smb-broker-image/smb-broker.tgz
+        load_file: smb-broker-kpack-image/smb-broker.tgz
         load_tag: local-test
         tag_file: smb-release-version/version
         tag_as_latest: true
