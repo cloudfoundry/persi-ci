@@ -1,4 +1,14 @@
 resources:
+- name: smb-broker-image
+  type: s3
+  source:
+    region_name: us-east-2
+    bucket: smb-broker-k8s-images
+    versioned_file: smb-broker.tgz
+    initial_version: "0"
+    access_key_id: {{smb-broker-k8s-images-bucket-access_aws_ID}}
+    secret_access_key: {{smb-broker-k8s-images-bucket-access_aws_secret}}
+
 - name: smb-volume-k8s-release
   type: git
   source:
@@ -40,6 +50,9 @@ jobs:
       attempts: 3
       file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
       privileged: true
+    - put: smb-broker-image
+      params:
+        file: built-images/smb-broker.tgz
 
 - name: smb-csi-driver-units
   plan:
@@ -81,6 +94,9 @@ jobs:
     - get: smb-release-version
       params:
         bump: minor
+    - get: smb-broker-image
+      passed:
+      - smb-broker-unit-tests
     - put: smb-volume-k8s-release
       params:
         repository: smb-volume-k8s-release
@@ -99,11 +115,16 @@ jobs:
     - get: smb-release-version
       passed:
       - create-github-tag
+    - get: smb-broker-image
+      passed:
+        - create-github-tag
     - put: smb-broker-docker-image
       params:
+        load_repository: localhost:5000/cfpersi/smb-broker
+        load_file: smb-broker-image/smb-broker.tgz
+        load_tag: local-test
         tag_file: smb-release-version/version
         tag_as_latest: true
-        build: smb-volume-k8s-release/smb-broker
 
 - name: build-smb-csi-driver-docker-image
   plan:
