@@ -67,6 +67,13 @@ jobs:
   plan:
     - get: smb-volume-k8s-release
       trigger: true
+      passed:
+        - smb-broker-unit-tests
+        - smb-csi-driver-units
+        - smb-csi-driver-e2e-tests
+    - get: smb-broker-kpack-image
+      passed:
+        - smb-broker-unit-tests
     - task: run-test
       attempts: 3
       privileged: true
@@ -87,16 +94,13 @@ jobs:
     - get: smb-volume-k8s-release
       trigger: true
       passed:
-        - smb-broker-unit-tests
-        - smb-csi-driver-units
-        - smb-csi-driver-e2e-tests
         - integration-tests
     - get: smb-release-version
       params:
         bump: minor
     - get: smb-broker-kpack-image
       passed:
-      - smb-broker-unit-tests
+      - integration-tests
     - put: smb-volume-k8s-release
       params:
         repository: smb-volume-k8s-release
