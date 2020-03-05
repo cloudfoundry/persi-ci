@@ -46,13 +46,30 @@ jobs:
   plan:
     - get: smb-volume-k8s-release
       trigger: true
-    - task: unit-tests
-      attempts: 3
-      file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
-      privileged: true
+    - in_parallel:
+        fail_fast: true
+        steps:
+        - task: unit-tests-latest
+          attempts: 3
+          file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
+          privileged: true
+          output_mapping:
+            built-images: built-latest-images
+        - task: unit-tests-1.16
+          attempts: 3
+          file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
+          privileged: true
+          params:
+            K8S_IMAGE: kindest/node:v1.16.0
+        - task: unit-tests-1.15
+          attempts: 3
+          file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
+          privileged: true
+          params:
+            K8S_IMAGE: kindest/node:v1.15.0
     - put: smb-broker-kpack-image
       params:
-        file: built-images/smb-broker.tgz
+        file: built-latest-images/smb-broker.tgz
 
 - name: smb-csi-driver-units
   plan:
@@ -83,10 +100,25 @@ jobs:
   plan:
     - get: smb-volume-k8s-release
       trigger: true
-    - task: e2e-tests
-      attempts: 3
-      privileged: true
-      file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
+    - in_parallel:
+        fail_fast: true
+        steps:
+        - task: e2e-tests-latest
+          attempts: 3
+          privileged: true
+          file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
+        - task: e2e-tests-1.16
+          attempts: 3
+          privileged: true
+          params:
+            K8S_IMAGE: kindest/node:v1.16.0
+          file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
+        - task: e2e-tests-1.15
+          attempts: 3
+          privileged: true
+          file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
+          params:
+            K8S_IMAGE: kindest/node:v1.15.0
 
 - name: create-github-tag
   serial: true
