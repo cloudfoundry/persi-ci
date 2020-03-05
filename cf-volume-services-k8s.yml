@@ -60,13 +60,13 @@ jobs:
           file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
           privileged: true
           params:
-            K8S_IMAGE: kindest/node:v1.16.0
+            K8S_IMAGE: kindest/node:v1.16.4
         - task: unit-tests-1.15
           attempts: 3
           file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
           privileged: true
           params:
-            K8S_IMAGE: kindest/node:v1.15.0
+            K8S_IMAGE: kindest/node:v1.15.7
     - put: smb-broker-kpack-image
       params:
         file: built-latest-images/smb-broker.tgz
@@ -111,14 +111,14 @@ jobs:
           attempts: 3
           privileged: true
           params:
-            K8S_IMAGE: kindest/node:v1.16.0
+            K8S_IMAGE: kindest/node:v1.16.4
           file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
         - task: e2e-tests-1.15
           attempts: 3
           privileged: true
           file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
           params:
-            K8S_IMAGE: kindest/node:v1.15.0
+            K8S_IMAGE: kindest/node:v1.15.7
 
 - name: create-github-tag
   serial: true
