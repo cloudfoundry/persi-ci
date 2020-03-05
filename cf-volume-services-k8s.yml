@@ -176,3 +176,43 @@ jobs:
         tag_file: smb-release-version/version
         tag_as_latest: true
         build: smb-volume-k8s-release/smb-csi-driver
+
+- name: update-golang-version-for-test
+  plan:
+    - get: smb-volume-k8s-release
+      trigger: true
+      passed:
+        - build-smb-broker-docker-image
+    - task: extract-version
+      file: smb-volume-k8s-release/smb-broker/ci/extract-version.yml
+      privileged: true
+    - task: commit-and-push
+      config:
+        inputs:
+          - name: smb-volume-k8s-release
+          - name: go-version
+        outputs:
+          - name: modified-repo
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+        run:
+          path: bash
+          args:
+            - -exc
+            - |
+              go_version=$(cat go-version/go-version)
+              old_go_version=$(cat smb-volume-k8s-release/ci/dockerfiles/tests/go-version)
+              git clone smb-volume-k8s-release modified-repo
+              if [[ "$go_version" == "$old_go_version" ]]; then exit 0; fi
+              cp go-version/go-version modified-repo/ci/dockerfiles/tests/go-version
+              cd modified-repo
+              git add ./ci/dockerfiles/tests/go-version
+              git config --global user.email "cf-volume-services@pivotal.io"
+              git config --global user.name "CI Bot"
+              git commit -m "update go version to ${go_version} [skip ci]"
+    - put: smb-volume-k8s-release
+      params:
+        repository: modified-repo
