@@ -1,4 +1,10 @@
 resources:
+- name: cf-acceptance-tests
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
+
 - name: smb-broker-kpack-image
   type: s3
   source:
@@ -15,6 +21,12 @@ resources:
     uri: git@github.com:cloudfoundry/smb-volume-k8s-release
     branch: master
     private_key: {{smb-broker-k8s-github-deploy-key}}
+
+- name: cloudfoundry-cnb-bionic-image
+  type: docker-image
+  source:
+    repository: cloudfoundry/cnb
+    tag: bionic
 
 - name: smb-broker-docker-image
   type: docker-image
@@ -179,10 +191,10 @@ jobs:
 
 - name: update-golang-version-for-test
   plan:
-    - get: smb-volume-k8s-release
+    - get: cf-acceptance-tests
+    - get: cloudfoundry-cnb-bionic-image
       trigger: true
-      passed:
-        - build-smb-broker-docker-image
+    - get: smb-volume-k8s-release
     - task: extract-version
       file: smb-volume-k8s-release/smb-broker/ci/extract-version.yml
       privileged: true
