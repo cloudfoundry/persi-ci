@@ -1,0 +1,60 @@
+# NOTE - this ops file is meant to work on a small footprint PAS environment
+# It does the following
+# - installs nfstestserver and nfstestldapserver on the "database" VM
+# - enables LDAP with TLS
+#
+# NOTE ALSO - it doesn't do any bosh DNS manipulation, so the nfs and ldap
+# servers must be accessed at mysql.service.cf.internal
+
+- type: replace
+  path: /instance_groups/name=database/jobs/-
+  value:
+    name: nfstestserver
+    release: nfs-volume
+    properties:
+      nfstestserver: {}
+
+- type: replace
+  path: /instance_groups/name=database/jobs/-
+  value:
+    name: nfstestldapserver
+    release: nfs-volume
+    properties:
+      ldap:
+        ssl:
+          active: true
+          ca_cert: ((ldap_test_server_ssl.ca))
+          server_cert: ((ldap_test_server_ssl.certificate))
+          server_key: ((ldap_test_server_ssl.private_key))
+
+- type: replace
+  path: /instance_groups/name=compute/jobs/name=nfsv3driver/properties/nfsv3driver?
+  value: 
+    disable: false
+    ldap_ca_cert: ((ldap_test_server_ssl.ca))
+    ldap_host: mysql.service.cf.internal
+    ldap_port: 636
+    ldap_svc_password: secret
+    ldap_svc_user: cn=admin,dc=domain,dc=com
+    ldap_user_fqdn: ou=Users,dc=domain,dc=com
+
+- type: replace
+  path: /instance_groups/name=control/jobs/name=nfsbrokerpush/properties/nfsbrokerpush/ldap_enabled?
+  value: true
+
+- type: replace
+  path: /variables/-
+  value:
+    name: ldap_test_server_ca
+    type: certificate
+    options:
+      is_ca: true
+      common_name: ldap_test_server_ca
+- type: replace
+  path: /variables/-
+  value:
+    name: ldap_test_server_ssl
+    type: certificate
+    options:
+      ca: ldap_test_server_ca
+      common_name: mysql.service.cf.internal

@@ -1,0 +1,16 @@
+# NOTE - this ops file is meant to work on a small footprint PAS environment
+# It does the following
+# - installs smbtestserver on the "database" VM
+#
+# NOTE ALSO - it doesn't do any bosh DNS manipulation, so the smb
+# server must be accessed at mysql.service.cf.internal
+
+- type: replace
+  path: /instance_groups/name=database/jobs/-
+  value:
+    name: smbtestserver
+    release: smb-volume
+    properties:
+      username: persi
+      password: banana
+
