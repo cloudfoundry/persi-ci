@@ -211,7 +211,7 @@ jobs:
     - put: env-creation-gate-lock
       params:
         claim: lts-ephemeral-environment
-      timeout: 3h
+      timeout: 4h
 
 
 
