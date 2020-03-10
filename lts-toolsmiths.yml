@@ -295,7 +295,7 @@ jobs:
                 smith cf-login
                 cf enable-feature-flag diego_docker
 
-  - name: pats-nfs
+  - name: pats-nfs-ldap-ephemeral-environment
     on_failure: *on_failure_unclaim
     on_error: *on_error_unclaim
     plan:
@@ -336,12 +336,54 @@ jobs:
               params:
                 TEST_DOCKER_PORA: true
 
+  - name: pats-nfs-ldap-legacy-ephemeral-environment
+    on_failure: *on_failure_unclaim
+    on_error: *on_error_unclaim
+    plan:
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - get: cf-volume-services-acceptance-tests
+            - get: persi-ci
+            - get: smith-env
+              tags: [ toolsmiths-shared-vsphere ]
+              passed: [ deploy-cf ]
+              trigger: true
+            - get: nfs-volume-release
+              passed: [ deploy-cf ]
+            - get: mapfs-release
+              passed: [ deploy-cf ]
+      - task: generate-pats-config-nfs
+        tags: [ toolsmiths-shared-vsphere ]
+        file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
+        params:
+          CF_USERNAME: admin
+          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+          CREATE_CONFIG: '{"share":"mysql.service.cf.internal/export/users"}'
+          DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+          PLAN_NAME: Existing
+          SERVICE_NAME: nfs-legacy
+          TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+        output_mapping:
+          pats-config: nfs-pats-config
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - task: run-pats-nfs-ephemeral
+              input_mapping:
+                pats-config: nfs-pats-config
+              file: persi-ci/scripts/ci/run-pats.build.yml
+              attempts: 3
+              params:
+                TEST_DOCKER_PORA: true
+
   - name: unclaim-env
     plan:
       - get: smith-env
         tags: [ toolsmiths-shared-vsphere ]
         passed:
-          - pats-nfs-ephemeral
+          - pats-nfs-ldap-legacy-ephemeral-environment
+          - pats-nfs-ldap-ephemeral-environment
         trigger: true
       - put: smith-env
         params:
