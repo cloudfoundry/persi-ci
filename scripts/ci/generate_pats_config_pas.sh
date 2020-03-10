@@ -19,7 +19,13 @@ function set_cf_admin_password() {
   BOSH_ENV_NAME=$(cat smith-env/name)
   export env=$BOSH_ENV_NAME
   eval "$(smith -e $BOSH_ENV_NAME bosh)"
-  CF_ADMIN_PASSWORD=$(credhub find -j -n "uaa/admin_credentials" | jq -r '.credentials[].name' | xargs credhub get -j -n | jq -r '.value.password')
+  export CF_ADMIN_PASSWORD=$(credhub find -j -n "uaa/admin_credentials" | jq -r '.credentials[].name' | xargs credhub get -j -n | jq -r '.value.password')
+}
+
+function set_required_params() {
+  export APPS_DOMAIN=$(cat smith-env/metadata | jq -r '.apps_domain')
+  export SYSTEM_DOMAIN=$(cat smith-env/metadata | jq -r '.sys_domain')
+  export CF_API_ENDPOINT="api.${SYSTEM_DOMAIN}"
 }
 
 function write_config_to_file() {
@@ -122,5 +128,6 @@ scripts_path="$(dirname "$0")"
 source "${scripts_path}/utils.sh"
 
 set_cf_admin_password
+set_required_params
 validate_required_params
 write_config_to_file
