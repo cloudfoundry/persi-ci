@@ -109,6 +109,15 @@ resources:
     source:
       uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
 
+  - name: github-release-nfs
+    type: github-release
+    source:
+      user: cloudfoundry
+      repository: nfs-volume-release
+      drafts: true
+      access_token: {{github-release-token-nfsvolumerelease}}
+
+
 resource_types:
   - name: pcf-pool
     type: docker-image
@@ -399,6 +408,54 @@ jobs:
         resource: nfsvolume-version
         params:
           bump: final
+      - put: nfsvolume-version
+        params:
+          bump: patch
+
+  - name: shipit-nfs
+    serial_groups:
+      - nfs-version
+    plan:
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - get: persi-ci
+            - get: nfs-volume-release
+              passed:
+              - pats-nfs-ldap-legacy-ephemeral-environment
+              - pats-nfs-ldap-ephemeral-environment
+            - get: nfsvolume-version
+              params:
+                bump: final
+      - task: finalize-release
+        file: persi-ci/scripts/ci/finalize_release.build.yml
+        params:
+          BASE_RELEASE_NAME: nfs-volume
+          GIT_USER: {{github-user}}
+          GIT_EMAIL: {{github-email}}
+          S3_ACCESS_KEY_ID: {{lts-nfsvolume-uploader_aws_ID}}
+          S3_ACCESS_KEY: {{lts-nfsvolume-uploader_aws_secret}}
+        input_mapping:
+          release: nfs-volume-release
+          version: nfsvolume-version
+      - task: generate-github-release
+        file: persi-ci/scripts/ci/generate_github_release.build.yml
+        params:
+          BASE_RELEASE_NAME: nfs-volume
+        input_mapping:
+          release: nfs-volume-release
+          version: nfsvolume-version
+      - put: nfs-volume-release
+        params:
+          repository: finalized-release/release
+          tag: nfsvolume-version/number
+          tag_prefix: v
+      - put: github-release-nfs
+        params:
+          commitish: generated-release/commitish
+          name: generated-release/name
+          tag: generated-release/version
+          globs: []
       - put: nfsvolume-version
         params:
           bump: patch
