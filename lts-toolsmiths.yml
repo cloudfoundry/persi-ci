@@ -289,7 +289,7 @@ jobs:
                 popd
                 bosh deploy -n /tmp/cf.yml \
                 -o persi-ci/operations/pas/use-latest-releases.yml \
-                -o persi-ci/operations/pas/nfs-pas-mixin.yml \
+                -o persi-ci/operations/pas/nfs-ldap-pas-mixin.yml \
                 -o persi-ci/operations/pas/remove-paths-from-releases.yml
                 bosh run-errand nfsbrokerpush
                 smith cf-login
@@ -317,10 +317,9 @@ jobs:
         file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
         params:
           CF_USERNAME: admin
-          BIND_BOGUS_CONFIG: '{"uid":"1000","gid":"1000"}'
-          BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"3.0\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.1\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.2\",\"mount\": \"/var/vcap/data/foo\"}"]'
-          CREATE_BOGUS_CONFIG: '{"share":"mysql.service.cf.internal/export/nonexistensevol"}'
+          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
           CREATE_CONFIG: '{"share":"mysql.service.cf.internal/export/users"}'
+          DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
           PLAN_NAME: Existing
           SERVICE_NAME: nfs
           TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
@@ -329,147 +328,11 @@ jobs:
       - in_parallel:
           fail_fast: true
           steps:
-            - task: run-pats-nfs
+            - task: run-pats-nfs-ephemeral
               input_mapping:
                 pats-config: nfs-pats-config
               file: persi-ci/scripts/ci/run-pats.build.yml
               attempts: 3
-              params:
-                PARALLEL_NODES: 2
-                TEST_MOUNT_FAIL_LOGGING: true
-                TEST_MOUNT_OPTIONS: true
-                TEST_MULTI_CELL: true
-                TEST_READ_ONLY: true
-
-  - name: deploy-cf-with-ldap
-    public: true
-    build_logs_to_retain: 100
-    on_failure: *on_failure_unclaim
-    on_error: *on_error_unclaim
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: smith-env
-              tags: [ toolsmiths-shared-vsphere ]
-              passed:
-                - pats-nfs
-              trigger: true
-            - get: cf-deployment-concourse-tasks
-            - get: cf-deployment
-            - get: persi-ci
-            - get: nfs-volume-release
-              passed:
-                - pats-nfs
-            - get: mapfs-release
-              passed:
-                - pats-nfs
-      - task: pin-cf-deployment-version
-        file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
-        input_mapping:
-          toolsmiths-env: smith-env
-      - task: collect-persi-ci-ops-files
-        file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-        input_mapping:
-          base-ops-files: cf-deployment-pinned
-          new-ops-files: persi-ci
-        params:
-          BASE_OPS_FILE_DIR: "operations"
-          NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml"
-      - task: generate-variables
-        file: persi-ci/scripts/ci/generate_variables.build.yml
-        params:
-          GENERATE_DATADOG_VARS: false
-          GENERATE_NFS_VARS: true
-          GENERATE_SMB_VARS: false
-          GENERATE_GCS_BLOBSTORE_VARS: false
-          LDAP_HOST: "nfstestldapserver.service.cf.internal"
-          LDAP_SVC_USER: "cn=admin,dc=domain,dc=com"
-          LDAP_SVC_PASS: "secret"
-          LDAP_PORT: 636
-          LDAP_PROTO: tcp
-          LDAP_USER_FQDN: "ou=Users,dc=domain,dc=com"
-      - task: bosh-deploy-cf
-        file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
-        input_mapping:
-          toolsmiths-env: smith-env
-          cf-deployment: cf-deployment-pinned
-          ops-files: collected-ops-files
-          vars-files: generated-vars
-        params:
-          VARS_FILES: "nfs-vars.yml"
-          OPS_FILES: "operations/use-compiled-releases.yml
-                  operations/scale-to-one-az.yml
-                  operations/enable-nfs-volume-service.yml
-                  operations/enable-nfs-test-server-two.yml
-                  operations/enable-nfs-ldap.yml
-                  operations/test/enable-nfs-test-server.yml
-                  operations/test/enable-nfs-test-ldapserver.yml
-                  operations/backup-and-restore/enable-backup-restore.yml
-                  operations/backup-and-restore/enable-restore-nfs-broker.yml"
-      - task: run-smoke-tests
-        file: cf-deployment-concourse-tasks/run-errand/task.yml
-        input_mapping:
-          toolsmiths-env: smith-env
-        params:
-          ERRAND_NAME: smoke_tests
-
-  - name: pats-nfs-ldap
-    on_failure: *on_failure_unclaim
-    on_error: *on_error_unclaim
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: smith-env
-              tags: [ toolsmiths-shared-vsphere ]
-              passed:
-                - deploy-cf-with-ldap
-              trigger: true
-            - get: cf-volume-services-acceptance-tests
-            - get: persi-ci
-            - get: nfs-volume-release
-              passed:
-                - deploy-cf-with-ldap
-            - get: mapfs-release
-              passed:
-                - deploy-cf-with-ldap
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - task: generate-legacy-pats-config
-              file: persi-ci/scripts/ci/generate_pats_config.build.yml
-              params:
-                BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
-                CREATE_CONFIG: '{"share":"mysql.service.cf.internal/export/users"}'
-                DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
-                PLAN_NAME: Existing
-                SERVICE_NAME: nfs-legacy
-              output_mapping:
-                pats-config: nfs-legacy-pats-config
-            - task: generate-pats-config
-              file: persi-ci/scripts/ci/generate_pats_config.build.yml
-              params:
-                BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
-                CREATE_CONFIG: '{"share":"mysql.service.cf.internal/export/users"}'
-                DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
-                PLAN_NAME: Existing
-                SERVICE_NAME: nfs
-              output_mapping:
-                pats-config: nfs-pats-config
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - task: run-legacy-pats
-              input_mapping:
-                pats-config: nfs-legacy-pats-config
-              file: persi-ci/scripts/ci/run-pats.build.yml
-              params:
-                TEST_DOCKER_PORA: true
-            - task: run-pats
-              input_mapping:
-                pats-config: nfs-pats-config
-              file: persi-ci/scripts/ci/run-pats.build.yml
               params:
                 TEST_DOCKER_PORA: true
 
@@ -478,7 +341,7 @@ jobs:
       - get: smith-env
         tags: [ toolsmiths-shared-vsphere ]
         passed:
-          - pats-nfs-ldap
+          - pats-nfs-ephemeral
         trigger: true
       - put: smith-env
         params:

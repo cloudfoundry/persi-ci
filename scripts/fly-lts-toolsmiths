@@ -1,0 +1,35 @@
+#!/bin/bash
+set -u
+
+# Usage
+# ./scripts/fly-lts 5.0
+# ./scripts/fly-lts 2.3
+# ./scripts/fly-lts 1.7
+
+NFS_LTS_VERSION="$1"
+
+if [[ "${NFS_LTS_VERSION}" = "1.7" ]]; then
+  CF_D_VERSION_TAG="v7.5.0"
+  NFS_LTS_INITIAL_VERSION="1.7.13"
+  MAPFS_VERSION_TAG="v1.2.0"
+  PIPELINE_NAME="lts-1-7.yml"
+elif [[ "${NFS_LTS_VERSION}" = "2.3" ]]; then
+  CF_D_VERSION_TAG="v12.1.0"
+  NFS_LTS_INITIAL_VERSION="2.3.3"
+  MAPFS_VERSION_TAG="v1.2.0"
+else
+  CF_D_VERSION_TAG="v12.7.0"
+  NFS_LTS_INITIAL_VERSION="5.0.3"
+  MAPFS_VERSION_TAG="v1.2.0"
+fi
+
+fly -t persi sp \
+  -p "lts-toolsmiths" \
+  -c "lts-toolsmiths.yml" \
+  --load-vars-from <( lpass show pipeline-secrets --notes ) \
+  -v lts-nfs-branch="v${NFS_LTS_VERSION}" \
+  -v nfs-semver-initial-version="${NFS_LTS_INITIAL_VERSION}" \
+  -v mapfs-tag="${MAPFS_VERSION_TAG}" \
+  -v cf-d-version-tag="${CF_D_VERSION_TAG}" \
+  -v nfs-volume-release-tarball-regexp="nfs-volume-(${NFS_LTS_VERSION}.*).tgz" \
+  -v cf-d-tasks-version-tag=v10.9.0
