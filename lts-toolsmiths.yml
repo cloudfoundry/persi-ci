@@ -82,6 +82,16 @@ resources:
       password: {{github-password}}
       uri: https://github.com/cloudfoundry/mapfs-release.git
 
+  - name: nfsvolume-version
+    type: semver
+    source:
+      access_key_id: {{lts-nfsvolume-uploader_aws_ID}}
+      bucket: lts-nfsvolume-release-versions
+      initial_version: {{nfs-semver-initial-version}}
+      key: {{lts-nfs-branch}}
+      region_name: us-west-2
+      secret_access_key: {{lts-nfsvolume-uploader_aws_secret}}
+
   - name: cf-deployment
     type: git
     source:
@@ -473,3 +483,15 @@ jobs:
           action: unclaim
           env_file: smith-env/metadata
         tags: [ toolsmiths-shared-vsphere ]
+
+  - name: manual-bump-nfs-patch
+    serial_groups:
+      - nfs-version
+    plan:
+      - get: nfs-volume-version
+        resource: nfsvolume-version
+        params:
+          bump: final
+      - put: nfsvolume-version
+        params:
+          bump: patch
