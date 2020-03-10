@@ -4,8 +4,7 @@ mkdir -p bosh-env
 
 set +x
 if [ -d smith-env ]; then
-  export TOOLSMITHS_ENVIRONMENT_NAME=$(cat smith-env/name)
-  eval "$(smith bosh)"
+  eval "$(bbl print-env --metadata-file smith-env/metadata)"
   touch bosh-env/set-env.sh
   ENV=`cat smith-env/metadata | jq -r ".name"`
   export APPS_DOMAIN="${ENV}.cf-app.com"
