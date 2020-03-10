@@ -1,0 +1,40 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: cfpersi/lts-smith
+    tag: latest
+
+inputs:
+- name: smith-env
+  optional: true
+- name: persi-ci
+- name: bind-create-config
+  optional: true
+
+outputs:
+- name: pats-config
+
+params:
+  APPS_DOMAIN: replace-me
+  CF_API_ENDPOINT: replace-me
+  CF_USERNAME: admin
+  CF_ADMIN_PASSWORD:
+  BIND_BOGUS_CONFIG:
+  BIND_CONFIG:
+  BROKER_PASSWORD_KEY:
+  BROKER_URL:
+  BROKER_USER:
+  CREATE_BOGUS_CONFIG:
+  CREATE_CONFIG:
+  DEFAULT_TIMEOUT: 30
+  DISALLOWED_LDAP_BIND_CONFIG:
+  DISALLOWED_OVERRIDE_BIND_CONFIG:
+  PLAN_NAME: replace-me
+  SERVICE_NAME: replace-me
+  TEST_ISOLATION_SEGMENT:
+
+run:
+  path: persi-ci/scripts/ci/generate_pats_config_pas.sh
