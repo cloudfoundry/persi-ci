@@ -82,5 +82,22 @@ jobs:
       nfs-semver-initial-version: 5.0.3
       cf-d-tasks-version-tag: v10.9.0
       nfs-volume-release-tarball-regexp: "nfs-volume-(5.0.*).tgz"
+  - set_pipeline: lts-toolsmiths-5.0
+    file: persi-ci/lts-toolsmiths.yml
+    vars:
+      <<: *lastpass_creds
+      lts-nfs-branch: v5.0
+      mapfs-tag: v1.2.0
+      nfs-semver-initial-version: 5.0.3
+      pas-version: us_2_8
+  - set_pipeline: lts-2.3
+    file: persi-ci/lts-toolsmiths.yml
+    vars:
+      <<: *lastpass_creds
+      lts-nfs-branch: v2.3
+      mapfs-tag: v1.2.0
+      nfs-semver-initial-version: 2.3.3
+      pas-version: us_2_7
+
 EOF
 )
