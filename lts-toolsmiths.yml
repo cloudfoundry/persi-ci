@@ -45,7 +45,7 @@ resources:
     source:
       api_token: ((persi_toolsmiths_env_api_token))
       hostname: environments.toolsmiths.cf-app.com
-      pool_name: us_2_8
+      pool_name: {{pas-version}}
     tags: [ toolsmiths-shared-vsphere ]
   - name: docker_driver_integration_tests
     type: git
@@ -66,7 +66,7 @@ resources:
   - name: nfs-volume-release
     type: git
     source:
-      branch: v5.0
+      branch: {{lts-nfs-branch}}
       username: {{github-user}}
       password: {{github-password}}
       uri: https://github.com/cloudfoundry/nfs-volume-release.git
