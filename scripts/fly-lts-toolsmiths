@@ -4,15 +4,11 @@ set -u
 # Usage
 # ./scripts/fly-lts-toolsmiths 5.0
 # ./scripts/fly-lts-toolsmiths 2.3
-# ./scripts/fly-lts-toolsmiths 1.7
 
 NFS_LTS_VERSION="$1"
 MAPFS_VERSION_TAG="v1.2.0"
 
-if [[ "${NFS_LTS_VERSION}" = "1.7" ]]; then
-  PAS_VERSION="us_2_5"
-  NFS_LTS_INITIAL_VERSION="1.7.13"
-elif [[ "${NFS_LTS_VERSION}" = "2.3" ]]; then
+if [[ "${NFS_LTS_VERSION}" = "2.3" ]]; then
   PAS_VERSION="us_2_7"
   NFS_LTS_INITIAL_VERSION="2.3.3"
 else
