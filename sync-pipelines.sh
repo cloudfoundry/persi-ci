@@ -90,7 +90,7 @@ jobs:
       mapfs-tag: v1.2.0
       nfs-semver-initial-version: 5.0.3
       pas-version: us_2_8
-  - set_pipeline: lts-2.3
+  - set_pipeline: lts-toolsmiths-2.3
     file: persi-ci/lts-toolsmiths.yml
     vars:
       <<: *lastpass_creds
