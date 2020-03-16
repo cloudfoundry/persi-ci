@@ -1,8 +1,16 @@
+resource_types:
+  - name: go-git
+    type: docker-image
+    source:
+      repository: cfpersi/fork-git-resource
+      tag: latest
+
 resources:
 - name: smbbroker
-  type: git
+  type: go-git
   source:
-    uri: https://github.com/cloudfoundry/smbbroker.git
+    uri: git@github.com:cloudfoundry/smbbroker.git
+    private_key: {{deployments-persi-key}}
 
 - name: smb-volume-release
   type: git
