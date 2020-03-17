@@ -1,5 +1,5 @@
 resource_types:
-  - name: go-git
+  - name: go-mod-vendor-tidy-git
     type: docker-image
     source:
       repository: cfpersi/fork-git-resource
@@ -7,7 +7,7 @@ resource_types:
 
 resources:
 - name: nfsv3driver
-  type: go-git
+  type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/nfsv3driver.git
     private_key: {{deployments-persi-key}}
@@ -26,7 +26,7 @@ resources:
     uri: https://github.com/cloudfoundry/persi-ci.git
 
 - name: mapfs
-  type: go-git
+  type: go-mod-vendor-tidy-git
   source:
     branch: master
     uri: git@github.com:cloudfoundry/mapfs.git
