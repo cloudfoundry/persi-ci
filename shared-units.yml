@@ -46,7 +46,7 @@ resources:
     secret_access_key: {{existingvolumebroker-uploader_aws_secret}}
 
 - name: service-broker-store
-  type: git
+  type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/service-broker-store.git
     branch: master
