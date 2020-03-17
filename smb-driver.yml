@@ -1,8 +1,16 @@
+resource_types:
+  - name: go-mod-vendor-tidy-git
+    type: docker-image
+    source:
+      repository: cfpersi/fork-git-resource
+      tag: latest
+
 resources:
 - name: smbdriver
-  type: git
+  type: go-mod-vendor-tidy-git
   source:
-    uri: https://github.com/cloudfoundry/smbdriver.git
+    uri: git@github.com:cloudfoundry/smbdriver.git
+    private_key: {{deployments-persi-key}}
 
 - name: smb-volume-release
   type: git
