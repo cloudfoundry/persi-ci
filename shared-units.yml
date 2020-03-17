@@ -1,3 +1,10 @@
+resource_types:
+  - name: go-mod-vendor-tidy-git
+    type: docker-image
+    source:
+      repository: cfpersi/fork-git-resource
+      tag: latest
+
 resources:
 - name: persi-ci
   type: git
@@ -5,14 +12,14 @@ resources:
     uri: https://github.com/cloudfoundry/persi-ci.git
 
 - name: existingvolumebroker
-  type: git
+  type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/existingvolumebroker.git
     branch: master
     private_key: {{existingvolumebroker-github-deploy-key}}
 
 - name: goshims
-  type: git
+  type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/goshims.git
     branch: master
@@ -56,7 +63,7 @@ resources:
     secret_access_key: {{service-broker-store-uploader_aws_secret}}
 
 - name: volumedriver
-  type: git
+  type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/volumedriver.git
     branch: master
@@ -73,7 +80,7 @@ resources:
     secret_access_key: {{volumedriver-uploader_aws_secret}}
 
 - name: volume-mount-options
-  type: git
+  type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/volume-mount-options.git
     branch: master
