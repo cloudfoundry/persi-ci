@@ -2,7 +2,7 @@
 
 set -e
 
-persi-ci/scripts/ci/bbl_get_bosh_env
+. persi-ci/scripts/ci/bbl_get_bosh_env
 source bosh-env/set-env.sh
 
 cf_password=`credhub find -j -n cf_admin_password | jq -r .credentials[].name | xargs credhub get -j -n | jq -r .value`
