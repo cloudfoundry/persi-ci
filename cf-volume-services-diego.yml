@@ -2,8 +2,6 @@ groups:
 - name: all-jobs
   jobs:
   - bbl-up-long-running-gcp-environment
-  - cats-nfs-long-running-gcp-environment
-  - cats-smb-long-running-gcp-environment
   - cf-deployment-nightly
   - deploy-cf
   - deploy-nfs-brokers
@@ -39,8 +37,6 @@ groups:
   - pats-nfs-long-running-gcp-environment
   - pats-nfs-docker-long-running-gcp-environment
   - pats-nfs-legacy-long-running-gcp-environment
-  - cats-nfs-long-running-gcp-environment
-  - cats-smb-long-running-gcp-environment
   - drats-nfs-smb
   - pats-smb-long-running-gcp-environment
 
@@ -633,69 +629,6 @@ jobs:
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
-
-- name: cats-nfs-long-running-gcp-environment
-  serial_groups:
-  - nfs
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: nfs-volume-release
-        passed:
-        - deploy-nfs-brokers
-        trigger: true
-      - get: cf-deployment
-        passed:
-        - deploy-nfs-brokers
-        trigger: true
-      - get: persi-ci
-      - get: bbl-state
-      - get: cf-acceptance-tests
-  - task: run-cats
-    file: persi-ci/scripts/ci/run_cats.build.yml
-    input_mapping:
-      director-state: bbl-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      BBL_IAAS: gcp
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_USERNAME: admin
-      SERVICE_NAME: nfs
-      PLAN_NAME: Existing
-
-- name: cats-smb-long-running-gcp-environment
-  serial_groups:
-  - smb
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smb-volume-release
-        passed:
-        - deploy-smb-broker
-        trigger: true
-      - get: cf-deployment
-        passed:
-        - deploy-smb-broker
-        trigger: true
-      - get: persi-ci
-      - get: bbl-state
-      - get: cf-acceptance-tests
-  - task: run-cats
-    file: persi-ci/scripts/ci/run_cats.build.yml
-    input_mapping:
-      director-state: bbl-state
-      cf-acceptance-tests: cf-acceptance-tests
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      BBL_IAAS: gcp
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_USERNAME: admin
-      SERVICE_NAME: smb
-      PLAN_NAME: Existing
-      CREATE_CONFIG: '{\"share\": \"((smb_cats_remote_path))\", \"username\": \"((smb_cats_username))\", \"password\": \"((smb_cats_password))\"}'
-
 
 - name: smb-volume-release-job-tests
   plan:
