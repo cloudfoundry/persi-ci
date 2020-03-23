@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export SCRIPTS_ROOT_DIR="$(PWD)"
+export SCRIPTS_ROOT_DIR="${PWD}"
 export BBL_PATH="$(which bbl)"
 
 bbl() {

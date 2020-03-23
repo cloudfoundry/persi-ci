@@ -10,6 +10,7 @@ image_resource:
 inputs:
   - name: smith-env
     optional: true
+  - name: disaster-recovery-acceptance-tests
   - name: integration-configs
   - name: persi-ci
 
@@ -19,7 +20,6 @@ outputs:
 params:
   CF_DEPLOYMENT_NAME: cf
   INTEGRATION_CONFIG_FILE_PATH: ci/integration_config.json
-  SYSTEM_DOMAIN:
   CF_USERNAME: admin
 
 run:
