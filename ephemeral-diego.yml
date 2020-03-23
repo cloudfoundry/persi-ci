@@ -236,7 +236,7 @@ jobs:
           - get: persi-ci
           - get: cf-acceptance-tests
     - task: run-cats
-      file: persi-ci/scripts/ci/run_cats_smith.build.yml
+      file: persi-ci/scripts/ci/run_cats.build.yml
       params:
         CF_USERNAME: admin
         SERVICE_NAME: nfs
@@ -261,7 +261,7 @@ jobs:
           - get: persi-ci
           - get: cf-acceptance-tests
     - task: run-cats
-      file: persi-ci/scripts/ci/run_cats_smith.build.yml
+      file: persi-ci/scripts/ci/run_cats.build.yml
       params:
         CF_USERNAME: admin
         SERVICE_NAME: smb

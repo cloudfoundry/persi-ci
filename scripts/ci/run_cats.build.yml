@@ -9,12 +9,11 @@ image_resource:
 
 inputs:
   - name: persi-ci
-  - name: director-state
+  - name: smith-env
   - name: cf-acceptance-tests
     path: src/github.com/cloudfoundry/cf-acceptance-tests
 
 params:
-  APPS_DOMAIN:
   CF_USERNAME:
   SERVICE_NAME:
   PLAN_NAME:
