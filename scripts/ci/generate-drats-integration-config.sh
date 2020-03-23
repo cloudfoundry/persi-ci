@@ -6,6 +6,7 @@ mv bbl-v8.4.0_linux_x86-64 `which bbl`
 
 export SCRIPTS_ROOT_DIR="${PWD}"
 export BBL_PATH="$(which bbl)"
+mkdir $SCRIPTS_ROOT_DIR/bbl-state
 
 bbl() {
   for last; do true; done
