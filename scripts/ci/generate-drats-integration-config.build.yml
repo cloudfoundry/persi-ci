@@ -1,0 +1,26 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: cfpersi/lts-smith
+    tag: latest
+
+inputs:
+  - name: smith-env
+    optional: true
+  - name: integration-configs
+  - name: persi-ci
+
+outputs:
+  - name: updated-integration-configs
+
+params:
+  CF_DEPLOYMENT_NAME: cf
+  INTEGRATION_CONFIG_FILE_PATH: ci/integration_config.json
+  SYSTEM_DOMAIN:
+  CF_USERNAME: admin
+
+run:
+  path: persi-ci/scripts/ci/generate-drats-integration-config.sh
