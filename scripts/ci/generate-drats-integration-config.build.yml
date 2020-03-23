@@ -21,6 +21,7 @@ params:
   CF_DEPLOYMENT_NAME: cf
   INTEGRATION_CONFIG_FILE_PATH: ci/integration_config.json
   CF_USERNAME: admin
+  BBL_STATE_DIR: .
 
 run:
   path: persi-ci/scripts/ci/generate-drats-integration-config.sh
