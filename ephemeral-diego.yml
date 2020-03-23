@@ -93,6 +93,12 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
 
+- name: cf-acceptance-tests
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
+
 resource_types:
 - name: pcf-pool
   type: docker-image
@@ -211,7 +217,60 @@ jobs:
     params:
       ERRAND_NAME: smbbrokerpush
 
+- name: cats-nfs
+  serial_groups:
+    - acceptance-tests
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: nfs-volume-release
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: smith-env
+            tags: [ toolsmiths-shared-vsphere ]
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: persi-ci
+          - get: cf-acceptance-tests
+    - task: run-cats
+      file: persi-ci/scripts/ci/run_cats_smith.build.yml
+      params:
+        CF_USERNAME: admin
+        SERVICE_NAME: nfs
+        PLAN_NAME: Existing
+
+- name: cats-smb
+  serial_groups:
+    - acceptance-tests
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: smb-volume-release
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: smith-env
+            tags: [ toolsmiths-shared-vsphere ]
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: persi-ci
+          - get: cf-acceptance-tests
+    - task: run-cats
+      file: persi-ci/scripts/ci/run_cats_smith.build.yml
+      params:
+        CF_USERNAME: admin
+        SERVICE_NAME: smb
+        PLAN_NAME: Existing
+        CREATE_CONFIG: '{\"share\": \"((smb_cats_remote_path))\", \"username\": \"((smb_cats_username))\", \"password\": \"((smb_cats_password))\"}'
+
 - name: pats-nfs-smb
+  serial_groups:
+    - acceptance-tests
   on_failure: *on_failure_unclaim
   on_error: *on_error_unclaim
   plan:
@@ -304,6 +363,8 @@ jobs:
         tags: [ toolsmiths-shared-vsphere ]
         passed:
         - pats-nfs-smb
+        - cats-nfs
+        - cats-smb
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
@@ -311,12 +372,15 @@ jobs:
       - get: nfs-volume-release
         passed:
         - pats-nfs-smb
+        - cats-nfs
       - get: mapfs-release
         passed:
         - pats-nfs-smb
+#        - cats-nfs
       - get: smb-volume-release
         passed:
         - pats-nfs-smb
+        - cats-smb
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
