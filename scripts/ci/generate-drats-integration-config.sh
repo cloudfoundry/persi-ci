@@ -5,7 +5,7 @@ export BBL_PATH="$(which bbl)"
 
 bbl() {
   for last; do true; done
-  $BBL_PATH --metadata-file ${SCRIPTS_ROOT_DIR}/smith-env/metadata
+  $BBL_PATH --metadata-file ${SCRIPTS_ROOT_DIR}/smith-env/metadata $last
 }
 
 
