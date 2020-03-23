@@ -73,12 +73,6 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
 
-- name: cf-acceptance-tests
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
-
 - name: nightly
   type: time
   source:
