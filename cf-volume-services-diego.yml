@@ -509,6 +509,7 @@ jobs:
         - deploy-nfs-brokers
         trigger: true
       - get: mapfs-release
+      - get: smb-volume-release
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: bbl-state
@@ -588,7 +589,7 @@ jobs:
       - get: release
         resource: smb-volume-release
         passed:
-        - pats-smb-long-running-gcp-environment
+        - pats-nfs-docker-long-running-gcp-environment
       - get: version
         resource: smb-volume-version
         params:
