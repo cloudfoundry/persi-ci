@@ -6,20 +6,12 @@ groups:
   - deploy-cf
   - deploy-nfs-brokers
   - deploy-smb-broker
-  - manual-bump-mapfs-major
-  - manual-bump-mapfs-minor
-  - manual-bump-mapfs-patch
-  - manual-bump-nfs-major
-  - manual-bump-nfs-minor
-  - manual-bump-nfs-patch
   - manual-bump-smb-major
   - manual-bump-smb-minor
   - manual-bump-smb-patch
   - mapfs-release-job-tests
   - nfs-volume-release-job-tests
   - pats-nfs-docker-long-running-gcp-environment
-  - shipit-mapfs
-  - shipit-nfs
   - shipit-smb
   - smb-volume-release-job-tests
 
@@ -32,26 +24,12 @@ groups:
   - deploy-smb-broker
   - pats-nfs-docker-long-running-gcp-environment
 
-- name: release-nfs
-  jobs:
-  - shipit-nfs
-  - manual-bump-nfs-patch
-  - manual-bump-nfs-minor
-  - manual-bump-nfs-major
-
 - name: release-smb
   jobs:
   - shipit-smb
   - manual-bump-smb-patch
   - manual-bump-smb-minor
   - manual-bump-smb-major
-
-- name: release-mapfs
-  jobs:
-  - shipit-mapfs
-  - manual-bump-mapfs-patch
-  - manual-bump-mapfs-minor
-  - manual-bump-mapfs-major
 
 resources:
 
@@ -72,15 +50,6 @@ resources:
     stop: 1:00 AM
     location: America/Los_Angeles
 
-- name: nfsvolume-version
-  type: semver
-  source:
-    access_key_id: {{nfsvolume-uploader_aws_ID}}
-    bucket: nfsvolume-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{nfsvolume-uploader_aws_secret}}
 
 - name: nfs-volume-release
   type: git
@@ -98,14 +67,6 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
-
-- name: github-release-nfs
-  type: github-release
-  source:
-    user: cloudfoundry
-    repository: nfs-volume-release
-    drafts: true
-    access_token: {{github-release-token-nfsvolumerelease}}
 
 - name: smb-volume-release
   type: git
@@ -140,16 +101,6 @@ resources:
     drafts: true
     access_token: {{github-release-token-smbvolumerelease}}
 
-- name: mapfs-version
-  type: semver
-  source:
-    access_key_id: {{mapfs-uploader_aws_ID}}
-    bucket: mapfs-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{mapfs-uploader_aws_secret}}
-
 - name: mapfs-release
   type: git
   source:
@@ -165,14 +116,6 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/mapfs-release.git
-
-- name: github-release-mapfs
-  type: github-release
-  source:
-    user: cloudfoundry
-    repository: mapfs-release
-    drafts: true
-    access_token: {{github-release-token-mapfs}}
 
 - name: cf-deployment
   type: git
@@ -227,236 +170,6 @@ jobs:
     privileged: true
     timeout: 1h
 
-- name: shipit-nfs
-  serial_groups:
-  - nfs-version
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: release
-        resource: nfs-volume-release
-        passed:
-        - pats-nfs-docker-long-running-gcp-environment
-      - get: version
-        resource: nfsvolume-version
-        params:
-          bump: final
-  - task: finalize-release
-    file: persi-ci/scripts/ci/finalize_release.build.yml
-    params:
-      BASE_RELEASE_NAME: nfs-volume
-      GIT_USER: {{github-user}}
-      GIT_EMAIL: {{github-email}}
-      S3_ACCESS_KEY_ID: {{nfsvolume-uploader_aws_ID}}
-      S3_ACCESS_KEY: {{nfsvolume-uploader_aws_secret}}
-  - put: nfs-volume-version
-    resource: nfsvolume-version
-    params:
-      file: version/number
-  - task: generate-github-release
-    file: persi-ci/scripts/ci/generate_github_release.build.yml
-    params:
-      BASE_RELEASE_NAME: nfs-volume
-  - put: nfs-volume-release
-    params:
-      repository: finalized-release/release
-      tag: version/number
-      tag_prefix: v
-  - put: github-release-nfs
-    params:
-      commitish: generated-release/commitish
-      name: generated-release/name
-      tag: generated-release/version
-      globs: []
-  - put: nfsvolume-version
-    params:
-      bump: patch
-  - task: pipeline-success
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: johnajimenez/ubuntu-bash-jq-curl-git
-          tag: latest
-      inputs:
-        - name: nfs-volume-release
-      run:
-        path: bash
-        args:
-          - -exc
-          - |
-            cd nfs-volume-release
-            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/7b387f7f765bae4500147d6ca1100093" | jq -r '.latest_git_sha')
-            git config --global core.pager cat
-            if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
-              true # all is well
-            else
-              echo "$LATEST_GIT_SHA missing, assuming the worst"
-              export LATEST_GIT_SHA=null
-            fi
-            export NEW_LATEST_GIT_SHA=$(git rev-parse HEAD)
-            if [ "$LATEST_GIT_SHA" == "null" ]; then
-              export STORY_IDS=($(git log -10 | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
-            else
-              export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
-            fi
-            if [ -z "$STORY_IDS" ]; then
-              STORY_IDS=[]
-            fi
-            curl -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"7b387f7f765bae4500147d6ca1100093", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
-- name: manual-bump-nfs-patch
-  serial_groups:
-  - nfs-version
-  plan:
-  - get: nfs-volume-version
-    resource: nfsvolume-version
-    params:
-      bump: final
-  - put: nfsvolume-version
-    params:
-      bump: patch
-
-- name: manual-bump-nfs-minor
-  serial_groups:
-  - nfs-version
-  plan:
-  - get: nfs-volume-version
-    resource: nfsvolume-version
-    params:
-      bump: final
-  - put: nfsvolume-version
-    params:
-      bump: minor
-
-- name: manual-bump-nfs-major
-  serial_groups:
-  - nfs-version
-  plan:
-  - get: nfs-volume-version
-    resource: nfsvolume-version
-    params:
-      bump: final
-  - put: nfsvolume-version
-    params:
-      bump: major
-
-- name: shipit-mapfs
-  serial_groups:
-  - mapfs-version
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: release
-        resource: mapfs-release
-        passed:
-        - pats-nfs-docker-long-running-gcp-environment
-      - get: version
-        resource: mapfs-version
-        params:
-          bump: final
-  - task: finalize-release
-    file: persi-ci/scripts/ci/finalize_release.build.yml
-    params:
-      BASE_RELEASE_NAME: mapfs
-      GIT_USER: {{github-user}}
-      GIT_EMAIL: {{github-email}}
-      S3_ACCESS_KEY_ID: {{mapfs-uploader_aws_ID}}
-      S3_ACCESS_KEY: {{mapfs-uploader_aws_secret}}
-  - put: version
-    resource: mapfs-version
-    params:
-      file: version/number
-  - task: generate-release
-    file: persi-ci/scripts/ci/generate_github_release.build.yml
-    params:
-      BASE_RELEASE_NAME: mapfs
-  - put: mapfs-release
-    params:
-      repository: finalized-release/release
-      tag: version/number
-      tag_prefix: v
-  - put: github-release-mapfs
-    params:
-      commitish: generated-release/commitish
-      name: generated-release/name
-      tag: generated-release/version
-      globs: []
-  - put: mapfs-version
-    params:
-      bump: patch
-  - task: pipeline-success
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: johnajimenez/ubuntu-bash-jq-curl-git
-          tag: latest
-      inputs:
-        - name: mapfs-release
-      run:
-        path: bash
-        args:
-          - -exc
-          - |
-            cd mapfs-release
-            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/134ec8d86be91855383cce879ea79eae" | jq -r '.latest_git_sha')
-            git config --global core.pager cat
-            if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
-              true # all is well
-            else
-              echo "$LATEST_GIT_SHA missing, assuming the worst"
-              export LATEST_GIT_SHA=null
-            fi
-            export NEW_LATEST_GIT_SHA=$(git rev-parse HEAD)
-            if [ "$LATEST_GIT_SHA" == "null" ]; then
-              export STORY_IDS=($(git log -10 | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
-            else
-              export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
-            fi
-            if [ -z "$STORY_IDS" ]; then
-              STORY_IDS=[]
-            fi
-            curl -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"134ec8d86be91855383cce879ea79eae", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
-
-- name: manual-bump-mapfs-patch
-  serial_groups:
-  - mapfs-version
-  plan:
-  - get: version
-    resource: mapfs-version
-    params:
-      bump: final
-  - put: mapfs-version
-    params:
-      bump: patch
-- name: manual-bump-mapfs-minor
-  serial_groups:
-  - mapfs-version
-  plan:
-  - get: version
-    resource: mapfs-version
-    params:
-      bump: final
-  - put: mapfs-version
-    params:
-      bump: minor
-- name: manual-bump-mapfs-major
-  serial_groups:
-  - mapfs-version
-  plan:
-  - get: version
-    resource: mapfs-version
-    params:
-      bump: final
-  - put: mapfs-version
-    params:
-      bump: major
 
 - name: deploy-nfs-brokers
   serial_groups:
