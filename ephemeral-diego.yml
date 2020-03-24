@@ -99,6 +99,18 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
 
+- name: bbr-binary-release
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: bosh-backup-and-restore
+    access_token: {{github-release-token-bbr}}
+
+- name: disaster-recovery-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
+
 resource_types:
 - name: pcf-pool
   type: docker-image
@@ -268,6 +280,67 @@ jobs:
         PLAN_NAME: Existing
         CREATE_CONFIG: '{\"share\": \"((smb_cats_remote_path))\", \"username\": \"((smb_cats_username))\", \"password\": \"((smb_cats_password))\"}'
 
+- name: drats-nfs-smb
+  serial: true
+  serial_groups:
+    - acceptance-tests
+#  on_failure: *on_failure_unclaim
+#  on_error: *on_error_unclaim
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: nfs-volume-release
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: smb-volume-release
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: bbr-binary-release
+          - get: disaster-recovery-acceptance-tests
+          - get: persi-ci
+          - get: smith-env
+            tags: [ toolsmiths-shared-vsphere ]
+            passed: [ deploy-cf ]
+            trigger: true
+    - task: generate-integration-config
+      file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
+      params:
+        INTEGRATION_CONFIG_FILE_PATH: config/drats.json
+      input_mapping:
+        integration-configs: persi-ci
+
+    - task: drats-with-integration-config
+      file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
+      privileged: true
+      input_mapping:
+        drats-integration-config: updated-integration-configs
+      params:
+        CONFIG_FILE_PATH: config/drats.json
+    - task: add-timeout
+      config:
+        platform: linux
+        image_resource:
+          type:  docker-image
+          source:
+            repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+            tag: latest
+        inputs:
+          - name: updated-integration-configs
+        outputs:
+          - name: updated-integration-configs-timeout
+        run:
+          path: /bin/bash
+          args: ["-c", "mkdir -p updated-integration-configs-timeout/config && jq '.timeout_in_minutes=15' updated-integration-configs/config/drats.json > updated-integration-configs-timeout/config/drats.json"]
+    - task: acceptance-tests
+      file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
+      attempts: 3
+      privileged: true
+      input_mapping:
+        drats-integration-config: updated-integration-configs-timeout
+      params:
+        CONFIG_FILE_PATH: config/drats.json
+
 - name: pats-nfs-smb
   serial_groups:
     - acceptance-tests
@@ -365,6 +438,7 @@ jobs:
         - pats-nfs-smb
         - cats-nfs
         - cats-smb
+        - drats-nfs-smb
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
@@ -373,14 +447,17 @@ jobs:
         passed:
         - pats-nfs-smb
         - cats-nfs
+        - drats-nfs-smb
       - get: mapfs-release
         passed:
         - pats-nfs-smb
+#        - drats-nfs-smb
 #        - cats-nfs
       - get: smb-volume-release
         passed:
         - pats-nfs-smb
         - cats-smb
+        - drats-nfs-smb
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
