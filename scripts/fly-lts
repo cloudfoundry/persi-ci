@@ -2,27 +2,15 @@
 set -u
 
 # Usage
-# ./scripts/fly-lts 5.0
-# ./scripts/fly-lts 2.3
-# ./scripts/fly-lts 1.7
+# ./scripts/fly-lts
 
-NFS_LTS_VERSION="$1"
+NFS_LTS_VERSION="1.7"
 PIPELINE_NAME="lts.yml"
 
-if [[ "${NFS_LTS_VERSION}" = "1.7" ]]; then
-  CF_D_VERSION_TAG="v7.5.0"
-  NFS_LTS_INITIAL_VERSION="1.7.13"
-  MAPFS_VERSION_TAG="v1.2.0"
-  PIPELINE_NAME="lts-1-7.yml"
-elif [[ "${NFS_LTS_VERSION}" = "2.3" ]]; then
-  CF_D_VERSION_TAG="v12.1.0"
-  NFS_LTS_INITIAL_VERSION="2.3.3"
-  MAPFS_VERSION_TAG="v1.2.0"
-else
-  CF_D_VERSION_TAG="v12.7.0"
-  NFS_LTS_INITIAL_VERSION="5.0.3"
-  MAPFS_VERSION_TAG="v1.2.0"
-fi
+CF_D_VERSION_TAG="v7.5.0"
+NFS_LTS_INITIAL_VERSION="1.7.13"
+MAPFS_VERSION_TAG="v1.2.0"
+PIPELINE_NAME="lts-1-7.yml"
 
 fly -t persi sp \
   -p "lts-${NFS_LTS_VERSION}" \
