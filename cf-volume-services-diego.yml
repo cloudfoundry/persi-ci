@@ -508,6 +508,7 @@ jobs:
         passed:
         - deploy-nfs-brokers
         trigger: true
+      - get: mapfs-release
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: bbl-state
