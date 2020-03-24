@@ -1,5 +1,0 @@
-#!/bin/bash
-
-set -e -x
-
-./diego-release/scripts/ci/run_inigo -flakeAttempts=5 volman/
