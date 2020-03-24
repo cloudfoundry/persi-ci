@@ -504,50 +504,6 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: nfsbrokerpush
 
-- name: pats-nfs-long-running-gcp-environment
-  serial_groups:
-  - nfs
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: nfs-volume-release
-        passed:
-        - deploy-nfs-brokers
-        trigger: true
-      - get: mapfs-release
-        passed:
-        - deploy-cf
-        trigger: true
-      - get: cf-volume-services-acceptance-tests
-      - get: persi-ci
-      - get: bbl-state
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: bbl-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      BIND_BOGUS_CONFIG: '{"uid":"1000","gid":"1000"}'
-      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"3.0\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.1\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.2\",\"mount\": \"/var/vcap/data/foo\"}"]'
-      CREATE_BOGUS_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/nonexistensevol"}'
-      CREATE_CONFIG: '{"share":"nfstestserver.service.cf.internal/export/users"}'
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    attempts: 3
-    params:
-      PARALLEL_NODES: 2
-      TEST_MOUNT_FAIL_LOGGING: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_MULTI_CELL: true
-      TEST_READ_ONLY: true
-
-
 - name: pats-nfs-docker-long-running-gcp-environment
   serial_groups:
   - nfs
@@ -626,49 +582,6 @@ jobs:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       ERRAND_NAME: smbbrokerpush
 
-- name: pats-smb-long-running-gcp-environment
-  serial_groups:
-  - smb
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smb-volume-release-concourse-tasks
-        params:
-          submodules: none
-      - get: smb-volume-release
-        passed:
-        - deploy-smb-broker
-        - smb-volume-release-job-tests
-        trigger: true
-      - get: cf-volume-services-acceptance-tests
-      - get: persi-ci
-      - get: bbl-state
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - task: generate-bind-create-configs
-        file: smb-volume-release-concourse-tasks/scripts/ci/generate_bind_create_config.build.yml
-        params:
-          SMB_REMOTE_PATH: {{smb_pats_remote_path}}
-          SMB_USERNAME: {{smb_pats_username}}
-          SMB_PASSWORD: {{smb_pats_password}}
-  - task: generate-pats-config
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    input_mapping:
-      director-state: bbl-state
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      APPS_DOMAIN: gorgophone.cf-app.com
-      CF_API_ENDPOINT: api.gorgophone.cf-app.com
-      CF_USERNAME: admin
-      DISALLOWED_OVERRIDE_BIND_CONFIG: '{"share"://smbtestservertwo.service.cf.internal/vol2}'
-      PLAN_NAME: Existing
-      SERVICE_NAME: smb
-  - task: run-pats
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    params:
-      TEST_READ_ONLY: true
 
 - name: shipit-smb
   serial_groups:
