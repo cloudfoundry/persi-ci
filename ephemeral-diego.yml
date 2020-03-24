@@ -75,6 +75,13 @@ resources:
     drafts: true
     access_token: {{github-release-token-nfsvolumerelease}}
 
+- name: nfs-volume-release-concourse-tasks
+  type: git
+  source:
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/nfs-volume-release.git
+
 - name: smb-volume-release
   type: git
   source:
@@ -130,6 +137,14 @@ resources:
     drafts: true
     access_token: {{github-release-token-mapfs}}
 
+- name: mapfs-release-concourse-tasks
+  type: git
+  source:
+    branch: master
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/mapfs-release.git
+
 - name: cf-deployment
   type: git
   source:
@@ -172,6 +187,56 @@ resource_types:
     repository: cftoolsmiths/toolsmiths-envs-resource
 
 jobs:
+- name: nfs-volume-release-job-tests
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: nfs-volume-release-concourse-tasks
+          - get: mapfs-release
+          - get: nfs-volume-release
+            trigger: true
+    - task: rspec
+      file: persi-ci/scripts/ci/run-rspec.build.yml
+      input_mapping:
+        test-repo: nfs-volume-release
+    - task: bosh-release-test
+      attempts: 3
+      file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+      privileged: true
+
+- name: mapfs-release-job-tests
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: mapfs-release
+            trigger: true
+          - get: mapfs-release-concourse-tasks
+    - task: bosh-release-test
+      file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+      privileged: true
+      timeout: 1h
+
+- name: smb-volume-release-job-tests
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: smb-volume-release-concourse-tasks
+          - get: smb-volume-release
+            trigger: true
+    - task: rspec
+      file: persi-ci/scripts/ci/run-rspec.build.yml
+      input_mapping:
+        test-repo: smb-volume-release
+    - task: bosh-release-test
+      file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+      privileged: true
+      attempts: 3
+
 - name: claim-env
   plan:
   - in_parallel:
@@ -180,10 +245,16 @@ jobs:
       - get: persi-ci
       - get: nfs-volume-release
         trigger: true
+        passed:
+          - nfs-volume-release-job-tests
       - get: mapfs-release
         trigger: true
+        passed:
+          - mapfs-release-job-tests
       - get: smb-volume-release
         trigger: true
+        passed:
+          - smb-volume-release-job-tests
   - put: smith-env
     params:
       action: claim
