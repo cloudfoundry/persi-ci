@@ -19,9 +19,6 @@ groups:
   - mapfs-release-job-tests
   - nfs-volume-release-job-tests
   - pats-nfs-docker-long-running-gcp-environment
-  - pats-nfs-legacy-long-running-gcp-environment
-  - pats-nfs-long-running-gcp-environment
-  - pats-smb-long-running-gcp-environment
   - shipit-mapfs
   - shipit-nfs
   - shipit-smb
@@ -34,11 +31,8 @@ groups:
   - deploy-cf
   - deploy-nfs-brokers
   - deploy-smb-broker
-  - pats-nfs-long-running-gcp-environment
   - pats-nfs-docker-long-running-gcp-environment
-  - pats-nfs-legacy-long-running-gcp-environment
   - drats-nfs-smb
-  - pats-smb-long-running-gcp-environment
 
 - name: release-nfs
   jobs:
@@ -258,7 +252,7 @@ jobs:
       - get: release
         resource: nfs-volume-release
         passed:
-        - pats-nfs-long-running-gcp-environment
+        - pats-nfs-docker-long-running-gcp-environment
       - get: version
         resource: nfsvolume-version
         params:
@@ -374,8 +368,7 @@ jobs:
       - get: release
         resource: mapfs-release
         passed:
-        - pats-nfs-long-running-gcp-environment
-        - pats-nfs-legacy-long-running-gcp-environment
+        - pats-nfs-docker-long-running-gcp-environment
       - get: version
         resource: mapfs-version
         params:
