@@ -19,9 +19,6 @@ jobs:
   plan:
   - get: persi-ci
     trigger: true
-  - set_pipeline: cf-volume-services-diego
-    file: persi-ci/cf-volume-services-diego.yml
-    vars: *lastpass_creds
   - set_pipeline: cf-volume-services-k8s
     file: persi-ci/cf-volume-services-k8s.yml
     vars: *lastpass_creds
