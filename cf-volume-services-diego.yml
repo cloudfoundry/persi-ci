@@ -6,7 +6,6 @@ groups:
   - deploy-cf
   - deploy-nfs-brokers
   - deploy-smb-broker
-  - drats-nfs-smb
   - manual-bump-mapfs-major
   - manual-bump-mapfs-minor
   - manual-bump-mapfs-patch
@@ -32,7 +31,6 @@ groups:
   - deploy-nfs-brokers
   - deploy-smb-broker
   - pats-nfs-docker-long-running-gcp-environment
-  - drats-nfs-smb
 
 - name: release-nfs
   jobs:
@@ -194,18 +192,6 @@ resources:
     uri: git@github.com:cloudfoundry/gorgophone-env.git
     branch: master
     private_key: {{deployments-persi-key}}
-
-- name: bbr-binary-release
-  type: github-release
-  source:
-    owner: cloudfoundry-incubator
-    repository: bosh-backup-and-restore
-    access_token: {{github-release-token-bbr}}
-
-- name: disaster-recovery-acceptance-tests
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
 
 jobs:
 
@@ -833,58 +819,3 @@ jobs:
     params:
       BBL_STATE_DIR: bbl-state-gcp-gorgophone
       CLEAN_ALL: true
-
-- name: drats-nfs-smb
-  serial: true
-  serial_groups:
-  - gorgophone
-  - nfs
-  - smb
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: nfs-volume-release
-        passed:
-        - deploy-nfs-brokers
-        trigger: true
-      - get: smb-volume-release
-        passed:
-        - deploy-smb-broker
-        trigger: true
-      - get: bbr-binary-release
-      - get: disaster-recovery-acceptance-tests
-      - get: bbl-state
-      - get: persi-ci
-  - task: update-integration-config
-    file: disaster-recovery-acceptance-tests/ci/credhub-compatible/update-integration-config/task.yml
-    input_mapping:
-      integration-configs: persi-ci
-    params:
-      BBL_STATE_DIR: bbl-state-gcp-gorgophone
-      INTEGRATION_CONFIG_FILE_PATH: config/drats.json
-      SYSTEM_DOMAIN: gorgophone.cf-app.com
-  - task: add-timeout
-    config:
-      platform: linux
-      image_resource:
-        type:  docker-image
-        source:
-          repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
-          tag: latest
-      inputs:
-      - name: updated-integration-configs
-      outputs:
-      - name: updated-integration-configs-timeout
-      run:
-        path: /bin/bash
-        args: ["-c", "mkdir -p updated-integration-configs-timeout/config && jq '.timeout_in_minutes=15' updated-integration-configs/config/drats.json > updated-integration-configs-timeout/config/drats.json"]
-  - task: acceptance-tests
-    file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
-    attempts: 3
-    privileged: true
-    input_mapping:
-      drats-integration-config: updated-integration-configs-timeout
-    params:
-      CONFIG_FILE_PATH: config/drats.json
-
