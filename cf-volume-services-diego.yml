@@ -6,13 +6,9 @@ groups:
   - deploy-cf
   - deploy-nfs-brokers
   - deploy-smb-broker
-  - manual-bump-smb-major
-  - manual-bump-smb-minor
-  - manual-bump-smb-patch
   - mapfs-release-job-tests
   - nfs-volume-release-job-tests
   - pats-nfs-docker-long-running-gcp-environment
-  - shipit-smb
   - smb-volume-release-job-tests
 
 - name: upgrade-environment-test-nfs-smb
@@ -23,13 +19,6 @@ groups:
   - deploy-nfs-brokers
   - deploy-smb-broker
   - pats-nfs-docker-long-running-gcp-environment
-
-- name: release-smb
-  jobs:
-  - shipit-smb
-  - manual-bump-smb-patch
-  - manual-bump-smb-minor
-  - manual-bump-smb-major
 
 resources:
 
@@ -82,24 +71,6 @@ resources:
     username: {{github-user}}
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/smb-volume-release.git
-
-- name: smb-volume-version
-  type: semver
-  source:
-    access_key_id: {{smbvolume-uploader_aws_ID}}
-    bucket: smb-volume-release-versions
-    initial_version: 0.0.0
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: {{smbvolume-uploader_aws_secret}}
-
-- name: github-release-smb
-  type: github-release
-  source:
-    user: cloudfoundry
-    repository: smb-volume-release
-    drafts: true
-    access_token: {{github-release-token-smbvolumerelease}}
 
 - name: mapfs-release
   type: git
@@ -277,119 +248,6 @@ jobs:
       ERRAND_NAME: smbbrokerpush
 
 
-- name: shipit-smb
-  serial_groups:
-  - smb-version
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: release
-        resource: smb-volume-release
-        passed:
-        - pats-nfs-docker-long-running-gcp-environment
-      - get: version
-        resource: smb-volume-version
-        params:
-          bump: final
-  - task: finalize-release
-    file: persi-ci/scripts/ci/finalize_release.build.yml
-    params:
-      BASE_RELEASE_NAME: smb-volume
-      GIT_USER: {{github-user}}
-      GIT_EMAIL: {{github-email}}
-      S3_ACCESS_KEY_ID: {{smbvolume-uploader_aws_ID}}
-      S3_ACCESS_KEY: {{smbvolume-uploader_aws_secret}}
-  - put: smb-volume-version
-    resource: smb-volume-version
-    params:
-      file: version/number
-  - task: generate-github-release
-    file: persi-ci/scripts/ci/generate_github_release.build.yml
-    params:
-      BASE_RELEASE_NAME: smb-volume
-  - put: smb-volume-release
-    params:
-      repository: finalized-release/release
-      tag: version/number
-      tag_prefix: v
-  - put: github-release-smb
-    params:
-      commitish: generated-release/commitish
-      name: generated-release/name
-      tag: generated-release/version
-      globs: []
-  - put: smb-volume-version
-    params:
-      bump: patch
-  - task: pipeline-success
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: johnajimenez/ubuntu-bash-jq-curl-git
-          tag: latest
-      inputs:
-        - name: smb-volume-release
-      run:
-        path: bash
-        args:
-          - -exc
-          - |
-            cd smb-volume-release
-            export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/d526b7901a2001a6f01869ef334b3068" | jq -r '.latest_git_sha')
-            git config --global core.pager cat
-            if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
-              true # all is well
-            else
-              echo "$LATEST_GIT_SHA missing, assuming the worst"
-              export LATEST_GIT_SHA=null
-            fi
-            export NEW_LATEST_GIT_SHA=$(git rev-parse HEAD)
-            if [ "$LATEST_GIT_SHA" == "null" ]; then
-              export STORY_IDS=($(git log -10 | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
-            else
-              export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
-            fi
-            if [ -z "$STORY_IDS" ]; then
-              STORY_IDS=[]
-            fi
-            curl -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"d526b7901a2001a6f01869ef334b3068", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
-- name: manual-bump-smb-patch
-  serial_groups:
-  - smb-version
-  plan:
-  - get: smb-volume-version
-    resource: smb-volume-version
-    params:
-      bump: final
-  - put: smb-volume-version
-    params:
-      bump: patch
-- name: manual-bump-smb-minor
-  serial_groups:
-  - smb-version
-  plan:
-  - get: smb-volume-version
-    resource: smb-volume-version
-    params:
-      bump: final
-  - put: smb-volume-version
-    params:
-      bump: minor
-- name: manual-bump-smb-major
-  serial_groups:
-  - smb-version
-  plan:
-  - get: smb-volume-version
-    resource: smb-volume-version
-    params:
-      bump: final
-  - put: smb-volume-version
-    params:
-      bump: major
 
 - name: cf-deployment-nightly
   public: true
