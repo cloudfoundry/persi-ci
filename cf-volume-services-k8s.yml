@@ -138,6 +138,7 @@ jobs:
           file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
           params:
             K8S_IMAGE: kindest/node:v1.15.7
+            VOLUME_MODE_SUITE: false
 
 - name: create-github-tag
   serial: true
