@@ -1,2 +1,0 @@
-- path: /instance_groups/name=openvpn/jobs/name=disable_agent
-  type: remove
