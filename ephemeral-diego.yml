@@ -775,17 +775,17 @@ jobs:
         image_resource:
           type: docker-image
           source:
-            repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+            repository: johnajimenez/ubuntu-bash-jq-curl-git
             tag: latest
         inputs:
           - name: nfs-volume-release
         run:
           path: bash
           args:
-            - -ec
+            - -exc
             - |
               cd nfs-volume-release
-              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/7b387f7f765bae4500147d6ca1100093" | jq -r '.latest_git_sha')
+              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/c7dc43fcdf7a85f43c3849e03b7ae28c" | jq -r '.latest_git_sha')
               git config --global core.pager cat
               if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
                 true # all is well
@@ -799,10 +799,12 @@ jobs:
               else
                 export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
               fi
-              if [ -z "$STORY_IDS" ]; then
-                STORY_IDS=[]
+              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"c7dc43fcdf7a85f43c3849e03b7ae28c", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
+              if [[ "$POST_STATUS" -ne 200 ]] ; then
+                exit $POST_STATUS
+              else
+                exit 0
               fi
-              curl -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"7b387f7f765bae4500147d6ca1100093", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
 
 - name: manual-bump-nfs-patch
   serial_groups:
@@ -892,17 +894,17 @@ jobs:
         image_resource:
           type: docker-image
           source:
-            repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+            repository: johnajimenez/ubuntu-bash-jq-curl-git
             tag: latest
         inputs:
           - name: mapfs-release
         run:
           path: bash
           args:
-            - -ec
+            - -exc
             - |
               cd mapfs-release
-              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/134ec8d86be91855383cce879ea79eae" | jq -r '.latest_git_sha')
+              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/b87ca35449445f20dce3b23ff08f5373" | jq -r '.latest_git_sha')
               git config --global core.pager cat
               if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
                 true # all is well
@@ -916,10 +918,12 @@ jobs:
               else
                 export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
               fi
-              if [ -z "$STORY_IDS" ]; then
-                STORY_IDS=[]
+              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"b87ca35449445f20dce3b23ff08f5373", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
+              if [[ "$POST_STATUS" -ne 200 ]] ; then
+                exit $POST_STATUS
+              else
+                exit 0
               fi
-              curl -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"134ec8d86be91855383cce879ea79eae", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
 
 - name: manual-bump-mapfs-patch
   serial_groups:
@@ -1009,17 +1013,17 @@ jobs:
         image_resource:
           type: docker-image
           source:
-            repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+            repository: johnajimenez/ubuntu-bash-jq-curl-git
             tag: latest
         inputs:
           - name: smb-volume-release
         run:
           path: bash
           args:
-            - -ec
+            - -exc
             - |
               cd smb-volume-release
-              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/d526b7901a2001a6f01869ef334b3068" | jq -r '.latest_git_sha')
+              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/54a073c28e26614473035e9d13ba9866" | jq -r '.latest_git_sha')
               git config --global core.pager cat
               if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
                 true # all is well
@@ -1033,10 +1037,12 @@ jobs:
               else
                 export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
               fi
-              if [ -z "$STORY_IDS" ]; then
-                STORY_IDS=[]
+              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"54a073c28e26614473035e9d13ba9866", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
+              if [[ "$POST_STATUS" -ne 200 ]] ; then
+                exit $POST_STATUS
+              else
+                exit 0
               fi
-              curl -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"d526b7901a2001a6f01869ef334b3068", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'"}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd"
 
 - name: manual-bump-smb-patch
   serial_groups:
