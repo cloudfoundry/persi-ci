@@ -14,13 +14,6 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-- name: eirini-build-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/eirini-build
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
 - name: eirini-persi-docker-image
   type: docker-image
   source:
@@ -137,16 +130,6 @@ jobs:
       params:
         build: fork-git-resource
         dockerfile: fork-git-resource/dockerfiles/ubuntu/Dockerfile
-
-- name: build-eirini-build-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: persi-ci
-      trigger: true
-    - put: eirini-build-docker-image
-      params:
-        build: persi-ci/dockerfiles/eirini-build
 
 - name: build-eirini-persi-docker-image
   plan:
