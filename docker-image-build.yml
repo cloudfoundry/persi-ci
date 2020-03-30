@@ -7,6 +7,13 @@ resources:
     stop: 1:00 AM
     location: America/Los_Angeles
 
+- name: fork-git-resource-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/fork-git-resource
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 - name: eirini-build-docker-image
   type: docker-image
   source:
@@ -113,7 +120,24 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
 
+- name: fork-git-resource
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/go-git-resource.git
+
 jobs:
+
+- name: build-fork-git-resource-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: fork-git-resource
+      trigger: true
+    - put: fork-git-resource-docker-image
+      params:
+        build: fork-git-resource
+        dockerfile: fork-git-resource/dockerfiles/ubuntu/Dockerfile
+
 - name: build-eirini-build-docker-image
   plan:
     - get: nightly
