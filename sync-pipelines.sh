@@ -49,16 +49,6 @@ jobs:
   - set_pipeline: smb-driver
     file: persi-ci/smb-driver.yml
     vars: *lastpass_creds
-  - set_pipeline: lts-1.7
-    file: persi-ci/lts-1-7.yml
-    vars:
-      <<: *lastpass_creds
-      lts-nfs-branch: v1.7
-      mapfs-tag: v1.2.0
-      cf-d-version-tag: v7.5.0
-      nfs-semver-initial-version: 1.7.13
-      cf-d-tasks-version-tag: v10.9.0
-      nfs-volume-release-tarball-regexp: "nfs-volume-(1.7.*).tgz"
   - set_pipeline: lts-toolsmiths-5.0
     file: persi-ci/lts-toolsmiths.yml
     vars:
