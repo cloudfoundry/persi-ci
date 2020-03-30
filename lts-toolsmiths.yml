@@ -77,7 +77,6 @@ resources:
     type: git
     source:
       branch: master
-      tag_filter: {{mapfs-tag}}
       username: {{github-user}}
       password: {{github-password}}
       uri: https://github.com/cloudfoundry/mapfs-release.git

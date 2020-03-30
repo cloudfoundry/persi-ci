@@ -6,7 +6,6 @@ set -u
 # ./scripts/fly-lts-toolsmiths 2.3
 
 NFS_LTS_VERSION="$1"
-MAPFS_VERSION_TAG="v1.2.0"
 
 if [[ "${NFS_LTS_VERSION}" = "2.3" ]]; then
   PAS_VERSION="us_2_7"
@@ -22,5 +21,4 @@ fly -t persi sp \
   --load-vars-from <( lpass show pipeline-secrets --notes ) \
   -v lts-nfs-branch="v${NFS_LTS_VERSION}" \
   -v nfs-semver-initial-version="${NFS_LTS_INITIAL_VERSION}" \
-  -v mapfs-tag="${MAPFS_VERSION_TAG}" \
   -v pas-version="${PAS_VERSION}"
