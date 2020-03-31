@@ -62,21 +62,18 @@ jobs:
         steps:
         - task: unit-tests-latest
           tags: [kind]
-          attempts: 3
           file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
           privileged: true
           output_mapping:
             built-images: built-latest-images
         - task: unit-tests-1.16
           tags: [kind]
-          attempts: 3
           file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
           privileged: true
           params:
             K8S_IMAGE: kindest/node:v1.16.4
         - task: unit-tests-1.15
           tags: [kind]
-          attempts: 3
           file: smb-volume-k8s-release/smb-broker/ci/unit-tests.yml
           privileged: true
           params:
@@ -90,7 +87,6 @@ jobs:
     - get: smb-volume-k8s-release
       trigger: true
     - task: run-test
-      attempts: 3
       privileged: true
       file: smb-volume-k8s-release/smb-csi-driver/ci/unit-tests.yml
 
@@ -107,7 +103,6 @@ jobs:
         - smb-broker-unit-tests
     - task: run-test
       tags: [kind]
-      attempts: 3
       privileged: true
       file: smb-volume-k8s-release/ci/integration-tests.yml
 
@@ -120,19 +115,16 @@ jobs:
         steps:
         - task: e2e-tests-latest
           tags: [kind]
-          attempts: 3
           privileged: true
           file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
         - task: e2e-tests-1.16
           tags: [kind]
-          attempts: 3
           privileged: true
           params:
             K8S_IMAGE: kindest/node:v1.16.4
           file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
         - task: e2e-tests-1.15
           tags: [kind]
-          attempts: 3
           privileged: true
           file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
           params:
