@@ -131,7 +131,7 @@ jobs:
             K8S_IMAGE: kindest/node:v1.15.7
             VOLUME_MODE_SUITE: false
 
-- name: create-github-tag
+- name: bump-rc-version
   serial: true
   plan:
     - get: smb-volume-k8s-release
@@ -140,31 +140,26 @@ jobs:
         - integration-tests
     - get: smb-release-version
       params:
-        bump: minor
+        pre: rc
     - get: smb-broker-kpack-image
       passed:
       - integration-tests
-    - put: smb-volume-k8s-release
-      params:
-        repository: smb-volume-k8s-release
-        tag: smb-release-version/version
-        only_tag: true
     - put: smb-release-version
       params:
-        bump: minor
+        pre: rc
 
 - name: build-smb-broker-docker-image
   plan:
     - get: smb-volume-k8s-release
       passed:
-      - create-github-tag
+      - bump-rc-version
       trigger: true
     - get: smb-release-version
       passed:
-      - create-github-tag
+      - bump-rc-version
     - get: smb-broker-kpack-image
       passed:
-        - create-github-tag
+        - bump-rc-version
     - put: smb-broker-docker-image
       tags: [kind]
       params:
@@ -178,11 +173,11 @@ jobs:
   plan:
     - get: smb-volume-k8s-release
       passed:
-        - create-github-tag
+        - bump-rc-version
       trigger: true
     - get: smb-release-version
       passed:
-        - create-github-tag
+        - bump-rc-version
     - put: smb-csi-driver-docker-image
       tags: [kind]
       params:
