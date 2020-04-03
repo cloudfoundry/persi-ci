@@ -157,6 +157,7 @@ jobs:
     - get: smb-release-version
       passed:
       - bump-rc-version
+      trigger: true
     - get: smb-broker-kpack-image
       passed:
         - bump-rc-version
@@ -178,6 +179,7 @@ jobs:
     - get: smb-release-version
       passed:
         - bump-rc-version
+      trigger: true
     - put: smb-csi-driver-docker-image
       tags: [kind]
       params:
