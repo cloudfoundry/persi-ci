@@ -84,6 +84,19 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
+- name: smb-csi-driver-cnb-run-stack-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/cnb-run-csi-driver
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: cnb-run-stack-docker-image
+  type: docker-image
+  source:
+    repository: cloudfoundry/run
+    tag: base-cnb
+
 - name: smb-volume-release
   type: git
   source:
@@ -130,6 +143,18 @@ jobs:
       params:
         build: fork-git-resource
         dockerfile: fork-git-resource/dockerfiles/ubuntu/Dockerfile
+
+- name: build-smb-csi-driver-cnb-run-stack-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: smb-volume-k8s-release
+      trigger: true
+    - get: cnb-run-stack-docker-image
+      trigger: true
+    - put: smb-csi-driver-cnb-run-stack-docker-image
+      params:
+        build: smb-volume-k8s-release/smb-csi-driver/cnb-run-stack-dockerfiles
 
 - name: build-eirini-persi-docker-image
   plan:
