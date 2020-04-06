@@ -23,103 +23,6 @@ nfstestldapserver_static_ips: ${NFSTESTLDAPSERVER_STATIC_IP}
 EOF
 }
 
-generate_gcs_blobstore_vars() {
-  pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
-    if [ -z "${GCS_BLOBSTORE_PROJECT_ID}" ]; then
-      GCS_BLOBSTORE_PROJECT_ID="$(bbl outputs | yq -r '.gcs_blobstore_service_account_project')"
-    fi
-
-    if [ -z "${GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL}" ]; then
-      GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL="$(bbl outputs | yq -r '.gcs_blobstore_service_account_email')"
-    fi
-
-    if [ -z "${GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY}" ]; then
-      GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY="$(bbl outputs | yq '.gcs_blobstore_service_account_key')"
-    fi
-
-    if [ -z "${APP_PACKAGE_DIRECTORY_KEY}" ]; then
-      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_packages_bucket')"
-    fi
-
-    if [ -z "${BUILDPACK_DIRECTORY_KEY}" ]; then
-      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_buildpacks_bucket')"
-    fi
-
-    if [ -z "${DROPLET_DIRECTORY_KEY}" ]; then
-      DROPLET_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_droplets_bucket')"
-    fi
-
-    if [ -z "${RESOURCE_DIRECTORY_KEY}" ]; then
-      RESOURCE_DIRECTORY_KEY="$(bbl outputs | yq -r '.gcs_blobstore_resources_bucket')"
-    fi
-  popd
-
-    cat << EOF > ${ROOT_DIR}/generated-vars/gcs-blobstore-vars.yml
----
-gcs_project: ${GCS_BLOBSTORE_PROJECT_ID}
-gcs_service_account_email: ${GCS_BLOBSTORE_SERVICE_ACCOUNT_EMAIL}
-gcs_service_account_json_key: ${GCS_BLOBSTORE_SERVICE_ACCOUNT_KEY}
-
-app_package_directory_key: ${APP_PACKAGE_DIRECTORY_KEY}
-buildpack_directory_key: ${BUILDPACK_DIRECTORY_KEY}
-droplet_directory_key: ${DROPLET_DIRECTORY_KEY}
-resource_directory_key: ${RESOURCE_DIRECTORY_KEY}
-EOF
-}
-
-generate_s3_blobstore_vars() {
-  pushd "${ROOT_DIR}/director-state/${BBL_STATE_DIR}"
-    if [ -z "${S3_BLOBSTORE_ID}" ]; then
-      S3_BLOBSTORE_ID="$(bbl outputs | yq -r '.s3_blobstore_access_key_id')"
-    fi
-
-    if [ -z "${S3_BLOBSTORE_KEY}" ]; then
-      S3_BLOBSTORE_KEY="$(bbl outputs | yq -r '.s3_blobstore_secret_access_key')"
-    fi
-
-    if [ -z "${S3_BLOBSTORE_REGION}" ]; then
-      S3_BLOBSTORE_REGION="$(bbl outputs | yq -r '.region')"
-    fi
-
-    if [ -z "${APP_PACKAGE_DIRECTORY_KEY}" ]; then
-      APP_PACKAGE_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_packages_bucket')"
-    fi
-
-    if [ -z "${BUILDPACK_DIRECTORY_KEY}" ]; then
-      BUILDPACK_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_buildpacks_bucket')"
-    fi
-
-    if [ -z "${DROPLET_DIRECTORY_KEY}" ]; then
-      DROPLET_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_droplets_bucket')"
-    fi
-
-    if [ -z "${RESOURCE_DIRECTORY_KEY}" ]; then
-      RESOURCE_DIRECTORY_KEY="$(bbl outputs | yq -r '.s3_blobstore_resources_bucket')"
-    fi
-  popd
-
-    cat << EOF > ${ROOT_DIR}/generated-vars/s3-blobstore-vars.yml
----
-blobstore_access_key_id: ${S3_BLOBSTORE_ID}
-blobstore_secret_access_key: ${S3_BLOBSTORE_KEY}
-aws_region: ${S3_BLOBSTORE_REGION}
-
-app_package_directory_key: ${APP_PACKAGE_DIRECTORY_KEY}
-buildpack_directory_key: ${BUILDPACK_DIRECTORY_KEY}
-droplet_directory_key: ${DROPLET_DIRECTORY_KEY}
-resource_directory_key: ${RESOURCE_DIRECTORY_KEY}
-EOF
-}
-
-generate_datadog_vars() {
-    cat << EOF > ${ROOT_DIR}/generated-vars/datadog-vars.yml
----
-datadog_api_key: ${DATADOG_API_KEY}
-datadog_metric_prefix: ${DATADOG_METRIC_PREFIX}
-traffic_controller_external_port: 4443
-EOF
-}
-
 generate_smb_vars() {
     cat << EOF > ${ROOT_DIR}/generated-vars/smb-vars.yml
 ---
@@ -135,21 +38,8 @@ main() {
   apt-get install -y python3-pip
   pip3 install yq
 
-
   if [ "$GENERATE_NFS_VARS" = "true" ]; then
     generate_nfs_vars
-  fi
-
-  if [ "$GENERATE_GCS_BLOBSTORE_VARS" = "true" ]; then
-    generate_gcs_blobstore_vars
-  fi
-
-  if [ "$GENERATE_S3_BLOBSTORE_VARS" = "true" ]; then
-    generate_s3_blobstore_vars
-  fi
-
-  if [ "$GENERATE_DATADOG_VARS" = "true" ]; then
-    generate_datadog_vars
   fi
 
   if [ "$GENERATE_SMB_VARS" = "true" ]; then

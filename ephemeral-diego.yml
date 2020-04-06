@@ -302,10 +302,8 @@ jobs:
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
-      GENERATE_DATADOG_VARS: false
       GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: true
-      GENERATE_GCS_BLOBSTORE_VARS: false
       SMB_USERNAME: {{smb_pats_username_two}}
       SMB_PASSWORD: {{smb_pats_password_two}}
   - task: bosh-deploy-cf
@@ -599,10 +597,8 @@ jobs:
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
-      GENERATE_DATADOG_VARS: false
       GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: true
-      GENERATE_GCS_BLOBSTORE_VARS: false
       SMB_USERNAME: {{smb_pats_username_two}}
       SMB_PASSWORD: {{smb_pats_password_two}}
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
