@@ -3,22 +3,11 @@
 mkdir -p bosh-env
 
 set +x
-if [ -d smith-env ]; then
-  eval "$(bbl print-env --metadata-file smith-env/metadata)"
-  touch bosh-env/set-env.sh
-  ENV=`cat smith-env/metadata | jq -r ".name"`
-  export APPS_DOMAIN="${ENV}.cf-app.com"
-  export CF_API_ENDPOINT="api.${ENV}.cf-app.com"
-  export SYSTEM_DOMAIN="${ENV}.cf-app.com"
-else
-  if [ -d director-state ]; then
-    bbl --state-dir director-state/${BBL_STATE_DIR} print-env > bosh-env/set-env.sh
-    bbl --state-dir director-state/${BBL_STATE_DIR} ssh-key > bosh-env/ssh-key
-    bbl --state-dir director-state/${BBL_STATE_DIR} director-ca-cert > bosh-env/ca-cert.pem
-  else
-    echo "Must provide either toolsmiths-env or bbl-state as an input"
-    exit 1
-  fi
-fi
+eval "$(bbl print-env --metadata-file smith-env/metadata)"
+touch bosh-env/set-env.sh
+ENV=`cat smith-env/metadata | jq -r ".name"`
+export APPS_DOMAIN="${ENV}.cf-app.com"
+export CF_API_ENDPOINT="api.${ENV}.cf-app.com"
+export SYSTEM_DOMAIN="${ENV}.cf-app.com"
 set -x
 
