@@ -1,13 +1,6 @@
 #!/bin/bash -e
 
-function finish {
-  pkill ssh || true
-}
-trap finish EXIT
-
 generate_nfs_vars() {
-  source persi-ci/scripts/ci/bbl_get_bosh_env
-  source bosh-env/set-env.sh
     cat << EOF > ${ROOT_DIR}/generated-vars/nfs-vars.yml
 ---
 nfs-ldap-service-user: ${LDAP_SVC_USER}
@@ -34,9 +27,6 @@ EOF
 main() {
   ROOT_DIR="${1}"
   mkdir -p ${ROOT_DIR}/generated-vars
-
-  apt-get install -y python3-pip
-  pip3 install yq
 
   if [ "$GENERATE_NFS_VARS" = "true" ]; then
     generate_nfs_vars
