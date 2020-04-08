@@ -1,0 +1,36 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: cfpersi/smb-volume-k8s-release-deploy
+    tag: latest
+
+inputs:
+- name: cluster-info
+- name: persi-ci
+- name: bind-create-config
+  optional: true
+
+outputs:
+- name: pats-config
+
+params:
+  VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf4k8s_helpers.sh
+  CF_USERNAME: admin
+  BIND_BOGUS_CONFIG:
+  BIND_CONFIG:
+  BROKER_PASSWORD_KEY:
+  BROKER_URL:
+  BROKER_USER:
+  CREATE_BOGUS_CONFIG:
+  CREATE_CONFIG:
+  DEFAULT_TIMEOUT: 30
+  DISALLOWED_LDAP_BIND_CONFIG:
+  DISALLOWED_OVERRIDE_BIND_CONFIG:
+  PLAN_NAME: replace-me
+  SERVICE_NAME: replace-me
+
+run:
+  path: persi-ci/scripts/ci/generate_pats_config_cf4k8s.sh
