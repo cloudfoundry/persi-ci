@@ -5,6 +5,17 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
 
+- name: cf-volume-services-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci
+    branch: master
+
 - name: smb-broker-kpack-image
   type: s3
   source:
@@ -53,6 +64,41 @@ resources:
     secret_access_key: {{smb-release-k8s-uploader_aws_secret}}
 
 jobs:
+- name: pats
+  serial: true
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-volume-services-acceptance-tests
+      - get: persi-ci
+      - get: smb-volume-k8s-release
+  - task: generate-pats-config-smb
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    params:
+      CF_USERNAME: admin
+      CF_ADMIN_PASSWORD: ((cf-for-k8s-admin-password))
+      CF_API_ENDPOINT: "api.cf4k8s.persi.cf-app.com"
+      APPS_DOMAIN: "cf4k8s.persi.cf-app.com"
+      BROKER_URL: "http://smb-broker.cf-workloads"
+      CREATE_CONFIG: "{\"share\":\"((smb_cats_remote_path))\",\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cert_password))\"}"
+      PLAN_NAME: Existing
+      SERVICE_NAME: SMB
+      BIND_CONFIG: "[\"{}\"]"
+    output_mapping:
+      pats-config: smb-pats-config
+  - task: run-pats-smb
+    input_mapping:
+      pats-config: smb-pats-config
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    attempts: 3
+    params:
+      PARALLEL_NODES: 2
+      TEST_MOUNT_OPTIONS: false
+      TEST_MOUNT_FAIL_LOGGING: false
+      TEST_MULTI_CELL: false
+      TEST_READ_ONLY: false
+
 - name: smb-broker-unit-tests
   plan:
     - get: smb-volume-k8s-release
