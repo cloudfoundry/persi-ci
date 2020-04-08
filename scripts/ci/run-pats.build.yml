@@ -11,6 +11,11 @@ inputs:
 - name: pats-config
 - name: persi-ci
 - name: cf-volume-services-acceptance-tests
+- name: cluster-info
+  optional: true
+
+outputs:
+  - name: cluster-info
 
 params:
   CONFIG_FILE_PATH: pats-config/pats.json
