@@ -98,6 +98,7 @@ jobs:
       TEST_MOUNT_FAIL_LOGGING: false
       TEST_MULTI_CELL: false
       TEST_READ_ONLY: false
+      TEST_DOCKER_PORA: true
 
 - name: smb-broker-unit-tests
   plan:
