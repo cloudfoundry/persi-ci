@@ -1,3 +1,24 @@
+shared_functions:
+  - on_failure: &destroy_cluster
+      do:
+        - task: wait-1-hour
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source: {repository: alpine}
+            run:
+              path: sleep
+              args: [ 3600 ]
+        - task: destroy-cluster
+          file: smb-volume-k8s-release/ci/destroy-cluster.yml
+          params:
+            GCP_KEY: ((gcp_service_account_key))
+            AWS_ACCESS_KEY_ID: {{route53-updater_aws_ID}}
+            AWS_SECRET_ACCESS_KEY: {{route53-updater_aws_secret}}
+            AWS_DEFAULT_REGION: us-east-1
+            AWS_HOSTED_ZONE: {{route53-aws-hosted-zone}}
+
 resources:
 - name: cf-acceptance-tests
   type: git
@@ -33,6 +54,12 @@ resources:
     branch: master
     private_key: {{smb-broker-k8s-github-deploy-key}}
 
+- name: cf-for-k8s
+  type: git
+  source:
+    uri: http://github.com/cloudfoundry/cf-for-k8s
+    branch: master
+
 - name: cloudfoundry-cnb-bionic-image
   type: docker-image
   source:
@@ -64,23 +91,33 @@ resources:
     secret_access_key: {{smb-release-k8s-uploader_aws_secret}}
 
 jobs:
+
 - name: pats
-  serial: true
+  on_failure: *destroy_cluster
+  on_error: *destroy_cluster
   plan:
   - in_parallel:
       fail_fast: true
       steps:
+      - get: cf-for-k8s
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: smb-volume-k8s-release
+  - task: deploy-cf
+    file: smb-volume-k8s-release/ci/deploy-release.yml
+    params:
+      GCP_KEY: ((gcp_service_account_key))
+      AWS_ACCESS_KEY_ID: {{route53-updater_aws_ID}}
+      AWS_SECRET_ACCESS_KEY: {{route53-updater_aws_secret}}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_HOSTED_ZONE: {{route53-aws-hosted-zone}}
   - task: generate-pats-config-smb
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    file: persi-ci/scripts/ci/generate_pats_config_cf4k8s.build.yml
     params:
       CF_USERNAME: admin
-      CF_ADMIN_PASSWORD: ((cf-for-k8s-admin-password))
-      CF_API_ENDPOINT: "api.cf4k8s.persi.cf-app.com"
-      APPS_DOMAIN: "cf4k8s.persi.cf-app.com"
       BROKER_URL: "http://smb-broker.cf-workloads"
+      BROKER_USER: "foo"
+      BROKER_PASSWORD: "foo"
       CREATE_CONFIG: "{\"share\":\"((smb_cats_remote_path))\",\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cert_password))\"}"
       PLAN_NAME: Existing
       SERVICE_NAME: SMB
@@ -99,6 +136,14 @@ jobs:
       TEST_MULTI_CELL: false
       TEST_READ_ONLY: false
       TEST_DOCKER_PORA: true
+  - task: destroy-cluster
+    file: smb-volume-k8s-release/ci/destroy-cluster.yml
+    params:
+      GCP_KEY: ((gcp_service_account_key))
+      AWS_ACCESS_KEY_ID: {{route53-updater_aws_ID}}
+      AWS_SECRET_ACCESS_KEY: {{route53-updater_aws_secret}}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_HOSTED_ZONE: {{route53-aws-hosted-zone}}
 
 - name: smb-broker-unit-tests
   plan:
