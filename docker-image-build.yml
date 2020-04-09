@@ -77,6 +77,13 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
+- name: smb-k8s-pats-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/smb-k8s-pats
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 - name: smb-k8s-kind-docker-image
   type: docker-image
   source:
@@ -255,3 +262,13 @@ jobs:
     - put: smb-k8s-kind-docker-image
       params:
         build: smb-volume-k8s-release/ci/dockerfiles/tests/
+
+- name: build-smb-k8s-pats-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: smb-volume-k8s-release
+      trigger: true
+    - put: smb-k8s-pats-docker-image
+      params:
+        build: smb-volume-k8s-release/ci/dockerfiles/pats/
