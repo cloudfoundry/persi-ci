@@ -100,6 +100,15 @@ jobs:
       fail_fast: true
       steps:
       - get: cf-for-k8s
+        trigger: true
+      - get: smb-csi-driver-docker-image
+        trigger: true
+        passed:
+        - build-smb-csi-driver-docker-image
+      - get: smb-broker-docker-image
+        trigger: true
+        passed:
+        - build-smb-broker-docker-image
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: smb-volume-k8s-release
