@@ -345,12 +345,14 @@ jobs:
       toolsmiths-env: smith-env
     params:
       ERRAND_NAME: nfsbrokerpush
+      INSTANCE: nfs-broker-push
   - task: run-smb-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: smith-env
     params:
       ERRAND_NAME: smbbrokerpush
+      INSTANCE: smb-broker-push
 
 - name: cats-nfs
   serial_groups:
@@ -640,12 +642,14 @@ jobs:
       toolsmiths-env: smith-env
     params:
       ERRAND_NAME: nfsbrokerpush
+      INSTANCE: nfs-broker-push
   - task: run-smb-broker-errand
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: smith-env
     params:
       ERRAND_NAME: smbbrokerpush
+      INSTANCE: smb-broker-push
 
 - name: pats-nfs-ldap
   on_failure: *on_failure_unclaim
