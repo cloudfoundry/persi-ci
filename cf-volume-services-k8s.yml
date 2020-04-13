@@ -124,7 +124,7 @@ jobs:
     file: persi-ci/scripts/ci/generate_pats_config_cf4k8s.build.yml
     params:
       CF_USERNAME: admin
-      BROKER_URL: "http://smb-broker.cf-workloads"
+      BROKER_URL: "http://smb-broker.cf-smb"
       BROKER_USER: "foo"
       BROKER_PASSWORD: "foo"
       CREATE_CONFIG: "{\"share\":\"((smb_cats_remote_path))\",\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cert_password))\"}"
