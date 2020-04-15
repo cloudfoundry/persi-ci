@@ -28,13 +28,6 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-- name: awscli-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/awscli
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
 - name: nfs-driver-integration-tests-docker-image
   type: docker-image
   source:
@@ -127,11 +120,6 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry/smb-volume-k8s-release.git
-
-- name: persi-ci
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/persi-ci.git
 
 - name: fork-git-resource
   type: git
@@ -232,16 +220,6 @@ jobs:
   - put: mapfs-tests-docker-image
     params:
       build: mapfs/ci/dockerfiles/perf
-
-- name: build-awscli-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: persi-ci
-      trigger: true
-    - put: awscli-docker-image
-      params:
-        build: persi-ci/dockerfiles/awscli
 
 - name: build-smb-unit-tests-docker-image
   plan:
