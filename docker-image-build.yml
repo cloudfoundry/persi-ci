@@ -108,11 +108,11 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
 
-- name: mapfs
+- name: mapfs-release
   type: git
   source:
     branch: master
-    uri: https://github.com/cloudfoundry/mapfs.git
+    uri: https://github.com/cloudfoundry/mapfs-release.git
 
 - name: smb-volume-k8s-release
   type: git
@@ -204,11 +204,11 @@ jobs:
   plan:
   - get: nightly
     trigger: true
-  - get: mapfs
+  - get: mapfs-release
     trigger: true
   - put: mapfs-tests-docker-image
     params:
-      build: mapfs/ci/dockerfiles/perf
+      build: mapfs-release/dockerfiles/tests
 
 - name: build-smb-unit-tests-docker-image
   plan:
