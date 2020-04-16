@@ -7,6 +7,12 @@ resources:
     stop: 1:00 AM
     location: America/Los_Angeles
 
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci
+    branch: master
+
 - name: fork-git-resource-docker-image
   type: docker-image
   source:
@@ -28,7 +34,7 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-- name: nfs-bosh-release-test-docker-image
+- name: bosh-release-test-docker-image
   type: docker-image
   source:
     repository: cfpersi/bosh-release-tests
@@ -154,15 +160,15 @@ jobs:
       params:
         build: nfs-volume-release/dockerfiles/nfs-integration-tests
 
-- name: build-nfs-bosh-release-test-docker-image
+- name: build-bosh-release-test-docker-image
   plan:
     - get: nightly
       trigger: true
-    - get: nfs-volume-release
+    - get: persi-ci
       trigger: true
-    - put: nfs-bosh-release-test-docker-image
+    - put: bosh-release-test-docker-image
       params:
-        build: nfs-volume-release/dockerfiles/bosh-release-tests
+        build: persi-ci/dockerfiles/bosh-release-tests
 
 - name: build-nfs-broker-tests-docker-image
   plan:
