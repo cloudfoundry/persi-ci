@@ -84,10 +84,10 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-- name: smb-csi-driver-cnb-run-stack-docker-image
+- name: cnb-cifs-run-stack-docker-image
   type: docker-image
   source:
-    repository: cfpersi/cnb-run-csi-driver
+    repository: cfpersi/cnb-cifs-run-stack
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
@@ -139,7 +139,7 @@ jobs:
         build: fork-git-resource
         dockerfile: fork-git-resource/dockerfiles/ubuntu/Dockerfile
 
-- name: build-smb-csi-driver-cnb-run-stack-docker-image
+- name: build-cnb-cifs-run-stack-docker-image
   plan:
     - get: nightly
       trigger: true
@@ -147,7 +147,7 @@ jobs:
       trigger: true
     - get: cnb-run-stack-docker-image
       trigger: true
-    - put: smb-csi-driver-cnb-run-stack-docker-image
+    - put: cnb-cifs-run-stack-docker-image
       params:
         build: smb-volume-k8s-release/smb-csi-driver/cnb-run-stack-dockerfiles
 
