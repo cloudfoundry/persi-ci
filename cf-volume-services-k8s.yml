@@ -20,12 +20,6 @@ shared_functions:
             AWS_HOSTED_ZONE: {{route53-aws-hosted-zone}}
 
 resources:
-- name: cf-acceptance-tests
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
-
 - name: cf-volume-services-acceptance-tests
   type: git
   source:
@@ -290,7 +284,7 @@ jobs:
 
 - name: update-golang-version-for-test
   plan:
-    - get: cf-acceptance-tests
+    - get: cf-volume-services-acceptance-tests
     - get: cloudfoundry-cnb-bionic-image
       trigger: true
     - get: smb-volume-k8s-release
