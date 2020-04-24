@@ -10,11 +10,11 @@ cfpersi/mapfs-tests:
  - install golang version from mapfs release, nfs ganesha server, fuse bunch of other stuff
  - used for mapfs unit and fs tests
 
-cfpersi/fs-integration-tests:
- - similar to mapfs-tests except fetching go version from nfs release, installing different apt packages, go modules
+cfpersi/nfs-integration-tests:
+ - has go version from nfs release, install ganesha with an in-memory fs, go modules
 
 cfpersi/nfs-unit-tests:
- - like nfs-broker-tests but without java+credhub
+ - has go version from nfs release and ginkgo
 
 cfpersi/nfs-cats:
  - installs ganesha and exposes ports
