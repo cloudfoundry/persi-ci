@@ -41,13 +41,6 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-- name: nfs-broker-tests-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/nfs-broker-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
 - name: nfs-unit-tests-docker-image
   type: docker-image
   source:
@@ -169,16 +162,6 @@ jobs:
     - put: bosh-release-test-docker-image
       params:
         build: persi-ci/dockerfiles/bosh-release-tests
-
-- name: build-nfs-broker-tests-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: nfs-volume-release
-      trigger: true
-    - put: nfs-broker-tests-docker-image
-      params:
-        build: nfs-volume-release/dockerfiles/nfs-broker-tests
 
 - name: build-nfs-unit-tests-docker-image
   plan:

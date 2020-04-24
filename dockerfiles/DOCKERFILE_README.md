@@ -13,9 +13,6 @@ cfpersi/mapfs-tests:
 cfpersi/fs-integration-tests:
  - similar to mapfs-tests except fetching go version from nfs release, installing different apt packages, go modules
 
-cfpersi/nfs-broker-tests:
- - go version, ginkgo, java + credhub
-
 cfpersi/nfs-unit-tests:
  - like nfs-broker-tests but without java+credhub
 
