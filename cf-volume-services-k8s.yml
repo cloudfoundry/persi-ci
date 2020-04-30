@@ -41,6 +41,16 @@ resources:
     access_key_id: {{smb-broker-k8s-images-bucket-access_aws_ID}}
     secret_access_key: {{smb-broker-k8s-images-bucket-access_aws_secret}}
 
+- name: smb-csi-driver-kpack-image
+  type: s3
+  source:
+    region_name: us-west-1
+    bucket: smb-csi-driver-k8s-images
+    versioned_file: smb-csi-driver.tgz
+    initial_version: "0"
+    access_key_id: {{smb-csi-driver-k8s-images-bucket-access_aws_ID}}
+    secret_access_key: {{smb-csi-driver-k8s-images-bucket-access_aws_secret}}
+
 - name: smb-volume-k8s-release
   type: git
   source:
@@ -196,6 +206,9 @@ jobs:
     - get: smb-broker-kpack-image
       passed:
         - smb-broker-unit-tests
+    - get: smb-csi-driver-kpack-image
+      passed:
+        - smb-csi-driver-e2e-tests
     - task: run-test
       tags: [kind]
       privileged: true
@@ -225,7 +238,10 @@ jobs:
           params:
             K8S_IMAGE: kindest/node:v1.15.7
             VOLUME_MODE_SUITE: false
-
+        - put: smb-csi-driver-kpack-image
+          params:
+            file: built-latest-images/smb-csi-driver.tgz
+            
 - name: bump-rc-version
   serial: true
   plan:
@@ -239,6 +255,9 @@ jobs:
     - get: smb-broker-kpack-image
       passed:
       - integration-tests
+    - get: smb-csi-driver-kpack-image
+      passed:
+        - integration-tests
     - put: smb-release-version
       params:
         pre: rc
@@ -275,12 +294,17 @@ jobs:
       passed:
         - bump-rc-version
       trigger: true
+    - get: smb-csi-driver-kpack-image
+      passed:
+        - bump-rc-version
     - put: smb-csi-driver-docker-image
       tags: [kind]
       params:
+        load_repository: localhost:5000/cfpersi/smb-csi-driver
+        load_file: smb-csi-driver-kpack-image/smb-broker.tgz
+        load_tag: local-test
         tag_file: smb-release-version/version
         tag_as_latest: true
-        build: smb-volume-k8s-release/smb-csi-driver
 
 - name: update-golang-version-for-test
   plan:
