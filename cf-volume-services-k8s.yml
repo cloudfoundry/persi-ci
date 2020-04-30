@@ -224,6 +224,8 @@ jobs:
         - task: e2e-tests-latest
           tags: [kind]
           privileged: true
+          output_mapping:
+            built-images: built-latest-images
           file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
         - task: e2e-tests-1.16
           tags: [kind]
@@ -238,9 +240,9 @@ jobs:
           params:
             K8S_IMAGE: kindest/node:v1.15.7
             VOLUME_MODE_SUITE: false
-        - put: smb-csi-driver-kpack-image
-          params:
-            file: built-latest-images/smb-csi-driver.tgz
+    - put: smb-csi-driver-kpack-image
+      params:
+        file: built-latest-images/smb-csi-driver.tgz
             
 - name: bump-rc-version
   serial: true
@@ -301,7 +303,7 @@ jobs:
       tags: [kind]
       params:
         load_repository: localhost:5000/cfpersi/smb-csi-driver
-        load_file: smb-csi-driver-kpack-image/smb-broker.tgz
+        load_file: smb-csi-driver-kpack-image/smb-csi-driver.tgz
         load_tag: local-test
         tag_file: smb-release-version/version
         tag_as_latest: true
