@@ -259,6 +259,14 @@ jobs:
             params:
               USE_KUSTOMIZE: true
 
+- name: log-forwarder-unit-tests
+  plan:
+    - get: smb-volume-k8s-release
+      trigger: true
+    - task: unit-tests
+      tags: [kind]
+      file: smb-volume-k8s-release/log-forwarder/ci/unit-tests.yml
+
 - name: bump-rc-version
   serial: true
   plan:
