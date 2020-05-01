@@ -38,7 +38,6 @@ function write_config_to_file() {
   "apps_domain": "${APPS_DOMAIN}",
   "artifacts_directory": "",
   "default_timeout": ${DEFAULT_TIMEOUT},
-  "name_prefix": "$(openssl rand -hex 3)",
   "skip_ssl_validation": true,
 
   "broker_url": "${BROKER_URL}",
