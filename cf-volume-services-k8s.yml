@@ -267,6 +267,20 @@ jobs:
       tags: [kind]
       file: smb-volume-k8s-release/log-forwarder/ci/unit-tests.yml
 
+- name: build-log-forwarder-docker-image
+  plan:
+    - get: smb-volume-k8s-release
+      passed:
+        - log-forwarder-unit-tests
+      trigger: true
+    - task: build-image
+      privileged: true
+      tags: [kind]
+      file: smb-volume-k8s-release/log-forwarder/ci/build-docker-image.yml
+      params:
+        DOCKER_USER: {{dockerhub_username}}
+        DOCKER_PASSWORD: {{dockerhub_password}}
+
 - name: bump-rc-version
   serial: true
   plan:
