@@ -46,75 +46,16 @@ function write_config_to_file() {
   "broker_user": "${BROKER_USER}",
   "isolation_segment": "${TEST_ISOLATION_SEGMENT}",
   "plan_name": "${PLAN_NAME}",
-  "service_name": "${SERVICE_NAME}"
+  "service_name": "${SERVICE_NAME}",
+
+  "create_config": "${CREATE_CONFIG}",
+  "create_bogus_config": "${CREATE_BOGUS_CONFIG}",
+  "bind_config": ${BIND_CONFIG},
+  "bind_bogus_config": "${BIND_BOGUS_CONFIG}",
+  "disallowed_ldap_bind_config": "${DISALLOWED_LDAP_BIND_CONFIG}",
+  "disallowed_override_bind_config": "${DISALLOWED_OVERRIDE_BIND_CONFIG}"
 }
 EOF
-
-  local bind_config_file="${PWD}/bind-config.json"
-
-  if [[ -r "${PWD}/bind-create-config/bind-config.json" ]]; then
-    cp "${PWD}/bind-create-config/bind-config.json" "${bind_config_file}"
-  elif [[ -n "${BIND_CONFIG}" ]]; then
-    echo "${BIND_CONFIG}" > "${bind_config_file}"
-  else
-    echo "" > "${bind_config_file}"
-  fi
-
-  updated_config=$(jq --argjson bindConfig "$(cat "${bind_config_file}")" '.bind_config=$bindConfig' "${CONFIG_FILE}")
-  echo "${updated_config}" > "${CONFIG_FILE}"
-
-  if [[ -n "${BIND_BOGUS_CONFIG}" ]]; then
-    echo "${BIND_BOGUS_CONFIG}" > "${bind_config_file}"
-  else
-    echo "" > "${bind_config_file}"
-  fi
-
-  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.bind_bogus_config=$bindConfig' "${CONFIG_FILE}")
-  echo "${updated_config}" > "${CONFIG_FILE}"
-
-  if [[ -n "${DISALLOWED_LDAP_BIND_CONFIG}" ]]; then
-    echo "${DISALLOWED_LDAP_BIND_CONFIG}" > "${bind_config_file}"
-  else
-    echo "" > "${bind_config_file}"
-  fi
-
-  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.disallowed_ldap_bind_config=$bindConfig' "${CONFIG_FILE}")
-  echo "${updated_config}" > "${CONFIG_FILE}"
-
-  if [[ -n "${DISALLOWED_OVERRIDE_BIND_CONFIG}" ]]; then
-    echo "${DISALLOWED_OVERRIDE_BIND_CONFIG}" > "${bind_config_file}"
-  else
-    echo "" > "${bind_config_file}"
-  fi
-
-  updated_config=$(jq --arg bindConfig "$(cat "${bind_config_file}")" '.disallowed_override_bind_config=$bindConfig' "${CONFIG_FILE}")
-  echo "${updated_config}" > "${CONFIG_FILE}"
-
-  echo "" > "${bind_config_file}"
-
-  local create_config_file="${PWD}/pats-config/create-config.json"
-
-  if [[ -r "${PWD}/bind-create-config/create-config.json" ]]; then
-    cp "${PWD}/bind-create-config/create-config.json" "${create_config_file}"
-  elif [[ -n "${CREATE_CONFIG}" ]]; then
-    echo "${CREATE_CONFIG}" > "${create_config_file}"
-  else
-    echo "" > "${create_config_file}"
-  fi
-
-  updated_config=$(jq --arg createConfig "$(cat "${create_config_file}")" '.create_config=$createConfig' "${CONFIG_FILE}")
-  echo "${updated_config}" > "${CONFIG_FILE}"
-
-  if [[ -n "${CREATE_BOGUS_CONFIG}" ]]; then
-    echo "${CREATE_BOGUS_CONFIG}" > "${create_config_file}"
-  else
-    echo "" > "${create_config_file}"
-  fi
-
-  updated_config=$(jq --arg createConfig "$(cat "${create_config_file}")" '.create_bogus_config=$createConfig' "${CONFIG_FILE}")
-  echo "${updated_config}" > "${CONFIG_FILE}"
-
-  echo "" > "${create_config_file}"
 
   if [[ -n "${BROKER_PASSWORD_KEY}" ]]; then
     broker_password="$(get_password_from_credhub "${BROKER_PASSWORD_KEY}")"
