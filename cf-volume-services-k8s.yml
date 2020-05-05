@@ -54,9 +54,17 @@ resources:
 - name: smb-volume-k8s-release
   type: git
   source:
-    uri: git@github.com:cloudfoundry/smb-volume-k8s-release
     branch: master
-    private_key: {{smb-broker-k8s-github-deploy-key}}
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/smb-volume-k8s-release.git
+
+- name: smb-csi-driver
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:cloudfoundry/smb-csi-driver.git
+    private_key: {{smb-csi-driver-deploy-key}}
 
 - name: cf-for-k8s
   type: git
@@ -189,11 +197,36 @@ jobs:
 
 - name: smb-csi-driver-units
   plan:
-    - get: smb-volume-k8s-release
+    - get: smb-csi-driver
       trigger: true
     - task: run-test
       privileged: true
-      file: smb-volume-k8s-release/smb-csi-driver/ci/unit-tests.yml
+      file: smb-csi-driver/ci/unit-tests.yml
+
+- name: bump-csi-driver-submodule
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: smb-volume-k8s-release
+          - get: smb-csi-driver
+            passed:
+              - smb-csi-driver-units
+              - smb-csi-driver-e2e-tests
+              - smb-csi-driver-e2e-tests-kustomize
+            trigger: true
+    - task: bump-submodule
+      file: persi-ci/scripts/ci/bump_submodule.build.yml
+      input_mapping:
+        release-repo: smb-volume-k8s-release
+        submodule-repo: smb-csi-driver
+      params:
+        SUBMODULE_PATH: smb-csi-driver
+    - put: smb-volume-k8s-release
+      params:
+        repository: bumped-repo
+        rebase: true
 
 - name: integration-tests
   plan:
@@ -201,9 +234,7 @@ jobs:
       trigger: true
       passed:
         - smb-broker-unit-tests
-        - smb-csi-driver-units
-        - smb-csi-driver-e2e-tests
-        - smb-csi-driver-e2e-tests-kustomize
+        - bump-csi-driver-submodule
     - get: smb-broker-kpack-image
       passed:
         - smb-broker-unit-tests
@@ -217,7 +248,7 @@ jobs:
 
 - name: smb-csi-driver-e2e-tests
   plan:
-    - get: smb-volume-k8s-release
+    - get: smb-csi-driver
       trigger: true
     - in_parallel:
         fail_fast: true
@@ -227,17 +258,17 @@ jobs:
           privileged: true
           output_mapping:
             built-images: built-latest-images
-          file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
+          file: smb-csi-driver/ci/e2e-tests.yml
         - task: e2e-tests-1.16
           tags: [kind]
           privileged: true
           params:
             K8S_IMAGE: kindest/node:v1.16.4
-          file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
+          file: smb-csi-driver/ci/e2e-tests.yml
         - task: e2e-tests-1.15
           tags: [kind]
           privileged: true
-          file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
+          file: smb-csi-driver/ci/e2e-tests.yml
           params:
             K8S_IMAGE: kindest/node:v1.15.7
             VOLUME_MODE_SUITE: false
@@ -247,7 +278,7 @@ jobs:
 
 - name: smb-csi-driver-e2e-tests-kustomize
   plan:
-    - get: smb-volume-k8s-release
+    - get: smb-csi-driver
       trigger: true
     - in_parallel:
         fail_fast: true
@@ -255,7 +286,7 @@ jobs:
           - task: e2e-tests-latest
             tags: [kind]
             privileged: true
-            file: smb-volume-k8s-release/smb-csi-driver/ci/e2e-tests.yml
+            file: smb-csi-driver/ci/e2e-tests.yml
             params:
               USE_KUSTOMIZE: true
 
