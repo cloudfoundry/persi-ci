@@ -26,7 +26,7 @@ function write_config_to_file() {
 
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
-  "broker_password": "${BROKER_PASSWORD}"
+  "broker_password": "${BROKER_PASSWORD}",
   "plan_name": "${PLAN_NAME}",
   "service_name": "${SERVICE_NAME}",
 
