@@ -4,6 +4,10 @@ set -ex
 
 source "$(dirname $0)/helpers.sh"
 
+scripts_path="$(dirname "$0")"
+source "${scripts_path}/utils.sh"
+source "${VAR_RESOLVER_SCRIPT}"
+
 function validate_required_params() {
   # Required standard CATs config fields
   check_param APPS_DOMAIN
@@ -13,17 +17,6 @@ function validate_required_params() {
   # Required PATs config fields
   check_param PLAN_NAME
   check_param SERVICE_NAME
-}
-
-function set_cf_admin_password() {
-  if [ -z "$CF_ADMIN_PASSWORD" ]
-  then
-    set +x
-    source "${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
-    source bosh-env/set-env.sh
-    set -x
-    CF_ADMIN_PASSWORD=$(get_password_from_credhub cf_admin_password)
-  fi
 }
 
 function write_config_to_file() {
@@ -66,5 +59,7 @@ scripts_path="$(dirname "$0")"
 source "${scripts_path}/utils.sh"
 
 set_cf_admin_password
+set_cf_api_url
+set_apps_domain
 validate_required_params
 write_config_to_file

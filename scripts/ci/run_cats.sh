@@ -4,6 +4,9 @@ set -e
 
 . persi-ci/scripts/ci/bbl_get_bosh_env
 source bosh-env/set-env.sh
+export APPS_DOMAIN="${ENV}.cf-app.com"
+export CF_API_ENDPOINT="api.${ENV}.cf-app.com"
+export SYSTEM_DOMAIN="${ENV}.cf-app.com"
 
 cf_password=`credhub find -j -n cf_admin_password | jq -r .credentials[].name | xargs credhub get -j -n | jq -r .value`
 
