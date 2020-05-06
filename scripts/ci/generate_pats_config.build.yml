@@ -21,23 +21,19 @@ outputs:
 
 params:
   VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-  BBL_STATE_DIR:
-
-  APPS_DOMAIN: replace-me
-  CF_API_ENDPOINT: replace-me
   CF_USERNAME: admin
   BIND_BOGUS_CONFIG:
   BIND_CONFIG:
   BROKER_URL:
   BROKER_USER:
+  BROKER_PASSWORD:
   CREATE_BOGUS_CONFIG:
   CREATE_CONFIG:
   DEFAULT_TIMEOUT: 30
   DISALLOWED_LDAP_BIND_CONFIG:
   DISALLOWED_OVERRIDE_BIND_CONFIG:
-  PLAN_NAME: replace-me
-  SERVICE_NAME: replace-me
-  TEST_ISOLATION_SEGMENT:
+  PLAN_NAME: ~
+  SERVICE_NAME: ~
 
 run:
   path: persi-ci/scripts/ci/generate_pats_config.sh

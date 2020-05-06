@@ -1,23 +1,14 @@
 #!/usr/bin/env bash
 
-set -ex
+set -euo pipefail
+
+: "${VAR_RESOLVER_SCRIPT:?}"
+: "${CF_USERNAME:?}"
+: "${PLAN_NAME:?}"
+: "${SERVICE_NAME:?}"
 
 source "$(dirname $0)/helpers.sh"
-
-scripts_path="$(dirname "$0")"
-source "${scripts_path}/utils.sh"
 source "${VAR_RESOLVER_SCRIPT}"
-
-function validate_required_params() {
-  # Required standard CATs config fields
-  check_param APPS_DOMAIN
-  check_param CF_API_ENDPOINT
-  check_param CF_USERNAME
-
-  # Required PATs config fields
-  check_param PLAN_NAME
-  check_param SERVICE_NAME
-}
 
 function write_config_to_file() {
   # This config file contains fields from both the standard CATs config AND
@@ -36,7 +27,6 @@ function write_config_to_file() {
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
   "broker_password": "${BROKER_PASSWORD}"
-  "isolation_segment": "${TEST_ISOLATION_SEGMENT}",
   "plan_name": "${PLAN_NAME}",
   "service_name": "${SERVICE_NAME}",
 
@@ -50,11 +40,7 @@ function write_config_to_file() {
 EOF
 }
 
-scripts_path="$(dirname "$0")"
-source "${scripts_path}/utils.sh"
-
 set_cf_admin_password
 set_cf_api_url
 set_apps_domain
-validate_required_params
 write_config_to_file
