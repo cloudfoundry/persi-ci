@@ -11,13 +11,12 @@ inputs:
 - name: smith-env
   optional: true
 - name: persi-ci
-- name: bind-create-config
-  optional: true
 
 outputs:
 - name: pats-config
 
 params:
+  VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/pas_helpers.sh
   CF_USERNAME: admin
   BIND_BOGUS_CONFIG:
   BIND_CONFIG:
@@ -32,6 +31,7 @@ params:
   PLAN_NAME: replace-me
   SERVICE_NAME: replace-me
   TEST_ISOLATION_SEGMENT:
+  TOOLSMITHS_API_TOKEN:
 
 run:
-  path: persi-ci/scripts/ci/generate_pats_config_pas.sh
+  path: persi-ci/scripts/ci/generate_pats_config.sh
