@@ -34,4 +34,4 @@ params:
   SERVICE_NAME: replace-me
 
 run:
-  path: persi-ci/scripts/ci/generate_pats_config_cf4k8s.sh
+  path: persi-ci/scripts/ci/generate_pats_config.sh
