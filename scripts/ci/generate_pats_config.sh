@@ -35,6 +35,7 @@ function write_config_to_file() {
 
   "broker_url": "${BROKER_URL}",
   "broker_user": "${BROKER_USER}",
+  "broker_password": "${BROKER_PASSWORD}"
   "isolation_segment": "${TEST_ISOLATION_SEGMENT}",
   "plan_name": "${PLAN_NAME}",
   "service_name": "${SERVICE_NAME}",
@@ -47,12 +48,6 @@ function write_config_to_file() {
   "disallowed_override_bind_config": "${DISALLOWED_OVERRIDE_BIND_CONFIG}"
 }
 EOF
-
-  if [[ -n "${BROKER_PASSWORD_KEY}" ]]; then
-    broker_password="$(get_password_from_credhub "${BROKER_PASSWORD_KEY}")"
-    updated_config=$(jq ".broker_password=\"${broker_password}\"" "${CONFIG_FILE}")
-    echo "${updated_config}" > "${CONFIG_FILE}"
-  fi
 }
 
 scripts_path="$(dirname "$0")"

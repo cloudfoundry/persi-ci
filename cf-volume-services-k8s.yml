@@ -139,10 +139,10 @@ jobs:
       BROKER_URL: "http://smb-broker.cf-smb"
       BROKER_USER: "foo"
       BROKER_PASSWORD: "foo"
-      CREATE_CONFIG: "{\"share\":\"((smb_cats_remote_path))\",\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cert_password))\"}"
+      CREATE_CONFIG: '{\"share\":\"((smb_cats_remote_path))\",\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cert_password))\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: SMB
-      BIND_CONFIG: "[\"{}\"]"
+      BIND_CONFIG: '["{}"]'
     output_mapping:
       pats-config: smb-pats-config
   - task: run-pats-smb
