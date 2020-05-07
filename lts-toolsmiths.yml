@@ -326,8 +326,8 @@ jobs:
         params:
           CF_USERNAME: admin
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
-          CREATE_CONFIG: '{"share":"mysql.service.cf.internal/export/users"}'
-          DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+          CREATE_CONFIG: '{\"share\":\"mysql.service.cf.internal/export/users\"}'
+          DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
           PLAN_NAME: Existing
           SERVICE_NAME: nfs
           TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
@@ -367,8 +367,8 @@ jobs:
         params:
           CF_USERNAME: admin
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
-          CREATE_CONFIG: '{"share":"mysql.service.cf.internal/export/users"}'
-          DISALLOWED_LDAP_BIND_CONFIG: '{"uid":"1000","gid":"1000"}'
+          CREATE_CONFIG: '{\"share\":\"mysql.service.cf.internal/export/users\"}'
+          DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
           PLAN_NAME: Existing
           SERVICE_NAME: nfs-legacy
           TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
