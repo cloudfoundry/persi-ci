@@ -300,8 +300,6 @@ jobs:
                 -o persi-ci/operations/pas/nfs-ldap-pas-mixin.yml \
                 -o persi-ci/operations/pas/remove-paths-from-releases.yml
                 bosh run-errand nfsbrokerpush
-                smith cf-login
-                cf enable-feature-flag diego_docker
 
   - name: pats-nfs-ldap-ephemeral-environment
     on_failure: *on_failure_unclaim

@@ -169,8 +169,8 @@ resources:
 - name: cf-acceptance-tests
   type: git
   source:
-    branch: master
-    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
+    branch: vol-svc-enable-docker
+    uri: https://github.com/paulcwarren/cf-acceptance-tests.git
 
 - name: bbr-binary-release
   type: github-release
@@ -329,14 +329,6 @@ jobs:
                   operations/backup-and-restore/enable-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
                   operations/enable-smb-test-server-two.yml"
-  - task: enable-docker
-    attempts: 2
-    file: persi-ci/scripts/ci/set-feature-flags.build.yml
-    input_mapping:
-      toolsmiths-env: smith-env
-    params:
-      ENABLED_FEATURE_FLAGS: |
-        diego_docker
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
