@@ -521,7 +521,7 @@ jobs:
         file: persi-ci/scripts/ci/run-pats.build.yml
         attempts: 3
         params:
-          PARALLEL_NODES: 2
+          PARALLEL_NODES: 5
           TEST_MOUNT_FAIL_LOGGING: true
           TEST_MOUNT_OPTIONS: true
           TEST_MULTI_CELL: true
@@ -532,7 +532,7 @@ jobs:
         file: persi-ci/scripts/ci/run-pats.build.yml
         attempts: 3
         params:
-          PARALLEL_NODES: 2
+          PARALLEL_NODES: 5
           TEST_MOUNT_OPTIONS: false
           TEST_MOUNT_FAIL_LOGGING: true
           TEST_MULTI_CELL: true
