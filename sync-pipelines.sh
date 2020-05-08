@@ -28,6 +28,9 @@ jobs:
   - set_pipeline: ephemeral-diego
     file: persi-ci/ephemeral-diego.yml
     vars: *lastpass_creds
+  - set_pipeline: ephemeral-diego-smb
+    file: persi-ci/ephemeral-diego-smb.yml
+    vars: *lastpass_creds
   - set_pipeline: mapfs
     file: persi-ci/mapfs.yml
     vars: *lastpass_creds

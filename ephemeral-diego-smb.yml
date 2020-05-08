@@ -1,0 +1,485 @@
+shared_functions:
+- on_failure: &on_failure_unclaim
+    do:
+    - task: wait-1-hour
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: {repository: alpine}
+        run:
+          path: sleep
+          args: [ 3600 ]
+    - put: smith-env
+      params:
+        action: unclaim
+        env_file: smith-env/metadata
+      tags: [ toolsmiths-shared-vsphere ]
+- on_error: &on_error_unclaim
+    do:
+      - task: wait-1-hour
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: {repository: alpine}
+          run:
+            path: sleep
+            args: [ 3600 ]
+      - put: smith-env
+        params:
+          action: unclaim
+          env_file: smith-env/metadata
+        tags: [ toolsmiths-shared-vsphere ]
+
+resources:
+- name: smith-env
+  type: pcf-pool
+  source:
+    api_token: ((persi_toolsmiths_env_api_token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: cf-deployment
+  tags: [ toolsmiths-shared-vsphere ]
+
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci
+    branch: master
+
+- name: smb-volume-release
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/smb-volume-release.git
+    ignore_paths:
+      - scripts
+
+- name: smb-volume-version
+  type: semver
+  source:
+    access_key_id: {{smbvolume-uploader_aws_ID}}
+    bucket: smb-volume-release-versions
+    initial_version: 3.0.2
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: {{smbvolume-uploader_aws_secret}}
+
+- name: github-release-smb
+  type: github-release
+  source:
+    user: cloudfoundry
+    repository: smb-volume-release
+    drafts: true
+    access_token: {{github-release-token-smbvolumerelease}}
+
+- name: smb-volume-release-concourse-tasks
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/smb-volume-release.git
+
+- name: cf-deployment
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/cf-deployment.git
+
+- name: cf-deployment-concourse-tasks
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
+
+- name: cf-volume-services-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+
+- name: cf-acceptance-tests
+  type: git
+  source:
+    branch: vol-svc-enable-docker
+    uri: https://github.com/paulcwarren/cf-acceptance-tests.git
+
+- name: bbr-binary-release
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: bosh-backup-and-restore
+    access_token: {{github-release-token-bbr}}
+
+- name: disaster-recovery-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
+
+resource_types:
+- name: pcf-pool
+  type: docker-image
+  source:
+    repository: cftoolsmiths/toolsmiths-envs-resource
+
+jobs:
+- name: smb-volume-release-job-tests
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: smb-volume-release-concourse-tasks
+          - get: smb-volume-release
+            trigger: true
+    - task: rspec
+      file: persi-ci/scripts/ci/run-rspec.build.yml
+      input_mapping:
+        test-repo: smb-volume-release
+    - task: bosh-release-test
+      file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+      privileged: true
+      attempts: 3
+
+- name: claim-env
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: smb-volume-release
+        trigger: true
+        passed:
+          - smb-volume-release-job-tests
+  - put: smith-env
+    params:
+      action: claim
+    tags: [ toolsmiths-shared-vsphere ]
+  - task: output-env-details
+    file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+    input_mapping:
+      pooled-env: smith-env
+
+- name: deploy-cf
+  public: true
+  build_logs_to_retain: 100
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smith-env
+        tags: [ toolsmiths-shared-vsphere ]
+        passed: [ claim-env ]
+        trigger: true
+      - get: cf-deployment-concourse-tasks
+      - get: cf-deployment
+      - get: persi-ci
+      - get: smb-volume-release
+        passed: [ claim-env ]
+  - task: pin-cf-deployment-version
+    file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+  - task: collect-persi-ci-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment-pinned
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+      NEW_OPS_FILES: "operations/enable-smb-test-server-two.yml"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate_variables.build.yml
+    params:
+      GENERATE_NFS_VARS: false
+      GENERATE_SMB_VARS: true
+      SMB_USERNAME: {{smb_pats_username_two}}
+      SMB_PASSWORD: {{smb_pats_password_two}}
+  - task: bosh-deploy-cf
+    file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
+    input_mapping:
+      cf-deployment: cf-deployment-pinned
+      toolsmiths-env: smith-env
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+    params:
+      VARS_FILES: "smb-vars.yml"
+      OPS_FILES: "operations/use-compiled-releases.yml
+                  operations/scale-to-one-az.yml
+                  operations/test/enable-smb-test-server.yml
+                  operations/backup-and-restore/enable-backup-restore.yml
+                  operations/enable-smb-volume-service.yml
+                  operations/enable-smb-test-server-two.yml"
+  - task: run-smoke-tests
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smoke_tests
+  - task: run-smb-broker-errand
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smbbrokerpush
+      INSTANCE: smb-broker-push
+
+- name: cats
+  serial_groups:
+    - acceptance-tests
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: smb-volume-release
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: smith-env
+            tags: [ toolsmiths-shared-vsphere ]
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: persi-ci
+          - get: cf-acceptance-tests
+    - task: run-cats
+      file: persi-ci/scripts/ci/run_cats.build.yml
+      params:
+        CF_USERNAME: admin
+        SERVICE_NAME: smb
+        PLAN_NAME: Existing
+        CREATE_CONFIG: '{\"share\": \"((smb_cats_remote_path))\", \"username\": \"((smb_cats_username))\", \"password\": \"((smb_cats_password))\"}'
+
+- name: drats
+  serial: true
+  serial_groups:
+    - acceptance-tests
+#  on_failure: *on_failure_unclaim
+#  on_error: *on_error_unclaim
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: smb-volume-release
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: bbr-binary-release
+          - get: disaster-recovery-acceptance-tests
+          - get: persi-ci
+          - get: smith-env
+            tags: [ toolsmiths-shared-vsphere ]
+            passed: [ deploy-cf ]
+            trigger: true
+    - task: generate-integration-config
+      file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
+      params:
+        INTEGRATION_CONFIG_FILE_PATH: config/drats.json
+      input_mapping:
+        integration-configs: persi-ci
+
+    - task: drats-with-integration-config
+      file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
+      privileged: true
+      input_mapping:
+        drats-integration-config: updated-integration-configs
+      params:
+        CONFIG_FILE_PATH: config/drats.json
+    - task: add-timeout
+      config:
+        platform: linux
+        image_resource:
+          type:  docker-image
+          source:
+            repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+            tag: latest
+        inputs:
+          - name: updated-integration-configs
+        outputs:
+          - name: updated-integration-configs-timeout
+        run:
+          path: /bin/bash
+          args: ["-c", "mkdir -p updated-integration-configs-timeout/config && jq '.timeout_in_minutes=15' updated-integration-configs/config/drats.json > updated-integration-configs-timeout/config/drats.json"]
+    - task: acceptance-tests
+      file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
+      attempts: 3
+      privileged: true
+      input_mapping:
+        drats-integration-config: updated-integration-configs-timeout
+      params:
+        CONFIG_FILE_PATH: config/drats.json
+
+- name: pats
+  serial_groups:
+    - acceptance-tests
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-volume-services-acceptance-tests
+      - get: persi-ci
+      - get: smith-env
+        tags: [ toolsmiths-shared-vsphere ]
+        passed: [ deploy-cf ]
+        trigger: true
+      - get: smb-volume-release
+        passed: [ deploy-cf ]
+      - get: smb-volume-release-concourse-tasks
+        params:
+          submodules: none
+  - task: generate-pats-config-smb
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    params:
+      VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+      CF_USERNAME: admin
+      DISALLOWED_OVERRIDE_BIND_CONFIG: '{\"share\":\"//smbtestservertwo.service.cf.internal/vol2\"}'
+      CREATE_BOGUS_CONFIG: '{\"share\":\"//smb.bogus/export/nonexistensevol\"}'
+      PLAN_NAME: Existing
+      SERVICE_NAME: smb
+      CREATE_CONFIG: '{\"share\":\"((smb_cats_remote_path))\"}'
+      BIND_CONFIG: '["{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"1.0\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"2.0\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"2.1\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'
+    output_mapping:
+      pats-config: smb-pats-config
+  - task: run-pats-smb
+    input_mapping:
+      pats-config: smb-pats-config
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    attempts: 3
+    params:
+      PARALLEL_NODES: 5
+      TEST_MOUNT_OPTIONS: false
+      TEST_MOUNT_FAIL_LOGGING: true
+      TEST_MULTI_CELL: true
+      TEST_READ_ONLY: true
+
+- name: unclaim-env
+  plan:
+  - get: smith-env
+    tags: [ toolsmiths-shared-vsphere ]
+    passed:
+    - pats
+    trigger: true
+  - put: smith-env
+    params:
+      action: unclaim
+      env_file: smith-env/metadata
+    tags: [ toolsmiths-shared-vsphere ]
+
+- name: shipit-smb
+  serial_groups:
+    - smb-version
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: release
+            resource: smb-volume-release
+            passed:
+              - pats
+          - get: version
+            resource: smb-volume-version
+            params:
+              bump: final
+    - task: finalize-release
+      file: persi-ci/scripts/ci/finalize_release.build.yml
+      params:
+        BASE_RELEASE_NAME: smb-volume
+        GIT_USER: {{github-user}}
+        GIT_EMAIL: {{github-email}}
+        S3_ACCESS_KEY_ID: {{smbvolume-uploader_aws_ID}}
+        S3_ACCESS_KEY: {{smbvolume-uploader_aws_secret}}
+    - put: smb-volume-version
+      resource: smb-volume-version
+      params:
+        file: version/number
+    - task: generate-github-release
+      file: persi-ci/scripts/ci/generate_github_release.build.yml
+      params:
+        BASE_RELEASE_NAME: smb-volume
+    - put: smb-volume-release
+      params:
+        repository: finalized-release/release
+        tag: version/number
+        tag_prefix: v
+    - put: github-release-smb
+      params:
+        commitish: generated-release/commitish
+        name: generated-release/name
+        tag: generated-release/version
+        globs: []
+    - put: smb-volume-version
+      params:
+        bump: patch
+    - task: pipeline-success
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: johnajimenez/ubuntu-bash-jq-curl-git
+            tag: latest
+        inputs:
+          - name: smb-volume-release
+        run:
+          path: bash
+          args:
+            - -exc
+            - |
+              cd smb-volume-release
+              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/54a073c28e26614473035e9d13ba9866" | jq -r '.latest_git_sha')
+              git config --global core.pager cat
+              if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
+                true # all is well
+              else
+                echo "$LATEST_GIT_SHA missing, assuming the worst"
+                export LATEST_GIT_SHA=null
+              fi
+              export NEW_LATEST_GIT_SHA=$(git rev-parse HEAD)
+              if [ "$LATEST_GIT_SHA" == "null" ]; then
+                export STORY_IDS=($(git log -10 | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+              else
+                export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+              fi
+              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"54a073c28e26614473035e9d13ba9866", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
+              if [[ "$POST_STATUS" -ne 200 ]] ; then
+                exit $POST_STATUS
+              else
+                exit 0
+              fi
+
+- name: manual-bump-smb-patch
+  serial_groups:
+    - smb-version
+  plan:
+    - get: smb-volume-version
+      resource: smb-volume-version
+      params:
+        bump: final
+    - put: smb-volume-version
+      params:
+        bump: patch
+
+- name: manual-bump-smb-minor
+  serial_groups:
+    - smb-version
+  plan:
+    - get: smb-volume-version
+      resource: smb-volume-version
+      params:
+        bump: final
+    - put: smb-volume-version
+      params:
+        bump: minor
+
+- name: manual-bump-smb-major
+  serial_groups:
+    - smb-version
+  plan:
+    - get: smb-volume-version
+      resource: smb-volume-version
+      params:
+        bump: final
+    - put: smb-volume-version
+      params:
+        bump: major
