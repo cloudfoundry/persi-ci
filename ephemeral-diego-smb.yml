@@ -212,7 +212,7 @@ jobs:
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
-      GENERATE_NFS_VARS: false
+      GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: true
       SMB_USERNAME: {{smb_pats_username_two}}
       SMB_PASSWORD: {{smb_pats_password_two}}
@@ -224,11 +224,15 @@ jobs:
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
-      VARS_FILES: "smb-vars.yml"
+      VARS_FILES: "nfs-vars.yml smb-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
+                  operations/enable-nfs-volume-service.yml
+                  operations/enable-nfs-test-server-two.yml
+                  operations/test/enable-nfs-test-server.yml
                   operations/test/enable-smb-test-server.yml
                   operations/backup-and-restore/enable-backup-restore.yml
+                  operations/backup-and-restore/enable-restore-nfs-broker.yml
                   operations/enable-smb-volume-service.yml
                   operations/enable-smb-test-server-two.yml"
   - task: run-smoke-tests
