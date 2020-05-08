@@ -268,6 +268,29 @@ jobs:
     input_mapping:
       pooled-env: smith-env
 
+- name: claim-ldap-env
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: nfs-volume-release
+            trigger: true
+            passed:
+              - nfs-volume-release-job-tests
+          - get: mapfs-release
+            trigger: true
+            passed:
+              - mapfs-release-job-tests
+    - put: smith-env
+      params:
+        action: claim
+      tags: [ toolsmiths-shared-vsphere ]
+    - task: output-env-details
+      file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+      input_mapping:
+        pooled-env: smith-env
+
 - name: deploy-cf
   public: true
   build_logs_to_retain: 100
@@ -550,29 +573,17 @@ jobs:
       - get: smith-env
         tags: [ toolsmiths-shared-vsphere ]
         passed:
-        - pats-nfs-smb
-        - cats-nfs
-        - cats-smb
-        - drats-nfs-smb
+        - claim-ldap-env
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
       - get: persi-ci
       - get: nfs-volume-release
         passed:
-        - pats-nfs-smb
-        - cats-nfs
-        - drats-nfs-smb
+        - claim-ldap-env
       - get: mapfs-release
         passed:
-        - pats-nfs-smb
-#        - drats-nfs-smb
-#        - cats-nfs
-      - get: smb-volume-release
-        passed:
-        - pats-nfs-smb
-        - cats-smb
-        - drats-nfs-smb
+        - claim-ldap-env
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
@@ -633,13 +644,6 @@ jobs:
     params:
       ERRAND_NAME: nfsbrokerpush
       INSTANCE: nfs-broker-push
-  - task: run-smb-broker-errand
-    file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      toolsmiths-env: smith-env
-    params:
-      ERRAND_NAME: smbbrokerpush
-      INSTANCE: smb-broker-push
 
 - name: pats-nfs-ldap
   on_failure: *on_failure_unclaim
@@ -705,13 +709,26 @@ jobs:
   - get: smith-env
     tags: [ toolsmiths-shared-vsphere ]
     passed:
-    - pats-nfs-ldap
+    - pats-nfs-smb
     trigger: true
   - put: smith-env
     params:
       action: unclaim
       env_file: smith-env/metadata
     tags: [ toolsmiths-shared-vsphere ]
+
+- name: unclaim-ldap-env
+  plan:
+    - get: smith-env
+      tags: [ toolsmiths-shared-vsphere ]
+      passed:
+        - pats-nfs-ldap
+      trigger: true
+    - put: smith-env
+      params:
+        action: unclaim
+        env_file: smith-env/metadata
+      tags: [ toolsmiths-shared-vsphere ]
 
 - name: shipit-nfs
   serial_groups:
@@ -725,6 +742,7 @@ jobs:
             resource: nfs-volume-release
             passed:
               - pats-nfs-ldap
+              - pats-nfs-smb
           - get: version
             resource: nfsvolume-version
             params:
