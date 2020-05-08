@@ -55,6 +55,26 @@ resources:
     ignore_paths:
       - scripts
 
+- name: nfs-volume-release
+  type: git
+  source:
+    branch: master
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/nfs-volume-release.git
+    ignore_paths:
+      - scripts
+
+- name: mapfs-release
+  type: git
+  source:
+    branch: master
+    username: {{github-user}}
+    password: {{github-password}}
+    uri: https://github.com/cloudfoundry/mapfs-release.git
+    ignore_paths:
+      - scripts
+
 - name: smb-volume-version
   type: semver
   source:
@@ -175,6 +195,8 @@ jobs:
       - get: persi-ci
       - get: smb-volume-release
         passed: [ claim-env ]
+      - get: nfs-volume-release
+      - get: mapfs-release
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
