@@ -492,7 +492,7 @@ jobs:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
       CF_USERNAME: admin
       BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"3.0\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.1\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"version\": \"4.2\",\"mount\": \"/var/vcap/data/foo\"}"]'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}"]'
       CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       PLAN_NAME: Existing
@@ -509,7 +509,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: smb
       CREATE_CONFIG: '{\"share\":\"((smb_cats_remote_path))\"}'
-      BIND_CONFIG: '["{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'
+      BIND_CONFIG: '["{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"1.0\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"2.0\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"2.1\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'
     output_mapping:
       pats-config: smb-pats-config
   - in_parallel:
