@@ -208,7 +208,8 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-smb-test-server-two.yml"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml
+                      operations/enable-smb-test-server-two.yml"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
