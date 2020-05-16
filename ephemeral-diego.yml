@@ -574,6 +574,8 @@ jobs:
     tags: [ toolsmiths-shared-vsphere ]
     passed:
     - pats
+    - drats
+    - cats-nfs
     trigger: true
   - put: smith-env
     params:
