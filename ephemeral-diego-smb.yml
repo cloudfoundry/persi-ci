@@ -310,29 +310,6 @@ jobs:
         drats-integration-config: updated-integration-configs
       params:
         CONFIG_FILE_PATH: config/drats.json
-    - task: add-timeout
-      config:
-        platform: linux
-        image_resource:
-          type:  docker-image
-          source:
-            repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
-            tag: latest
-        inputs:
-          - name: updated-integration-configs
-        outputs:
-          - name: updated-integration-configs-timeout
-        run:
-          path: /bin/bash
-          args: ["-c", "mkdir -p updated-integration-configs-timeout/config && jq '.timeout_in_minutes=15' updated-integration-configs/config/drats.json > updated-integration-configs-timeout/config/drats.json"]
-    - task: acceptance-tests
-      file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
-      attempts: 3
-      privileged: true
-      input_mapping:
-        drats-integration-config: updated-integration-configs-timeout
-      params:
-        CONFIG_FILE_PATH: config/drats.json
 
 - name: pats
   serial_groups:
