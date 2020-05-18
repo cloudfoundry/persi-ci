@@ -269,7 +269,6 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
@@ -288,7 +287,6 @@ jobs:
                   operations/scale-to-one-az.yml
                   operations/enable-nfs-volume-service.yml
                   updated-nfs-releases.yml
-                  operations/enable-nfs-test-server-two.yml
                   operations/test/enable-nfs-test-server.yml
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/backup-and-restore/enable-restore-nfs-broker.yml"
@@ -444,7 +442,6 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
@@ -469,12 +466,9 @@ jobs:
                   operations/scale-to-one-az.yml
                   operations/enable-nfs-volume-service.yml
                   updated-nfs-releases.yml
-                  operations/enable-nfs-test-server-two.yml
                   operations/enable-nfs-ldap.yml
                   operations/test/enable-nfs-test-server.yml
-                  operations/test/enable-nfs-test-ldapserver.yml
-                  operations/backup-and-restore/enable-backup-restore.yml
-                  operations/backup-and-restore/enable-restore-nfs-broker.yml"
+                  operations/test/enable-nfs-test-ldapserver.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
