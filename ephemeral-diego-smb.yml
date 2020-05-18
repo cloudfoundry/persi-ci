@@ -209,7 +209,8 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/enable-smb-volume-service.yml
                   updated-smb-releases.yml
-                  operations/enable-smb-test-server-two.yml"
+                  operations/enable-smb-test-server-two.yml
+                  operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:

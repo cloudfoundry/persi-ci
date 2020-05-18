@@ -289,7 +289,8 @@ jobs:
                   updated-nfs-releases.yml
                   operations/test/enable-nfs-test-server.yml
                   operations/backup-and-restore/enable-backup-restore.yml
-                  operations/backup-and-restore/enable-restore-nfs-broker.yml"
+                  operations/backup-and-restore/enable-restore-nfs-broker.yml
+                  operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -468,7 +469,8 @@ jobs:
                   updated-nfs-releases.yml
                   operations/enable-nfs-ldap.yml
                   operations/test/enable-nfs-test-server.yml
-                  operations/test/enable-nfs-test-ldapserver.yml"
+                  operations/test/enable-nfs-test-ldapserver.yml
+                  operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
