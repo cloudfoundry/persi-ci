@@ -82,14 +82,6 @@ resources:
     password: {{github-password}}
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
 
-- name: smb-volume-release
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry/smb-volume-release.git
-    ignore_paths:
-      - scripts
-
 - name: mapfs-release
   type: git
   source:
@@ -266,7 +258,6 @@ jobs:
         passed: [ claim-env ]
       - get: mapfs-release
         passed: [ claim-env ]
-      - get: smb-volume-release
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
@@ -278,15 +269,12 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml
-                      operations/enable-smb-test-server-two.yml"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
       GENERATE_NFS_VARS: true
-      GENERATE_SMB_VARS: true
-      SMB_USERNAME: {{smb_pats_username_two}}
-      SMB_PASSWORD: {{smb_pats_password_two}}
+      GENERATE_SMB_VARS: false
   - task: bosh-deploy-cf
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
@@ -295,17 +283,15 @@ jobs:
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
-      VARS_FILES: "nfs-vars.yml smb-vars.yml"
+      VARS_FILES: "nfs-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
                   operations/enable-nfs-volume-service.yml
+                  updated-nfs-releases.yml
                   operations/enable-nfs-test-server-two.yml
                   operations/test/enable-nfs-test-server.yml
-                  operations/test/enable-smb-test-server.yml
                   operations/backup-and-restore/enable-backup-restore.yml
-                  operations/backup-and-restore/enable-restore-nfs-broker.yml
-                  operations/enable-smb-volume-service.yml
-                  operations/enable-smb-test-server-two.yml"
+                  operations/backup-and-restore/enable-restore-nfs-broker.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
@@ -447,7 +433,6 @@ jobs:
       - get: mapfs-release
         passed:
         - claim-ldap-env
-      - get: smb-volume-release
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
@@ -459,15 +444,12 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml
-                      operations/enable-smb-test-server-two.yml"
+      NEW_OPS_FILES: "operations/enable-nfs-test-server-two.yml"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
       GENERATE_NFS_VARS: true
-      GENERATE_SMB_VARS: true
-      SMB_USERNAME: {{smb_pats_username_two}}
-      SMB_PASSWORD: {{smb_pats_password_two}}
+      GENERATE_SMB_VARS: false
       LDAP_HOST: "nfstestldapserver.service.cf.internal"
       LDAP_SVC_USER: "cn=admin,dc=domain,dc=com"
       LDAP_SVC_PASS: "secret"
@@ -482,7 +464,7 @@ jobs:
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
-      VARS_FILES: "nfs-vars.yml smb-vars.yml"
+      VARS_FILES: "nfs-vars.yml"
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
                   operations/enable-nfs-volume-service.yml
@@ -490,11 +472,8 @@ jobs:
                   operations/enable-nfs-ldap.yml
                   operations/test/enable-nfs-test-server.yml
                   operations/test/enable-nfs-test-ldapserver.yml
-                  operations/test/enable-smb-test-server.yml
                   operations/backup-and-restore/enable-backup-restore.yml
-                  operations/backup-and-restore/enable-restore-nfs-broker.yml
-                  operations/enable-smb-volume-service.yml
-                  operations/enable-smb-test-server-two.yml"
+                  operations/backup-and-restore/enable-restore-nfs-broker.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
