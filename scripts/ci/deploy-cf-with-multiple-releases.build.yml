@@ -20,9 +20,11 @@ inputs:
   optional: true
 - name: cf-deployment-concourse-tasks  # - This repo
 - name: nfs-volume-release
+  optional: true
 - name: mapfs-release
+  optional: true
 - name: smb-volume-release
-
+  optional: true
 run:
   path: persi-ci/scripts/ci/deploy-cf-with-multiple-releases
 
