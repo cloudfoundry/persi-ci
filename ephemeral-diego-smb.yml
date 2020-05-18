@@ -299,7 +299,7 @@ jobs:
     - task: generate-integration-config
       file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
       params:
-        INTEGRATION_CONFIG_FILE_PATH: config/drats.json
+        INTEGRATION_CONFIG_FILE_PATH: config/drats-smb.json
       input_mapping:
         integration-configs: persi-ci
 
@@ -309,7 +309,7 @@ jobs:
       input_mapping:
         drats-integration-config: updated-integration-configs
       params:
-        CONFIG_FILE_PATH: config/drats.json
+        CONFIG_FILE_PATH: config/drats-smb.json
 
 - name: pats
   serial_groups:
