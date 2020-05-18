@@ -468,6 +468,7 @@ jobs:
       OPS_FILES: "operations/use-compiled-releases.yml
                   operations/scale-to-one-az.yml
                   operations/enable-nfs-volume-service.yml
+                  updated-nfs-releases.yml
                   operations/enable-nfs-test-server-two.yml
                   operations/enable-nfs-ldap.yml
                   operations/test/enable-nfs-test-server.yml
