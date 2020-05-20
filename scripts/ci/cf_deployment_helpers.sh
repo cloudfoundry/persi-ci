@@ -5,7 +5,7 @@ function set_cf_admin_password() {
 }
 
 function set_cf_api_url() {
-    export CF_ADMIN_PASSWORD=$(cat smith-env/metadata | jq -r '.cf.api_url')
+    export CF_API_ENDPOINT=$(cat smith-env/metadata | jq -r '.cf.api_url')
 }
 
 function set_apps_domain() {
