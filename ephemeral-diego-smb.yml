@@ -307,6 +307,7 @@ jobs:
         params:
           submodules: none
   - task: generate-pats-config-smb
+    tags: [ toolsmiths-shared-vsphere ]
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh

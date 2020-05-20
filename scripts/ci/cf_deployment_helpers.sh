@@ -1,23 +1,14 @@
 function set_cf_admin_password() {
-    set +x
-    source "${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
-    source bosh-env/set-env.sh
-    set -x
-    export CF_ADMIN_PASSWORD=$(get_password_from_credhub cf_admin_password)
+    BOSH_ENV_NAME=$(cat smith-env/name)
+    eval "$(smith -e $BOSH_ENV_NAME bosh)"
+    export CF_ADMIN_PASSWORD=$(credhub find -j -n "cf_admin_password" | jq -r '.credentials[].name' | xargs credhub get -j -n | jq -r '.value')
 }
 
 function set_cf_api_url() {
-    set +x
-    source "${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
-    source bosh-env/set-env.sh
-    set -x
-    export CF_API_ENDPOINT="api.${ENV}.cf-app.com"
+    export CF_ADMIN_PASSWORD=$(cat smith-env/metadata | jq -r '.cf.api_url')
 }
 
 function set_apps_domain() {
-    set +x
-    source "${PWD}/persi-ci/scripts/ci/bbl_get_bosh_env"
-    source bosh-env/set-env.sh
-    set -x
-    export APPS_DOMAIN="${ENV}.cf-app.com"
+    BOSH_ENV_NAME=$(cat smith-env/name)
+    export APPS_DOMAIN="${BOSH_ENV_NAME}.cf-app.com"
 }

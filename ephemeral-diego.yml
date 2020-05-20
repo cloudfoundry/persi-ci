@@ -385,6 +385,7 @@ jobs:
       - get: mapfs-release
         passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
+    tags: [ toolsmiths-shared-vsphere ]
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
@@ -519,6 +520,7 @@ jobs:
         output_mapping:
           pats-config: nfs-legacy-pats-config
       - task: generate-pats-config
+        tags: [ toolsmiths-shared-vsphere ]
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
