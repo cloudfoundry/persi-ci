@@ -19,6 +19,8 @@ params:
   CF_USERNAME: admin
   PLAN_NAME: ~
   SERVICE_NAME: ~
+  CREATE_CONFIG:
+  BIND_CONFIG:
 
 run:
   path: persi-ci/scripts/ci/generate_cats_config.sh
