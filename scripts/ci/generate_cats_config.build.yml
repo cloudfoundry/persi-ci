@@ -21,4 +21,4 @@ params:
   SERVICE_NAME: ~
 
 run:
-  path: persi-ci/scripts/ci/generate_pats_config.sh
+  path: persi-ci/scripts/ci/generate_cats_config.sh
