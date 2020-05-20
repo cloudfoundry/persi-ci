@@ -298,6 +298,7 @@ jobs:
     params:
       ERRAND_NAME: smoke_tests
   - task: run-nfs-broker-errand
+    attempts: 3
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: smith-env
@@ -479,6 +480,7 @@ jobs:
     params:
       ERRAND_NAME: smoke_tests
   - task: run-nfs-broker-errand
+    attempts: 3
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: smith-env
