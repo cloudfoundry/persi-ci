@@ -324,12 +324,22 @@ jobs:
             trigger: true
           - get: persi-ci
           - get: cf-acceptance-tests
-    - task: run-cats
-      file: persi-ci/scripts/ci/run_cats.build.yml
+          - get: cf-deployment-concourse-tasks
+    - task: generate-cats-config
+      file: persi-ci/scripts/ci/generate_cats_config.build.yml
+      tags: [ toolsmiths-shared-vsphere ]
       params:
+        VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
         CF_USERNAME: admin
         SERVICE_NAME: nfs
         PLAN_NAME: Existing
+        TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+    - task: run-cats
+      file: cf-deployment-concourse-tasks/run-cats/task.yml
+      input_mapping:
+        integration-config: cats-config
+      params:
+        CONFIG_FILE_PATH: cats.json
 
 - name: drats
   serial: true
