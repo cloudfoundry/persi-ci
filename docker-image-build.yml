@@ -27,6 +27,13 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
+- name: smith-cli-docker-image
+  type: docker-image
+  source:
+    repository: cfpersi/smith-cli
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 - name: nfs-driver-integration-tests-docker-image
   type: docker-image
   source:
@@ -222,3 +229,33 @@ jobs:
     - put: smb-k8s-pats-docker-image
       params:
         build: smb-volume-k8s-release/ci/dockerfiles/pats/
+
+- name: build-smith-cli-docker-image
+  plan:
+    - get: nightly
+      trigger: true
+    - get: persi-ci
+    - task: get-smith-binary
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: {repository: relintdockerhubpushbot/cf-deployment-concourse-tasks}
+        params:
+          GITHUB_USER: ((github-user))
+          GITHUB_PASSWORD: ((github-password)) 
+        outputs:
+          - name: smith-cli-binary
+        run:
+          path: /bin/bash
+          args:
+            - -ec
+            - |
+               DOWNLOAD_URL=$(curl -u "${GITHUB_USER}:${GITHUB_PASSWORD}" -s "https://api.github.com/repos/pivotal/smith/releases/latest" | jq -r '.assets[] | select(.name == "smith_linux_amd64.tar.gz") | .url')
+               echo $DOWNLOAD_URL
+               curl -LJOH 'Accept: application/octet-stream' -u "${GITHUB_USER}:${GITHUB_PASSWORD}" $DOWNLOAD_URL
+               cp smith_linux_amd64.tar.gz smith-cli-binary
+    - put: smith-cli-docker-image
+      params:
+        build: smith-cli-binary
+        dockerfile: persi-ci/dockerfiles/smith-cli/Dockerfile
