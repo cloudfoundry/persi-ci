@@ -322,6 +322,7 @@ jobs:
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+      TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
       CF_USERNAME: admin
       DISALLOWED_OVERRIDE_BIND_CONFIG: '{\"share\":\"//smbtestservertwo.service.cf.internal/vol2\"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"//smb.bogus/export/nonexistensevol\"}'
