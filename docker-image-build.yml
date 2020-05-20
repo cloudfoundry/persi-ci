@@ -242,8 +242,7 @@ jobs:
           type: docker-image
           source: {repository: relintdockerhubpushbot/cf-deployment-concourse-tasks}
         params:
-          GITHUB_USER: ((github-user))
-          GITHUB_PASSWORD: ((github-password)) 
+          GITHUB_TOKEN: ((github-smith-repo-token))
         outputs:
           - name: smith-cli-binary
         run:
@@ -251,9 +250,9 @@ jobs:
           args:
             - -ec
             - |
-               DOWNLOAD_URL=$(curl -u "${GITHUB_USER}:${GITHUB_PASSWORD}" -s "https://api.github.com/repos/pivotal/smith/releases/latest" | jq -r '.assets[] | select(.name == "smith_linux_amd64.tar.gz") | .url')
+               DOWNLOAD_URL=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s "https://api.github.com/repos/pivotal/smith/releases/latest" | jq -r '.assets[] | select(.name == "smith_linux_amd64.tar.gz") | .url')
                echo $DOWNLOAD_URL
-               curl -LJOH 'Accept: application/octet-stream' -u "${GITHUB_USER}:${GITHUB_PASSWORD}" $DOWNLOAD_URL
+               curl -LJOH 'Accept: application/octet-stream' -H "Authorization: token ${GITHUB_TOKEN}" $DOWNLOAD_URL
                cp smith_linux_amd64.tar.gz smith-cli-binary
     - put: smith-cli-docker-image
       params:
