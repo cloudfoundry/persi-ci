@@ -116,6 +116,20 @@ resources:
       drafts: true
       access_token: {{github-release-token-nfsvolumerelease}}
 
+  - name: releng-kiln-concourse-tasks
+    type: git
+    source:
+      uri: git@github.com:pivotal/releng-kiln-concourse-tasks.git
+      private_key: {{releng-kiln-deploy-key}}
+
+  - name: p-runtime
+    type: git
+    source:
+      uri: git@github.com:pivotal-cf/p-runtime.git
+      branch: master
+      private_key: {{p-runtime-deploy-key}}
+      paths:
+        - Kilnfile
 
 resource_types:
   - name: pcf-pool
@@ -456,3 +470,48 @@ jobs:
       - put: nfsvolume-version
         params:
           bump: patch
+
+  - name: upload-tarball-to-releng
+    plan:
+      - in_parallel:
+          fail_fast: true
+          steps:
+            - get: persi-ci
+            - get: nfs-volume-release
+              trigger: true
+              passed:
+              - shipit-nfs 
+            - get: nfsvolume-version
+            - get: releng-kiln-concourse-tasks
+            - get: p-runtime
+      - task: create-tarball
+        input_mapping:
+          release: nfs-volume-release
+          version: nfsvolume-version
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: {repository: relintdockerhubpushbot/cf-deployment-concourse-tasks}
+          inputs:
+          - name: pool-lock
+          - name: release
+          - name: version
+          outputs:
+          - name: release-tarball-directory
+          params:
+            BASE_RELEASE_NAME: nfs-volume
+          run:
+            path: /bin/bash
+            args:
+            - -ec
+            - |
+              FINAL_RELEASE_VERSION="$(cat "${VERSION}/number")"
+              pushd release
+                bosh -n create-release --final --version="${FINAL_RELEASE_VERSION}" --tarball="release-tarball-directory/nfs-volume-release-${FINAL_RELEASE_VERSION}"
+              popd
+      - task: upload-release-to-releng
+        file: releng-kiln-concourse-tasks/tasks/upload-release/task.yml
+        params:
+          AWS_ACCESS_KEY_ID: ((access_kiln_fetch_aws_access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((access_kiln_fetch_aws_secret_access_key))
