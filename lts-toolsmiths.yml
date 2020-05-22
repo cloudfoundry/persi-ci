@@ -120,14 +120,14 @@ resources:
     type: git
     source:
       uri: git@github.com:pivotal/releng-kiln-concourse-tasks.git
-      private_key: {{releng-kiln-deploy-key}}
+      private_key: ((releng-kiln-concourse-tasks-deploy-key))
 
   - name: p-runtime
     type: git
     source:
       uri: git@github.com:pivotal-cf/p-runtime.git
       branch: master
-      private_key: {{p-runtime-deploy-key}}
+      private_key: ((p-runtime-deploy-key))
       paths:
         - Kilnfile
 
@@ -484,6 +484,7 @@ jobs:
             - get: nfsvolume-version
             - get: releng-kiln-concourse-tasks
             - get: p-runtime
+              params: { submodules: none }
       - task: create-tarball
         input_mapping:
           release: nfs-volume-release
@@ -494,7 +495,6 @@ jobs:
             type: docker-image
             source: {repository: relintdockerhubpushbot/cf-deployment-concourse-tasks}
           inputs:
-          - name: pool-lock
           - name: release
           - name: version
           outputs:
@@ -506,9 +506,9 @@ jobs:
             args:
             - -ec
             - |
-              FINAL_RELEASE_VERSION="$(cat "${VERSION}/number")"
+              FINAL_RELEASE_VERSION="$(cat "version/number")"
               pushd release
-                bosh -n create-release --final --version="${FINAL_RELEASE_VERSION}" --tarball="release-tarball-directory/nfs-volume-release-${FINAL_RELEASE_VERSION}"
+                bosh -n create-release --final --version="${FINAL_RELEASE_VERSION}" --tarball="../release-tarball-directory/nfs-volume-release-${FINAL_RELEASE_VERSION}.tgz"
               popd
       - task: upload-release-to-releng
         file: releng-kiln-concourse-tasks/tasks/upload-release/task.yml
