@@ -98,8 +98,8 @@ resources:
 - name: cf-acceptance-tests
   type: git
   source:
-    branch: vol-svc-enable-docker
-    uri: https://github.com/paulcwarren/cf-acceptance-tests.git
+    branch: master
+    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
 
 - name: bbr-binary-release
   type: github-release
