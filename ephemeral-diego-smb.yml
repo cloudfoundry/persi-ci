@@ -186,7 +186,6 @@ jobs:
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
-      NEW_OPS_FILES: "operations/enable-smb-test-server-two.yml"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
     params:
@@ -209,7 +208,6 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/enable-smb-volume-service.yml
                   updated-smb-releases.yml
-                  operations/enable-smb-test-server-two.yml
                   operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
@@ -324,7 +322,7 @@ jobs:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
       TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
       CF_USERNAME: admin
-      DISALLOWED_OVERRIDE_BIND_CONFIG: '{\"share\":\"//smbtestservertwo.service.cf.internal/vol2\"}'
+      DISALLOWED_OVERRIDE_BIND_CONFIG: '{\"share\":\"//smbtestserver.service.cf.internal/export/vol2\"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"//smb.bogus/export/nonexistensevol\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: smb
