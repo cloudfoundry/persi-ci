@@ -33,6 +33,13 @@ shared_functions:
         tags: [ toolsmiths-shared-vsphere ]
 
 resources:
+- name: nightly
+  type: time
+  source:
+    start: 2:00 AM
+    stop: 3:00 AM
+    location: America/Los_Angeles
+
 - name: smith-env
   type: pcf-pool
   source:
@@ -143,9 +150,10 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
+      - get: nightly
+        trigger: true
       - get: persi-ci
       - get: smb-volume-release
-        trigger: true
         passed:
           - smb-volume-release-job-tests
   - put: smith-env
