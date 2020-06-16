@@ -33,6 +33,12 @@ shared_functions:
         tags: [ toolsmiths-shared-vsphere ]
 
 resources:
+- name: every-hour
+  type: time
+  icon: clock-outline
+  source:
+    interval: 1h
+
 - name: smith-env
   type: pcf-pool
   source:
@@ -192,6 +198,20 @@ jobs:
       privileged: true
       timeout: 1h
 
+- name: env-gate
+  plan:
+  - in_parallel:
+    fail_fast: true
+    steps:
+    - get: nfs-volume-release
+      passed:
+      - nfs-volume-release-job-tests
+    - get: mapfs-release
+      passed:
+      - mapfs-release-job-tests
+    - get: every-hour
+      trigger: true
+
 - name: claim-env
   plan:
   - in_parallel:
@@ -201,11 +221,11 @@ jobs:
       - get: nfs-volume-release
         trigger: true
         passed:
-          - nfs-volume-release-job-tests
+          - env-gate
       - get: mapfs-release
         trigger: true
         passed:
-          - mapfs-release-job-tests
+          - env-gate
   - put: smith-env
     params:
       action: claim
@@ -224,11 +244,11 @@ jobs:
           - get: nfs-volume-release
             trigger: true
             passed:
-              - nfs-volume-release-job-tests
+              - env-gate
           - get: mapfs-release
             trigger: true
             passed:
-              - mapfs-release-job-tests
+              - env-gate
     - put: smith-env
       params:
         action: claim
