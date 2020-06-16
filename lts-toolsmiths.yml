@@ -438,6 +438,9 @@ jobs:
             - get: nfsvolume-version
               params:
                 bump: final
+            - get: releng-kiln-concourse-tasks
+            - get: p-runtime
+              params: { submodules: none }
       - task: finalize-release
         file: persi-ci/scripts/ci/finalize_release.build.yml
         params:
@@ -467,24 +470,6 @@ jobs:
           name: generated-release/name
           tag: generated-release/version
           globs: []
-      - put: nfsvolume-version
-        params:
-          bump: patch
-
-  - name: upload-tarball-to-releng
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: persi-ci
-            - get: nfs-volume-release
-              trigger: true
-              passed:
-              - shipit-nfs 
-            - get: nfsvolume-version
-            - get: releng-kiln-concourse-tasks
-            - get: p-runtime
-              params: { submodules: none }
       - task: create-tarball
         input_mapping:
           release: nfs-volume-release
@@ -508,10 +493,13 @@ jobs:
             - |
               FINAL_RELEASE_VERSION="$(cat "version/number")"
               pushd release
-                bosh -n create-release --final --version="${FINAL_RELEASE_VERSION}" --tarball="../release-tarball-directory/nfs-volume-release-${FINAL_RELEASE_VERSION}.tgz"
+                bosh -n create-release "releases/nfs-volume/nfs-volume-${FINAL_RELEASE_VERSION}.yml" --tarball="../release-tarball-directory/nfs-volume-release-${FINAL_RELEASE_VERSION}.tgz"
               popd
       - task: upload-release-to-releng
         file: releng-kiln-concourse-tasks/tasks/upload-release/task.yml
         params:
           AWS_ACCESS_KEY_ID: ((access_kiln_fetch_aws_access_key_id))
           AWS_SECRET_ACCESS_KEY: ((access_kiln_fetch_aws_secret_access_key))
+      - put: nfsvolume-version
+        params:
+          bump: patch
