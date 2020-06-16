@@ -57,6 +57,8 @@ resources:
   type: git
   source:
     branch: master
+    username: {{github-user}}
+    password: {{github-password}}
     uri: https://github.com/cloudfoundry/smb-volume-release.git
     ignore_paths:
       - scripts
