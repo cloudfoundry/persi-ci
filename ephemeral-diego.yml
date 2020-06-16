@@ -201,16 +201,16 @@ jobs:
 - name: env-gate
   plan:
   - in_parallel:
-    fail_fast: true
-    steps:
-    - get: nfs-volume-release
-      passed:
-      - nfs-volume-release-job-tests
-    - get: mapfs-release
-      passed:
-      - mapfs-release-job-tests
-    - get: every-hour
-      trigger: true
+      fail_fast: true
+      steps:
+      - get: nfs-volume-release
+        passed:
+        - nfs-volume-release-job-tests
+      - get: mapfs-release
+        passed:
+        - mapfs-release-job-tests
+      - get: every-hour
+        trigger: true
 
 - name: claim-env
   plan:

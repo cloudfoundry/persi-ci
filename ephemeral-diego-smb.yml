@@ -147,13 +147,13 @@ jobs:
 - name: env-gate
   plan:
   - in_parallel:
-    fail_fast: true
-    steps:
-    - get: smb-volume-release
-      passed:
-      - smb-volume-release-job-tests
-    - get: every-hour
-      trigger: true
+      fail_fast: true
+      steps:
+      - get: smb-volume-release
+        passed:
+        - smb-volume-release-job-tests
+      - get: every-hour
+        trigger: true
 
 - name: claim-env
   plan:
