@@ -9,7 +9,7 @@ shared_functions:
               source: {repository: alpine}
             run:
               path: sleep
-              args: [ 3600 ]
+              args: [ "3600" ]
         - task: destroy-cluster
           file: smb-volume-k8s-release/ci/destroy-cluster.yml
           params:

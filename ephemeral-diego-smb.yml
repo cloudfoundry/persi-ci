@@ -9,7 +9,7 @@ shared_functions:
           source: {repository: alpine}
         run:
           path: sleep
-          args: [ 3600 ]
+          args: [ "3600" ]
     - put: smith-env
       params:
         action: unclaim
@@ -25,7 +25,7 @@ shared_functions:
             source: {repository: alpine}
           run:
             path: sleep
-            args: [ 3600 ]
+            args: [ "3600" ]
       - put: smith-env
         params:
           action: unclaim
