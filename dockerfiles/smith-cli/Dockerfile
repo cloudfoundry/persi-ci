@@ -1,4 +1,4 @@
-FROM relintdockerhubpushbot/cf-deployment-concourse-tasks
+FROM harbor-repo.vmware.com/dockerhub-proxy-cache/relintdockerhubpushbot/cf-deployment-concourse-tasks
 
 RUN echo "installing smith"
 COPY smith_linux_amd64.tar.gz /tmp/smith_linux_amd64.tar.gz

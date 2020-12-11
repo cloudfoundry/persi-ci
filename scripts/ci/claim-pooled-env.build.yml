@@ -3,7 +3,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: alpine
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/alpine
 
 inputs:
 - name: pooled-env

@@ -16,77 +16,77 @@ resources:
 - name: fork-git-resource-docker-image
   type: docker-image
   source:
-    repository: cfpersi/fork-git-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/fork-git-resource
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: mapfs-tests-docker-image
   type: docker-image
   source:
-    repository: cfpersi/mapfs-tests
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/mapfs-tests
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: smith-cli-docker-image
   type: docker-image
   source:
-    repository: cfpersi/smith-cli
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/smith-cli
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: nfs-driver-integration-tests-docker-image
   type: docker-image
   source:
-    repository: cfpersi/nfs-integration-tests
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-integration-tests
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: bosh-release-test-docker-image
   type: docker-image
   source:
-    repository: cfpersi/bosh-release-tests
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/bosh-release-tests
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: nfs-unit-tests-docker-image
   type: docker-image
   source:
-    repository: cfpersi/nfs-unit-tests
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: smb-unit-tests-docker-image
   type: docker-image
   source:
-    repository: cfpersi/smb-unit-tests
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/smb-unit-tests
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: nfs-cats-docker-image
   type: docker-image
   source:
-    repository: cfpersi/nfs-cats
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-cats
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: smb-k8s-pats-docker-image
   type: docker-image
   source:
-    repository: cfpersi/smb-k8s-pats
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/smb-k8s-pats
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: smb-k8s-kind-tests-docker-image
   type: docker-image
   source:
-    repository: cfpersi/smb-k8s-kind-tests
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/smb-k8s-kind-tests
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: cnb-cifs-run-stack-docker-image
   type: docker-image
   source:
-    repository: cfpersi/cnb-cifs-run-stack
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/cnb-cifs-run-stack
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
@@ -240,7 +240,7 @@ jobs:
         platform: linux
         image_resource:
           type: docker-image
-          source: {repository: relintdockerhubpushbot/cf-deployment-concourse-tasks}
+          source: {repository: harbor-repo.vmware.com/dockerhub-proxy-cache/relintdockerhubpushbot/cf-deployment-concourse-tasks}
         params:
           GITHUB_TOKEN: ((github-smith-repo-token))
         outputs:

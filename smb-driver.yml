@@ -2,7 +2,7 @@ resource_types:
   - name: go-mod-vendor-tidy-git
     type: docker-image
     source:
-      repository: cfpersi/fork-git-resource
+      repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/fork-git-resource
       tag: latest
 
 resources:

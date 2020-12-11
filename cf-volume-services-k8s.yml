@@ -6,7 +6,7 @@ shared_functions:
             platform: linux
             image_resource:
               type: docker-image
-              source: {repository: alpine}
+              source: {repository: harbor-repo.vmware.com/dockerhub-proxy-cache/alpine}
             run:
               path: sleep
               args: [ "3600" ]
@@ -81,14 +81,14 @@ resources:
 - name: smb-broker-docker-image
   type: docker-image
   source:
-    repository: cfpersi/smb-broker
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/smb-broker
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
 - name: smb-csi-driver-docker-image
   type: docker-image
   source:
-    repository: cfpersi/smb-csi-driver
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/smb-csi-driver
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
@@ -396,7 +396,7 @@ jobs:
         image_resource:
           type: docker-image
           source:
-            repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+            repository: harbor-repo.vmware.com/dockerhub-proxy-cache/relintdockerhubpushbot/cf-deployment-concourse-tasks
         run:
           path: bash
           args:
