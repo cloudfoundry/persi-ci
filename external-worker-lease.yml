@@ -1,0 +1,34 @@
+resources:
+- name: nightly
+  type: time
+  source:
+    start: 12:00 AM
+    stop: 1:00 AM
+    location: America/Los_Angeles
+
+jobs:
+- name: renew-lease
+  public: false 
+  plan:
+    - get: nightly
+      trigger: true
+    - task: renew
+      tags: [ toolsmiths-shared-vsphere ]
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/smith-cli
+            tag: latest
+        run:
+          path: /bin/bash
+          args:
+            - -ex
+            - |
+              curl --fail 'https://devhub3-api.svc.eng.vmware.com/api/nimbus/v1/ctl' \
+              -H 'Connection: keep-alive' \
+              -H 'Accept: application/json, text/plain, */*' \
+              -H 'Content-Type: application/json' \
+              --data-binary '{"username":"lisaburns","action":["--lease","7","extend_lease","lisaburns-demo"],"option":{"nimbusLocation":"sc","nimbus":"sc-prd-vc066"}}' 
+
