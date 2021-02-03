@@ -24,11 +24,11 @@ jobs:
         run:
           path: /bin/bash
           args:
-            - -ex
+            - -exc
             - |
               curl --fail 'https://devhub3-api.svc.eng.vmware.com/api/nimbus/v1/ctl' \
               -H 'Connection: keep-alive' \
               -H 'Accept: application/json, text/plain, */*' \
               -H 'Content-Type: application/json' \
-              --data-binary '{"username":"lisaburns","action":["--lease","7","extend_lease","lisaburns-demo"],"option":{"nimbusLocation":"sc","nimbus":"sc-prd-vc066"}}' 
+              --data-binary '{"username":"lisaburns","action":["--lease","7","extend_lease","lisaburns-demo"],"option":{"nimbusLocation":"sc","nimbus":"sc2-04-vc13"}}'
 
