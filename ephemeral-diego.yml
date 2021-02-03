@@ -161,9 +161,10 @@ resources:
 
 resource_types:
 - name: pcf-pool
+  tags: [ toolsmiths-shared-vsphere ]
   type: docker-image
   source:
-    repository: cftoolsmiths/toolsmiths-envs-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
 
 jobs:
 - name: nfs-volume-release-job-tests
