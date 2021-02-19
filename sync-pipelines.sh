@@ -19,9 +19,6 @@ jobs:
   plan:
   - get: persi-ci
     trigger: true
-  - set_pipeline: cf-volume-services-k8s
-    file: persi-ci/cf-volume-services-k8s.yml
-    vars: *lastpass_creds
   - set_pipeline: docker-image-build
     file: persi-ci/docker-image-build.yml
     vars: *lastpass_creds
