@@ -6,7 +6,10 @@ shared_functions:
         platform: linux
         image_resource:
           type: docker-image
-          source: {repository: alpine}
+          source: 
+            repository: alpine
+            username: ((dockerhub_username))
+            password: ((dockerhub_password))
         run:
           path: sleep
           args: [ "3600" ]
@@ -22,7 +25,10 @@ shared_functions:
           platform: linux
           image_resource:
             type: docker-image
-            source: {repository: alpine}
+            source: 
+              repository: alpine
+              username: ((dockerhub_username))
+              password: ((dockerhub_password))
           run:
             path: sleep
             args: [ "3600" ]
@@ -667,6 +673,8 @@ jobs:
           type: docker-image
           source:
             repository: johnajimenez/ubuntu-bash-jq-curl-git
+            username: ((dockerhub_username))
+            password: ((dockerhub_password))
             tag: latest
         inputs:
           - name: nfs-volume-release
@@ -786,6 +794,8 @@ jobs:
           type: docker-image
           source:
             repository: johnajimenez/ubuntu-bash-jq-curl-git
+            username: ((dockerhub_username))
+            password: ((dockerhub_password))
             tag: latest
         inputs:
           - name: mapfs-release
