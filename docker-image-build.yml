@@ -69,20 +69,6 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-- name: smb-k8s-pats-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/smb-k8s-pats
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
-- name: smb-k8s-kind-tests-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/smb-k8s-kind-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
 - name: cnb-cifs-run-stack-docker-image
   type: docker-image
   source:
@@ -114,12 +100,6 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/mapfs-release.git
 
-- name: smb-volume-k8s-release
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry/smb-volume-k8s-release.git
-
 - name: fork-git-resource
   type: git
   source:
@@ -137,18 +117,6 @@ jobs:
       params:
         build: fork-git-resource
         dockerfile: fork-git-resource/dockerfiles/ubuntu/Dockerfile
-
-- name: build-cnb-cifs-run-stack-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: smb-volume-k8s-release
-      trigger: true
-    - get: cnb-run-stack-docker-image
-      trigger: true
-    - put: cnb-cifs-run-stack-docker-image
-      params:
-        build: smb-volume-k8s-release/smb-csi-driver/cnb-run-stack-dockerfiles
 
 - name: build-nfs-driver-integration-tests-docker-image
   plan:
@@ -209,26 +177,6 @@ jobs:
     - put: smb-unit-tests-docker-image
       params:
         build: smb-volume-release/dockerfiles/smb-unit-tests
-
-- name: build-smb-k8s-kind-tests-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: smb-volume-k8s-release
-      trigger: true
-    - put: smb-k8s-kind-tests-docker-image
-      params:
-        build: smb-volume-k8s-release/ci/dockerfiles/tests/
-
-- name: build-smb-k8s-pats-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: smb-volume-k8s-release
-      trigger: true
-    - put: smb-k8s-pats-docker-image
-      params:
-        build: smb-volume-k8s-release/ci/dockerfiles/pats/
 
 - name: build-smith-cli-docker-image
   plan:

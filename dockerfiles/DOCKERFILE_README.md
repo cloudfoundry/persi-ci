@@ -22,13 +22,3 @@ cfpersi/nfs-cats:
 
 cfpersi/smb-unit-tests:
  - installs golang release from smb release, ginkgo
-
-cfpersi/smb-k8s-pats:
- - aws, google cloud, bosh for spinning up k8s clusters/cf4k8s
-
-cfpersi/smb-k8s-kind-tests:
- - installs golang version for smb-volume-k8s-release, docker-in-docker
-
-cfpersi/cnb-cifs-run-stack:
- - installs cifs-utils on top of the regular cnb-run-stack
-
