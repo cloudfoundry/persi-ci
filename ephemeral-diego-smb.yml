@@ -308,7 +308,7 @@ jobs:
         integration-configs: persi-ci
 
     - task: drats-with-integration-config
-      file: disaster-recovery-acceptance-tests/ci/drats-with-integration-config/task.yml
+      file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
       privileged: true
       input_mapping:
         drats-integration-config: updated-integration-configs
