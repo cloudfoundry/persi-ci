@@ -19,8 +19,6 @@ jobs:
   plan:
   - get: persi-ci
     trigger: true
-  - set_pipeline: external-worker-lease
-    file: persi-ci/external-worker-lease.yml
   - set_pipeline: cf-volume-services-k8s
     file: persi-ci/cf-volume-services-k8s.yml
     vars: *lastpass_creds
