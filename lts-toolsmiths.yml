@@ -14,7 +14,7 @@ shared_functions:
           params:
             action: unclaim
             env_file: smith-env/metadata
-          tags: [ toolsmiths-shared-vsphere ]
+
   - on_error: &on_error_unclaim
       do:
         - task: wait-1-hour
@@ -30,7 +30,7 @@ shared_functions:
           params:
             action: unclaim
             env_file: smith-env/metadata
-          tags: [ toolsmiths-shared-vsphere ]
+
 
 resources:
   - name: nfs-volume-release-concourse-tasks
@@ -46,7 +46,7 @@ resources:
       api_token: ((persi_toolsmiths_env_api_token))
       hostname: environments.toolsmiths.cf-app.com
       pool_name: {{pas-version}}
-    tags: [ toolsmiths-shared-vsphere ]
+
   - name: docker_driver_integration_tests
     type: git
     source:
@@ -133,7 +133,7 @@ resources:
 
 resource_types:
 - name: pcf-pool
-  tags: [ toolsmiths-shared-vsphere ]
+
   type: docker-image
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
@@ -254,7 +254,7 @@ jobs:
       - put: smith-env
         params:
           action: claim
-        tags: [ toolsmiths-shared-vsphere ]
+
       - task: output-env-details
         file: persi-ci/scripts/ci/claim-pooled-env.build.yml
         input_mapping:
@@ -270,7 +270,7 @@ jobs:
           fail_fast: true
           steps:
             - get: smith-env
-              tags: [ toolsmiths-shared-vsphere ]
+
               passed: [ claim-env ]
               trigger: true
             - get: cf-deployment-concourse-tasks
@@ -281,7 +281,7 @@ jobs:
             - get: mapfs-release
               passed: [ claim-env ]
       - task: bosh-deploy
-        tags: [ toolsmiths-shared-vsphere ]
+
         config:
           platform: linux
           image_resource:
@@ -326,7 +326,7 @@ jobs:
             - get: cf-volume-services-acceptance-tests
             - get: persi-ci
             - get: smith-env
-              tags: [ toolsmiths-shared-vsphere ]
+
               passed: [ deploy-cf ]
               trigger: true
             - get: nfs-volume-release
@@ -334,7 +334,7 @@ jobs:
             - get: mapfs-release
               passed: [ deploy-cf ]
       - task: generate-pats-config-nfs
-        tags: [ toolsmiths-shared-vsphere ]
+
         file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
         params:
           CF_USERNAME: admin
@@ -367,7 +367,7 @@ jobs:
             - get: cf-volume-services-acceptance-tests
             - get: persi-ci
             - get: smith-env
-              tags: [ toolsmiths-shared-vsphere ]
+
               passed: [ deploy-cf ]
               trigger: true
             - get: nfs-volume-release
@@ -375,7 +375,7 @@ jobs:
             - get: mapfs-release
               passed: [ deploy-cf ]
       - task: generate-pats-config-nfs
-        tags: [ toolsmiths-shared-vsphere ]
+
         file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
         params:
           CF_USERNAME: admin
@@ -401,7 +401,7 @@ jobs:
   - name: unclaim-env
     plan:
       - get: smith-env
-        tags: [ toolsmiths-shared-vsphere ]
+
         passed:
           - pats-nfs-ldap-legacy-ephemeral-environment
           - pats-nfs-ldap-ephemeral-environment
@@ -410,7 +410,7 @@ jobs:
         params:
           action: unclaim
           env_file: smith-env/metadata
-        tags: [ toolsmiths-shared-vsphere ]
+
 
   - name: manual-bump-nfs-patch
     serial_groups:

@@ -14,7 +14,7 @@ shared_functions:
       params:
         action: unclaim
         env_file: smith-env/metadata
-      tags: [ toolsmiths-shared-vsphere ]
+
 - on_error: &on_error_unclaim
     do:
       - task: wait-1-hour
@@ -30,7 +30,7 @@ shared_functions:
         params:
           action: unclaim
           env_file: smith-env/metadata
-        tags: [ toolsmiths-shared-vsphere ]
+
 
 resources:
 - name: every-hour
@@ -45,7 +45,7 @@ resources:
     api_token: ((persi_toolsmiths_env_api_token))
     hostname: environments.toolsmiths.cf-app.com
     pool_name: cf-deployment
-  tags: [ toolsmiths-shared-vsphere ]
+
 
 - name: persi-ci
   type: git
@@ -161,7 +161,7 @@ resources:
 
 resource_types:
 - name: pcf-pool
-  tags: [ toolsmiths-shared-vsphere ]
+
   type: docker-image
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
@@ -230,7 +230,7 @@ jobs:
   - put: smith-env
     params:
       action: claim
-    tags: [ toolsmiths-shared-vsphere ]
+
   - task: output-env-details
     file: persi-ci/scripts/ci/claim-pooled-env.build.yml
     input_mapping:
@@ -253,7 +253,7 @@ jobs:
     - put: smith-env
       params:
         action: claim
-      tags: [ toolsmiths-shared-vsphere ]
+
     - task: output-env-details
       file: persi-ci/scripts/ci/claim-pooled-env.build.yml
       input_mapping:
@@ -269,7 +269,7 @@ jobs:
       fail_fast: true
       steps:
       - get: smith-env
-        tags: [ toolsmiths-shared-vsphere ]
+
         passed: [ claim-env ]
         trigger: true
       - get: cf-deployment-concourse-tasks
@@ -340,7 +340,7 @@ jobs:
             passed: [ deploy-cf ]
             trigger: true
           - get: smith-env
-            tags: [ toolsmiths-shared-vsphere ]
+
             passed: [ deploy-cf ]
             trigger: true
           - get: persi-ci
@@ -348,7 +348,7 @@ jobs:
           - get: cf-deployment-concourse-tasks
     - task: generate-cats-config
       file: persi-ci/scripts/ci/generate_cats_config.build.yml
-      tags: [ toolsmiths-shared-vsphere ]
+
       params:
         VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
         CF_USERNAME: admin
@@ -379,7 +379,7 @@ jobs:
           - get: disaster-recovery-acceptance-tests
           - get: persi-ci
           - get: smith-env
-            tags: [ toolsmiths-shared-vsphere ]
+
             passed: [ deploy-cf ]
             trigger: true
     - task: generate-integration-config
@@ -409,7 +409,7 @@ jobs:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: smith-env
-        tags: [ toolsmiths-shared-vsphere ]
+
         passed: [ deploy-cf ]
         trigger: true
       - get: nfs-volume-release
@@ -417,7 +417,7 @@ jobs:
       - get: mapfs-release
         passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
-    tags: [ toolsmiths-shared-vsphere ]
+
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
@@ -453,7 +453,7 @@ jobs:
       fail_fast: true
       steps:
       - get: smith-env
-        tags: [ toolsmiths-shared-vsphere ]
+
         passed:
         - claim-ldap-env
         trigger: true
@@ -528,7 +528,7 @@ jobs:
       fail_fast: true
       steps:
       - get: smith-env
-        tags: [ toolsmiths-shared-vsphere ]
+
         passed:
         - deploy-cf-with-ldap
         trigger: true
@@ -544,7 +544,7 @@ jobs:
       fail_fast: true
       steps:
       - task: generate-legacy-pats-config
-        tags: [ toolsmiths-shared-vsphere ]
+
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
@@ -557,7 +557,7 @@ jobs:
         output_mapping:
           pats-config: nfs-legacy-pats-config
       - task: generate-pats-config
-        tags: [ toolsmiths-shared-vsphere ]
+
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
@@ -588,7 +588,7 @@ jobs:
 - name: unclaim-env
   plan:
   - get: smith-env
-    tags: [ toolsmiths-shared-vsphere ]
+
     passed:
     - pats
     - drats
@@ -598,12 +598,12 @@ jobs:
     params:
       action: unclaim
       env_file: smith-env/metadata
-    tags: [ toolsmiths-shared-vsphere ]
+
 
 - name: unclaim-ldap-env
   plan:
     - get: smith-env
-      tags: [ toolsmiths-shared-vsphere ]
+
       passed:
         - pats-nfs-ldap
       trigger: true
@@ -611,7 +611,7 @@ jobs:
       params:
         action: unclaim
         env_file: smith-env/metadata
-      tags: [ toolsmiths-shared-vsphere ]
+
 
 - name: shipit-nfs
   serial_groups:
