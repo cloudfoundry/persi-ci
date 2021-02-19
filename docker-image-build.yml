@@ -69,19 +69,6 @@ resources:
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
-- name: cnb-cifs-run-stack-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/cnb-cifs-run-stack
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
-- name: cnb-run-stack-docker-image
-  type: docker-image
-  source:
-    repository: cloudfoundry/run
-    tag: base-cnb
-
 - name: smb-volume-release
   type: git
   source:
