@@ -25,11 +25,24 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
 
+- name: mapfs
+  type: go-mod-vendor-tidy-git
+  source:
+    branch: master
+    uri: git@github.com:cloudfoundry/mapfs.git
+    private_key: {{deployments-persi-key}}
+
 - name: mapfs-release
   type: git
   source:
     branch: master
     uri: https://github.com/cloudfoundry/mapfs-release.git
+
+- name: docker_driver_integration_tests
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/docker_driver_integration_tests
 
 jobs:
 - name: unit-test
@@ -53,6 +66,38 @@ jobs:
       input_mapping:
         release-dir: nfsv3driver
 
+- name: integration
+  serial: true
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: docker_driver_integration_tests
+      - get: nfsv3driver
+        passed:
+        - unit-test
+        trigger: true
+      - get: mapfs
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: run_docker_driver_integration_tests
+        file: nfsv3driver/scripts/ci/run_docker_driver_integration_tests.build.yml
+        privileged: true
+        params:
+          TEST_PACKAGE: docker_driver_integration_tests/
+      - task: run_docker_driver_lazy_unmount_integration_tests
+        file: nfsv3driver/scripts/ci/run_docker_driver_integration_tests.build.yml
+        privileged: true
+        params:
+          TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
+      - task: run_driver_broker_compatibility_tests
+        file: nfsv3driver/scripts/ci/run_docker_driver_integration_tests.build.yml
+        privileged: true
+        params:
+          TEST_PACKAGE: docker_driver_integration_tests/compatibility
+
 - name: release-job-tests
   plan:
   - in_parallel:
@@ -63,6 +108,7 @@ jobs:
       - get: nfs-volume-release
       - get: nfsv3driver
         passed:
+        - integration
         - security-scan
         trigger: true
   - task: bump-submodule
