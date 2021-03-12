@@ -39,6 +39,7 @@ jobs:
   - task: build
     file: mapfs/scripts/ci/run_unit.build.yml
     privileged: true
+    tags: [ vol-svc ]
 
 - name: fs-test
   public: true
@@ -49,6 +50,7 @@ jobs:
   - task: build
     file: mapfs/scripts/ci/run_fstest.build.yml
     privileged: true
+    tags: [ vol-svc ]
 
 - name: security-scan
   plan:
