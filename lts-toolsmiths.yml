@@ -179,6 +179,7 @@ jobs:
             - get: credhub
       - task: run-test
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
+        privileged: true
 
   - name: nfs-volume-release-job-tests
     plan:
