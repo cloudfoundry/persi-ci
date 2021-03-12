@@ -179,7 +179,7 @@ jobs:
             - get: credhub
       - task: run-test
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
-        privileged: true
+        tags: [ vol-svc ]
 
   - name: nfs-volume-release-job-tests
     plan:
@@ -199,6 +199,7 @@ jobs:
         attempts: 3
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
         privileged: true
+        tags: [ vol-svc ]
 
   - name: nfsdriver-integration
     serial: true
@@ -226,11 +227,13 @@ jobs:
               privileged: true
               params:
                 TEST_PACKAGE: docker_driver_integration_tests/
+              tags: [ vol-svc ]
             - task: run_docker_driver_lazy_unmount_integration_tests
               file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
               privileged: true
               params:
                 TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
+              tags: [ vol-svc ]
             - task: run_driver_broker_compatibility_tests
               privileged: true
               input_mapping:
@@ -238,6 +241,7 @@ jobs:
               params:
                 TEST_PACKAGE: docker_driver_integration_tests/compatibility
               file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+              tags: [ vol-svc ]
 
   - name: claim-env
     plan:
