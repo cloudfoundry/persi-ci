@@ -205,6 +205,7 @@ jobs:
       file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
       privileged: true
       timeout: 1h
+      tags: [ vol-svc ]
 
 - name: env-gate
   plan:
