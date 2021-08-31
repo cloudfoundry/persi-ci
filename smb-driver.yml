@@ -23,6 +23,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: freezing
 
 - name: docker_driver_integration_tests
   type: git

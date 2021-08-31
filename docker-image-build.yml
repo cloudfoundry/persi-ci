@@ -11,7 +11,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci
-    branch: master
+    branch: freezing
 
 - name: fork-git-resource-docker-image
   type: docker-image
@@ -177,7 +177,7 @@ jobs:
           type: docker-image
           source: {repository: relintdockerhubpushbot/cf-deployment-concourse-tasks}
         params:
-          GITHUB_TOKEN: ((github.access_token))
+          GITHUB_TOKEN: ((github-smith-repo.access_token))
         outputs:
           - name: smith-cli-binary
         run:
