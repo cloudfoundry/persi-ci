@@ -8,8 +8,8 @@ shared_functions:
           type: docker-image
           source: 
             repository: alpine
-            username: ((dockerhub_username))
-            password: ((dockerhub_password))
+            username: ((dockerhub.username))
+            password: ((dockerhub.password))
         run:
           path: sleep
           args: [ "3600" ]
@@ -27,8 +27,8 @@ shared_functions:
             type: docker-image
             source: 
               repository: alpine
-              username: ((dockerhub_username))
-              password: ((dockerhub_password))
+              username: ((dockerhub.username))
+              password: ((dockerhub.password))
           run:
             path: sleep
             args: [ "3600" ]
@@ -48,7 +48,7 @@ resources:
 - name: smith-env
   type: pcf-pool
   source:
-    api_token: ((persi_toolsmiths_env_api_token))
+    api_token: ((toolsmiths.api_token))
     hostname: environments.toolsmiths.cf-app.com
     pool_name: cf-deployment
 
@@ -63,8 +63,7 @@ resources:
   type: git
   source:
     branch: master
-    username: {{github-user}}
-    password: {{github-password}}
+    private_key: ((github.ssh_key))
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
     ignore_paths:
     - scripts
@@ -72,12 +71,12 @@ resources:
 - name: nfsvolume-version
   type: semver
   source:
-    access_key_id: {{nfsvolume-uploader_aws_ID}}
+    access_key_id: ((aws/nfsvolume-uploader.id))
     bucket: nfsvolume-release-versions
     initial_version: 7.0.2
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{nfsvolume-uploader_aws_secret}}
+    secret_access_key: ((aws/nfsvolume-uploader.secret))
 
 - name: github-release-nfs
   type: github-release
@@ -85,21 +84,19 @@ resources:
     user: cloudfoundry
     repository: nfs-volume-release
     drafts: true
-    access_token: {{github-release-token-nfsvolumerelease}}
+    access_token: ((github.access_token))
 
 - name: nfs-volume-release-concourse-tasks
   type: git
   source:
-    username: {{github-user}}
-    password: {{github-password}}
+    private_key: ((github.ssh_key))
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
 
 - name: mapfs-release
   type: git
   source:
     branch: master
-    username: {{github-user}}
-    password: {{github-password}}
+    private_key: ((github.ssh_key))
     uri: https://github.com/cloudfoundry/mapfs-release.git
     ignore_paths:
       - scripts
@@ -107,12 +104,12 @@ resources:
 - name: mapfs-version
   type: semver
   source:
-    access_key_id: {{mapfs-uploader_aws_ID}}
+    access_key_id: ((aws/mapfs-uploader.id))
     bucket: mapfs-versions
     initial_version: 1.2.4
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{mapfs-uploader_aws_secret}}
+    secret_access_key: ((aws/mapfs-uploader.secret))
 
 - name: github-release-mapfs
   type: github-release
@@ -120,14 +117,13 @@ resources:
     user: cloudfoundry
     repository: mapfs-release
     drafts: true
-    access_token: {{github-release-token-mapfs}}
+    access_token: ((github.access_token))
 
 - name: mapfs-release-concourse-tasks
   type: git
   source:
     branch: master
-    username: {{github-user}}
-    password: {{github-password}}
+    private_key: ((github.private_key))
     uri: https://github.com/cloudfoundry/mapfs-release.git
 
 - name: cf-deployment
@@ -158,7 +154,7 @@ resources:
   source:
     owner: cloudfoundry-incubator
     repository: bosh-backup-and-restore
-    access_token: {{github-release-token-bbr}}
+    access_token: ((github.access_token))
 
 - name: disaster-recovery-acceptance-tests
   type: git
@@ -191,7 +187,6 @@ jobs:
       attempts: 3
       file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
       privileged: true
-      tags: [ vol-svc ]
 
 - name: mapfs-release-job-tests
   plan:
@@ -205,7 +200,6 @@ jobs:
       file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
       privileged: true
       timeout: 1h
-      tags: [ vol-svc ]
 
 - name: env-gate
   plan:
@@ -642,10 +636,10 @@ jobs:
       file: persi-ci/scripts/ci/finalize_release.build.yml
       params:
         BASE_RELEASE_NAME: nfs-volume
-        GIT_USER: {{github-user}}
-        GIT_EMAIL: {{github-email}}
-        S3_ACCESS_KEY_ID: {{nfsvolume-uploader_aws_ID}}
-        S3_ACCESS_KEY: {{nfsvolume-uploader_aws_secret}}
+        GIT_USER: ((github.user))
+        GIT_EMAIL: ((github.email))
+        S3_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
+        S3_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
     - put: nfs-volume-version
       resource: nfsvolume-version
       params:
@@ -675,8 +669,8 @@ jobs:
           type: docker-image
           source:
             repository: johnajimenez/ubuntu-bash-jq-curl-git
-            username: ((dockerhub_username))
-            password: ((dockerhub_password))
+            username: ((dockerhub.username))
+            password: ((dockerhub.password))
             tag: latest
         inputs:
           - name: nfs-volume-release
@@ -686,7 +680,7 @@ jobs:
             - -exc
             - |
               cd nfs-volume-release
-              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/c7dc43fcdf7a85f43c3849e03b7ae28c" | jq -r '.latest_git_sha')
+              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker.api_token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/c7dc43fcdf7a85f43c3849e03b7ae28c" | jq -r '.latest_git_sha')
               git config --global core.pager cat
               if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
                 true # all is well
@@ -700,7 +694,7 @@ jobs:
               else
                 export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
               fi
-              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"c7dc43fcdf7a85f43c3849e03b7ae28c", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
+              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker.api_token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"c7dc43fcdf7a85f43c3849e03b7ae28c", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
               if [[ "$POST_STATUS" -ne 200 ]] ; then
                 exit $POST_STATUS
               else
@@ -763,10 +757,10 @@ jobs:
       file: persi-ci/scripts/ci/finalize_release.build.yml
       params:
         BASE_RELEASE_NAME: mapfs
-        GIT_USER: {{github-user}}
-        GIT_EMAIL: {{github-email}}
-        S3_ACCESS_KEY_ID: {{mapfs-uploader_aws_ID}}
-        S3_ACCESS_KEY: {{mapfs-uploader_aws_secret}}
+        GIT_USER: ((github.user))
+        GIT_EMAIL: ((github.email))
+        S3_ACCESS_KEY_ID: ((aws/mapfs-uploader.id))
+        S3_ACCESS_KEY: ((aws/mapfs-uploader.secret))
     - put: version
       resource: mapfs-version
       params:
@@ -796,8 +790,8 @@ jobs:
           type: docker-image
           source:
             repository: johnajimenez/ubuntu-bash-jq-curl-git
-            username: ((dockerhub_username))
-            password: ((dockerhub_password))
+            username: ((dockerhub.username))
+            password: ((dockerhub.password))
             tag: latest
         inputs:
           - name: mapfs-release

@@ -10,14 +10,13 @@ resources:
   type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/smbbroker.git
-    private_key: {{deployments-persi-key}}
+    private_key: ((github.ssh_key))
 
 - name: smb-volume-release
   type: git
   source:
     branch: master
-    username: {{github-user}}
-    password: {{github-password}}
+    private_key: ((github.ssh_key))
     uri: https://github.com/cloudfoundry/smb-volume-release.git
 
 - name: persi-ci

@@ -10,7 +10,7 @@ resources:
   type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/mapfs.git
-    private_key: {{deployments-persi-key}}
+    private_key: ((github.ssh_key))
 
 - name: fstest
   type: git
@@ -21,8 +21,7 @@ resources:
   type: git
   source:
     branch: master
-    username: {{github-user}}
-    password: {{github-password}}
+    private_key: ((github.ssh_key))
     uri: https://github.com/cloudfoundry/mapfs-release.git
 
 - name: persi-ci
@@ -39,7 +38,6 @@ jobs:
   - task: build
     file: mapfs/scripts/ci/run_unit.build.yml
     privileged: true
-    tags: [ vol-svc ]
 
 - name: fs-test
   public: true
@@ -50,7 +48,6 @@ jobs:
   - task: build
     file: mapfs/scripts/ci/run_fstest.build.yml
     privileged: true
-    tags: [ vol-svc ]
 
 - name: security-scan
   plan:
