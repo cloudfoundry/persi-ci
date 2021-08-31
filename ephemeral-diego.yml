@@ -123,7 +123,7 @@ resources:
   type: git
   source:
     branch: master
-    private_key: ((github.private_key))
+    private_key: ((github.ssh_key))
     uri: https://github.com/cloudfoundry/mapfs-release.git
 
 - name: cf-deployment
@@ -356,7 +356,7 @@ jobs:
         CF_USERNAME: admin
         SERVICE_NAME: nfs
         PLAN_NAME: Existing
-        TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
     - task: run-cats
       file: cf-deployment-concourse-tasks/run-cats/task.yml
       input_mapping:
@@ -423,7 +423,7 @@ jobs:
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-      TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
       CF_USERNAME: admin
       BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}"]'
@@ -550,7 +550,7 @@ jobs:
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-          TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
           CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
           DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
@@ -563,7 +563,7 @@ jobs:
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-          TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
           CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
           DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'

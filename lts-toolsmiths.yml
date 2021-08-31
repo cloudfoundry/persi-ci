@@ -54,7 +54,7 @@ resources:
   - name: credhub
     type: git
     source:
-      branch: master
+      branch: main
       uri: https://github.com/cloudfoundry-incubator/credhub
   - name: persi-ci
     type: git
@@ -86,7 +86,7 @@ resources:
       initial_version: {{nfs-semver-initial-version}}
       key: {{lts-nfs-branch}}
       region_name: us-west-2
-      secret_access_key: ((aws/goshims-uploader.secret))
+      secret_access_key: ((aws/lts-nfsvolume-uploader.secret))
 
   - name: cf-deployment
     type: git
@@ -117,14 +117,14 @@ resources:
     type: git
     source:
       uri: git@github.com:pivotal/releng-kiln-concourse-tasks.git
-      private_key: ((github.private_key))
+      private_key: ((github.ssh_key))
 
   - name: p-runtime
     type: git
     source:
       uri: git@github.com:pivotal-cf/p-runtime.git
       branch: main
-      private_key: ((github.private_key))
+      private_key: ((github.ssh_key))
       paths:
         - Kilnfile
 
