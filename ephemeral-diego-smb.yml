@@ -270,7 +270,7 @@ jobs:
         CF_USERNAME: admin
         SERVICE_NAME: smb
         PLAN_NAME: Existing
-        CREATE_CONFIG: '{\"share\": \"((smb_cats_remote_path))\", \"username\": \"((smb_cats_username))\", \"password\": \"((smb_cats_password))\"}'
+        CREATE_CONFIG: '{\"share\": \"((smb_cats.remote_path))\", \"username\": \"((smb_cats.username))\", \"password\": \"((smb_cats.password))\"}'
         TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
     - task: run-cats
       file: cf-deployment-concourse-tasks/run-cats/task.yml
@@ -345,8 +345,8 @@ jobs:
       CREATE_BOGUS_CONFIG: '{\"share\":\"//smb.bogus/export/nonexistensevol\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: smb
-      CREATE_CONFIG: '{\"share\":\"((smb_cats_remote_path))\"}'
-      BIND_CONFIG: '["{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'
+      CREATE_CONFIG: '{\"share\":\"((smb_cats.remote_path))\"}'
+      BIND_CONFIG: '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'
     output_mapping:
       pats-config: smb-pats-config
   - task: run-pats-smb
