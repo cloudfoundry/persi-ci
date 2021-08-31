@@ -10,6 +10,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: freezing
 
 - name: existingvolumebroker
   type: go-mod-vendor-tidy-git

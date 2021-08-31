@@ -51,7 +51,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci
-    branch: master
+    branch: freezing
 
 - name: smb-volume-release
   type: git
