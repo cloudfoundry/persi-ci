@@ -10,14 +10,13 @@ resources:
   type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/nfsv3driver.git
-    private_key: {{deployments-persi-key}}
+    private_key: ((github.ssh_key))
 
 - name: nfs-volume-release
   type: git
   source:
     branch: master
-    username: {{github-user}}
-    password: {{github-password}}
+    private_key: ((github.ssh_key))
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
 
 - name: persi-ci
@@ -30,7 +29,7 @@ resources:
   source:
     branch: master
     uri: git@github.com:cloudfoundry/mapfs.git
-    private_key: {{deployments-persi-key}}
+    private_key: ((github.ssh_key))
 
 - name: mapfs-release
   type: git
@@ -87,19 +86,16 @@ jobs:
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
-        tags: [ vol-svc ]
       - task: run_docker_driver_lazy_unmount_integration_tests
         file: nfsv3driver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
-        tags: [ vol-svc ]
       - task: run_driver_broker_compatibility_tests
         file: nfsv3driver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
-        tags: [ vol-svc ]
 
 - name: release-job-tests
   plan:
@@ -132,7 +128,6 @@ jobs:
       nfs-volume-release-concourse-tasks: bumped-repo
     file: nfs-volume-release/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
-    tags: [ vol-svc ]
   - put: nfs-volume-release
     params:
       repository: bumped-repo

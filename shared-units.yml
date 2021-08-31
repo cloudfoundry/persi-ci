@@ -16,85 +16,85 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/existingvolumebroker.git
     branch: master
-    private_key: {{existingvolumebroker-github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: goshims
   type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/goshims.git
     branch: master
-    private_key: {{goshims-github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: goshims-version
   type: semver
   source:
-    access_key_id: {{goshims-uploader_aws_ID}}
+    access_key_id: ((aws/goshims-uploader.id))
     bucket: goshims-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{goshims-uploader_aws_secret}}
+    secret_access_key: ((aws/goshims-uploader.secret))
 
 - name: existingvolumebroker-version
   type: semver
   source:
-    access_key_id: {{existingvolumebroker-uploader_aws_ID}}
+    access_key_id: ((aws/existingvolumebroker-uploader.id))
     bucket: existingvolumebroker-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{existingvolumebroker-uploader_aws_secret}}
+    secret_access_key: ((aws/existingvolumebroker-uploader.secret))
 
 - name: service-broker-store
   type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/service-broker-store.git
     branch: master
-    private_key: {{service-broker-store-github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: service-broker-store-version
   type: semver
   source:
-    access_key_id: {{service-broker-store-uploader_aws_ID}}
+    access_key_id: ((aws/service-broker-store-uploader.id))
     bucket: service-broker-store-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{service-broker-store-uploader_aws_secret}}
+    secret_access_key: ((aws/service-broker-store-uploader.secret))
 
 - name: volumedriver
   type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/volumedriver.git
     branch: master
-    private_key: {{volumedriver-github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: volumedriver-version
   type: semver
   source:
-    access_key_id: {{volumedriver-uploader_aws_ID}}
+    access_key_id: ((aws/volumedriver-uploader.id))
     bucket: volumedriver-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{volumedriver-uploader_aws_secret}}
+    secret_access_key: ((aws/volumedriver-uploader.secret))
 
 - name: volume-mount-options
   type: go-mod-vendor-tidy-git
   source:
     uri: git@github.com:cloudfoundry/volume-mount-options.git
     branch: master
-    private_key: {{volume-mount-options--github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: volume-mount-options-version
   type: semver
   source:
-    access_key_id: {{volume-mount-options-uploader_aws_ID}}
+    access_key_id: ((aws/volume-mount-options-uploader.id))
     bucket: volume-mount-options-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{volume-mount-options-uploader_aws_secret}}
+    secret_access_key: ((aws/volume-mount-options-uploader.secret))
 
 jobs:
 - name: existingvolumebroker-unit

@@ -1,18 +1,16 @@
 #!/bin/bash
 set -x
 
-LPASS_CREDS=`lpass show --note pipeline-secrets|sed -e 's/^/  /'`
-
 fly -t persi set-pipeline -p keep-pipelines-sync -c <(
 cat <<EOF
-vars: &lastpass_creds
-$LPASS_CREDS
 
 resources:
 - name: persi-ci
   type: git
+
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: freezing
 
 jobs:
 - name: reconfigure
