@@ -64,7 +64,7 @@ resources:
   source:
     branch: master
     private_key: ((github.ssh_key))
-    uri: https://github.com/cloudfoundry/nfs-volume-release.git
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
     ignore_paths:
     - scripts
 
@@ -90,14 +90,14 @@ resources:
   type: git
   source:
     private_key: ((github.ssh_key))
-    uri: https://github.com/cloudfoundry/nfs-volume-release.git
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: mapfs-release
   type: git
   source:
     branch: master
     private_key: ((github.ssh_key))
-    uri: https://github.com/cloudfoundry/mapfs-release.git
+    uri: git@github.com:cloudfoundry/mapfs-release.git
     ignore_paths:
       - scripts
 
@@ -124,7 +124,7 @@ resources:
   source:
     branch: master
     private_key: ((github.ssh_key))
-    uri: https://github.com/cloudfoundry/mapfs-release.git
+    uri: git@github.com:cloudfoundry/mapfs-release.git
 
 - name: cf-deployment
   type: git
