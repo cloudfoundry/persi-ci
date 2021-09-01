@@ -58,7 +58,7 @@ resources:
   source:
     branch: master
     private_key: ((github.ssh_key))
-    uri: https://github.com/cloudfoundry/smb-volume-release.git
+    uri: git@github.com:cloudfoundry/smb-volume-release.git
     ignore_paths:
       - scripts
 

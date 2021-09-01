@@ -17,7 +17,7 @@ resources:
   source:
     branch: master
     private_key: ((github.ssh_key))
-    uri: https://github.com/cloudfoundry/nfs-volume-release.git
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: persi-ci
   type: git

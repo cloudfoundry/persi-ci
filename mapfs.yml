@@ -22,7 +22,7 @@ resources:
   source:
     branch: master
     private_key: ((github.ssh_key))
-    uri: https://github.com/cloudfoundry/mapfs-release.git
+    uri: git@github.com:cloudfoundry/mapfs-release.git
 
 - name: persi-ci
   type: git

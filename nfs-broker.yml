@@ -23,7 +23,8 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/cloudfoundry/nfs-volume-release.git
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: credhub
   type: git
