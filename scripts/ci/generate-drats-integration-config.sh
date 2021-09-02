@@ -11,14 +11,14 @@ mkdir $SCRIPTS_ROOT_DIR/bbl-state
 bbl() {
   for last; do true; done
   if [ $last = "jumpbox-address" ]; then
-    cat ${SCRIPTS_ROOT_DIR}/smith-env/metadata | jq ".bosh.bosh_all_proxy" | sed -E 's#.*jumpbox@(.*)\?.*#\1#'
+    cat ${SCRIPTS_ROOT_DIR}/cf-deployment-env/metadata | jq ".bosh.bosh_all_proxy" | sed -E 's#.*jumpbox@(.*)\?.*#\1#'
   else
-    $BBL_PATH print-env --metadata-file ${SCRIPTS_ROOT_DIR}/smith-env/metadata
+    $BBL_PATH print-env --metadata-file ${SCRIPTS_ROOT_DIR}/cf-deployment-env/metadata
   fi
 }
 
 
-ENV=`cat smith-env/metadata | jq -r ".name"`
+ENV=`cat cf-deployment-env/metadata | jq -r ".name"`
 export APPS_DOMAIN="${ENV}.cf-app.com"
 export CF_API_ENDPOINT="api.${ENV}.cf-app.com"
 export SYSTEM_DOMAIN="${ENV}.cf-app.com"
