@@ -71,16 +71,19 @@ jobs:
       - task: run_docker_driver_integration_tests
         file: smbdriver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
+        tags: [ os_ubuntu ]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
       - task: run_docker_driver_lazy_unmount_integration_tests
         file: smbdriver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
+        tags: [ os_ubuntu ]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
       - task: run_driver_broker_compatibility_tests
         file: smbdriver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
+        tags: [ os_ubuntu ]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
 
