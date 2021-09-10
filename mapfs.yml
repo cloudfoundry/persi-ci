@@ -1,13 +1,6 @@
-resource_types:
-  - name: go-mod-vendor-tidy-git
-    type: docker-image
-    source:
-      repository: cfpersi/fork-git-resource
-      tag: latest
-
 resources:
 - name: mapfs
-  type: go-mod-vendor-tidy-git
+  type: git
   source:
     uri: git@github.com:cloudfoundry/mapfs.git
     private_key: ((github.ssh_key))
