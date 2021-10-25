@@ -1,7 +1,7 @@
 
 resources:
 - name: smbdriver
-  type: go-mod-vendor-tidy-git
+  type: git
   source:
     uri: git@github.com:cloudfoundry/smbdriver.git
     private_key: ((github.ssh_key))
