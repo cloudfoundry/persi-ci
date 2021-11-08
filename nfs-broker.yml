@@ -1,3 +1,9 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
+
 resources:
 - name: persi-ci
   type: git
@@ -6,11 +12,12 @@ resources:
     branch: freezing
 
 - name: nfsbroker
-  type: git
+  type: pull-request
   source:
-    branch: master
-    uri: git@github.com:cloudfoundry/nfsbroker.git
-    private_key: ((github.ssh_key))
+    repository: cloudfoundry/nfsbroker
+    base_branch: master
+    disable_forks: true
+    access_token: ((github.access_token))
 
 - name: credhub
   type: git
@@ -42,3 +49,14 @@ jobs:
   - task: build
     file: nfsbroker/scripts/ci/run_unit_and_integration.build.yml
 
+- name: merge-pr
+  plan:
+  - get: nfsbroker
+    trigger: true
+    passed:
+    - security-scan
+    - unit-and-integration-test
+  - put: nfsbroker
+    params:
+      merge: true
+      repository: nfsbroker
