@@ -5,13 +5,6 @@ resources:
     uri: git@github.com:cloudfoundry/nfsv3driver.git
     private_key: ((github.ssh_key))
 
-- name: nfs-volume-release
-  type: git
-  source:
-    branch: master
-    private_key: ((github.ssh_key))
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
 - name: persi-ci
   type: git
   source:
@@ -24,12 +17,6 @@ resources:
     branch: master
     uri: git@github.com:cloudfoundry/mapfs.git
     private_key: ((github.ssh_key))
-
-- name: mapfs-release
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry/mapfs-release.git
 
 - name: docker_driver_integration_tests
   type: git
@@ -90,39 +77,3 @@ jobs:
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
-
-- name: release-job-tests
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: mapfs-release
-      - get: nfs-volume-release
-      - get: nfsv3driver
-        passed:
-        - integration
-        - security-scan
-        trigger: true
-  - task: bump-submodule
-    file: persi-ci/scripts/ci/bump_submodule.build.yml
-    input_mapping:
-      release-repo: nfs-volume-release
-      submodule-repo: nfsv3driver
-    params:
-      SUBMODULE_PATH: src/code.cloudfoundry.org/nfsv3driver
-  - task: rspec
-    file: persi-ci/scripts/ci/run-rspec.build.yml
-    input_mapping:
-      test-repo: bumped-repo
-  - task: bosh-release-test
-    attempts: 3
-    input_mapping:
-      nfs-volume-release: bumped-repo
-      nfs-volume-release-concourse-tasks: bumped-repo
-    file: nfs-volume-release/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
-  - put: nfs-volume-release
-    params:
-      repository: bumped-repo
-      rebase: true
