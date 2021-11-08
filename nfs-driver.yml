@@ -1,10 +1,18 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
+
 resources:
 - name: nfsv3driver
-  type: git
+  type: pull-request
   source:
-    uri: git@github.com:cloudfoundry/nfsv3driver.git
-    private_key: ((github.ssh_key))
-
+    repository: cloudfoundry/nfsv3driver
+    base_branch: master
+    disable_forks: true
+    access_token: ((github.access_token))
+    
 - name: persi-ci
   type: git
   source:
@@ -77,3 +85,17 @@ jobs:
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
+
+- name: merge-pr
+  serial: true
+  plan:
+  - get: nfsv3driver
+    trigger: true
+    passed:
+    - unit-test
+    - security-scan
+    - integration
+  - put: nfsv3driver
+    params:
+      merge: true
+      repository: nfsv3driver
