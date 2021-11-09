@@ -171,10 +171,10 @@ jobs:
       fail_fast: true
       steps:
       - get: smb-volume-release
+        trigger: true
         passed:
         - smb-volume-release-job-tests
       - get: every-hour
-        trigger: true
 
 - name: claim-env
   plan:
