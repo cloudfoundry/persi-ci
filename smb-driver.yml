@@ -1,10 +1,17 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 resources:
 - name: smbdriver
-  type: git
+  type: pull-request
   source:
-    uri: git@github.com:cloudfoundry/smbdriver.git
-    private_key: ((github.ssh_key))
+    repository: cloudfoundry/smbdriver
+    base_branch: master
+    disable_forks: true
+    access_token: ((github.access_token))
 
 - name: persi-ci
   type: git
@@ -73,3 +80,16 @@ jobs:
         tags: [ os_ubuntu ]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
+
+- name: merge-pr
+  plan:
+  - get: smbdriver
+    trigger: true
+    passed:
+    - unit-test
+    - security-scan
+    - integration
+  - put: smbdriver
+    params:
+      merge: true
+      repository: smbdriver
