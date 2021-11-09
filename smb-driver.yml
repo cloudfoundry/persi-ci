@@ -6,13 +6,6 @@ resources:
     uri: git@github.com:cloudfoundry/smbdriver.git
     private_key: ((github.ssh_key))
 
-- name: smb-volume-release
-  type: git
-  source:
-    branch: master
-    private_key: ((github.ssh_key))
-    uri: git@github.com:cloudfoundry/smb-volume-release.git
-
 - name: persi-ci
   type: git
   source:
@@ -80,34 +73,3 @@ jobs:
         tags: [ os_ubuntu ]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
-
-- name: release-job-tests
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: smb-volume-release
-      - get: smbdriver
-        passed:
-        - integration
-        - security-scan
-        trigger: true
-  - task: bump-submodule
-    file: persi-ci/scripts/ci/bump_submodule.build.yml
-    input_mapping:
-      release-repo: smb-volume-release
-      submodule-repo: smbdriver
-    params:
-      SUBMODULE_PATH: src/code.cloudfoundry.org/smbdriver
-  - task: bosh-release-test
-    attempts: 3
-    input_mapping:
-      smb-volume-release: bumped-repo
-      smb-volume-release-concourse-tasks: bumped-repo
-    file: smb-volume-release/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
-  - put: smb-volume-release
-    params:
-      repository: bumped-repo
-      rebase: true
