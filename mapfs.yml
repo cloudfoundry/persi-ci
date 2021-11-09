@@ -58,14 +58,14 @@ jobs:
         release-dir: mapfs
 
 - name: merge-pr
-   plan:
-   - get: mapfs
-     trigger: true
-     passed:
-     - unit-test
-     - fs-test
-     - security-scan
-   - put: mapfs
-     params:
-       merge: true
-       repository: mapfs
+  plan:
+  - get: mapfs
+    trigger: true
+    passed:
+    - unit-test
+    - fs-test
+    - security-scan
+  - put: mapfs
+    params:
+      merge: true
+      repository: mapfs
