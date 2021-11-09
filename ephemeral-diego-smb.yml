@@ -54,6 +54,14 @@ resources:
     branch: freezing
 
 - name: smb-volume-release
+  type: pull-request
+  source:
+    base_branch: master
+    access_token: ((github.access_token))
+    repository: cloudfoundry/smb-volume-release
+    disable_forks: true
+
+- name: smb-volume-release-master
   type: git
   source:
     branch: master
@@ -132,6 +140,11 @@ resource_types:
   source:
     repository: concourse/git-resource
     tag: ubuntu
+
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 jobs:
 - name: smb-volume-release-job-tests
@@ -391,9 +404,7 @@ jobs:
         steps:
           - get: persi-ci
           - get: release
-            resource: smb-volume-release
-            passed:
-              - pats
+            resource: smb-volume-release-master
           - get: version
             resource: smb-volume-version
             params:
@@ -414,7 +425,7 @@ jobs:
       file: persi-ci/scripts/ci/generate_github_release.build.yml
       params:
         BASE_RELEASE_NAME: smb-volume
-    - put: smb-volume-release
+    - put: smb-volume-release-master
       params:
         repository: finalized-release/release
         tag: version/number
@@ -437,13 +448,13 @@ jobs:
             repository: johnajimenez/ubuntu-bash-jq-curl-git
             tag: latest
         inputs:
-          - name: smb-volume-release
+          - name: smb-volume-release-master
         run:
           path: bash
           args:
             - -exc
             - |
-              cd smb-volume-release
+              cd smb-volume-release-master
               export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/54a073c28e26614473035e9d13ba9866" | jq -r '.latest_git_sha')
               git config --global core.pager cat
               if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
