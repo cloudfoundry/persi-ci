@@ -402,6 +402,8 @@ jobs:
       - get: smb-volume-release
         passed:
         - pats
+        - drats
+        - cats
         trigger: true
   - task: bosh-release-test
     attempts: 3
