@@ -394,31 +394,14 @@ jobs:
       action: unclaim
       env_file: smith-env/metadata
 
-- name: merge-pr-tests
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smb-volume-release
-        passed:
-        - pats
-        - drats
-        - cats
-        trigger: true
-  - task: bosh-release-test
-    attempts: 3
-    input_mapping:
-      smb-volume-release: smb-volume-release
-      smb-volume-release-concourse-tasks: smb-volume-release
-    file: smb-volume-release/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
-
 - name: merge-pr
   plan:
   - get: smb-volume-release
     trigger: true
     passed:
-    - merge-pr-tests
+    - pats
+    - drats
+    - cats
   - put: smb-volume-release
     params:
       merge: true
