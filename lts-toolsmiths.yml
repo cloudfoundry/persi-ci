@@ -462,9 +462,6 @@ jobs:
             - get: persi-ci
             - get: nfs-volume-release
               resource: nfs-volume-release-lts
-              passed:
-              - pats-nfs-ldap-legacy-ephemeral-environment
-              - pats-nfs-ldap-ephemeral-environment
             - get: nfsvolume-version
               params:
                 bump: final
