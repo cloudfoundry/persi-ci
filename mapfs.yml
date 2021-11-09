@@ -10,13 +10,6 @@ resources:
   source:
     uri: https://github.com/zfsonlinux/fstest.git
 
-- name: mapfs-release
-  type: git
-  source:
-    branch: master
-    private_key: ((github.ssh_key))
-    uri: git@github.com:cloudfoundry/mapfs-release.git
-
 - name: persi-ci
   type: git
   source:
@@ -55,28 +48,3 @@ jobs:
         PATHS: "./"
       input_mapping:
         release-dir: mapfs
-
-- name: bump-submodule
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: mapfs-release
-      - get: mapfs
-        passed:
-        - unit-test
-        - fs-test
-        - security-scan
-        trigger: true
-  - task: bump-submodule
-    file: persi-ci/scripts/ci/bump_submodule.build.yml
-    input_mapping:
-      release-repo: mapfs-release
-      submodule-repo: mapfs
-    params:
-      SUBMODULE_PATH: src/mapfs
-  - put: mapfs-release
-    params:
-      repository: bumped-repo
-      rebase: true
