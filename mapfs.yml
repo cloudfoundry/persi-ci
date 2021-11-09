@@ -1,9 +1,17 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
+
 resources:
 - name: mapfs
-  type: git
+  type: pull-request
   source:
-    uri: git@github.com:cloudfoundry/mapfs.git
-    private_key: ((github.ssh_key))
+    repository: cloudfoundry/mapfs
+    base_branch: master
+    disable_forks: true
+    access_token: ((github.access_token))
 
 - name: fstest
   type: git
@@ -48,3 +56,16 @@ jobs:
         PATHS: "./"
       input_mapping:
         release-dir: mapfs
+
+- name: merge-pr
+  plan:
+  - get: mapfs
+    trigger: true
+    passed:
+    - unit-test
+    - fs-test
+    - security-scan
+  - put: mapfs
+    params:
+      merge: true
+      repository: mapfs
