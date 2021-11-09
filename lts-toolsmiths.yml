@@ -63,6 +63,14 @@ resources:
       branch: freezing
 
   - name: nfs-volume-release
+    type: pull-request
+    source:
+      base_branch: {{lts-nfs-branch}}
+      access_token: ((github.access_token))
+      repository: cloudfoundry/nfs-volume-release
+      disable_forks: true
+
+  - name: nfs-volume-release-lts
     type: git
     source:
       branch: {{lts-nfs-branch}}
@@ -140,6 +148,11 @@ resource_types:
   type: docker-image
   source:
     repository: cftoolsmiths/toolsmiths-envs-resource
+
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 jobs:
   - name: nfs-security-scan
@@ -427,6 +440,18 @@ jobs:
         params:
           bump: patch
 
+  - name: merge-pr
+    plan:
+    - get: nfs-volume-release
+      trigger: true
+      passed:
+      - pats-nfs-ldap-legacy-ephemeral-environment
+      - pats-nfs-ldap-ephemeral-environment
+    - put: nfs-volume-release
+      params:
+        merge: true
+        repository: nfs-volume-release
+
   - name: shipit-nfs
     serial_groups:
       - nfs-version
@@ -436,9 +461,7 @@ jobs:
           steps:
             - get: persi-ci
             - get: nfs-volume-release
-              passed:
-              - pats-nfs-ldap-legacy-ephemeral-environment
-              - pats-nfs-ldap-ephemeral-environment
+              resource: nfs-volume-release-lts
             - get: nfsvolume-version
               params:
                 bump: final
