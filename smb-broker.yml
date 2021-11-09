@@ -5,13 +5,6 @@ resources:
     uri: git@github.com:cloudfoundry/smbbroker.git
     private_key: ((github.ssh_key))
 
-- name: smb-volume-release
-  type: git
-  source:
-    branch: master
-    private_key: ((github.ssh_key))
-    uri: git@github.com:cloudfoundry/smb-volume-release.git
-
 - name: persi-ci
   type: git
   source:
@@ -39,27 +32,3 @@ jobs:
         PATHS: "./"
       input_mapping:
         release-dir: smbbroker
-
-- name: bump-submodule
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: smb-volume-release
-      - get: smbbroker
-        passed:
-        - unit-test
-        - security-scan
-        trigger: true
-  - task: bump-submodule
-    file: persi-ci/scripts/ci/bump_submodule.build.yml
-    input_mapping:
-      release-repo: smb-volume-release
-      submodule-repo: smbbroker
-    params:
-      SUBMODULE_PATH: src/code.cloudfoundry.org/smbbroker
-  - put: smb-volume-release
-    params:
-      repository: bumped-repo
-      rebase: true
