@@ -128,6 +128,14 @@ resources:
     access_token: ((github.access_token))
     disable_forks: true
 
+- name: volume-mount-options-pr
+  type: pull-request
+  source:
+    uri: cloudfoundry/volume-mount-options
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
+
 jobs:
 - name: existingvolumebroker-unit
   public: true
@@ -354,3 +362,12 @@ jobs:
     params:
       merge: true
       repository: service-broker-store-pr
+
+- name: volume-mount-options-merge-pr
+  plan:
+  - get: volume-mount-options-pr
+    trigger: true
+  - put: volume-mount-options-pr
+    params:
+      merge: true
+      repository: volume-mount-options-pr
