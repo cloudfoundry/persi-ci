@@ -1,3 +1,13 @@
+groups:
+- name: auto-tagging
+  jobs:
+  - *-version
+- name: merge-prs
+  jobs:
+  - *-build
+  - *-unit
+  - *-merge-pr
+
 resource_types:
 - name: pull-request
   type: docker-image
