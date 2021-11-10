@@ -120,6 +120,14 @@ resources:
     access_token: ((github.access_token))
     disable_forks: true
 
+- name: service-broker-store-pr
+  type: pull-request
+  source:
+    uri: cloudfoundry/service-broker-store
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
+
 jobs:
 - name: existingvolumebroker-unit
   public: true
@@ -337,3 +345,12 @@ jobs:
     params:
       merge: true
       repository: existingvolumebroker-pr
+
+- name: service-broker-store-merge-pr
+  plan:
+  - get: service-broker-store-pr
+    trigger: true
+  - put: service-broker-store-pr
+    params:
+      merge: true
+      repository: service-broker-store-pr
