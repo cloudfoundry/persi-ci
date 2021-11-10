@@ -75,6 +75,14 @@ resources:
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: mapfs-release
+  type: pull-request
+  source:
+    base_branch: master
+    access_token: ((github.access_token))
+    repository: cloudfoundry/mapfs-release
+    disable_forks: true
+
+- name: mapfs-release-master
   type: git
   source:
     branch: master
@@ -607,6 +615,20 @@ jobs:
         action: unclaim
         env_file: smith-env/metadata
 
+- name: merge-pr
+  plan:
+  - get: mapfs-release
+    trigger: true
+    passed:
+    - pats
+    - pats-nfs-ldap
+    - drats
+    - cats-nfs
+  - put: mapfs-release
+    params:
+      merge: true
+      repository: mapfs-release
+
 - name: shipit-mapfs
   serial_groups:
     - mapfs-version
@@ -616,9 +638,7 @@ jobs:
         steps:
           - get: persi-ci
           - get: release
-            resource: mapfs-release
-            passed:
-              - pats-nfs-ldap
+            resource: mapfs-release-master
           - get: version
             resource: mapfs-version
             params:
