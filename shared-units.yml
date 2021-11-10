@@ -112,6 +112,14 @@ resources:
     access_token: ((github.access_token))
     disable_forks: true
 
+- name: existingvolumebroker-pr
+  type: pull-request
+  source:
+    uri: cloudfoundry/existingvolumebroker
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
+
 jobs:
 - name: existingvolumebroker-unit
   public: true
@@ -320,3 +328,12 @@ jobs:
     params:
       merge: true
       repository: goshims-pr
+
+- name: existingvolumebroker-merge-pr
+  plan:
+  - get: existingvolumebroker-pr
+    trigger: true
+  - put: existingvolumebroker-pr
+    params:
+      merge: true
+      repository: existingvolumebroker-pr
