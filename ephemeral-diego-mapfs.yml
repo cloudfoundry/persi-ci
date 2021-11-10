@@ -1,0 +1,888 @@
+shared_functions:
+- on_failure: &on_failure_unclaim
+    do:
+    - task: wait-1-hour
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: 
+            repository: alpine
+            username: ((dockerhub.username))
+            password: ((dockerhub.password))
+        run:
+          path: sleep
+          args: [ "3600" ]
+    - put: smith-env
+      params:
+        action: unclaim
+        env_file: smith-env/metadata
+
+- on_error: &on_error_unclaim
+    do:
+      - task: wait-1-hour
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: 
+              repository: alpine
+              username: ((dockerhub.username))
+              password: ((dockerhub.password))
+          run:
+            path: sleep
+            args: [ "3600" ]
+      - put: smith-env
+        params:
+          action: unclaim
+          env_file: smith-env/metadata
+
+
+resources:
+- name: every-hour
+  type: time
+  icon: clock-outline
+  source:
+    interval: 1h
+
+- name: smith-env
+  type: pcf-pool
+  source:
+    api_token: ((toolsmiths.api_token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: cf-deployment
+
+
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci
+    branch: freezing
+
+- name: nfs-volume-release
+  type: pull-request
+  source:
+    base_branch: master
+    access_token: ((github.access_token))
+    repository: cloudfoundry/nfs-volume-release
+    disable_forks: true
+
+- name: nfs-volume-release-master
+  type: git
+  source:
+    branch: master
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+    ignore_paths:
+    - scripts
+
+- name: nfsvolume-version
+  type: semver
+  source:
+    access_key_id: ((aws/nfsvolume-uploader.id))
+    bucket: nfsvolume-release-versions
+    initial_version: 7.0.2
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: ((aws/nfsvolume-uploader.secret))
+
+- name: github-release-nfs
+  type: github-release
+  source:
+    user: cloudfoundry
+    repository: nfs-volume-release
+    drafts: true
+    access_token: ((github.access_token))
+
+- name: nfs-volume-release-concourse-tasks
+  type: git
+  source:
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+
+- name: mapfs-release
+  type: git
+  source:
+    branch: master
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/mapfs-release.git
+    ignore_paths:
+      - scripts
+
+- name: mapfs-version
+  type: semver
+  source:
+    access_key_id: ((aws/mapfs-uploader.id))
+    bucket: mapfs-versions
+    initial_version: 1.2.4
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: ((aws/mapfs-uploader.secret))
+
+- name: github-release-mapfs
+  type: github-release
+  source:
+    user: cloudfoundry
+    repository: mapfs-release
+    drafts: true
+    access_token: ((github.access_token))
+
+- name: mapfs-release-concourse-tasks
+  type: git
+  source:
+    branch: master
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/mapfs-release.git
+
+- name: cf-deployment
+  type: git
+  source:
+    branch: main
+    uri: https://github.com/cloudfoundry/cf-deployment.git
+
+- name: cf-deployment-concourse-tasks
+  type: git
+  source:
+    branch: main
+    uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
+
+- name: cf-volume-services-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+
+- name: cf-acceptance-tests
+  type: git
+  source:
+    branch: release-candidate
+    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
+
+- name: bbr-binary-release
+  type: github-release
+  source:
+    owner: cloudfoundry-incubator
+    repository: bosh-backup-and-restore
+    access_token: ((github.access_token))
+
+- name: disaster-recovery-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
+
+resource_types:
+- name: git
+  type: docker-image
+  source:
+    repository: concourse/git-resource
+    tag: ubuntu
+
+- name: pcf-pool
+
+  type: docker-image
+  source:
+    repository: cftoolsmiths/toolsmiths-envs-resource
+
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
+
+jobs:
+- name: nfs-volume-release-job-tests
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: nfs-volume-release-concourse-tasks
+          - get: mapfs-release
+          - get: nfs-volume-release
+            trigger: true
+    - task: rspec
+      file: persi-ci/scripts/ci/run-rspec.build.yml
+      input_mapping:
+        test-repo: nfs-volume-release
+    - task: bosh-release-test
+      attempts: 3
+      file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+      privileged: true
+
+- name: mapfs-release-job-tests
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: mapfs-release
+            trigger: true
+          - get: mapfs-release-concourse-tasks
+    - task: bosh-release-test
+      file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+      privileged: true
+      timeout: 1h
+
+- name: env-gate
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: nfs-volume-release
+        trigger: true
+        passed:
+        - nfs-volume-release-job-tests
+      - get: mapfs-release
+        passed:
+        - mapfs-release-job-tests
+      - get: every-hour
+
+- name: claim-env
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: nfs-volume-release
+        trigger: true
+        passed:
+          - env-gate
+      - get: mapfs-release
+        trigger: true
+        passed:
+          - env-gate
+  - put: smith-env
+    params:
+      action: claim
+
+  - task: output-env-details
+    file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+    input_mapping:
+      pooled-env: smith-env
+
+- name: claim-ldap-env
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: nfs-volume-release
+            trigger: true
+            passed:
+              - env-gate
+          - get: mapfs-release
+            trigger: true
+            passed:
+              - env-gate
+    - put: smith-env
+      params:
+        action: claim
+
+    - task: output-env-details
+      file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+      input_mapping:
+        pooled-env: smith-env
+
+- name: deploy-cf
+  public: true
+  build_logs_to_retain: 100
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smith-env
+
+        passed: [ claim-env ]
+        trigger: true
+      - get: cf-deployment-concourse-tasks
+      - get: cf-deployment
+      - get: persi-ci
+      - get: nfs-volume-release
+        passed: [ claim-env ]
+      - get: mapfs-release
+        passed: [ claim-env ]
+  - task: pin-cf-deployment-version
+    file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+  - task: collect-persi-ci-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment-pinned
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate_variables.build.yml
+    params:
+      GENERATE_NFS_VARS: true
+      GENERATE_SMB_VARS: false
+  - task: bosh-deploy-cf
+    file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
+    input_mapping:
+      cf-deployment: cf-deployment-pinned
+      toolsmiths-env: smith-env
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+    params:
+      VARS_FILES: "nfs-vars.yml"
+      OPS_FILES: "operations/use-compiled-releases.yml
+                  operations/scale-to-one-az.yml
+                  operations/enable-nfs-volume-service.yml
+                  updated-nfs-releases.yml
+                  operations/test/enable-nfs-test-server.yml
+                  operations/backup-and-restore/enable-backup-restore.yml
+                  operations/backup-and-restore/enable-restore-nfs-broker.yml
+                  operations/experimental/fast-deploy-with-downtime-and-danger.yml"
+  - task: run-smoke-tests
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smoke_tests
+  - task: run-nfs-broker-errand
+    attempts: 3
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: nfsbrokerpush
+      INSTANCE: nfs-broker-push
+
+- name: cats-nfs
+  serial_groups:
+    - acceptance-tests
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: nfs-volume-release
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: smith-env
+
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: persi-ci
+          - get: cf-acceptance-tests
+          - get: cf-deployment-concourse-tasks
+    - task: generate-cats-config
+      file: persi-ci/scripts/ci/generate_cats_config.build.yml
+
+      params:
+        VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+        CF_USERNAME: admin
+        SERVICE_NAME: nfs
+        PLAN_NAME: Existing
+        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+    - task: run-cats
+      file: cf-deployment-concourse-tasks/run-cats/task.yml
+      input_mapping:
+        integration-config: cats-config
+      params:
+        CONFIG_FILE_PATH: cats.json
+
+- name: drats
+  serial: true
+  serial_groups:
+    - acceptance-tests
+#  on_failure: *on_failure_unclaim
+#  on_error: *on_error_unclaim
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: nfs-volume-release
+            passed: [ deploy-cf ]
+            trigger: true
+          - get: bbr-binary-release
+          - get: disaster-recovery-acceptance-tests
+          - get: persi-ci
+          - get: smith-env
+
+            passed: [ deploy-cf ]
+            trigger: true
+    - task: generate-integration-config
+      file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
+      params:
+        INTEGRATION_CONFIG_FILE_PATH: config/drats-nfs.json
+      input_mapping:
+        integration-configs: persi-ci
+
+    - task: drats-with-integration-config
+      file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
+      privileged: true
+      input_mapping:
+        drats-integration-config: updated-integration-configs
+      params:
+        CONFIG_FILE_PATH: config/drats-nfs.json
+
+- name: pats
+  serial_groups:
+    - acceptance-tests
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-volume-services-acceptance-tests
+      - get: persi-ci
+      - get: smith-env
+
+        passed: [ deploy-cf ]
+        trigger: true
+      - get: nfs-volume-release
+        passed: [ deploy-cf ]
+      - get: mapfs-release
+        passed: [ deploy-cf ]
+  - task: generate-pats-config-nfs
+
+    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    params:
+      VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+      CF_USERNAME: admin
+      BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}"]'
+      CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
+      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+    output_mapping:
+      pats-config: nfs-pats-config
+  - task: run-pats-nfs
+    input_mapping:
+      pats-config: nfs-pats-config
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    attempts: 3
+    params:
+      PARALLEL_NODES: 5
+      TEST_MOUNT_FAIL_LOGGING: true
+      TEST_MOUNT_OPTIONS: true
+      TEST_MULTI_CELL: true
+      TEST_READ_ONLY: true
+
+- name: deploy-cf-with-ldap
+  public: true
+  build_logs_to_retain: 100
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smith-env
+
+        passed:
+        - claim-ldap-env
+        trigger: true
+      - get: cf-deployment-concourse-tasks
+      - get: cf-deployment
+      - get: persi-ci
+      - get: nfs-volume-release
+        passed:
+        - claim-ldap-env
+      - get: mapfs-release
+        passed:
+        - claim-ldap-env
+  - task: pin-cf-deployment-version
+    file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+  - task: collect-persi-ci-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment-pinned
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate_variables.build.yml
+    params:
+      GENERATE_NFS_VARS: true
+      GENERATE_SMB_VARS: false
+      LDAP_HOST: "nfstestldapserver.service.cf.internal"
+      LDAP_SVC_USER: "cn=admin,dc=domain,dc=com"
+      LDAP_SVC_PASS: "secret"
+      LDAP_PORT: 636
+      LDAP_PROTO: tcp
+      LDAP_USER_FQDN: "ou=Users,dc=domain,dc=com"
+  - task: bosh-deploy-cf
+    file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+      cf-deployment: cf-deployment-pinned
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+    params:
+      VARS_FILES: "nfs-vars.yml"
+      OPS_FILES: "operations/use-compiled-releases.yml
+                  operations/scale-to-one-az.yml
+                  operations/enable-nfs-volume-service.yml
+                  updated-nfs-releases.yml
+                  operations/enable-nfs-ldap.yml
+                  operations/test/enable-nfs-test-server.yml
+                  operations/test/enable-nfs-test-ldapserver.yml
+                  operations/experimental/fast-deploy-with-downtime-and-danger.yml"
+  - task: run-smoke-tests
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smoke_tests
+  - task: run-nfs-broker-errand
+    attempts: 3
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: nfsbrokerpush
+      INSTANCE: nfs-broker-push
+
+- name: pats-nfs-ldap
+  on_failure: *on_failure_unclaim
+  on_error: *on_error_unclaim
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smith-env
+
+        passed:
+        - deploy-cf-with-ldap
+        trigger: true
+      - get: cf-volume-services-acceptance-tests
+      - get: persi-ci
+      - get: nfs-volume-release
+        passed:
+        - deploy-cf-with-ldap
+      - get: mapfs-release
+        passed:
+        - deploy-cf-with-ldap
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: generate-legacy-pats-config
+
+        file: persi-ci/scripts/ci/generate_pats_config.build.yml
+        params:
+          VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+          CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+          DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+          PLAN_NAME: Existing
+          SERVICE_NAME: nfs-legacy
+        output_mapping:
+          pats-config: nfs-legacy-pats-config
+      - task: generate-pats-config
+
+        file: persi-ci/scripts/ci/generate_pats_config.build.yml
+        params:
+          VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+          CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+          DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+          PLAN_NAME: Existing
+          SERVICE_NAME: nfs
+        output_mapping:
+          pats-config: nfs-pats-config
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: run-legacy-pats
+        input_mapping:
+          pats-config: nfs-legacy-pats-config
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        params:
+          TEST_DOCKER_PORA: true
+      - task: run-pats
+        input_mapping:
+          pats-config: nfs-pats-config
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        params:
+          TEST_DOCKER_PORA: true
+
+- name: unclaim-env
+  plan:
+  - get: smith-env
+
+    passed:
+    - pats
+    - drats
+    - cats-nfs
+    trigger: true
+  - put: smith-env
+    params:
+      action: unclaim
+      env_file: smith-env/metadata
+
+
+- name: unclaim-ldap-env
+  plan:
+    - get: smith-env
+
+      passed:
+        - pats-nfs-ldap
+      trigger: true
+    - put: smith-env
+      params:
+        action: unclaim
+        env_file: smith-env/metadata
+
+- name: merge-pr
+  plan:
+  - get: nfs-volume-release
+    trigger: true
+    passed:
+    - pats
+    - pats-nfs-ldap
+    - drats
+    - cats-nfs
+  - put: nfs-volume-release
+    params:
+      merge: true
+      repository: nfs-volume-release
+
+- name: shipit-nfs
+  serial_groups:
+    - nfs-version
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: release
+            resource: nfs-volume-release-master
+          - get: version
+            resource: nfsvolume-version
+            params:
+              bump: final
+    - task: finalize-release
+      file: persi-ci/scripts/ci/finalize_release.build.yml
+      params:
+        BASE_RELEASE_NAME: nfs-volume
+        GIT_USER: ((github.user))
+        GIT_EMAIL: ((github.email))
+        S3_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
+        S3_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
+    - put: nfs-volume-version
+      resource: nfsvolume-version
+      params:
+        file: version/number
+    - task: generate-github-release
+      file: persi-ci/scripts/ci/generate_github_release.build.yml
+      params:
+        BASE_RELEASE_NAME: nfs-volume
+    - put: nfs-volume-release-master
+      params:
+        repository: finalized-release/release
+        tag: version/number
+        tag_prefix: v
+    - put: github-release-nfs
+      params:
+        commitish: generated-release/commitish
+        name: generated-release/name
+        tag: generated-release/version
+        globs: []
+    - put: nfsvolume-version
+      params:
+        bump: patch
+    - task: pipeline-success
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: johnajimenez/ubuntu-bash-jq-curl-git
+            username: ((dockerhub.username))
+            password: ((dockerhub.password))
+            tag: latest
+        inputs:
+          - name: nfs-volume-release-master
+        run:
+          path: bash
+          args:
+            - -exc
+            - |
+              cd nfs-volume-release-master
+              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker.api_token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/c7dc43fcdf7a85f43c3849e03b7ae28c" | jq -r '.latest_git_sha')
+              git config --global core.pager cat
+              if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
+                true # all is well
+              else
+                echo "$LATEST_GIT_SHA missing, assuming the worst"
+                export LATEST_GIT_SHA=null
+              fi
+              export NEW_LATEST_GIT_SHA=$(git rev-parse HEAD)
+              if [ "$LATEST_GIT_SHA" == "null" ]; then
+                export STORY_IDS=($(git log -10 | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+              else
+                export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+              fi
+              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker.api_token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"c7dc43fcdf7a85f43c3849e03b7ae28c", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
+              if [[ "$POST_STATUS" -ne 200 ]] ; then
+                exit $POST_STATUS
+              else
+                exit 0
+              fi
+
+- name: manual-bump-nfs-patch
+  serial_groups:
+    - nfs-version
+  plan:
+    - get: nfs-volume-version
+      resource: nfsvolume-version
+      params:
+        bump: final
+    - put: nfsvolume-version
+      params:
+        bump: patch
+
+- name: manual-bump-nfs-minor
+  serial_groups:
+    - nfs-version
+  plan:
+    - get: nfs-volume-version
+      resource: nfsvolume-version
+      params:
+        bump: final
+    - put: nfsvolume-version
+      params:
+        bump: minor
+
+- name: manual-bump-nfs-major
+  serial_groups:
+    - nfs-version
+  plan:
+    - get: nfs-volume-version
+      resource: nfsvolume-version
+      params:
+        bump: final
+    - put: nfsvolume-version
+      params:
+        bump: major
+
+- name: shipit-mapfs
+  serial_groups:
+    - mapfs-version
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: persi-ci
+          - get: release
+            resource: mapfs-release
+            passed:
+              - pats-nfs-ldap
+          - get: version
+            resource: mapfs-version
+            params:
+              bump: final
+    - task: finalize-release
+      file: persi-ci/scripts/ci/finalize_release.build.yml
+      params:
+        BASE_RELEASE_NAME: mapfs
+        GIT_USER: ((github.user))
+        GIT_EMAIL: ((github.email))
+        S3_ACCESS_KEY_ID: ((aws/mapfs-uploader.id))
+        S3_ACCESS_KEY: ((aws/mapfs-uploader.secret))
+    - put: version
+      resource: mapfs-version
+      params:
+        file: version/number
+    - task: generate-release
+      file: persi-ci/scripts/ci/generate_github_release.build.yml
+      params:
+        BASE_RELEASE_NAME: mapfs
+    - put: mapfs-release
+      params:
+        repository: finalized-release/release
+        tag: version/number
+        tag_prefix: v
+    - put: github-release-mapfs
+      params:
+        commitish: generated-release/commitish
+        name: generated-release/name
+        tag: generated-release/version
+        globs: []
+    - put: mapfs-version
+      params:
+        bump: patch
+    - task: pipeline-success
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: johnajimenez/ubuntu-bash-jq-curl-git
+            username: ((dockerhub.username))
+            password: ((dockerhub.password))
+            tag: latest
+        inputs:
+          - name: mapfs-release
+        run:
+          path: bash
+          args:
+            - -exc
+            - |
+              cd mapfs-release
+              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/b87ca35449445f20dce3b23ff08f5373" | jq -r '.latest_git_sha')
+              git config --global core.pager cat
+              if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
+                true # all is well
+              else
+                echo "$LATEST_GIT_SHA missing, assuming the worst"
+                export LATEST_GIT_SHA=null
+              fi
+              export NEW_LATEST_GIT_SHA=$(git rev-parse HEAD)
+              if [ "$LATEST_GIT_SHA" == "null" ]; then
+                export STORY_IDS=($(git log -10 | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+              else
+                export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
+              fi
+              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"b87ca35449445f20dce3b23ff08f5373", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
+              if [[ "$POST_STATUS" -ne 200 ]] ; then
+                exit $POST_STATUS
+              else
+                exit 0
+              fi
+
+- name: manual-bump-mapfs-patch
+  serial_groups:
+    - mapfs-version
+  plan:
+    - get: version
+      resource: mapfs-version
+      params:
+        bump: final
+    - put: mapfs-version
+      params:
+        bump: patch
+
+- name: manual-bump-mapfs-minor
+  serial_groups:
+    - mapfs-version
+  plan:
+    - get: version
+      resource: mapfs-version
+      params:
+        bump: final
+    - put: mapfs-version
+      params:
+        bump: minor
+
+- name: manual-bump-mapfs-major
+  serial_groups:
+    - mapfs-version
+  plan:
+    - get: version
+      resource: mapfs-version
+      params:
+        bump: final
+    - put: mapfs-version
+      params:
+        bump: major
