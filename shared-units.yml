@@ -104,6 +104,14 @@ resources:
     access_token: ((github.access_token))
     disable_forks: true
 
+- name: goshims-pr
+  type: pull-request
+  source:
+    uri: cloudfoundry/goshims
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
+
 jobs:
 - name: existingvolumebroker-unit
   public: true
@@ -303,3 +311,12 @@ jobs:
     params:
       merge: true
       repository: volumedriver-pr
+
+- name: goshims-merge-pr
+  plan:
+  - get: goshims-pr
+    trigger: true
+  - put: goshims-pr
+    params:
+      merge: true
+      repository: goshims-pr
