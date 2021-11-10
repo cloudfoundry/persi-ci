@@ -1,3 +1,9 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
+
 resources:
 - name: persi-ci
   type: git
@@ -89,6 +95,14 @@ resources:
     key: current-version
     region_name: us-east-1
     secret_access_key: ((aws/volume-mount-options-uploader.secret))
+
+- name: volumedriver-pr
+  type: pull-request
+  source:
+    uri: cloudfoundry/volumedriver
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
 
 jobs:
 - name: existingvolumebroker-unit
@@ -280,3 +294,12 @@ jobs:
     - put: goshims-version
       params:
         bump: minor
+
+- name: volumedriver-merge-pr
+  plan:
+  - get: volumedriver-pr
+    trigger: true
+  - put: volumedriver-pr
+    params:
+      merge: true
+      repository: volumedriver-pr
