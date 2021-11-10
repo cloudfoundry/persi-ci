@@ -15,6 +15,11 @@ resource_types:
     repository: cryogenics/pr-queue-resource
 
 resources:
+- name: every-monday
+  type: time
+  source:
+    days: [Monday]
+
 - name: persi-ci
   type: git
   source:
@@ -162,10 +167,18 @@ jobs:
     input_mapping:
       gomod: existingvolumebroker
 
+- name: bump-existingvolumebroker-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: existingvolumebroker
+  
 - name: bump-minor-existingvolumebroker-version
   serial: true
   plan:
     - get: existingvolumebroker
+      passed: bump-existingvolumebroker-gate
       trigger: true
     - get: existingvolumebroker-version
     - put: existingvolumebroker
