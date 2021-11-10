@@ -178,7 +178,7 @@ jobs:
   serial: true
   plan:
     - get: existingvolumebroker
-      passed: bump-existingvolumebroker-gate
+      passed: [bump-existingvolumebroker-gate]
       trigger: true
     - get: existingvolumebroker-version
     - put: existingvolumebroker
