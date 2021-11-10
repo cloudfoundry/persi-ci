@@ -20,6 +20,8 @@ jobs:
     file: persi-ci/docker-image-build.yml
   - set_pipeline: ephemeral-diego
     file: persi-ci/ephemeral-diego.yml
+  - set_pipeline: ephemeral-diego-mapfs
+    file: persi-ci/ephemeral-diego-mapfs.yml
   - set_pipeline: ephemeral-diego-smb
     file: persi-ci/ephemeral-diego-smb.yml
   - set_pipeline: mapfs
