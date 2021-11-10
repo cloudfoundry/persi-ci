@@ -144,9 +144,8 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: existingvolumebroker
+      - get: existingvolumebroker-pr
         trigger: true
-      - get: existingvolumebroker-version
   - task: existingvolumebroker-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
@@ -157,11 +156,7 @@ jobs:
   plan:
     - get: existingvolumebroker
       trigger: true
-      passed:
-        - existingvolumebroker-unit
     - get: existingvolumebroker-version
-      passed:
-        - existingvolumebroker-unit
     - put: existingvolumebroker
       params:
         repository: existingvolumebroker
@@ -348,6 +343,8 @@ jobs:
 - name: existingvolumebroker-merge-pr
   plan:
   - get: existingvolumebroker-pr
+    passed:
+      - existingvolumebroker-unit
     trigger: true
   - put: existingvolumebroker-pr
     params:
