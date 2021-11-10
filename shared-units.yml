@@ -2,6 +2,7 @@ groups:
 - name: auto-tagging
   jobs:
   - '*-version'
+  - '*-gate'
 - name: merge-prs
   jobs:
   - '*-build'
@@ -15,6 +16,11 @@ resource_types:
     repository: cryogenics/pr-queue-resource
 
 resources:
+- name: every-monday
+  type: time
+  source:
+    days: [Monday]
+
 - name: persi-ci
   type: git
   source:
@@ -162,10 +168,18 @@ jobs:
     input_mapping:
       gomod: existingvolumebroker
 
+- name: bump-existingvolumebroker-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: existingvolumebroker
+  
 - name: bump-minor-existingvolumebroker-version
   serial: true
   plan:
     - get: existingvolumebroker
+      passed: [bump-existingvolumebroker-gate]
       trigger: true
     - get: existingvolumebroker-version
     - put: existingvolumebroker
@@ -193,10 +207,18 @@ jobs:
       input_mapping:
         gomod: service-broker-store
 
+- name: bump-service-broker-store-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: service-broker-store
+
 - name: bump-minor-service-broker-store-version
   serial: true
   plan:
     - get: service-broker-store
+      passed: [bump-service-broker-store-gate]
       trigger: true
     - get: service-broker-store-version
     - put: service-broker-store
@@ -226,10 +248,18 @@ jobs:
     params:
       NODES: 1
 
+- name: bump-volumedriver-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: volumedriver
+
 - name: bump-minor-volumedriver-version
   serial: true
   plan:
     - get: volumedriver
+      passed: [bump-volumedriver-gate]
       trigger: true
     - get: volumedriver-version
     - put: volumedriver
@@ -257,10 +287,18 @@ jobs:
     input_mapping:
       gomod: volume-mount-options
 
+- name: bump-volume-mount-options-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: volume-mount-options
+
 - name: bump-minor-volume-mount-options-version
   serial: true
   plan:
     - get: volume-mount-options
+      passed: [bump-volume-mount-options-gate]
       trigger: true
     - get: volume-mount-options-version
     - put: volume-mount-options
@@ -301,10 +339,18 @@ jobs:
               cd goshims
               go build ./...
 
+- name: bump-goshims-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: goshims
+
 - name: bump-minor-goshims-version
   serial: true
   plan:
     - get: goshims
+      passed: [bump-goshims-gate]
       trigger: true
     - get: goshims-version
     - put: goshims
