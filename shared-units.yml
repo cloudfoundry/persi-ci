@@ -2,6 +2,7 @@ groups:
 - name: auto-tagging
   jobs:
   - '*-version'
+  - '*-gate'
 - name: merge-prs
   jobs:
   - '*-build'
