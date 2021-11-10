@@ -144,7 +144,8 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: existingvolumebroker-pr
+      - get: existingvolumebroker
+        resource: existingvolumebroker-pr
         trigger: true
   - task: existingvolumebroker-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
@@ -175,8 +176,8 @@ jobs:
         steps:
           - get: persi-ci
           - get: service-broker-store
+            resource: service-broker-store-pr
             trigger: true
-          - get: service-broker-store-version
     - task: service-broker-store-unit
       file: persi-ci/scripts/ci/run_unit.build.yml
       input_mapping:
@@ -187,11 +188,7 @@ jobs:
   plan:
     - get: service-broker-store
       trigger: true
-      passed:
-        - service-broker-store-unit
     - get: service-broker-store-version
-      passed:
-        - service-broker-store-unit
     - put: service-broker-store
       params:
         repository: service-broker-store
@@ -210,8 +207,8 @@ jobs:
       steps:
       - get: persi-ci
       - get: volumedriver
+        resource: volumedriver-pr
         trigger: true
-      - get: volumedriver-version
   - task: volumedriver-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
@@ -224,11 +221,7 @@ jobs:
   plan:
     - get: volumedriver
       trigger: true
-      passed:
-        - volumedriver-unit
     - get: volumedriver-version
-      passed:
-        - volumedriver-unit
     - put: volumedriver
       params:
         repository: volumedriver
@@ -247,8 +240,8 @@ jobs:
       steps:
       - get: persi-ci
       - get: volume-mount-options
+        resource: volume-mount-options-pr
         trigger: true
-      - get: volume-mount-options-version
   - task: volume-mount-options-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
@@ -259,11 +252,7 @@ jobs:
   plan:
     - get: volume-mount-options
       trigger: true
-      passed:
-        - volume-mount-options-unit
     - get: volume-mount-options-version
-      passed:
-        - volume-mount-options-unit
     - put: volume-mount-options
       params:
         repository: volume-mount-options
@@ -282,8 +271,8 @@ jobs:
         steps:
           - get: persi-ci
           - get: goshims
+            resource: goshims-pr
             trigger: true
-          - get: goshims-version
     - task: build
       config:
         platform: linux
@@ -307,11 +296,7 @@ jobs:
   plan:
     - get: goshims
       trigger: true
-      passed:
-        - goshims-build
     - get: goshims-version
-      passed:
-        - goshims-build
     - put: goshims
       params:
         repository: goshims
@@ -325,6 +310,8 @@ jobs:
 - name: volumedriver-merge-pr
   plan:
   - get: volumedriver-pr
+    passed:
+      - volumedriver-unit
     trigger: true
   - put: volumedriver-pr
     params:
@@ -334,6 +321,8 @@ jobs:
 - name: goshims-merge-pr
   plan:
   - get: goshims-pr
+    passed:
+      - goshims-build
     trigger: true
   - put: goshims-pr
     params:
@@ -354,6 +343,8 @@ jobs:
 - name: service-broker-store-merge-pr
   plan:
   - get: service-broker-store-pr
+    passed:
+      - service-broker-store-unit
     trigger: true
   - put: service-broker-store-pr
     params:
@@ -363,6 +354,8 @@ jobs:
 - name: volume-mount-options-merge-pr
   plan:
   - get: volume-mount-options-pr
+    passed:
+      - volume-mount-options-unit
     trigger: true
   - put: volume-mount-options-pr
     params:
