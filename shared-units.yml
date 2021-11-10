@@ -99,7 +99,7 @@ resources:
 - name: volumedriver-pr
   type: pull-request
   source:
-    uri: cloudfoundry/volumedriver
+    repository: cloudfoundry/volumedriver
     base_branch: master
     access_token: ((github.access_token))
     disable_forks: true
@@ -107,7 +107,7 @@ resources:
 - name: goshims-pr
   type: pull-request
   source:
-    uri: cloudfoundry/goshims
+    repository: cloudfoundry/goshims
     base_branch: master
     access_token: ((github.access_token))
     disable_forks: true
@@ -115,7 +115,7 @@ resources:
 - name: existingvolumebroker-pr
   type: pull-request
   source:
-    uri: cloudfoundry/existingvolumebroker
+    repository: cloudfoundry/existingvolumebroker
     base_branch: master
     access_token: ((github.access_token))
     disable_forks: true
@@ -123,7 +123,7 @@ resources:
 - name: service-broker-store-pr
   type: pull-request
   source:
-    uri: cloudfoundry/service-broker-store
+    repository: cloudfoundry/service-broker-store
     base_branch: master
     access_token: ((github.access_token))
     disable_forks: true
@@ -131,7 +131,7 @@ resources:
 - name: volume-mount-options-pr
   type: pull-request
   source:
-    uri: cloudfoundry/volume-mount-options
+    repository: cloudfoundry/volume-mount-options
     base_branch: master
     access_token: ((github.access_token))
     disable_forks: true
