@@ -349,6 +349,7 @@ jobs:
           - get: persi-ci
           - get: cf-acceptance-tests
           - get: cf-deployment-concourse-tasks
+          - get: mapfs-release
     - task: generate-cats-config
       file: persi-ci/scripts/ci/generate_cats_config.build.yml
 
@@ -382,6 +383,7 @@ jobs:
           - get: disaster-recovery-acceptance-tests
           - get: persi-ci
           - get: smith-env
+          - get: mapfs-release
 
             passed: [ deploy-cf ]
             trigger: true
