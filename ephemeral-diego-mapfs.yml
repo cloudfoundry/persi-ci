@@ -382,8 +382,8 @@ jobs:
           - get: bbr-binary-release
           - get: disaster-recovery-acceptance-tests
           - get: persi-ci
-          - get: smith-env
           - get: mapfs-release
+          - get: smith-env
 
             passed: [ deploy-cf ]
             trigger: true
