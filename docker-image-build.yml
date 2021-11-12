@@ -13,61 +13,54 @@ resources:
     uri: https://github.com/cloudfoundry/persi-ci
     branch: master
 
-- name: fork-git-resource-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/fork-git-resource
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
-
 - name: mapfs-tests-docker-image
   type: docker-image
   source:
     repository: cfpersi/mapfs-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 - name: smith-cli-docker-image
   type: docker-image
   source:
     repository: cfpersi/smith-cli
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 - name: nfs-driver-integration-tests-docker-image
   type: docker-image
   source:
     repository: cfpersi/nfs-integration-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 - name: bosh-release-test-docker-image
   type: docker-image
   source:
     repository: cfpersi/bosh-release-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 - name: nfs-unit-tests-docker-image
   type: docker-image
   source:
     repository: cfpersi/nfs-unit-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 - name: smb-unit-tests-docker-image
   type: docker-image
   source:
     repository: cfpersi/smb-unit-tests
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 - name: nfs-cats-docker-image
   type: docker-image
   source:
     repository: cfpersi/nfs-cats
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 - name: smb-volume-release
   type: git
@@ -87,23 +80,7 @@ resources:
     branch: master
     uri: https://github.com/cloudfoundry/mapfs-release.git
 
-- name: fork-git-resource
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/go-git-resource.git
-
 jobs:
-
-- name: build-fork-git-resource-docker-image
-  plan:
-    - get: nightly
-      trigger: true
-    - get: fork-git-resource
-      trigger: true
-    - put: fork-git-resource-docker-image
-      params:
-        build: fork-git-resource
-        dockerfile: fork-git-resource/dockerfiles/ubuntu/Dockerfile
 
 - name: build-nfs-driver-integration-tests-docker-image
   plan:
@@ -177,7 +154,7 @@ jobs:
           type: docker-image
           source: {repository: relintdockerhubpushbot/cf-deployment-concourse-tasks}
         params:
-          GITHUB_TOKEN: ((github-smith-repo-token))
+          GITHUB_TOKEN: ((github-smith-repo.access_token))
         outputs:
           - name: smith-cli-binary
         run:

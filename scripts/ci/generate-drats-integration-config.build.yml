@@ -9,6 +9,7 @@ image_resource:
 
 inputs:
   - name: smith-env
+    path: cf-deployment-env
     optional: true
   - name: disaster-recovery-acceptance-tests
   - name: integration-configs

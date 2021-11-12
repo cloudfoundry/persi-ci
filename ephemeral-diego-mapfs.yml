@@ -60,14 +60,6 @@ resources:
     branch: master
 
 - name: nfs-volume-release
-  type: pull-request
-  source:
-    base_branch: master
-    access_token: ((github.access_token))
-    repository: cloudfoundry/nfs-volume-release
-    disable_forks: true
-
-- name: nfs-volume-release-master
   type: git
   source:
     branch: master
@@ -76,24 +68,6 @@ resources:
     ignore_paths:
     - scripts
 
-- name: nfsvolume-version
-  type: semver
-  source:
-    access_key_id: ((aws/nfsvolume-uploader.id))
-    bucket: nfsvolume-release-versions
-    initial_version: 7.0.2
-    key: current-version
-    region_name: us-east-1
-    secret_access_key: ((aws/nfsvolume-uploader.secret))
-
-- name: github-release-nfs
-  type: github-release
-  source:
-    user: cloudfoundry
-    repository: nfs-volume-release
-    drafts: true
-    access_token: ((github.access_token))
-
 - name: nfs-volume-release-concourse-tasks
   type: git
   source:
@@ -101,6 +75,14 @@ resources:
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: mapfs-release
+  type: pull-request
+  source:
+    base_branch: master
+    access_token: ((github.access_token))
+    repository: cloudfoundry/mapfs-release
+    disable_forks: true
+
+- name: mapfs-release-master
   type: git
   source:
     branch: master
@@ -108,6 +90,24 @@ resources:
     uri: git@github.com:cloudfoundry/mapfs-release.git
     ignore_paths:
       - scripts
+
+- name: mapfs-version
+  type: semver
+  source:
+    access_key_id: ((aws/mapfs-uploader.id))
+    bucket: mapfs-versions
+    initial_version: 1.2.4
+    key: current-version
+    region_name: us-east-1
+    secret_access_key: ((aws/mapfs-uploader.secret))
+
+- name: github-release-mapfs
+  type: github-release
+  source:
+    user: cloudfoundry
+    repository: mapfs-release
+    drafts: true
+    access_token: ((github.access_token))
 
 - name: mapfs-release-concourse-tasks
   type: git
@@ -349,6 +349,7 @@ jobs:
           - get: persi-ci
           - get: cf-acceptance-tests
           - get: cf-deployment-concourse-tasks
+          - get: mapfs-release
     - task: generate-cats-config
       file: persi-ci/scripts/ci/generate_cats_config.build.yml
 
@@ -381,6 +382,7 @@ jobs:
           - get: bbr-binary-release
           - get: disaster-recovery-acceptance-tests
           - get: persi-ci
+          - get: mapfs-release
           - get: smith-env
 
             passed: [ deploy-cf ]
@@ -617,60 +619,60 @@ jobs:
 
 - name: merge-pr
   plan:
-  - get: nfs-volume-release
+  - get: mapfs-release
     trigger: true
     passed:
     - pats
     - pats-nfs-ldap
     - drats
     - cats-nfs
-  - put: nfs-volume-release
+  - put: mapfs-release
     params:
       merge: true
-      repository: nfs-volume-release
+      repository: mapfs-release
 
-- name: shipit-nfs
+- name: shipit-mapfs
   serial_groups:
-    - nfs-version
+    - mapfs-version
   plan:
     - in_parallel:
         fail_fast: true
         steps:
           - get: persi-ci
           - get: release
-            resource: nfs-volume-release-master
+            resource: mapfs-release-master
           - get: version
-            resource: nfsvolume-version
+            resource: mapfs-version
             params:
               bump: final
     - task: finalize-release
       file: persi-ci/scripts/ci/finalize_release.build.yml
       params:
-        BASE_RELEASE_NAME: nfs-volume
+        BASE_RELEASE_NAME: mapfs
         GIT_USER: ((github.user))
         GIT_EMAIL: ((github.email))
-        S3_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
-        S3_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
-    - put: nfs-volume-version
-      resource: nfsvolume-version
+        S3_ACCESS_KEY_ID: ((aws/mapfs-uploader.id))
+        S3_ACCESS_KEY: ((aws/mapfs-uploader.secret))
+    - put: version
+      resource: mapfs-version
       params:
         file: version/number
-    - task: generate-github-release
+    - task: generate-release
       file: persi-ci/scripts/ci/generate_github_release.build.yml
       params:
-        BASE_RELEASE_NAME: nfs-volume
-    - put: nfs-volume-release-master
+        BASE_RELEASE_NAME: mapfs
+    - put: mapfs-release
       params:
         repository: finalized-release/release
         tag: version/number
         tag_prefix: v
-    - put: github-release-nfs
+    - put: github-release-mapfs
       params:
         commitish: generated-release/commitish
         name: generated-release/name
         tag: generated-release/version
         globs: []
-    - put: nfsvolume-version
+    - put: mapfs-version
       params:
         bump: patch
     - task: pipeline-success
@@ -684,14 +686,14 @@ jobs:
             password: ((dockerhub.password))
             tag: latest
         inputs:
-          - name: nfs-volume-release-master
+          - name: mapfs-release
         run:
           path: bash
           args:
             - -exc
             - |
-              cd nfs-volume-release-master
-              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker.api_token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/c7dc43fcdf7a85f43c3849e03b7ae28c" | jq -r '.latest_git_sha')
+              cd mapfs-release
+              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/b87ca35449445f20dce3b23ff08f5373" | jq -r '.latest_git_sha')
               git config --global core.pager cat
               if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
                 true # all is well
@@ -705,45 +707,45 @@ jobs:
               else
                 export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
               fi
-              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker.api_token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"c7dc43fcdf7a85f43c3849e03b7ae28c", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
+              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"b87ca35449445f20dce3b23ff08f5373", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
               if [[ "$POST_STATUS" -ne 200 ]] ; then
                 exit $POST_STATUS
               else
                 exit 0
               fi
 
-- name: manual-bump-nfs-patch
+- name: manual-bump-mapfs-patch
   serial_groups:
-    - nfs-version
+    - mapfs-version
   plan:
-    - get: nfs-volume-version
-      resource: nfsvolume-version
+    - get: version
+      resource: mapfs-version
       params:
         bump: final
-    - put: nfsvolume-version
+    - put: mapfs-version
       params:
         bump: patch
 
-- name: manual-bump-nfs-minor
+- name: manual-bump-mapfs-minor
   serial_groups:
-    - nfs-version
+    - mapfs-version
   plan:
-    - get: nfs-volume-version
-      resource: nfsvolume-version
+    - get: version
+      resource: mapfs-version
       params:
         bump: final
-    - put: nfsvolume-version
+    - put: mapfs-version
       params:
         bump: minor
 
-- name: manual-bump-nfs-major
+- name: manual-bump-mapfs-major
   serial_groups:
-    - nfs-version
+    - mapfs-version
   plan:
-    - get: nfs-volume-version
-      resource: nfsvolume-version
+    - get: version
+      resource: mapfs-version
       params:
         bump: final
-    - put: nfsvolume-version
+    - put: mapfs-version
       params:
         bump: major

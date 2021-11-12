@@ -37,13 +37,12 @@ resources:
     type: git
     source:
       branch: {{lts-nfs-branch}}
-      username: {{github-user}}
-      password: {{github-password}}
+      private_key: ((github.ssh_key))
       uri: https://github.com/cloudfoundry/nfs-volume-release.git
   - name: smith-env
     type: pcf-pool
     source:
-      api_token: ((persi_toolsmiths_env_api_token))
+      api_token: ((toolsmiths.api_token))
       hostname: environments.toolsmiths.cf-app.com
       pool_name: {{pas-version}}
 
@@ -55,7 +54,7 @@ resources:
   - name: credhub
     type: git
     source:
-      branch: master
+      branch: main
       uri: https://github.com/cloudfoundry-incubator/credhub
   - name: persi-ci
     type: git
@@ -64,11 +63,18 @@ resources:
       branch: master
 
   - name: nfs-volume-release
+    type: pull-request
+    source:
+      base_branch: {{lts-nfs-branch}}
+      access_token: ((github.access_token))
+      repository: cloudfoundry/nfs-volume-release
+      disable_forks: true
+
+  - name: nfs-volume-release-lts
     type: git
     source:
       branch: {{lts-nfs-branch}}
-      username: {{github-user}}
-      password: {{github-password}}
+      private_key: ((github.ssh_key))
       uri: https://github.com/cloudfoundry/nfs-volume-release.git
       ignore_paths:
         - scripts
@@ -77,19 +83,18 @@ resources:
     type: git
     source:
       branch: master
-      username: {{github-user}}
-      password: {{github-password}}
+      private_key: ((github.ssh_key))
       uri: https://github.com/cloudfoundry/mapfs-release.git
 
   - name: nfsvolume-version
     type: semver
     source:
-      access_key_id: {{lts-nfsvolume-uploader_aws_ID}}
+      access_key_id: ((aws/lts-nfsvolume-uploader.id))
       bucket: lts-nfsvolume-release-versions
       initial_version: {{nfs-semver-initial-version}}
       key: {{lts-nfs-branch}}
       region_name: us-west-2
-      secret_access_key: {{lts-nfsvolume-uploader_aws_secret}}
+      secret_access_key: ((aws/lts-nfsvolume-uploader.secret))
 
   - name: cf-deployment
     type: git
@@ -114,29 +119,40 @@ resources:
       user: cloudfoundry
       repository: nfs-volume-release
       drafts: true
-      access_token: {{github-release-token-nfsvolumerelease}}
+      access_token: ((github.access_token))
 
   - name: releng-kiln-concourse-tasks
     type: git
     source:
       uri: git@github.com:pivotal/releng-kiln-concourse-tasks.git
-      private_key: ((releng-kiln-concourse-tasks-deploy-key))
+      private_key: ((github.ssh_key))
 
   - name: p-runtime
     type: git
     source:
       uri: git@github.com:pivotal-cf/p-runtime.git
       branch: main
-      private_key: ((p-runtime-deploy-key))
+      private_key: ((github.ssh_key))
       paths:
         - Kilnfile
 
 resource_types:
+- name: git
+  type: docker-image
+  source:
+    repository: concourse/git-resource
+    tag: ubuntu
+
 - name: pcf-pool
 
   type: docker-image
   source:
     repository: cftoolsmiths/toolsmiths-envs-resource
+
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 jobs:
   - name: nfs-security-scan
@@ -179,7 +195,6 @@ jobs:
             - get: credhub
       - task: run-test
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
-        tags: [ vol-svc ]
 
   - name: nfs-volume-release-job-tests
     plan:
@@ -199,7 +214,6 @@ jobs:
         attempts: 3
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
         privileged: true
-        tags: [ vol-svc ]
 
   - name: nfsdriver-integration
     serial: true
@@ -227,13 +241,11 @@ jobs:
               privileged: true
               params:
                 TEST_PACKAGE: docker_driver_integration_tests/
-              tags: [ vol-svc ]
             - task: run_docker_driver_lazy_unmount_integration_tests
               file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
               privileged: true
               params:
                 TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
-              tags: [ vol-svc ]
             - task: run_driver_broker_compatibility_tests
               privileged: true
               input_mapping:
@@ -241,7 +253,6 @@ jobs:
               params:
                 TEST_PACKAGE: docker_driver_integration_tests/compatibility
               file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-              tags: [ vol-svc ]
 
   - name: claim-env
     plan:
@@ -300,7 +311,7 @@ jobs:
             - name: mapfs-release
             - name: smith-env
           params:
-            TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+            TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
           run:
             path: bash
             args:
@@ -348,7 +359,7 @@ jobs:
           DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
           PLAN_NAME: Existing
           SERVICE_NAME: nfs
-          TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
         output_mapping:
           pats-config: nfs-pats-config
       - in_parallel:
@@ -389,7 +400,7 @@ jobs:
           DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
           PLAN_NAME: Existing
           SERVICE_NAME: nfs-legacy
-          TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
         output_mapping:
           pats-config: nfs-pats-config
       - in_parallel:
@@ -429,6 +440,18 @@ jobs:
         params:
           bump: patch
 
+  - name: merge-pr
+    plan:
+    - get: nfs-volume-release
+      trigger: true
+      passed:
+      - pats-nfs-ldap-legacy-ephemeral-environment
+      - pats-nfs-ldap-ephemeral-environment
+    - put: nfs-volume-release
+      params:
+        merge: true
+        repository: nfs-volume-release
+
   - name: shipit-nfs
     serial_groups:
       - nfs-version
@@ -438,9 +461,7 @@ jobs:
           steps:
             - get: persi-ci
             - get: nfs-volume-release
-              passed:
-              - pats-nfs-ldap-legacy-ephemeral-environment
-              - pats-nfs-ldap-ephemeral-environment
+              resource: nfs-volume-release-lts
             - get: nfsvolume-version
               params:
                 bump: final
@@ -451,10 +472,10 @@ jobs:
         file: persi-ci/scripts/ci/finalize_release.build.yml
         params:
           BASE_RELEASE_NAME: nfs-volume
-          GIT_USER: {{github-user}}
-          GIT_EMAIL: {{github-email}}
-          S3_ACCESS_KEY_ID: {{lts-nfsvolume-uploader_aws_ID}}
-          S3_ACCESS_KEY: {{lts-nfsvolume-uploader_aws_secret}}
+          GIT_USER: ((github.user))
+          GIT_EMAIL: ((github.email))
+          S3_ACCESS_KEY_ID: ((aws/goshims-uploader.id))
+          S3_ACCESS_KEY: ((aws/goshims-uploader.secret))
         input_mapping:
           release: nfs-volume-release
           version: nfsvolume-version

@@ -1,34 +1,28 @@
 resource_types:
-  - name: go-mod-vendor-tidy-git
-    type: docker-image
-    source:
-      repository: cfpersi/fork-git-resource
-      tag: latest
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 resources:
 - name: mapfs
-  type: go-mod-vendor-tidy-git
+  type: pull-request
   source:
-    uri: git@github.com:cloudfoundry/mapfs.git
-    private_key: {{deployments-persi-key}}
+    repository: cloudfoundry/mapfs
+    base_branch: master
+    disable_forks: true
+    access_token: ((github.access_token))
 
 - name: fstest
   type: git
   source:
     uri: https://github.com/zfsonlinux/fstest.git
 
-- name: mapfs-release
-  type: git
-  source:
-    branch: master
-    username: {{github-user}}
-    password: {{github-password}}
-    uri: https://github.com/cloudfoundry/mapfs-release.git
-
 - name: persi-ci
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: master
 
 jobs:
 - name: unit-test
@@ -39,7 +33,6 @@ jobs:
   - task: build
     file: mapfs/scripts/ci/run_unit.build.yml
     privileged: true
-    tags: [ vol-svc ]
 
 - name: fs-test
   public: true
@@ -50,7 +43,6 @@ jobs:
   - task: build
     file: mapfs/scripts/ci/run_fstest.build.yml
     privileged: true
-    tags: [ vol-svc ]
 
 - name: security-scan
   plan:
@@ -65,27 +57,15 @@ jobs:
       input_mapping:
         release-dir: mapfs
 
-- name: bump-submodule
+- name: merge-pr
   plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: mapfs-release
-      - get: mapfs
-        passed:
-        - unit-test
-        - fs-test
-        - security-scan
-        trigger: true
-  - task: bump-submodule
-    file: persi-ci/scripts/ci/bump_submodule.build.yml
-    input_mapping:
-      release-repo: mapfs-release
-      submodule-repo: mapfs
+  - get: mapfs
+    trigger: true
+    passed:
+    - unit-test
+    - fs-test
+    - security-scan
+  - put: mapfs
     params:
-      SUBMODULE_PATH: src/mapfs
-  - put: mapfs-release
-    params:
-      repository: bumped-repo
-      rebase: true
+      merge: true
+      repository: mapfs

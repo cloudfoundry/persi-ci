@@ -1,29 +1,23 @@
 resource_types:
-  - name: go-mod-vendor-tidy-git
-    type: docker-image
-    source:
-      repository: cfpersi/fork-git-resource
-      tag: latest
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 resources:
 - name: smbdriver
-  type: go-mod-vendor-tidy-git
+  type: pull-request
   source:
-    uri: git@github.com:cloudfoundry/smbdriver.git
-    private_key: {{deployments-persi-key}}
-
-- name: smb-volume-release
-  type: git
-  source:
-    branch: master
-    username: {{github-user}}
-    password: {{github-password}}
-    uri: https://github.com/cloudfoundry/smb-volume-release.git
+    repository: cloudfoundry/smbdriver
+    base_branch: master
+    disable_forks: true
+    access_token: ((github.access_token))
 
 - name: persi-ci
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: master
 
 - name: docker_driver_integration_tests
   type: git
@@ -71,46 +65,31 @@ jobs:
       - task: run_docker_driver_integration_tests
         file: smbdriver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
+        tags: [ os_ubuntu ]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
       - task: run_docker_driver_lazy_unmount_integration_tests
         file: smbdriver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
+        tags: [ os_ubuntu ]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
       - task: run_driver_broker_compatibility_tests
         file: smbdriver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
+        tags: [ os_ubuntu ]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
 
-- name: release-job-tests
+- name: merge-pr
   plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: smb-volume-release
-      - get: smbdriver
-        passed:
-        - integration
-        - security-scan
-        trigger: true
-  - task: bump-submodule
-    file: persi-ci/scripts/ci/bump_submodule.build.yml
-    input_mapping:
-      release-repo: smb-volume-release
-      submodule-repo: smbdriver
+  - get: smbdriver
+    trigger: true
+    passed:
+    - unit-test
+    - security-scan
+    - integration
+  - put: smbdriver
     params:
-      SUBMODULE_PATH: src/code.cloudfoundry.org/smbdriver
-  - task: bosh-release-test
-    attempts: 3
-    input_mapping:
-      smb-volume-release: bumped-repo
-      smb-volume-release-concourse-tasks: bumped-repo
-    file: smb-volume-release/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
-  - put: smb-volume-release
-    params:
-      repository: bumped-repo
-      rebase: true
+      merge: true
+      repository: smbdriver

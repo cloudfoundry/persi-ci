@@ -42,7 +42,7 @@ resources:
 - name: smith-env
   type: pcf-pool
   source:
-    api_token: ((persi_toolsmiths_env_api_token))
+    api_token: ((toolsmiths.api_token))
     hostname: environments.toolsmiths.cf-app.com
     pool_name: cf-deployment
 
@@ -54,24 +54,31 @@ resources:
     branch: master
 
 - name: smb-volume-release
+  type: pull-request
+  source:
+    base_branch: master
+    access_token: ((github.access_token))
+    repository: cloudfoundry/smb-volume-release
+    disable_forks: true
+
+- name: smb-volume-release-master
   type: git
   source:
     branch: master
-    username: {{github-user}}
-    password: {{github-password}}
-    uri: https://github.com/cloudfoundry/smb-volume-release.git
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/smb-volume-release.git
     ignore_paths:
       - scripts
 
 - name: smb-volume-version
   type: semver
   source:
-    access_key_id: {{smbvolume-uploader_aws_ID}}
+    access_key_id: ((aws/smbvolume-uploader.id))
     bucket: smb-volume-release-versions
     initial_version: 3.0.2
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{smbvolume-uploader_aws_secret}}
+    secret_access_key: ((aws/smbvolume-uploader.secret))
 
 - name: github-release-smb
   type: github-release
@@ -79,7 +86,7 @@ resources:
     user: cloudfoundry
     repository: smb-volume-release
     drafts: true
-    access_token: {{github-release-token-smbvolumerelease}}
+    access_token: ((github.access_token))
 
 - name: smb-volume-release-concourse-tasks
   type: git
@@ -114,7 +121,7 @@ resources:
   source:
     owner: cloudfoundry-incubator
     repository: bosh-backup-and-restore
-    access_token: {{github-release-token-bbr}}
+    access_token: ((github.access_token))
 
 - name: disaster-recovery-acceptance-tests
   type: git
@@ -127,6 +134,17 @@ resource_types:
   type: docker-image
   source:
     repository: cftoolsmiths/toolsmiths-envs-resource
+
+- name: git
+  type: docker-image
+  source:
+    repository: concourse/git-resource
+    tag: ubuntu
+
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 jobs:
 - name: smb-volume-release-job-tests
@@ -153,10 +171,10 @@ jobs:
       fail_fast: true
       steps:
       - get: smb-volume-release
+        trigger: true
         passed:
         - smb-volume-release-job-tests
       - get: every-hour
-        trigger: true
 
 - name: claim-env
   plan:
@@ -211,8 +229,8 @@ jobs:
     params:
       GENERATE_NFS_VARS: false
       GENERATE_SMB_VARS: true
-      SMB_USERNAME: {{smb_pats_username_two}}
-      SMB_PASSWORD: {{smb_pats_password_two}}
+      SMB_USERNAME: ((smb_pats.username))
+      SMB_PASSWORD: ((smb_pats.password))
   - task: bosh-deploy-cf
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
@@ -271,8 +289,8 @@ jobs:
         CF_USERNAME: admin
         SERVICE_NAME: smb
         PLAN_NAME: Existing
-        CREATE_CONFIG: '{\"share\": \"((smb_cats_remote_path))\", \"username\": \"((smb_cats_username))\", \"password\": \"((smb_cats_password))\"}'
-        TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+        CREATE_CONFIG: '{\"share\": \"((smb_cats.remote_path))\", \"username\": \"((smb_cats.username))\", \"password\": \"((smb_cats.password))\"}'
+        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
     - task: run-cats
       file: cf-deployment-concourse-tasks/run-cats/task.yml
       input_mapping:
@@ -340,14 +358,14 @@ jobs:
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-      TOOLSMITHS_API_TOKEN: ((persi_toolsmiths_env_api_token))
+      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
       CF_USERNAME: admin
       DISALLOWED_OVERRIDE_BIND_CONFIG: '{\"share\":\"//smbtestserver.service.cf.internal/export/vol2\"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"//smb.bogus/export/nonexistensevol\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: smb
-      CREATE_CONFIG: '{\"share\":\"((smb_cats_remote_path))\"}'
-      BIND_CONFIG: '["{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats_username))\",\"password\":\"((smb_cats_password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'
+      CREATE_CONFIG: '{\"share\":\"((smb_cats.remote_path))\"}'
+      BIND_CONFIG: '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'
     output_mapping:
       pats-config: smb-pats-config
   - task: run-pats-smb
@@ -376,6 +394,18 @@ jobs:
       action: unclaim
       env_file: smith-env/metadata
 
+- name: merge-pr
+  plan:
+  - get: smb-volume-release
+    trigger: true
+    passed:
+    - pats
+    - drats
+    - cats
+  - put: smb-volume-release
+    params:
+      merge: true
+      repository: smb-volume-release
 
 - name: shipit-smb
   serial_groups:
@@ -386,9 +416,7 @@ jobs:
         steps:
           - get: persi-ci
           - get: release
-            resource: smb-volume-release
-            passed:
-              - pats
+            resource: smb-volume-release-master
           - get: version
             resource: smb-volume-version
             params:
@@ -397,10 +425,10 @@ jobs:
       file: persi-ci/scripts/ci/finalize_release.build.yml
       params:
         BASE_RELEASE_NAME: smb-volume
-        GIT_USER: {{github-user}}
-        GIT_EMAIL: {{github-email}}
-        S3_ACCESS_KEY_ID: {{smbvolume-uploader_aws_ID}}
-        S3_ACCESS_KEY: {{smbvolume-uploader_aws_secret}}
+        GIT_USER: ((github.user))
+        GIT_EMAIL: ((github.email))
+        S3_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
+        S3_ACCESS_KEY: ((aws/smbvolume-uploader.secret))
     - put: smb-volume-version
       resource: smb-volume-version
       params:
@@ -409,7 +437,7 @@ jobs:
       file: persi-ci/scripts/ci/generate_github_release.build.yml
       params:
         BASE_RELEASE_NAME: smb-volume
-    - put: smb-volume-release
+    - put: smb-volume-release-master
       params:
         repository: finalized-release/release
         tag: version/number
@@ -432,13 +460,13 @@ jobs:
             repository: johnajimenez/ubuntu-bash-jq-curl-git
             tag: latest
         inputs:
-          - name: smb-volume-release
+          - name: smb-volume-release-master
         run:
           path: bash
           args:
             - -exc
             - |
-              cd smb-volume-release
+              cd smb-volume-release-master
               export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/54a073c28e26614473035e9d13ba9866" | jq -r '.latest_git_sha')
               git config --global core.pager cat
               if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then

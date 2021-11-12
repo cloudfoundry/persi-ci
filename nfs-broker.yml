@@ -1,42 +1,29 @@
 resource_types:
-  - name: go-mod-vendor-tidy-git
-    type: docker-image
-    source:
-      repository: cfpersi/fork-git-resource
-      tag: latest
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 resources:
 - name: persi-ci
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: master
 
 - name: nfsbroker
-  type: go-mod-vendor-tidy-git
+  type: pull-request
   source:
-    branch: master
-    uri: git@github.com:cloudfoundry/nfsbroker.git
-    private_key: {{deployments-persi-key}}
-
-- name: nfs-volume-release
-  type: git
-  source:
-    branch: master
-    username: {{github-user}}
-    password: {{github-password}}
-    uri: https://github.com/cloudfoundry/nfs-volume-release.git
+    repository: cloudfoundry/nfsbroker
+    base_branch: master
+    disable_forks: true
+    access_token: ((github.access_token))
 
 - name: credhub
   type: git
   source:
-    branch: master
+    branch: main
     uri: https://github.com/cloudfoundry-incubator/credhub
-
-- name: mapfs-release
-  type: git
-  source:
-    branch: master
-    uri: https://github.com/cloudfoundry/mapfs-release.git
 
 jobs:
 - name: security-scan
@@ -62,39 +49,14 @@ jobs:
   - task: build
     file: nfsbroker/scripts/ci/run_unit_and_integration.build.yml
 
-- name: release-job-tests
+- name: merge-pr
   plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: mapfs-release
-      - get: nfs-volume-release
-      - get: nfsbroker
-        passed:
-        - unit-and-integration-test
-        - security-scan
-        trigger: true
-  - task: bump-submodule
-    file: persi-ci/scripts/ci/bump_submodule.build.yml
-    input_mapping:
-      release-repo: nfs-volume-release
-      submodule-repo: nfsbroker
+  - get: nfsbroker
+    trigger: true
+    passed:
+    - security-scan
+    - unit-and-integration-test
+  - put: nfsbroker
     params:
-      SUBMODULE_PATH: src/code.cloudfoundry.org/nfsbroker
-  - task: rspec
-    file: persi-ci/scripts/ci/run-rspec.build.yml
-    input_mapping:
-      test-repo: bumped-repo
-  - task: bosh-release-test
-    attempts: 3
-    input_mapping:
-      nfs-volume-release: bumped-repo
-      nfs-volume-release-concourse-tasks: bumped-repo
-    file: nfs-volume-release/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
-    tags: [ vol-svc ]
-  - put: nfs-volume-release
-    params:
-      repository: bumped-repo
-      rebase: true
+      merge: true
+      repository: nfsbroker

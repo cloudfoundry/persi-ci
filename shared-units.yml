@@ -1,100 +1,156 @@
+groups:
+- name: auto-tagging
+  jobs:
+  - '*-version'
+  - '*-gate'
+- name: merge-prs
+  jobs:
+  - '*-build'
+  - '*-unit'
+  - '*-merge-pr'
+
 resource_types:
-  - name: go-mod-vendor-tidy-git
-    type: docker-image
-    source:
-      repository: cfpersi/fork-git-resource
-      tag: latest
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 resources:
+- name: every-monday
+  type: time
+  source:
+    days: [Monday]
+
 - name: persi-ci
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: master
 
 - name: existingvolumebroker
-  type: go-mod-vendor-tidy-git
+  type: git
   source:
     uri: git@github.com:cloudfoundry/existingvolumebroker.git
     branch: master
-    private_key: {{existingvolumebroker-github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: goshims
-  type: go-mod-vendor-tidy-git
+  type: git
   source:
     uri: git@github.com:cloudfoundry/goshims.git
     branch: master
-    private_key: {{goshims-github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: goshims-version
   type: semver
   source:
-    access_key_id: {{goshims-uploader_aws_ID}}
+    access_key_id: ((aws/goshims-uploader.id))
     bucket: goshims-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{goshims-uploader_aws_secret}}
+    secret_access_key: ((aws/goshims-uploader.secret))
 
 - name: existingvolumebroker-version
   type: semver
   source:
-    access_key_id: {{existingvolumebroker-uploader_aws_ID}}
+    access_key_id: ((aws/existingvolumebroker-uploader.id))
     bucket: existingvolumebroker-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{existingvolumebroker-uploader_aws_secret}}
+    secret_access_key: ((aws/existingvolumebroker-uploader.secret))
 
 - name: service-broker-store
-  type: go-mod-vendor-tidy-git
+  type: git
   source:
     uri: git@github.com:cloudfoundry/service-broker-store.git
     branch: master
-    private_key: {{service-broker-store-github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: service-broker-store-version
   type: semver
   source:
-    access_key_id: {{service-broker-store-uploader_aws_ID}}
+    access_key_id: ((aws/service-broker-store-uploader.id))
     bucket: service-broker-store-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{service-broker-store-uploader_aws_secret}}
+    secret_access_key: ((aws/service-broker-store-uploader.secret))
 
 - name: volumedriver
-  type: go-mod-vendor-tidy-git
+  type: git
   source:
     uri: git@github.com:cloudfoundry/volumedriver.git
     branch: master
-    private_key: {{volumedriver-github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: volumedriver-version
   type: semver
   source:
-    access_key_id: {{volumedriver-uploader_aws_ID}}
+    access_key_id: ((aws/volumedriver-uploader.id))
     bucket: volumedriver-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{volumedriver-uploader_aws_secret}}
+    secret_access_key: ((aws/volumedriver-uploader.secret))
 
 - name: volume-mount-options
-  type: go-mod-vendor-tidy-git
+  type: git
   source:
     uri: git@github.com:cloudfoundry/volume-mount-options.git
     branch: master
-    private_key: {{volume-mount-options--github-deploy-key}}
+    private_key: ((github.ssh_key))
 
 - name: volume-mount-options-version
   type: semver
   source:
-    access_key_id: {{volume-mount-options-uploader_aws_ID}}
+    access_key_id: ((aws/volume-mount-options-uploader.id))
     bucket: volume-mount-options-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: {{volume-mount-options-uploader_aws_secret}}
+    secret_access_key: ((aws/volume-mount-options-uploader.secret))
+
+- name: volumedriver-pr
+  type: pull-request
+  source:
+    repository: cloudfoundry/volumedriver
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
+
+- name: goshims-pr
+  type: pull-request
+  source:
+    repository: cloudfoundry/goshims
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
+
+- name: existingvolumebroker-pr
+  type: pull-request
+  source:
+    repository: cloudfoundry/existingvolumebroker
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
+
+- name: service-broker-store-pr
+  type: pull-request
+  source:
+    repository: cloudfoundry/service-broker-store
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
+
+- name: volume-mount-options-pr
+  type: pull-request
+  source:
+    repository: cloudfoundry/volume-mount-options
+    base_branch: master
+    access_token: ((github.access_token))
+    disable_forks: true
 
 jobs:
 - name: existingvolumebroker-unit
@@ -105,23 +161,27 @@ jobs:
       steps:
       - get: persi-ci
       - get: existingvolumebroker
+        resource: existingvolumebroker-pr
         trigger: true
-      - get: existingvolumebroker-version
   - task: existingvolumebroker-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
       gomod: existingvolumebroker
 
+- name: bump-existingvolumebroker-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: existingvolumebroker
+  
 - name: bump-minor-existingvolumebroker-version
   serial: true
   plan:
     - get: existingvolumebroker
+      passed: [bump-existingvolumebroker-gate]
       trigger: true
-      passed:
-        - existingvolumebroker-unit
     - get: existingvolumebroker-version
-      passed:
-        - existingvolumebroker-unit
     - put: existingvolumebroker
       params:
         repository: existingvolumebroker
@@ -140,23 +200,27 @@ jobs:
         steps:
           - get: persi-ci
           - get: service-broker-store
+            resource: service-broker-store-pr
             trigger: true
-          - get: service-broker-store-version
     - task: service-broker-store-unit
       file: persi-ci/scripts/ci/run_unit.build.yml
       input_mapping:
         gomod: service-broker-store
 
+- name: bump-service-broker-store-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: service-broker-store
+
 - name: bump-minor-service-broker-store-version
   serial: true
   plan:
     - get: service-broker-store
+      passed: [bump-service-broker-store-gate]
       trigger: true
-      passed:
-        - service-broker-store-unit
     - get: service-broker-store-version
-      passed:
-        - service-broker-store-unit
     - put: service-broker-store
       params:
         repository: service-broker-store
@@ -175,8 +239,8 @@ jobs:
       steps:
       - get: persi-ci
       - get: volumedriver
+        resource: volumedriver-pr
         trigger: true
-      - get: volumedriver-version
   - task: volumedriver-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
@@ -184,16 +248,20 @@ jobs:
     params:
       NODES: 1
 
+- name: bump-volumedriver-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: volumedriver
+
 - name: bump-minor-volumedriver-version
   serial: true
   plan:
     - get: volumedriver
+      passed: [bump-volumedriver-gate]
       trigger: true
-      passed:
-        - volumedriver-unit
     - get: volumedriver-version
-      passed:
-        - volumedriver-unit
     - put: volumedriver
       params:
         repository: volumedriver
@@ -212,23 +280,27 @@ jobs:
       steps:
       - get: persi-ci
       - get: volume-mount-options
+        resource: volume-mount-options-pr
         trigger: true
-      - get: volume-mount-options-version
   - task: volume-mount-options-unit
     file: persi-ci/scripts/ci/run_unit.build.yml
     input_mapping:
       gomod: volume-mount-options
 
+- name: bump-volume-mount-options-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: volume-mount-options
+
 - name: bump-minor-volume-mount-options-version
   serial: true
   plan:
     - get: volume-mount-options
+      passed: [bump-volume-mount-options-gate]
       trigger: true
-      passed:
-        - volume-mount-options-unit
     - get: volume-mount-options-version
-      passed:
-        - volume-mount-options-unit
     - put: volume-mount-options
       params:
         repository: volume-mount-options
@@ -247,8 +319,8 @@ jobs:
         steps:
           - get: persi-ci
           - get: goshims
+            resource: goshims-pr
             trigger: true
-          - get: goshims-version
     - task: build
       config:
         platform: linux
@@ -267,16 +339,20 @@ jobs:
               cd goshims
               go build ./...
 
+- name: bump-goshims-gate
+  serial: true
+  plan:
+    - get: every-monday
+      trigger: true
+    - get: goshims
+
 - name: bump-minor-goshims-version
   serial: true
   plan:
     - get: goshims
+      passed: [bump-goshims-gate]
       trigger: true
-      passed:
-        - goshims-build
     - get: goshims-version
-      passed:
-        - goshims-build
     - put: goshims
       params:
         repository: goshims
@@ -286,3 +362,58 @@ jobs:
     - put: goshims-version
       params:
         bump: minor
+
+- name: volumedriver-merge-pr
+  plan:
+  - get: volumedriver-pr
+    passed:
+      - volumedriver-unit
+    trigger: true
+  - put: volumedriver-pr
+    params:
+      merge: true
+      repository: volumedriver-pr
+
+- name: goshims-merge-pr
+  plan:
+  - get: goshims-pr
+    passed:
+      - goshims-build
+    trigger: true
+  - put: goshims-pr
+    params:
+      merge: true
+      repository: goshims-pr
+
+- name: existingvolumebroker-merge-pr
+  plan:
+  - get: existingvolumebroker-pr
+    passed:
+      - existingvolumebroker-unit
+    trigger: true
+  - put: existingvolumebroker-pr
+    params:
+      merge: true
+      repository: existingvolumebroker-pr
+
+- name: service-broker-store-merge-pr
+  plan:
+  - get: service-broker-store-pr
+    passed:
+      - service-broker-store-unit
+    trigger: true
+  - put: service-broker-store-pr
+    params:
+      merge: true
+      repository: service-broker-store-pr
+
+- name: volume-mount-options-merge-pr
+  plan:
+  - get: volume-mount-options-pr
+    passed:
+      - volume-mount-options-unit
+    trigger: true
+  - put: volume-mount-options-pr
+    params:
+      merge: true
+      repository: volume-mount-options-pr

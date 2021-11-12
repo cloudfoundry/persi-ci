@@ -1,42 +1,30 @@
 resource_types:
-  - name: go-mod-vendor-tidy-git
-    type: docker-image
-    source:
-      repository: cfpersi/fork-git-resource
-      tag: latest
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 resources:
 - name: nfsv3driver
-  type: go-mod-vendor-tidy-git
+  type: pull-request
   source:
-    uri: git@github.com:cloudfoundry/nfsv3driver.git
-    private_key: {{deployments-persi-key}}
-
-- name: nfs-volume-release
-  type: git
-  source:
-    branch: master
-    username: {{github-user}}
-    password: {{github-password}}
-    uri: https://github.com/cloudfoundry/nfs-volume-release.git
-
+    repository: cloudfoundry/nfsv3driver
+    base_branch: master
+    disable_forks: true
+    access_token: ((github.access_token))
+    
 - name: persi-ci
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: master
 
 - name: mapfs
-  type: go-mod-vendor-tidy-git
-  source:
-    branch: master
-    uri: git@github.com:cloudfoundry/mapfs.git
-    private_key: {{deployments-persi-key}}
-
-- name: mapfs-release
   type: git
   source:
     branch: master
-    uri: https://github.com/cloudfoundry/mapfs-release.git
+    uri: git@github.com:cloudfoundry/mapfs.git
+    private_key: ((github.ssh_key))
 
 - name: docker_driver_integration_tests
   type: git
@@ -87,53 +75,27 @@ jobs:
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
-        tags: [ vol-svc ]
       - task: run_docker_driver_lazy_unmount_integration_tests
         file: nfsv3driver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
-        tags: [ vol-svc ]
       - task: run_driver_broker_compatibility_tests
         file: nfsv3driver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
-        tags: [ vol-svc ]
 
-- name: release-job-tests
+- name: merge-pr
+  serial: true
   plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: mapfs-release
-      - get: nfs-volume-release
-      - get: nfsv3driver
-        passed:
-        - integration
-        - security-scan
-        trigger: true
-  - task: bump-submodule
-    file: persi-ci/scripts/ci/bump_submodule.build.yml
-    input_mapping:
-      release-repo: nfs-volume-release
-      submodule-repo: nfsv3driver
+  - get: nfsv3driver
+    trigger: true
+    passed:
+    - unit-test
+    - security-scan
+    - integration
+  - put: nfsv3driver
     params:
-      SUBMODULE_PATH: src/code.cloudfoundry.org/nfsv3driver
-  - task: rspec
-    file: persi-ci/scripts/ci/run-rspec.build.yml
-    input_mapping:
-      test-repo: bumped-repo
-  - task: bosh-release-test
-    attempts: 3
-    input_mapping:
-      nfs-volume-release: bumped-repo
-      nfs-volume-release-concourse-tasks: bumped-repo
-    file: nfs-volume-release/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
-    tags: [ vol-svc ]
-  - put: nfs-volume-release
-    params:
-      repository: bumped-repo
-      rebase: true
+      merge: true
+      repository: nfsv3driver

@@ -1,29 +1,23 @@
 resource_types:
-  - name: go-mod-vendor-tidy-git
-    type: docker-image
-    source:
-      repository: cfpersi/fork-git-resource
-      tag: latest
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 resources:
 - name: smbbroker
-  type: go-mod-vendor-tidy-git
+  type: pull-request
   source:
-    uri: git@github.com:cloudfoundry/smbbroker.git
-    private_key: {{deployments-persi-key}}
-
-- name: smb-volume-release
-  type: git
-  source:
-    branch: master
-    username: {{github-user}}
-    password: {{github-password}}
-    uri: https://github.com/cloudfoundry/smb-volume-release.git
+    repository: cloudfoundry/smbbroker
+    base_branch: master
+    disable_forks: true
+    access_token: ((github.access_token))
 
 - name: persi-ci
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: master
 
 jobs:
 - name: unit-test
@@ -47,26 +41,14 @@ jobs:
       input_mapping:
         release-dir: smbbroker
 
-- name: bump-submodule
+- name: merge-pr
   plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: smb-volume-release
-      - get: smbbroker
-        passed:
-        - unit-test
-        - security-scan
-        trigger: true
-  - task: bump-submodule
-    file: persi-ci/scripts/ci/bump_submodule.build.yml
-    input_mapping:
-      release-repo: smb-volume-release
-      submodule-repo: smbbroker
+  - get: smbbroker
+    trigger: true
+    passed:
+    - security-scan
+    - unit-test
+  - put: smbbroker
     params:
-      SUBMODULE_PATH: src/code.cloudfoundry.org/smbbroker
-  - put: smb-volume-release
-    params:
-      repository: bumped-repo
-      rebase: true
+      merge: true
+      repository: smbbroker
