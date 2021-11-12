@@ -60,7 +60,7 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/persi-ci
-      branch: freezing
+      branch: master
 
   - name: nfs-volume-release
     type: pull-request

@@ -22,7 +22,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
-    branch: freezing
+    branch: master
 
 jobs:
 - name: unit-test

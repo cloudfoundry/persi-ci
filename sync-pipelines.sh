@@ -9,7 +9,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry/persi-ci.git
-    branch: freezing
+    branch: master
 
 jobs:
 - name: reconfigure

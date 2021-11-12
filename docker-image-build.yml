@@ -11,7 +11,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci
-    branch: freezing
+    branch: master
 
 - name: mapfs-tests-docker-image
   type: docker-image
