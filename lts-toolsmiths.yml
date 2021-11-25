@@ -222,6 +222,7 @@ jobs:
               passed:
                 - nfsdriver-unit
                 - nfsbroker-tests
+                - nfs-security-scan
               trigger: true
       - in_parallel:
           fail_fast: true
