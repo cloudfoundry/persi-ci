@@ -178,8 +178,8 @@ jobs:
           - get: persi-ci
           - get: nfs-volume-release-concourse-tasks
           - get: mapfs-release
-          - get: nfs-volume-release
             trigger: true
+          - get: nfs-volume-release
     - task: rspec
       file: persi-ci/scripts/ci/run-rspec.build.yml
       input_mapping:
@@ -208,11 +208,12 @@ jobs:
       fail_fast: true
       steps:
       - get: nfs-volume-release
-        trigger: true
         passed:
         - nfs-volume-release-job-tests
       - get: mapfs-release
+        trigger: true
         passed:
+        - nfs-volume-release-job-tests
         - mapfs-release-job-tests
       - get: every-hour
 
@@ -223,7 +224,6 @@ jobs:
       steps:
       - get: persi-ci
       - get: nfs-volume-release
-        trigger: true
         passed:
           - env-gate
       - get: mapfs-release
@@ -246,7 +246,6 @@ jobs:
         steps:
           - get: persi-ci
           - get: nfs-volume-release
-            trigger: true
             passed:
               - env-gate
           - get: mapfs-release
@@ -341,7 +340,6 @@ jobs:
         steps:
           - get: nfs-volume-release
             passed: [ deploy-cf ]
-            trigger: true
           - get: smith-env
 
             passed: [ deploy-cf ]
@@ -350,6 +348,7 @@ jobs:
           - get: cf-acceptance-tests
           - get: cf-deployment-concourse-tasks
           - get: mapfs-release
+            passed: [ deploy-cf ]
     - task: generate-cats-config
       file: persi-ci/scripts/ci/generate_cats_config.build.yml
 
@@ -378,11 +377,12 @@ jobs:
         steps:
           - get: nfs-volume-release
             passed: [ deploy-cf ]
-            trigger: true
+
           - get: bbr-binary-release
           - get: disaster-recovery-acceptance-tests
           - get: persi-ci
           - get: mapfs-release
+            passed: [ deploy-cf ]
           - get: smith-env
 
             passed: [ deploy-cf ]
