@@ -79,13 +79,6 @@ resources:
       ignore_paths:
         - scripts
 
-  - name: mapfs-release
-    type: git
-    source:
-      branch: master
-      private_key: ((github.ssh_key))
-      uri: https://github.com/cloudfoundry/mapfs-release.git
-
   - name: nfsvolume-version
     type: semver
     source:
@@ -203,7 +196,6 @@ jobs:
           steps:
             - get: persi-ci
             - get: nfs-volume-release-concourse-tasks
-            - get: mapfs-release
             - get: nfs-volume-release
               trigger: true
       - task: rspec
@@ -230,8 +222,6 @@ jobs:
               passed:
                 - nfsdriver-unit
                 - nfsbroker-tests
-              trigger: true
-            - get: mapfs-release
               trigger: true
       - in_parallel:
           fail_fast: true
@@ -265,8 +255,6 @@ jobs:
               passed:
                 - nfsdriver-integration
                 - nfs-volume-release-job-tests
-            - get: mapfs-release
-              trigger: true
       - put: smith-env
         params:
           action: claim
@@ -294,8 +282,6 @@ jobs:
             - get: persi-ci
             - get: nfs-volume-release
               passed: [ claim-env ]
-            - get: mapfs-release
-              passed: [ claim-env ]
       - task: bosh-deploy
 
         config:
@@ -308,7 +294,6 @@ jobs:
           inputs:
             - name: nfs-volume-release
             - name: persi-ci
-            - name: mapfs-release
             - name: smith-env
           params:
             TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
@@ -346,8 +331,6 @@ jobs:
               passed: [ deploy-cf ]
               trigger: true
             - get: nfs-volume-release
-              passed: [ deploy-cf ]
-            - get: mapfs-release
               passed: [ deploy-cf ]
       - task: generate-pats-config-nfs
 
@@ -387,8 +370,6 @@ jobs:
               passed: [ deploy-cf ]
               trigger: true
             - get: nfs-volume-release
-              passed: [ deploy-cf ]
-            - get: mapfs-release
               passed: [ deploy-cf ]
       - task: generate-pats-config-nfs
 
