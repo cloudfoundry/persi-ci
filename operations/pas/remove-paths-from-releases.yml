@@ -23,6 +23,8 @@
 - type: remove
   path: /releases/name=cf-smoke-tests?/url?
 - type: remove
+  path: /releases/name=smoke-tests?/url?
+- type: remove
   path: /releases/name=cf-syslog-drain?/url?
 - type: remove
   path: /releases/name=cflinuxfs3?/url?
