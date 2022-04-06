@@ -451,42 +451,6 @@ jobs:
     - put: smb-volume-version
       params:
         bump: patch
-    - task: pipeline-success
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source:
-            repository: johnajimenez/ubuntu-bash-jq-curl-git
-            tag: latest
-        inputs:
-          - name: smb-volume-release-master
-        run:
-          path: bash
-          args:
-            - -exc
-            - |
-              cd smb-volume-release-master
-              export LATEST_GIT_SHA=$(curl -H "X-TrackerToken: ((tracker-api-token))" "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd/54a073c28e26614473035e9d13ba9866" | jq -r '.latest_git_sha')
-              git config --global core.pager cat
-              if git log $LATEST_GIT_SHA~..$LATEST_GIT_SHA; then
-                true # all is well
-              else
-                echo "$LATEST_GIT_SHA missing, assuming the worst"
-                export LATEST_GIT_SHA=null
-              fi
-              export NEW_LATEST_GIT_SHA=$(git rev-parse HEAD)
-              if [ "$LATEST_GIT_SHA" == "null" ]; then
-                export STORY_IDS=($(git log -10 | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
-              else
-                export STORY_IDS=($(git log $LATEST_GIT_SHA..HEAD | grep -E "\[.*\]" | grep -oE "\[.*\]" | grep -oE "([0-9]+)"))
-              fi
-              export POST_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null -X POST -H "X-TrackerToken: ((tracker-api-token))" -H "Content-Type: application/json" -d '{"status":"passed", "uuid":"54a073c28e26614473035e9d13ba9866", "story_ids":['$(IFS=,; echo "${STORY_IDS[*]}")'], "latest_git_sha":"'$NEW_LATEST_GIT_SHA'", "version": 1}' "https://www.pivotaltracker.com/services/v5/projects/1518687/cicd")
-              if [[ "$POST_STATUS" -ne 200 ]] ; then
-                exit $POST_STATUS
-              else
-                exit 0
-              fi
 
 - name: manual-bump-smb-patch
   serial_groups:

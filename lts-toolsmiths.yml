@@ -73,9 +73,13 @@ resources:
   - name: nfs-volume-release-lts
     type: git
     source:
+      submodule_credentials:
+      - host: github.com
+        username: ((github.https_username))
+        password: ((github.https_password))
       branch: {{lts-nfs-branch}}
       private_key: ((github.ssh_key))
-      uri: https://github.com/cloudfoundry/nfs-volume-release.git
+      uri: git@github.com:cloudfoundry/nfs-volume-release.git
       ignore_paths:
         - scripts
 
@@ -117,6 +121,7 @@ resources:
   - name: releng-kiln-concourse-tasks
     type: git
     source:
+      branch: dockerhub
       uri: git@github.com:pivotal/releng-kiln-concourse-tasks.git
       private_key: ((github.ssh_key))
 
@@ -442,8 +447,7 @@ jobs:
           fail_fast: true
           steps:
             - get: persi-ci
-            - get: nfs-volume-release
-              resource: nfs-volume-release-lts
+            - get: nfs-volume-release-lts
             - get: nfsvolume-version
               params:
                 bump: final
@@ -459,16 +463,16 @@ jobs:
           S3_ACCESS_KEY_ID: ((aws/goshims-uploader.id))
           S3_ACCESS_KEY: ((aws/goshims-uploader.secret))
         input_mapping:
-          release: nfs-volume-release
+          release: nfs-volume-release-lts
           version: nfsvolume-version
       - task: generate-github-release
         file: persi-ci/scripts/ci/generate_github_release.build.yml
         params:
           BASE_RELEASE_NAME: nfs-volume
         input_mapping:
-          release: nfs-volume-release
+          release: nfs-volume-release-lts
           version: nfsvolume-version
-      - put: nfs-volume-release
+      - put: nfs-volume-release-lts
         params:
           repository: finalized-release/release
           tag: nfsvolume-version/number
@@ -481,7 +485,7 @@ jobs:
           globs: []
       - task: create-tarball
         input_mapping:
-          release: nfs-volume-release
+          release: nfs-volume-release-lts
           version: nfsvolume-version
         config:
           platform: linux
