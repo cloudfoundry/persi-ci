@@ -242,8 +242,7 @@ jobs:
       vars-files: generated-vars
     params:
       VARS_FILES: "smb-vars.yml"
-      OPS_FILES: "operations/use-compiled-releases.yml
-                  operations/scale-to-one-az.yml
+      OPS_FILES: "operations/scale-to-one-az.yml
                   operations/test/enable-smb-test-server.yml
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/enable-smb-volume-service.yml
