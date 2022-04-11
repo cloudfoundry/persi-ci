@@ -233,6 +233,130 @@ jobs:
       GENERATE_SMB_VARS: true
       SMB_USERNAME: ((smb_pats.username))
       SMB_PASSWORD: ((smb_pats.password))
+  - task: create-opsfile-to-remove-release-urls
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: alpine}
+      inputs:
+        - name: collected-ops-files
+      outputs:
+        - name: collected-ops-files
+      run:
+        path: "/bin/sh"
+        args:
+          - -c
+          - |
+              cat <<EOF > collected-ops-files/remove-all-release-urls.yml
+              ---
+              - type: remove
+                path: /releases/name=backup-and-restore-sdk?/url?
+              - type: remove
+                path: /releases/name=binary-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=bosh-dns-aliases?/url?
+              - type: remove
+                path: /releases/name=bosh-system-metrics-forwarder?/url?
+              - type: remove
+                path: /releases/name=bpm?/url?
+              - type: remove
+                path: /releases/name=capi?/url?
+              - type: remove
+                path: /releases/name=cf-autoscaling?/url?
+              - type: remove
+                path: /releases/name=cf-backup-and-restore?/url?
+              - type: remove
+                path: /releases/name=cf-cli?/url?
+              - type: remove
+                path: /releases/name=cf-networking?/url?
+              - type: remove
+                path: /releases/name=cf-smoke-tests?/url?
+              - type: remove
+                path: /releases/name=cf-syslog-drain?/url?
+              - type: remove
+                path: /releases/name=cflinuxfs3?/url?
+              - type: remove
+                path: /releases/name=consul?/url?
+              - type: remove
+                path: /releases/name=consul-drain?/url?
+              - type: remove
+                path: /releases/name=credhub?/url?
+              - type: remove
+                path: /releases/name=diego?/url?
+              - type: remove
+                path: /releases/name=dotnet-core-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=garden-runc?/url?
+              - type: remove
+                path: /releases/name=go-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=haproxy?/url?
+              - type: remove
+                path: /releases/name=java-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=leadership-election?/url?
+              - type: remove
+                path: /releases/name=log-cache?/url?
+              - type: remove
+                path: /releases/name=loggregator?/url?
+              - type: remove
+                path: /releases/name=loggregator-agent?/url?
+              - type: remove
+                path: /releases/name=mapfs?/url?
+              - type: remove
+                path: /releases/name=metric-registrar?/url?
+              - type: remove
+                path: /releases/name=mysql-monitoring?/url?
+              - type: remove
+                path: /releases/name=nats?/url?
+              - type: remove
+                path: /releases/name=nfs-volume?/url?
+              - type: remove
+                path: /releases/name=nginx-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=nodejs-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=notifications?/url?
+              - type: remove
+                path: /releases/name=notifications-ui?/url?
+              - type: remove
+                path: /releases/name=php-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=push-apps-manager-release?/url?
+              - type: remove
+                path: /releases/name=push-usage-service-release?/url?
+              - type: remove
+                path: /releases/name=r-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=python-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=pxc?/url?
+              - type: remove
+                path: /releases/name=routing?/url?
+              - type: remove
+                path: /releases/name=ruby-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=silk?/url?
+              - type: remove
+                path: /releases/name=smb-volume?/url?
+              - type: remove
+                path: /releases/name=smoke-tests?/url?
+              - type: remove
+                path: /releases/name=staticfile-offline-buildpack?/url?
+              - type: remove
+                path: /releases/name=statsd-injector?/url?
+              - type: remove
+                path: /releases/name=syslog?/url?
+              - type: remove
+                path: /releases/name=uaa?/url?
+              - type: remove
+                path: /releases/name=istio?/url?
+              - type: remove
+                path: /releases/name=metrics-discovery?/url?
+              - type: remove
+                path: /releases/name=system-metrics-scraper?/url?
+              EOF
   - task: bosh-deploy-cf
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
@@ -247,6 +371,7 @@ jobs:
                   operations/backup-and-restore/enable-backup-restore.yml
                   operations/enable-smb-volume-service.yml
                   updated-smb-releases.yml
+                  remove-all-release-urls.yml
                   operations/experimental/use-bionic-stemcell.yml
                   operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
