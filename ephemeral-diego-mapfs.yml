@@ -661,7 +661,7 @@ jobs:
       file: persi-ci/scripts/ci/generate_github_release.build.yml
       params:
         BASE_RELEASE_NAME: mapfs
-    - put: mapfs-release
+    - put: mapfs-release-master
       params:
         repository: finalized-release/release
         tag: version/number
