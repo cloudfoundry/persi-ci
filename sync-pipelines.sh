@@ -8,7 +8,7 @@ resources:
 - name: persi-ci
   type: git
   source:
-    uri: git@github.com:cloudfoundry/persi-ci.git
+    uri: https://github.com/cloudfoundry/persi-ci.git
     branch: master
 
 jobs:
