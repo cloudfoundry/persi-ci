@@ -125,12 +125,13 @@ resources:
       uri: git@github.com:pivotal/releng-kiln-concourse-tasks.git
       private_key: ((github.ssh_key))
 
-  - name: p-runtime
+  - name: tas
     type: git
     source:
-      uri: git@github.com:pivotal-cf/p-runtime.git
+      uri: https://github.com/pivotal/tas.git
       branch: main
-      private_key: ((github.ssh_key))
+      username: ((github.https_username))
+      password: ((github.access_token))
       paths:
         - Kilnfile
 
@@ -452,7 +453,7 @@ jobs:
               params:
                 bump: final
             - get: releng-kiln-concourse-tasks
-            - get: p-runtime
+            - get: tas
               params: { submodules: none }
       - task: finalize-release
         file: persi-ci/scripts/ci/finalize_release.build.yml
@@ -510,6 +511,8 @@ jobs:
               popd
       - task: upload-release-to-releng
         file: releng-kiln-concourse-tasks/tasks/upload-release/task.yml
+        input_mapping:
+          p-runtime: tas
         params:
           AWS_ACCESS_KEY_ID: ((access_kiln_fetch_aws_access_key_id))
           AWS_SECRET_ACCESS_KEY: ((access_kiln_fetch_aws_secret_access_key))
