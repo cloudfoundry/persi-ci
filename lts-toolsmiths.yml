@@ -133,7 +133,7 @@ resources:
       username: ((github.https_username))
       password: ((github.access_token))
       paths:
-        - Kilnfile
+        - tas/Kilnfile
 
 resource_types:
 - name: git
