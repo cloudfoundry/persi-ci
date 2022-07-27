@@ -1,37 +1,3 @@
-shared_functions:
-- on_failure: &on_failure_unclaim
-    do:
-    - task: wait-1-hour
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source: {repository: alpine}
-        run:
-          path: sleep
-          args: [ "3600" ]
-    - put: smith-env
-      params:
-        action: unclaim
-        env_file: smith-env/metadata
-
-- on_error: &on_error_unclaim
-    do:
-      - task: wait-1-hour
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source: {repository: alpine}
-          run:
-            path: sleep
-            args: [ "3600" ]
-      - put: smith-env
-        params:
-          action: unclaim
-          env_file: smith-env/metadata
-
-
 resources:
 - name: every-hour
   type: time
@@ -176,7 +142,7 @@ jobs:
         - smb-volume-release-job-tests
       - get: every-hour
 
-- name: claim-env
+- name: claim-env-for-bionic
   plan:
   - in_parallel:
       fail_fast: true
@@ -195,24 +161,21 @@ jobs:
     input_mapping:
       pooled-env: smith-env
 
-- name: deploy-cf
+- name: deploy-cf-with-bionic
   public: true
   build_logs_to_retain: 100
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
       steps:
       - get: smith-env
-
-        passed: [ claim-env ]
+        passed: [ claim-env-for-bionic ]
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
       - get: persi-ci
       - get: smb-volume-release
-        passed: [ claim-env ]
+        passed: [ claim-env-for-bionic ]
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
@@ -262,28 +225,110 @@ jobs:
       ERRAND_NAME: smbbrokerpush
       INSTANCE: smb-broker-push
 
+- name: claim-env-for-jammy
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: smb-volume-release
+        trigger: true
+        passed:
+          - env-gate
+  - put: smith-env
+    params:
+      action: claim
+
+  - task: output-env-details
+    file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+    input_mapping:
+      pooled-env: smith-env
+
+- name: deploy-cf-with-jammy
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smith-env
+        passed: [ claim-env-for-jammy ]
+        trigger: true
+      - get: cf-deployment-concourse-tasks
+      - get: cf-deployment
+      - get: persi-ci
+      - get: smb-volume-release
+        passed: [ claim-env-for-jammy ]
+  - task: pin-cf-deployment-version
+    file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+  - task: collect-persi-ci-ops-files
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    input_mapping:
+      base-ops-files: cf-deployment-pinned
+      new-ops-files: persi-ci
+    params:
+      BASE_OPS_FILE_DIR: "operations"
+  - task: generate-variables
+    file: persi-ci/scripts/ci/generate_variables.build.yml
+    params:
+      GENERATE_NFS_VARS: false
+      GENERATE_SMB_VARS: true
+      SMB_USERNAME: ((smb_pats.username))
+      SMB_PASSWORD: ((smb_pats.password))
+  - task: bosh-deploy-cf
+    file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
+    input_mapping:
+      cf-deployment: cf-deployment-pinned
+      toolsmiths-env: smith-env
+      ops-files: collected-ops-files
+      vars-files: generated-vars
+    params:
+      BOSH_DEPLOY_ARGS: '--fix-releases'
+      VARS_FILES: "smb-vars.yml"
+      OPS_FILES: "operations/scale-to-one-az.yml
+                  operations/test/enable-smb-test-server.yml
+                  operations/backup-and-restore/enable-backup-restore.yml
+                  operations/enable-smb-volume-service.yml
+                  operations/experimental/use-jammy.yml
+                  updated-smb-releases.yml
+                  operations/experimental/fast-deploy-with-downtime-and-danger.yml"
+  - task: run-smoke-tests
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smoke_tests
+  - task: run-smb-broker-errand
+    attempts: 3
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: smith-env
+    params:
+      ERRAND_NAME: smbbrokerpush
+      INSTANCE: smb-broker-push
+
 - name: cats
   serial_groups:
     - acceptance-tests
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
     - in_parallel:
         fail_fast: true
         steps:
           - get: smb-volume-release
-            passed: [ deploy-cf ]
+            passed:
+              - deploy-cf-with-bionic
             trigger: true
           - get: smith-env
-
-            passed: [ deploy-cf ]
+            passed:
+              - deploy-cf-with-bionic
             trigger: true
           - get: persi-ci
           - get: cf-acceptance-tests
           - get: cf-deployment-concourse-tasks
     - task: generate-cats-config
       file: persi-ci/scripts/ci/generate_cats_config.build.yml
-
       params:
         VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
         CF_USERNAME: admin
@@ -302,21 +347,18 @@ jobs:
   serial: true
   serial_groups:
     - acceptance-tests
-#  on_failure: *on_failure_unclaim
-#  on_error: *on_error_unclaim
   plan:
     - in_parallel:
         fail_fast: true
         steps:
           - get: smb-volume-release
-            passed: [ deploy-cf ]
+            passed: [ deploy-cf-with-bionic ]
             trigger: true
           - get: bbr-binary-release
           - get: disaster-recovery-acceptance-tests
           - get: persi-ci
           - get: smith-env
-
-            passed: [ deploy-cf ]
+            passed: [ deploy-cf-with-bionic ]
             trigger: true
     - task: generate-integration-config
       file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
@@ -336,8 +378,6 @@ jobs:
 - name: pats
   serial_groups:
     - acceptance-tests
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -345,11 +385,10 @@ jobs:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: smith-env
-
-        passed: [ deploy-cf ]
+        passed: [ deploy-cf-with-bionic ]
         trigger: true
       - get: smb-volume-release
-        passed: [ deploy-cf ]
+        passed: [ deploy-cf-with-bionic ]
       - get: smb-volume-release-concourse-tasks
         params:
           submodules: none
@@ -380,14 +419,24 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 
-- name: unclaim-env
+- name: unclaim-env-for-bionic
   plan:
   - get: smith-env
-
     passed:
     - pats
     - drats
     - cats
+    trigger: true
+  - put: smith-env
+    params:
+      action: unclaim
+      env_file: smith-env/metadata
+
+- name: unclaim-env-for-jammy
+  plan:
+  - get: smith-env
+    passed:
+    - deploy-cf-with-jammy
     trigger: true
   - put: smith-env
     params:
@@ -402,6 +451,7 @@ jobs:
     - pats
     - drats
     - cats
+    - deploy-cf-with-jammy
   - put: smb-volume-release
     params:
       merge: true
