@@ -12,7 +12,6 @@ resources:
     hostname: environments.toolsmiths.cf-app.com
     pool_name: cf-deployment
 
-
 - name: persi-ci
   type: git
   source:
@@ -62,7 +61,7 @@ resources:
 - name: cf-deployment
   type: git
   source:
-    branch: main
+    branch: release-candidate
     uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
@@ -259,14 +258,48 @@ jobs:
       - get: persi-ci
       - get: smb-volume-release
         passed: [ claim-env-for-jammy ]
-  - task: pin-cf-deployment-version
-    file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+  - task: update-dns-runtime-config-to-include-jammy
     input_mapping:
       toolsmiths-env: smith-env
+    config:
+      platform: linux
+
+      image_resource:
+        type: docker-image
+        source:
+          repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+          tag: latest
+
+      inputs:
+        - name: cf-deployment-concourse-tasks
+        - name: toolsmiths-env
+
+      run:
+        path: /bin/bash
+        args:
+          - -c
+          - |
+            set -euo pipefail
+
+            source cf-deployment-concourse-tasks/shared-functions
+
+            setup_bosh_env_vars
+
+            ADD_JAMMY_TO_DNS_CONFIG="$(mktemp)"
+
+            cat << EOF > "$ADD_JAMMY_TO_DNS_CONFIG"
+            ---
+            - type: replace
+              path: /addons/name=bosh-dns/include/stemcell/-
+              value:
+                os: ubuntu-jammy
+            EOF
+
+            bosh -n update-runtime-config --name=dns --ops-file="$ADD_JAMMY_TO_DNS_CONFIG" <( bosh runtime-config --name=dns )
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment-pinned
+      base-ops-files: cf-deployment
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -280,7 +313,7 @@ jobs:
   - task: bosh-deploy-cf
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
-      cf-deployment: cf-deployment-pinned
+      cf-deployment: cf-deployment
       toolsmiths-env: smith-env
       ops-files: collected-ops-files
       vars-files: generated-vars
