@@ -1,44 +1,18 @@
-shared_functions:
-- on_failure: &on_failure_unclaim
-    do:
-    - task: wait-1-hour
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source: 
-            repository: alpine
-            username: ((dockerhub.username))
-            password: ((dockerhub.password))
-        run:
-          path: sleep
-          args: [ "3600" ]
-    - put: smith-env
-      params:
-        action: unclaim
-        env_file: smith-env/metadata
-
-- on_error: &on_error_unclaim
-    do:
-      - task: wait-1-hour
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source: 
-              repository: alpine
-              username: ((dockerhub.username))
-              password: ((dockerhub.password))
-          run:
-            path: sleep
-            args: [ "3600" ]
-      - put: smith-env
-        params:
-          action: unclaim
-          env_file: smith-env/metadata
-
-
 resources:
+- name: cryogenics-concourse-tasks
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+    private_key: ((github.ssh_key))
+
+- name: openldap-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://www.openldap.org/software/download/OpenLDAP/openldap-release/ openldap-([\d\.]+)\.tgz
+
 - name: every-hour
   type: time
   icon: clock-outline
@@ -51,7 +25,6 @@ resources:
     api_token: ((toolsmiths.api_token))
     hostname: environments.toolsmiths.cf-app.com
     pool_name: cf-deployment
-
 
 - name: persi-ci
   type: git
@@ -66,6 +39,12 @@ resources:
     access_token: ((github.access_token))
     repository: cloudfoundry/nfs-volume-release
     disable_forks: true
+
+- name: nfs-volume-release-bump
+  type: git
+  source:
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: nfs-volume-release-master
   type: git
@@ -152,6 +131,11 @@ resources:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
 
 resource_types:
+- name: uscan
+  source:
+    repository: cflondonservices/concourse-uscan-resource
+  type: registry-image
+
 - name: git
   type: docker-image
   source:
@@ -170,6 +154,68 @@ resource_types:
     repository: cryogenics/pr-queue-resource
 
 jobs:
+- name: bump-openldap
+  plan:
+    - in_parallel:
+      - get: openldap-version
+        trigger: true
+      - get: nfs-volume-release-master
+      - get: cryogenics-concourse-tasks
+    - load_var: openldap
+      file: openldap-version/version
+      format: json
+    - task: bump-openldap
+      config:
+        params:
+          S3_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
+          S3_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
+          GIT_AUTHOR_NAME: &git_author_name 'Cryogenics CI Bot'
+          GIT_AUTHOR_EMAIL: &git_author_email 'mapbu-cryogenics@groups.vmware.com'
+          GIT_COMMITTER_NAME: *git_author_name
+          GIT_COMMITTER_EMAIL: *git_author_email
+
+        platform: linux
+
+        image_resource:
+          type: docker-image
+          source:
+            repository: cryogenics/essentials-cf6
+
+        inputs:
+          - name: nfs-volume-release-master
+        output:
+          - name: nfs-volume-release-master
+
+        run:
+          path: /bin/sh
+          args:
+            - -c
+            - |
+              set -eu
+
+              [ -d nfs-volume-release-master ]
+
+              cd nfs-volume-release-master
+
+              ./scripts/bump-openldap ((.:openldap.version.ref))
+  on_success:
+    do:
+    - put: nfs-volume-release-bump
+      params:
+        repository: nfs-volume-release-master
+        force: true
+        branch: &openldap-bump-branch bump-openldap-to-version-((.:openldap.version.ref))
+
+    - task: create-pull-request
+      file: cryogenics-concourse-tasks/tasks/create-pr/task.yml
+      input_mapping:
+        repo: nfs-volume-release-bump
+      params:
+        GITHUB_TOKEN: ((github.access_token))
+        BASE: master
+        BRANCH: *openldap-bump-branch
+        TITLE: "Bump OpenLDAP to version ((.:openldap.version.ref))"
+
 - name: nfs-volume-release-job-tests
   plan:
     - in_parallel:
@@ -265,8 +311,6 @@ jobs:
 - name: deploy-cf
   public: true
   build_logs_to_retain: 100
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -333,8 +377,6 @@ jobs:
 - name: cats-nfs
   serial_groups:
     - acceptance-tests
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
     - in_parallel:
         fail_fast: true
@@ -369,8 +411,6 @@ jobs:
   serial: true
   serial_groups:
     - acceptance-tests
-#  on_failure: *on_failure_unclaim
-#  on_error: *on_error_unclaim
   plan:
     - in_parallel:
         fail_fast: true
@@ -403,8 +443,6 @@ jobs:
 - name: pats
   serial_groups:
     - acceptance-tests
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -449,8 +487,6 @@ jobs:
 - name: deploy-cf-with-ldap
   public: true
   build_logs_to_retain: 100
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -524,8 +560,6 @@ jobs:
       INSTANCE: nfs-broker-push
 
 - name: pats-nfs-ldap
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -601,7 +635,6 @@ jobs:
     params:
       action: unclaim
       env_file: smith-env/metadata
-
 
 - name: unclaim-ldap-env
   plan:
