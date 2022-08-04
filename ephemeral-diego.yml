@@ -52,8 +52,6 @@ resources:
     branch: master
     private_key: ((github.ssh_key))
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
-    ignore_paths:
-    - scripts
 
 - name: nfsvolume-version
   type: semver
@@ -76,6 +74,7 @@ resources:
 - name: nfs-volume-release-concourse-tasks
   type: git
   source:
+    branch: master
     private_key: ((github.ssh_key))
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
@@ -183,7 +182,7 @@ jobs:
 
         inputs:
           - name: nfs-volume-release-master
-        output:
+        outputs:
           - name: nfs-volume-release-master
 
         run:
@@ -192,12 +191,15 @@ jobs:
             - -c
             - |
               set -eu
+              
+              set -x
 
               [ -d nfs-volume-release-master ]
 
               cd nfs-volume-release-master
 
               ./scripts/bump-openldap ((.:openldap.version.ref))
+
   on_success:
     do:
     - put: nfs-volume-release-bump
