@@ -1,43 +1,3 @@
-shared_functions:
-- on_failure: &on_failure_unclaim
-    do:
-    - task: wait-1-hour
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source: 
-            repository: alpine
-            username: ((dockerhub.username))
-            password: ((dockerhub.password))
-        run:
-          path: sleep
-          args: [ "3600" ]
-    - put: smith-env
-      params:
-        action: unclaim
-        env_file: smith-env/metadata
-
-- on_error: &on_error_unclaim
-    do:
-      - task: wait-1-hour
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source: 
-              repository: alpine
-              username: ((dockerhub.username))
-              password: ((dockerhub.password))
-          run:
-            path: sleep
-            args: [ "3600" ]
-      - put: smith-env
-        params:
-          action: unclaim
-          env_file: smith-env/metadata
-
-
 resources:
 - name: every-hour
   type: time
@@ -51,7 +11,6 @@ resources:
     api_token: ((toolsmiths.api_token))
     hostname: environments.toolsmiths.cf-app.com
     pool_name: cf-deployment
-
 
 - name: persi-ci
   type: git
@@ -264,8 +223,6 @@ jobs:
 - name: deploy-cf
   public: true
   build_logs_to_retain: 100
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -332,8 +289,6 @@ jobs:
 - name: cats-nfs
   serial_groups:
     - acceptance-tests
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
     - in_parallel:
         fail_fast: true
@@ -369,8 +324,6 @@ jobs:
   serial: true
   serial_groups:
     - acceptance-tests
-#  on_failure: *on_failure_unclaim
-#  on_error: *on_error_unclaim
   plan:
     - in_parallel:
         fail_fast: true
@@ -405,8 +358,6 @@ jobs:
 - name: pats
   serial_groups:
     - acceptance-tests
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -451,8 +402,6 @@ jobs:
 - name: deploy-cf-with-ldap
   public: true
   build_logs_to_retain: 100
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
@@ -526,8 +475,6 @@ jobs:
       INSTANCE: nfs-broker-push
 
 - name: pats-nfs-ldap
-  on_failure: *on_failure_unclaim
-  on_error: *on_error_unclaim
   plan:
   - in_parallel:
       fail_fast: true
