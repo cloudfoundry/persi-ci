@@ -466,7 +466,7 @@ jobs:
 
 - name: cats-with-jammy
   serial_groups:
-    - acceptance-tests
+    - acceptance-tests-with-jammy
   plan:
     - in_parallel:
         fail_fast: true
@@ -501,7 +501,7 @@ jobs:
 - name: drats-with-jammy
   serial: true
   serial_groups:
-    - acceptance-tests
+    - acceptance-tests-with-jammy
   plan:
     - in_parallel:
         fail_fast: true
@@ -532,7 +532,7 @@ jobs:
 
 - name: pats-with-jammy
   serial_groups:
-    - acceptance-tests
+    - acceptance-tests-with-jammy
   plan:
   - in_parallel:
       fail_fast: true
