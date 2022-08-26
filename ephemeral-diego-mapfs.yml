@@ -110,6 +110,14 @@ resources:
   source:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
 
+- name: cryogenics-concourse-tasks
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+    private_key: ((github.ssh_key))
+    branch: main
+
 resource_types:
 - name: git
   type: docker-image
@@ -835,39 +843,56 @@ jobs:
         fail_fast: true
         steps:
           - get: persi-ci
+          - get: cryogenics-concourse-tasks
           - get: release
             resource: mapfs-release-master
           - get: version
             resource: mapfs-version
             params:
               bump: final
-    - task: finalize-release
-      file: persi-ci/scripts/ci/finalize_release.build.yml
+    - task: create-final-release
+      file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
+      input_mapping:
+        release-repo: release
+      output_mapping:
+        updated-release-repo: mapfs-final-release
+        updated-release-tarball: mapfs-final-release-tarball
       params:
-        BASE_RELEASE_NAME: mapfs
-        GIT_USER: ((github.user))
+        AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.id))
+        AWS_SECRET_ACCESS_KEY: ((aws/mapfs-uploader.secret))
+        GIT_USERNAME: ((github.user))
         GIT_EMAIL: ((github.email))
-        S3_ACCESS_KEY_ID: ((aws/mapfs-uploader.id))
-        S3_ACCESS_KEY: ((aws/mapfs-uploader.secret))
+        FINAL: true
+        RELEASE_NAME: mapfs
+    - task: create-release-notes
+      file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
+      input_mapping:
+        git-repo: release
+      params:
+        USE_LATEST_PUBLISHED_TAG: true
+    - task: format-release-notes
+      file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
+      input_mapping:
+        template-folder: cryogenics-concourse-tasks
+      params:
+        TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
     - put: version
       resource: mapfs-version
       params:
         file: version/number
-    - task: generate-release
-      file: persi-ci/scripts/ci/generate_github_release.build.yml
-      params:
-        BASE_RELEASE_NAME: mapfs
     - put: mapfs-release-master
       params:
-        repository: finalized-release/release
+        repository: mapfs-final-release
         tag: version/number
         tag_prefix: v
     - put: github-release-mapfs
       params:
-        commitish: generated-release/commitish
-        name: generated-release/name
-        tag: generated-release/version
-        globs: []
+        name: version/number
+        tag: version/number
+        body: release-notes/release-notes.md
+        tag_prefix: v
+        globs:
+          - mapfs-final-release-tarball/mapfs-*.tgz
     - put: mapfs-version
       params:
         bump: patch
