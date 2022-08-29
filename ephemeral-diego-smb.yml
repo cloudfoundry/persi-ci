@@ -123,7 +123,7 @@ resources:
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
     private_key: ((github.ssh_key))
-
+    branch: main
 
 resource_types:
 - name: pcf-pool
@@ -681,39 +681,56 @@ jobs:
         fail_fast: true
         steps:
           - get: persi-ci
+          - get: cryogenics-concourse-tasks
           - get: release
             resource: smb-volume-release-master
           - get: version
             resource: smb-volume-version
             params:
               bump: final
-    - task: finalize-release
-      file: persi-ci/scripts/ci/finalize_release.build.yml
+    - task: create-final-release
+      file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
+      input_mapping:
+        release-repo: release
+      output_mapping:
+        updated-release-repo: smb-final-release
+        updated-release-tarball: smb-final-release-tarball
       params:
-        BASE_RELEASE_NAME: smb-volume
-        GIT_USER: ((github.user))
+        AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
+        AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.secret))
+        GIT_USERNAME: ((github.user))
         GIT_EMAIL: ((github.email))
-        S3_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
-        S3_ACCESS_KEY: ((aws/smbvolume-uploader.secret))
+        FINAL: true
+        RELEASE_NAME: smb-volume
+    - task: create-release-notes
+      file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
+      input_mapping:
+        git-repo: release
+      params:
+        USE_LATEST_PUBLISHED_TAG: true
+    - task: format-release-notes
+      file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
+      input_mapping:
+        template-folder: cryogenics-concourse-tasks
+      params:
+        TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
     - put: smb-volume-version
       resource: smb-volume-version
       params:
         file: version/number
-    - task: generate-github-release
-      file: persi-ci/scripts/ci/generate_github_release.build.yml
-      params:
-        BASE_RELEASE_NAME: smb-volume
     - put: smb-volume-release-master
       params:
-        repository: finalized-release/release
+        repository: smb-final-release
         tag: version/number
         tag_prefix: v
     - put: github-release-smb
       params:
-        commitish: generated-release/commitish
-        name: generated-release/name
-        tag: generated-release/version
-        globs: []
+        name: version/number
+        tag: version/number
+        body: release-notes/release-notes.md
+        tag_prefix: v
+        globs:
+          - smb-final-release-tarball/smb-volume-*.tgz
     - put: smb-volume-version
       params:
         bump: patch
