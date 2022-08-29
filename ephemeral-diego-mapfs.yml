@@ -110,6 +110,30 @@ resources:
   source:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
 
+- name: golang-release
+  type: git
+  icon: tag
+  source:
+    uri: https://github.com/bosh-packages/golang-release.git
+    tag_filter: v*
+
+- icon: github
+  name: mapfs-release-bump-golang
+  source:
+    branch: master
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/mapfs-release.git
+  type: git
+
+- icon: github
+  name: mapfs-release-bump-golang-master
+  source:
+    branch: master
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/mapfs-release.git
+    disable_ci_skip: true
+  type: git
+
 - name: cryogenics-concourse-tasks
   type: git
   icon: github
@@ -136,6 +160,44 @@ resource_types:
     repository: cryogenics/pr-queue-resource
 
 jobs:
+- name: bump-golang
+  plan:
+    - in_parallel:
+        - get: cryogenics-concourse-tasks
+        - get: golang-release
+          trigger: true
+        - get: mapfs-release-bump-golang-master
+    - task: bosh-vendor-package
+      file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
+      input_mapping:
+        release: mapfs-release-bump-golang-master
+        vendored-package-release: golang-release
+      params:
+        VENDORED_PACKAGE_NAME: golang-1-linux
+        VENDOR_UPDATES_BRANCH: golang-vendor-update
+        COMMIT_USERNAME: bump-golang CI job
+        COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+        AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.id))
+        AWS_SECRET_ACCESS_KEY: ((aws/mapfs-uploader.secret))
+    - put: mapfs-release-bump-golang
+      params:
+        repository: release-with-updated-vendored-package
+        branch: golang-vendor-update
+    - task: create-golang-vendor-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        BASE: master
+        BRANCH: golang-vendor-update
+        LABELS: ci,bump-golang
+        TITLE: Update vendored package golang-1-linux
+        MESSAGE: |
+          This is an automatically generated Pull Request from the Cryogenics CI Bot.
+          I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped
+          this package to benefit from the latest changes.
+          If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+      input_mapping:
+        source-repo: mapfs-release-bump-golang
+
 - name: nfs-volume-release-job-tests
   plan:
     - in_parallel:
