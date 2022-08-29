@@ -917,39 +917,56 @@ jobs:
         fail_fast: true
         steps:
           - get: persi-ci
+          - get: cryogenics-concourse-tasks
           - get: release
             resource: nfs-volume-release-master
           - get: version
             resource: nfsvolume-version
             params:
               bump: final
-    - task: finalize-release
-      file: persi-ci/scripts/ci/finalize_release.build.yml
+    - task: create-final-release
+      file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
+      input_mapping:
+        release-repo: release
+      output_mapping:
+        updated-release-repo: nfs-final-release
+        updated-release-tarball: nfs-final-release-tarball
       params:
-        BASE_RELEASE_NAME: nfs-volume
-        GIT_USER: ((github.user))
+        AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
+        AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
+        GIT_USERNAME: ((github.user))
         GIT_EMAIL: ((github.email))
-        S3_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
-        S3_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
+        FINAL: true
+        RELEASE_NAME: nfs-volume
+    - task: create-release-notes
+      file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
+      input_mapping:
+        git-repo: release
+      params:
+        USE_LATEST_PUBLISHED_TAG: true
+    - task: format-release-notes
+      file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
+      input_mapping:
+        template-folder: cryogenics-concourse-tasks
+      params:
+        TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
     - put: nfs-volume-version
       resource: nfsvolume-version
       params:
         file: version/number
-    - task: generate-github-release
-      file: persi-ci/scripts/ci/generate_github_release.build.yml
-      params:
-        BASE_RELEASE_NAME: nfs-volume
     - put: nfs-volume-release-master
       params:
-        repository: finalized-release/release
+        repository: nfs-final-release
         tag: version/number
         tag_prefix: v
     - put: github-release-nfs
       params:
-        commitish: generated-release/commitish
-        name: generated-release/name
-        tag: generated-release/version
-        globs: []
+        name: version/number
+        tag: version/number
+        body: release-notes/release-notes.md
+        tag_prefix: v
+        globs:
+          - nfs-final-release-tarball/nfs-volume-*.tgz
     - put: nfsvolume-version
       params:
         bump: patch
