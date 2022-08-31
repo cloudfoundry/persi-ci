@@ -134,7 +134,7 @@ resources:
   icon: tag
   source:
     uri: https://github.com/bosh-packages/golang-release.git
-    tag_filter: v*
+    tag_filter: v7*
 
 - icon: github
   name: nfs-volume-release-bump-golang
@@ -191,7 +191,7 @@ jobs:
         vendored-package-release: golang-release
       params:
         VENDORED_PACKAGE_NAME: golang-1-linux
-        VENDOR_UPDATES_BRANCH: golang-vendor-update
+        VENDOR_UPDATES_BRANCH: golang-vendor-update-v7
         COMMIT_USERNAME: bump-golang CI job
         COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
         AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
@@ -199,12 +199,12 @@ jobs:
     - put: nfs-volume-release-bump-golang
       params:
         repository: release-with-updated-vendored-package
-        branch: golang-vendor-update
+        branch: golang-vendor-update-v7
     - task: create-golang-vendor-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         BASE: master
-        BRANCH: golang-vendor-update
+        BRANCH: golang-vendor-update-v7
         LABELS: ci,bump-golang
         TITLE: Update vendored package golang-1-linux
         MESSAGE: |

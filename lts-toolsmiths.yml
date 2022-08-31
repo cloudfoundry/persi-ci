@@ -135,6 +135,30 @@ resources:
       paths:
         - tas/Kilnfile
 
+- name: golang-release
+   type: git
+   icon: tag
+   source:
+     uri: https://github.com/bosh-packages/golang-release.git
+     tag_filter: v5*
+
+ - icon: github
+   name: nfs-volume-release-bump-golang
+   source:
+     branch: {{lts-nfs-branch}}
+     private_key: ((github.ssh_key))
+     uri: git@github.com:cloudfoundry/nfs-volume-release.git
+   type: git
+
+ - icon: github
+   name: nfs-volume-release-bump-golang-master
+   source:
+     branch: {{lts-nfs-branch}}
+     private_key: ((github.ssh_key))
+     uri: git@github.com:cloudfoundry/nfs-volume-release.git
+     disable_ci_skip: true
+   type: git
+
 resource_types:
 - name: git
   type: docker-image
@@ -154,6 +178,44 @@ resource_types:
     repository: cryogenics/pr-queue-resource
 
 jobs:
+  - name: bump-golang
+    plan:
+      - in_parallel:
+          - get: cryogenics-concourse-tasks
+          - get: golang-release
+            trigger: true
+          - get: nfs-volume-release-bump-golang-master
+      - task: bosh-vendor-package
+        file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
+        input_mapping:
+          release: nfs-volume-release-bump-golang-master
+          vendored-package-release: golang-release
+        params:
+          VENDORED_PACKAGE_NAME: golang-1-linux
+          VENDOR_UPDATES_BRANCH: golang-vendor-update-v5
+          COMMIT_USERNAME: bump-golang CI job
+          COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+          AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
+          AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
+      - put: nfs-volume-release-bump-golang
+        params:
+          repository: release-with-updated-vendored-package
+          branch: golang-vendor-update-v5
+      - task: create-golang-vendor-pull-request
+        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+        params:
+          BASE: {{lts-nfs-branch}}
+          BRANCH: golang-vendor-update-v5
+          LABELS: ci,bump-golang
+          TITLE: Update vendored package golang-1-linux
+          MESSAGE: |
+            This is an automatically generated Pull Request from the Cryogenics CI Bot.
+            I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped
+            this package to benefit from the latest changes.
+            If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+        input_mapping:
+          source-repo: nfs-volume-release-bump-golang
+
   - name: nfs-security-scan
     plan:
       - in_parallel:
