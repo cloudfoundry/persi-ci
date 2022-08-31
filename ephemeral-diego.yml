@@ -134,7 +134,7 @@ resources:
   icon: tag
   source:
     uri: https://github.com/bosh-packages/golang-release.git
-    tag_filter: v7*
+    tag_filter: v*
 
 - icon: github
   name: nfs-volume-release-bump-golang
