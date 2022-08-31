@@ -33,6 +33,13 @@ shared_functions:
 
 
 resources:
+  - name: cryogenics-concourse-tasks
+    type: git
+    icon: github
+    source:
+      uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+      private_key: ((github.ssh_key))
+
   - name: nfs-volume-release-concourse-tasks
     type: git
     source:
@@ -135,29 +142,29 @@ resources:
       paths:
         - tas/Kilnfile
 
-- name: golang-release
-   type: git
-   icon: tag
-   source:
-     uri: https://github.com/bosh-packages/golang-release.git
-     tag_filter: v5*
+  - name: golang-release
+    type: git
+    icon: tag
+    source:
+      uri: https://github.com/bosh-packages/golang-release.git
+      tag_filter: v5*
 
- - icon: github
-   name: nfs-volume-release-bump-golang
-   source:
-     branch: {{lts-nfs-branch}}
-     private_key: ((github.ssh_key))
-     uri: git@github.com:cloudfoundry/nfs-volume-release.git
-   type: git
+  - icon: github
+    name: nfs-volume-release-bump-golang
+    source:
+      branch: {{lts-nfs-branch}}
+      private_key: ((github.ssh_key))
+      uri: git@github.com:cloudfoundry/nfs-volume-release.git
+    type: git
 
- - icon: github
-   name: nfs-volume-release-bump-golang-master
-   source:
-     branch: {{lts-nfs-branch}}
-     private_key: ((github.ssh_key))
-     uri: git@github.com:cloudfoundry/nfs-volume-release.git
-     disable_ci_skip: true
-   type: git
+  - icon: github
+    name: nfs-volume-release-bump-golang-master
+    source:
+      branch: {{lts-nfs-branch}}
+      private_key: ((github.ssh_key))
+      uri: git@github.com:cloudfoundry/nfs-volume-release.git
+      disable_ci_skip: true
+    type: git
 
 resource_types:
 - name: git
