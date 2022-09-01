@@ -125,23 +125,6 @@ resources:
       drafts: true
       access_token: ((github.access_token))
 
-  - name: releng-kiln-concourse-tasks
-    type: git
-    source:
-      branch: dockerhub
-      uri: git@github.com:pivotal/releng-kiln-concourse-tasks.git
-      private_key: ((github.ssh_key))
-
-  - name: tas
-    type: git
-    source:
-      uri: https://github.com/pivotal/tas.git
-      branch: main
-      username: ((github.https_username))
-      password: ((github.access_token))
-      paths:
-        - tas/Kilnfile
-
   - name: golang-release
     type: git
     icon: tag
@@ -517,74 +500,56 @@ jobs:
           fail_fast: true
           steps:
             - get: persi-ci
-            - get: nfs-volume-release-lts
-            - get: nfsvolume-version
+            - get: cryogenics-concourse-tasks
+            - get: release
+              resource: nfs-volume-release-lts
+            - get: version
+              resource: nfsvolume-version
               params:
                 bump: final
-            - get: releng-kiln-concourse-tasks
-            - get: tas
-              params: { submodules: none }
-      - task: finalize-release
-        file: persi-ci/scripts/ci/finalize_release.build.yml
+      - task: create-final-release
+        file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
+        input_mapping:
+          release-repo: release
+        output_mapping:
+          updated-release-repo: nfs-final-release
+          updated-release-tarball: nfs-final-release-tarball
         params:
-          BASE_RELEASE_NAME: nfs-volume
-          GIT_USER: ((github.user))
+          AWS_ACCESS_KEY_ID: ((aws/goshims-uploader.id))
+          AWS_SECRET_ACCESS_KEY: ((aws/goshims-uploader.secret))
+          GIT_USERNAME: ((github.user))
           GIT_EMAIL: ((github.email))
-          S3_ACCESS_KEY_ID: ((aws/goshims-uploader.id))
-          S3_ACCESS_KEY: ((aws/goshims-uploader.secret))
+          FINAL: true
+          RELEASE_NAME: nfs-volume
+      - task: create-release-notes
+        file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
         input_mapping:
-          release: nfs-volume-release-lts
-          version: nfsvolume-version
-      - task: generate-github-release
-        file: persi-ci/scripts/ci/generate_github_release.build.yml
+          git-repo: release
         params:
-          BASE_RELEASE_NAME: nfs-volume
+          USE_LATEST_PUBLISHED_TAG: true
+      - task: format-release-notes
+        file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
         input_mapping:
-          release: nfs-volume-release-lts
-          version: nfsvolume-version
+          template-folder: cryogenics-concourse-tasks
+        params:
+          TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
+      - put: nfs-volume-version
+        resource: nfsvolume-version
+        params:
+          file: version/number
       - put: nfs-volume-release-lts
         params:
-          repository: finalized-release/release
-          tag: nfsvolume-version/number
+          repository: nfs-final-release
+          tag: version/number
           tag_prefix: v
       - put: github-release-nfs
         params:
-          commitish: generated-release/commitish
-          name: generated-release/name
-          tag: generated-release/version
-          globs: []
-      - task: create-tarball
-        input_mapping:
-          release: nfs-volume-release-lts
-          version: nfsvolume-version
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source: {repository: relintdockerhubpushbot/cf-deployment-concourse-tasks}
-          inputs:
-          - name: release
-          - name: version
-          outputs:
-          - name: release-tarball-directory
-          params:
-            BASE_RELEASE_NAME: nfs-volume
-          run:
-            path: /bin/bash
-            args:
-            - -ec
-            - |
-              FINAL_RELEASE_VERSION="$(cat "version/number")"
-              pushd release
-                bosh -n create-release "releases/nfs-volume/nfs-volume-${FINAL_RELEASE_VERSION}.yml" --tarball="../release-tarball-directory/nfs-volume-release-${FINAL_RELEASE_VERSION}.tgz"
-              popd
-      - task: upload-release-to-releng
-        file: releng-kiln-concourse-tasks/tasks/upload-release/task.yml
-        input_mapping:
-          p-runtime: tas
-        params:
-          AWS_ACCESS_KEY_ID: ((access_kiln_fetch_aws_access_key_id))
-          AWS_SECRET_ACCESS_KEY: ((access_kiln_fetch_aws_secret_access_key))
+          name: version/number
+          tag: version/number
+          body: release-notes/release-notes.md
+          tag_prefix: v
+          globs:
+            - nfs-final-release-tarball/nfs-volume-*.tgz
       - put: nfsvolume-version
         params:
           bump: patch
