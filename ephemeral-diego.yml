@@ -11,7 +11,15 @@ resources:
   source:
     watchfile: |
       version=4
-      https://www.openldap.org/software/download/OpenLDAP/openldap-release/ openldap-([\d\.]+)\.tgz
+      https://www.openldap.org/software/download/OpenLDAP/openldap-release/ openldap-2.5([\d\.]+)\.tgz
+      # As of 2022-10-24, the LTS branch of OpenLDAP is 2.5. The
+      # latest features branch is 2.6.  Also, the latest 2.5 will
+      # build on xenial, and the latest 2.6 will not. We should jump
+      # to a later branch when we stop supporting xenial, or when 2.5
+      # stops being supported.
+      #
+      # See https://www.openldap.org/software/download/ for which
+      # branches are currently supported.
 
 - name: every-hour
   type: time
