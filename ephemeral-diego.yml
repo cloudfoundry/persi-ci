@@ -723,9 +723,6 @@ jobs:
   - get: nfs-volume-release
     trigger: true
     passed:
-    - pats-with-jammy
-    - drats-with-jammy
-    - cats-nfs-with-jammy
     - pats-nfs-ldap
     - pats
     - drats
