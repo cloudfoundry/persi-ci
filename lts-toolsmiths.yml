@@ -76,6 +76,7 @@ resources:
       access_token: ((github.access_token))
       repository: cloudfoundry/nfs-volume-release
       disable_forks: true
+      autosync_pr: true
 
   - name: nfs-volume-release-lts
     type: git
