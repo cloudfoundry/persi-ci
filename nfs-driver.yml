@@ -29,7 +29,7 @@ resources:
 - name: docker_driver_integration_tests
   type: git
   source:
-    branch: master
+    branch: main
     uri: https://github.com/cloudfoundry/docker_driver_integration_tests
 
 jobs:
@@ -92,7 +92,6 @@ jobs:
   - get: nfsv3driver
     trigger: true
     passed:
-    - unit-test
     - security-scan
     - integration
   - put: nfsv3driver
