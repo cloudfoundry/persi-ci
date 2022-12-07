@@ -1,3 +1,31 @@
+groups:
+- name: bump
+  jobs:
+  - bump-golang
+  - bump-openldap
+- name: test
+  jobs:
+  - nfs-volume-release-job-tests
+  - mapfs-release-job-tests
+  - env-gate
+  - claim-ldap-env
+  - deploy-cf-with-ldap
+  - pats-nfs-ldap
+  - unclaim-ldap-env
+  - claim-env
+  - deploy-cf
+  - cats-nfs
+  - drats
+  - pats
+  - unclaim-env
+  - merge-pr
+- name: release
+  jobs:
+  - shipit-nfs
+  - manual-bump-nfs-major
+  - manual-bump-nfs-patch
+  - manual-bump-nfs-minor
+
 resources:
 - name: cryogenics-concourse-tasks
   type: git
@@ -564,7 +592,6 @@ jobs:
       fail_fast: true
       steps:
       - get: smith-env
-
         passed:
         - claim-ldap-env
         trigger: true
