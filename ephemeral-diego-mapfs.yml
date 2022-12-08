@@ -33,6 +33,12 @@ resources:
     private_key: ((github.ssh_key))
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
+- name: mapfs
+  type: git
+  source:
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/mapfs.git
+
 - name: mapfs-release
   type: pull-request
   source:
@@ -183,6 +189,7 @@ jobs:
       params:
         repository: release-with-updated-vendored-package
         branch: golang-vendor-update
+        force: true # If the last PR got stuck just overwrite it with new stuff
     - task: create-golang-vendor-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
@@ -197,6 +204,49 @@ jobs:
           If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
       input_mapping:
         source-repo: mapfs-release-bump-golang
+
+- name: update-go-directive-for-mapfs
+  plan:
+  - in_parallel:
+    - get: mapfs-release-bump-golang-master
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: mapfs
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: mapfs-release-bump-golang-master
+      golang-project-repo: mapfs
+    output_mapping:
+      golang-project-repo: mapfs
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: .
+  - put: mapfs
+    params:
+      repository: mapfs
+      branch: &mapfs-gomod-update-branch update-gomod-directive
+      force: true # If the last PR got stuck just overwrite it with new stuff
+  - task: create-gomod-directive-update-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *mapfs-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: mapfs
 
 - name: nfs-volume-release-job-tests
   plan:
