@@ -3,6 +3,8 @@ groups:
   jobs:
   - bump-golang
   - bump-openldap
+  - update-go-directive-for-nfsv3driver
+  - update-go-directive-for-nfsbroker
 - name: test
   jobs:
   - nfs-volume-release-job-tests
@@ -190,6 +192,19 @@ resources:
     disable_ci_skip: true
   type: git
 
+- name: nfsv3driver
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/nfsv3driver.git
+    branch: master
+    private_key: ((github.ssh_key))
+
+- name: nfsbroker
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/nfsbroker.git
+    branch: master
+    private_key: ((github.ssh_key))
 
 resource_types:
 - name: uscan
@@ -251,6 +266,90 @@ jobs:
           If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
       input_mapping:
         source-repo: nfs-volume-release-bump-golang
+
+- name: update-go-directive-for-nfsv3driver
+  plan:
+  - in_parallel:
+    - get: nfs-volume-release-bump-golang
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: nfsv3driver
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      golang-project-repo: nfsv3driver
+    output_mapping:
+      golang-project-repo: nfsv3driver
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: .
+  - put: nfsv3driver
+    params:
+      repository: nfsv3driver
+      branch: &nfsv3driver-gomod-update-branch update-gomod-directive
+  - task: create-gomod-directive-update-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *nfsv3driver-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: nfsv3driver
+
+- name: update-go-directive-for-nfsbroker
+  plan:
+  - in_parallel:
+    - get: nfs-volume-release-bump-golang
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: nfsbroker
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      golang-project-repo: nfsbroker
+    output_mapping:
+      golang-project-repo: nfsbroker
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: .
+  - put: nfsbroker
+    params:
+      repository: nfsbroker
+      branch: &nfsbroker-gomod-update-branch update-gomod-directive
+  - task: create-gomod-directive-update-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *nfsbroker-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: nfsbroker
 
 - name: bump-openldap
   plan:
@@ -550,7 +649,6 @@ jobs:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: smith-env
-
         passed: [ deploy-cf ]
         trigger: true
       - get: nfs-volume-release
@@ -558,7 +656,6 @@ jobs:
       - get: mapfs-release
         passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
-
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
