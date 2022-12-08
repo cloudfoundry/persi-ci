@@ -1,3 +1,25 @@
+groups:
+- name: bump
+  jobs:
+  - bump-golang
+- name: test
+  jobs:
+  - smb-volume-release-job-tests
+  - env-gate
+  - cats
+  - drats
+  - pats
+  - claim-env
+  - deploy-cf
+  - unclaim-env
+  - merge-pr
+- name: release
+  jobs:
+  - shipit-smb
+  - manual-bump-smb-patch
+  - manual-bump-smb-minor
+  - manual-bump-smb-major
+
 resources:
 - name: every-hour
   type: time
@@ -210,7 +232,7 @@ jobs:
         - smb-volume-release-job-tests
       - get: every-hour
 
-- name: claim-env-for-bionic
+- name: claim-env
   plan:
   - in_parallel:
       fail_fast: true
@@ -229,7 +251,7 @@ jobs:
     input_mapping:
       pooled-env: smith-env
 
-- name: deploy-cf-with-bionic
+- name: deploy-cf
   public: true
   build_logs_to_retain: 100
   plan:
@@ -237,13 +259,13 @@ jobs:
       fail_fast: true
       steps:
       - get: smith-env
-        passed: [ claim-env-for-bionic ]
+        passed: [ claim-env ]
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
       - get: persi-ci
       - get: smb-volume-release
-        passed: [ claim-env-for-bionic ]
+        passed: [ claim-env ]
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
@@ -302,11 +324,11 @@ jobs:
         steps:
           - get: smb-volume-release
             passed:
-              - deploy-cf-with-bionic
+              - deploy-cf
             trigger: true
           - get: smith-env
             passed:
-              - deploy-cf-with-bionic
+              - deploy-cf
             trigger: true
           - get: persi-ci
           - get: cf-acceptance-tests
@@ -336,13 +358,13 @@ jobs:
         fail_fast: true
         steps:
           - get: smb-volume-release
-            passed: [ deploy-cf-with-bionic ]
+            passed: [ deploy-cf ]
             trigger: true
           - get: bbr-binary-release
           - get: disaster-recovery-acceptance-tests
           - get: persi-ci
           - get: smith-env
-            passed: [ deploy-cf-with-bionic ]
+            passed: [ deploy-cf ]
             trigger: true
     - task: generate-integration-config
       file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
@@ -369,10 +391,10 @@ jobs:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: smith-env
-        passed: [ deploy-cf-with-bionic ]
+        passed: [ deploy-cf ]
         trigger: true
       - get: smb-volume-release
-        passed: [ deploy-cf-with-bionic ]
+        passed: [ deploy-cf ]
       - get: smb-volume-release-concourse-tasks
         params:
           submodules: none
@@ -403,254 +425,13 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 
-- name: unclaim-env-for-bionic
+- name: unclaim-env
   plan:
   - get: smith-env
     passed:
     - pats
     - drats
     - cats
-    trigger: true
-  - put: smith-env
-    params:
-      action: unclaim
-      env_file: smith-env/metadata
-
-- name: claim-env-for-jammy
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: smb-volume-release
-        trigger: true
-        passed:
-          - env-gate
-  - put: smith-env
-    params:
-      action: claim
-
-  - task: output-env-details
-    file: persi-ci/scripts/ci/claim-pooled-env.build.yml
-    input_mapping:
-      pooled-env: smith-env
-
-- name: deploy-cf-with-jammy
-  public: true
-  build_logs_to_retain: 100
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smith-env
-        passed: [ claim-env-for-jammy ]
-        trigger: true
-      - get: cf-deployment-concourse-tasks
-      - get: cf-deployment
-      - get: persi-ci
-      - get: smb-volume-release
-        passed: [ claim-env-for-jammy ]
-  - task: update-dns-runtime-config-to-include-jammy
-    input_mapping:
-      toolsmiths-env: smith-env
-    config:
-      platform: linux
-
-      image_resource:
-        type: docker-image
-        source:
-          repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
-          tag: latest
-
-      inputs:
-        - name: cf-deployment-concourse-tasks
-        - name: toolsmiths-env
-
-      run:
-        path: /bin/bash
-        args:
-          - -c
-          - |
-            set -euo pipefail
-
-            source cf-deployment-concourse-tasks/shared-functions
-
-            setup_bosh_env_vars
-
-            ADD_JAMMY_TO_DNS_CONFIG="$(mktemp)"
-
-            cat << EOF > "$ADD_JAMMY_TO_DNS_CONFIG"
-            ---
-            - type: replace
-              path: /addons/name=bosh-dns/include/stemcell/-
-              value:
-                os: ubuntu-jammy
-            EOF
-
-            bosh -n update-runtime-config --name=dns --ops-file="$ADD_JAMMY_TO_DNS_CONFIG" <( bosh runtime-config --name=dns )
-  - task: collect-persi-ci-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: cf-deployment
-      new-ops-files: persi-ci
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-  - task: generate-variables
-    file: persi-ci/scripts/ci/generate_variables.build.yml
-    params:
-      GENERATE_NFS_VARS: false
-      GENERATE_SMB_VARS: true
-      SMB_USERNAME: ((smb_pats.username))
-      SMB_PASSWORD: ((smb_pats.password))
-  - task: bosh-deploy-cf
-    file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
-    input_mapping:
-      cf-deployment: cf-deployment
-      toolsmiths-env: smith-env
-      ops-files: collected-ops-files
-      vars-files: generated-vars
-    params:
-      BOSH_DEPLOY_ARGS: '--fix-releases'
-      VARS_FILES: "smb-vars.yml"
-      OPS_FILES: "operations/scale-to-one-az.yml
-                  operations/test/enable-smb-test-server.yml
-                  operations/backup-and-restore/enable-backup-restore.yml
-                  operations/enable-smb-volume-service.yml
-                  operations/experimental/use-jammy.yml
-                  updated-smb-releases.yml
-                  operations/experimental/fast-deploy-with-downtime-and-danger.yml"
-  - task: run-smoke-tests
-    file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      toolsmiths-env: smith-env
-    params:
-      ERRAND_NAME: smoke_tests
-  - task: run-smb-broker-errand
-    attempts: 3
-    file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      toolsmiths-env: smith-env
-    params:
-      ERRAND_NAME: smbbrokerpush
-      INSTANCE: smb-broker-push
-
-- name: cats-with-jammy
-  serial_groups:
-    - acceptance-tests-with-jammy
-  plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: smb-volume-release
-            passed:
-              - deploy-cf-with-jammy
-            trigger: true
-          - get: smith-env
-            passed:
-              - deploy-cf-with-jammy
-            trigger: true
-          - get: persi-ci
-          - get: cf-acceptance-tests
-          - get: cf-deployment-concourse-tasks
-    - task: generate-cats-config
-      file: persi-ci/scripts/ci/generate_cats_config.build.yml
-      params:
-        VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-        CF_USERNAME: admin
-        SERVICE_NAME: smb
-        PLAN_NAME: Existing
-        CREATE_CONFIG: '{\"share\": \"((smb_cats.remote_path))\", \"username\": \"((smb_cats.username))\", \"password\": \"((smb_cats.password))\"}'
-        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-    - task: run-cats
-      file: cf-deployment-concourse-tasks/run-cats/task.yml
-      input_mapping:
-        integration-config: cats-config
-      params:
-        CONFIG_FILE_PATH: cats.json
-
-- name: drats-with-jammy
-  serial: true
-  serial_groups:
-    - acceptance-tests-with-jammy
-  plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: smb-volume-release
-            passed: [ deploy-cf-with-jammy ]
-            trigger: true
-          - get: bbr-binary-release
-          - get: disaster-recovery-acceptance-tests
-          - get: persi-ci
-          - get: smith-env
-            passed: [ deploy-cf-with-jammy ]
-            trigger: true
-    - task: generate-integration-config
-      file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
-      params:
-        INTEGRATION_CONFIG_FILE_PATH: config/drats-smb.json
-      input_mapping:
-        integration-configs: persi-ci
-
-    - task: drats-with-integration-config
-      file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
-      privileged: true
-      input_mapping:
-        drats-integration-config: updated-integration-configs
-      params:
-        CONFIG_FILE_PATH: config/drats-smb.json
-
-- name: pats-with-jammy
-  serial_groups:
-    - acceptance-tests-with-jammy
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: cf-volume-services-acceptance-tests
-      - get: persi-ci
-      - get: smith-env
-        passed: [ deploy-cf-with-jammy ]
-        trigger: true
-      - get: smb-volume-release
-        passed: [ deploy-cf-with-jammy ]
-      - get: smb-volume-release-concourse-tasks
-        params:
-          submodules: none
-  - task: generate-pats-config-smb
-
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    params:
-      VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-      CF_USERNAME: admin
-      DISALLOWED_OVERRIDE_BIND_CONFIG: '{\"share\":\"//smbtestserver.service.cf.internal/export/vol2\"}'
-      CREATE_BOGUS_CONFIG: '{\"share\":\"//smb.bogus/export/nonexistensevol\"}'
-      PLAN_NAME: Existing
-      SERVICE_NAME: smb
-      CREATE_CONFIG: '{\"share\":\"((smb_cats.remote_path))\"}'
-      BIND_CONFIG: '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'
-    output_mapping:
-      pats-config: smb-pats-config
-  - task: run-pats-smb
-    input_mapping:
-      pats-config: smb-pats-config
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    attempts: 3
-    params:
-      PARALLEL_NODES: 5
-      TEST_MOUNT_OPTIONS: false
-      TEST_MOUNT_FAIL_LOGGING: true
-      TEST_MULTI_CELL: true
-      TEST_READ_ONLY: true
-
-- name: unclaim-env-for-jammy
-  plan:
-  - get: smith-env
-    passed:
-    - cats-with-jammy
-    - drats-with-jammy
-    - pats-with-jammy
     trigger: true
   - put: smith-env
     params:
@@ -665,9 +446,6 @@ jobs:
     - pats
     - drats
     - cats
-    - cats-with-jammy
-    - drats-with-jammy
-    - pats-with-jammy
   - put: smb-volume-release
     params:
       merge: true
