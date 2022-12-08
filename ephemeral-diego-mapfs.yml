@@ -1,3 +1,32 @@
+groups:
+- name: bump
+  jobs:
+  - bump-golang
+  - update-go-directive-for-mapfs
+- name: test
+  jobs:
+  - nfs-volume-release-job-tests
+  - mapfs-release-job-tests
+  - env-gate
+  - claim-env
+  - deploy-cf
+  - cats-nfs
+  - drats
+  - pats
+  - unclaim-env
+  - claim-ldap-env
+  - deploy-cf-with-ldap
+  - pats-nfs-ldap
+  - unclaim-ldap-env
+  - merge-pr
+
+- name: release
+  jobs:
+  - shipit-mapfs
+  - manual-bump-mapfs-patch
+  - manual-bump-mapfs-minor
+  - manual-bump-mapfs-major
+
 resources:
 - name: every-hour
   type: time
@@ -294,254 +323,6 @@ jobs:
         - nfs-volume-release-job-tests
         - mapfs-release-job-tests
       - get: every-hour
-
-- name: claim-env-for-jammy
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: nfs-volume-release
-        passed:
-          - env-gate
-      - get: mapfs-release
-        trigger: true
-        passed:
-          - env-gate
-  - put: smith-env
-    params:
-      action: claim
-
-  - task: output-env-details
-    file: persi-ci/scripts/ci/claim-pooled-env.build.yml
-    input_mapping:
-      pooled-env: smith-env
-
-- name: deploy-cf-with-jammy
-  public: true
-  build_logs_to_retain: 100
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smith-env
-        passed: [ claim-env-for-jammy ]
-        trigger: true
-      - get: cf-deployment-concourse-tasks
-      - get: cf-deployment
-      - get: persi-ci
-      - get: nfs-volume-release
-        passed: [ claim-env-for-jammy ]
-      - get: mapfs-release
-        passed: [ claim-env-for-jammy ]
-  - task: update-dns-runtime-config-to-include-jammy
-    input_mapping:
-      toolsmiths-env: smith-env
-    config:
-      platform: linux
-
-      image_resource:
-        type: docker-image
-        source:
-          repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
-          tag: latest
-
-      inputs:
-        - name: cf-deployment-concourse-tasks
-        - name: toolsmiths-env
-
-      run:
-        path: /bin/bash
-        args:
-          - -c
-          - |
-            set -euo pipefail
-
-            source cf-deployment-concourse-tasks/shared-functions
-
-            setup_bosh_env_vars
-
-            ADD_JAMMY_TO_DNS_CONFIG="$(mktemp)"
-
-            cat << EOF > "$ADD_JAMMY_TO_DNS_CONFIG"
-            ---
-            - type: replace
-              path: /addons/name=bosh-dns/include/stemcell/-
-              value:
-                os: ubuntu-jammy
-            EOF
-
-            bosh -n update-runtime-config --name=dns --ops-file="$ADD_JAMMY_TO_DNS_CONFIG" <( bosh runtime-config --name=dns )
-  - task: collect-persi-ci-ops-files
-    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    input_mapping:
-      base-ops-files: cf-deployment
-      new-ops-files: persi-ci
-    params:
-      BASE_OPS_FILE_DIR: "operations"
-  - task: generate-variables
-    file: persi-ci/scripts/ci/generate_variables.build.yml
-    params:
-      GENERATE_NFS_VARS: true
-      GENERATE_SMB_VARS: false
-  - task: bosh-deploy-cf
-    file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
-    input_mapping:
-      cf-deployment: cf-deployment
-      toolsmiths-env: smith-env
-      ops-files: collected-ops-files
-      vars-files: generated-vars
-    params:
-      BOSH_DEPLOY_ARGS: '--fix-releases'
-      VARS_FILES: "nfs-vars.yml"
-      OPS_FILES: "operations/scale-to-one-az.yml
-                  operations/experimental/use-jammy.yml
-                  operations/enable-nfs-volume-service.yml
-                  updated-nfs-releases.yml
-                  operations/test/enable-nfs-test-server.yml
-                  operations/backup-and-restore/enable-backup-restore.yml
-                  operations/backup-and-restore/enable-restore-nfs-broker.yml
-                  operations/experimental/fast-deploy-with-downtime-and-danger.yml"
-  - task: run-smoke-tests
-    file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      toolsmiths-env: smith-env
-    params:
-      ERRAND_NAME: smoke_tests
-  - task: run-nfs-broker-errand
-    attempts: 3
-    file: cf-deployment-concourse-tasks/run-errand/task.yml
-    input_mapping:
-      toolsmiths-env: smith-env
-    params:
-      ERRAND_NAME: nfsbrokerpush
-      INSTANCE: nfs-broker-push
-
-- name: cats-nfs-with-jammy
-  serial_groups:
-    - acceptance-tests
-  plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: nfs-volume-release
-            passed: [ deploy-cf-with-jammy ]
-          - get: smith-env
-
-            passed: [ deploy-cf-with-jammy ]
-            trigger: true
-          - get: persi-ci
-          - get: cf-acceptance-tests
-          - get: cf-deployment-concourse-tasks
-          - get: mapfs-release
-            passed: [ deploy-cf-with-jammy ]
-    - task: generate-cats-config
-      file: persi-ci/scripts/ci/generate_cats_config.build.yml
-
-      params:
-        VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-        CF_USERNAME: admin
-        SERVICE_NAME: nfs
-        PLAN_NAME: Existing
-        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-    - task: run-cats
-      file: cf-deployment-concourse-tasks/run-cats/task.yml
-      input_mapping:
-        integration-config: cats-config
-      params:
-        CONFIG_FILE_PATH: cats.json
-
-- name: drats-with-jammy
-  serial: true
-  serial_groups:
-    - acceptance-tests
-  plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: nfs-volume-release
-            passed: [ deploy-cf-with-jammy ]
-
-          - get: bbr-binary-release
-          - get: disaster-recovery-acceptance-tests
-          - get: persi-ci
-          - get: mapfs-release
-            passed: [ deploy-cf-with-jammy ]
-          - get: smith-env
-
-            passed: [ deploy-cf-with-jammy ]
-            trigger: true
-    - task: generate-integration-config
-      file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
-      params:
-        INTEGRATION_CONFIG_FILE_PATH: config/drats-nfs.json
-      input_mapping:
-        integration-configs: persi-ci
-
-    - task: drats-with-integration-config
-      file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
-      privileged: true
-      input_mapping:
-        drats-integration-config: updated-integration-configs
-      params:
-        CONFIG_FILE_PATH: config/drats-nfs.json
-
-- name: pats-with-jammy
-  serial_groups:
-    - acceptance-tests
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: cf-volume-services-acceptance-tests
-      - get: persi-ci
-      - get: smith-env
-
-        passed: [ deploy-cf-with-jammy ]
-        trigger: true
-      - get: nfs-volume-release
-        passed: [ deploy-cf-with-jammy ]
-      - get: mapfs-release
-        passed: [ deploy-cf-with-jammy ]
-  - task: generate-pats-config-nfs
-
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    params:
-      VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-      CF_USERNAME: admin
-      BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-      BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}"]'
-      CREATE_BOGUS_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/nonexistensevol\"}'
-      CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-      PLAN_NAME: Existing
-      SERVICE_NAME: nfs
-    output_mapping:
-      pats-config: nfs-pats-config
-  - task: run-pats-nfs
-    input_mapping:
-      pats-config: nfs-pats-config
-    file: persi-ci/scripts/ci/run-pats.build.yml
-    attempts: 3
-    params:
-      PARALLEL_NODES: 5
-      TEST_MOUNT_FAIL_LOGGING: true
-      TEST_MOUNT_OPTIONS: true
-      TEST_MULTI_CELL: true
-      TEST_READ_ONLY: true
-
-- name: unclaim-env-with-jammy
-  plan:
-  - get: smith-env
-    passed:
-    - pats-with-jammy
-    - drats-with-jammy
-    - cats-nfs-with-jammy
-    trigger: true
-  - put: smith-env
-    params:
-      action: unclaim
-      env_file: smith-env/metadata
 
 - name: claim-env
   plan:
@@ -935,9 +716,6 @@ jobs:
   - get: mapfs-release
     trigger: true
     passed:
-    - pats-with-jammy
-    - drats-with-jammy
-    - cats-nfs-with-jammy
     - pats
     - pats-nfs-ldap
     - drats
