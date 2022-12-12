@@ -1,9 +1,16 @@
-FROM golang:1.16
+FROM golang:latest
 
-RUN wget https://github.com/cloudfoundry/bosh-cli/releases/download/v5.5.1/bosh-cli-5.5.1-linux-amd64
-RUN chmod +x bosh-cli-5.5.1-linux-amd64
-RUN mv bosh-cli-5.5.1-linux-amd64 /usr/bin/bosh
-RUN go get github.com/onsi/ginkgo/ginkgo
-RUN go get github.com/onsi/gomega
+RUN set -eux \
+  ; curl -s https://api.github.com/repos/cloudfoundry/bosh-cli/releases/latest \
+    | grep "browser_download_url.*linux-amd64" \
+    | cut -d : -f 2,3 \
+    | tr -d \" \
+    | wget -O /usr/local/bin/bosh -qi  - \
+  ; chmod +x /usr/local/bin/bosh \
+  ; bosh -v
+
+RUN set -eux \
+  ; go install github.com/onsi/ginkgo/ginkgo@latest \
+  ; ginkgo version
 
 ENV PATH=$PATH:$GOPATH/bin
