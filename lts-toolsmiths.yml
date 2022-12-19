@@ -56,8 +56,9 @@ resources:
   - name: docker_driver_integration_tests
     type: git
     source:
-      branch: master
+      branch: main
       uri: https://github.com/cloudfoundry/docker_driver_integration_tests
+
   - name: credhub
     type: git
     source:
