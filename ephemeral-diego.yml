@@ -16,9 +16,9 @@ groups:
   - unclaim-ldap-env
   - claim-env
   - deploy-cf
+  - pats
   - cats-nfs
   - drats
-  - pats
   - unclaim-env
   - merge-pr
 - name: release
@@ -515,7 +515,6 @@ jobs:
       fail_fast: true
       steps:
       - get: smith-env
-
         passed: [ claim-env ]
         trigger: true
       - get: cf-deployment-concourse-tasks
@@ -573,78 +572,9 @@ jobs:
       ERRAND_NAME: nfsbrokerpush
       INSTANCE: nfs-broker-push
 
-- name: cats-nfs
-  serial_groups:
-    - acceptance-tests
-  plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: nfs-volume-release
-            passed: [ deploy-cf ]
-            trigger: true
-          - get: smith-env
-
-            passed: [ deploy-cf ]
-            trigger: true
-          - get: persi-ci
-          - get: cf-acceptance-tests
-          - get: cf-deployment-concourse-tasks
-    - task: generate-cats-config
-      file: persi-ci/scripts/ci/generate_cats_config.build.yml
-
-      params:
-        VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-        CF_USERNAME: admin
-        SERVICE_NAME: nfs
-        PLAN_NAME: Existing
-        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-    - task: run-cats
-      file: cf-deployment-concourse-tasks/run-cats/task.yml
-      input_mapping:
-        integration-config: cats-config
-      params:
-        CONFIG_FILE_PATH: cats.json
-
-- name: drats
-  serial: true
-  serial_groups:
-    - acceptance-tests
-  plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: nfs-volume-release
-            passed: [ deploy-cf ]
-            trigger: true
-          - get: bbr-binary-release
-          - get: disaster-recovery-acceptance-tests
-          - get: persi-ci
-          - get: smith-env
-
-            passed: [ deploy-cf ]
-            trigger: true
-    - task: generate-integration-config
-      file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
-      params:
-        INTEGRATION_CONFIG_FILE_PATH: config/drats-nfs.json
-      input_mapping:
-        integration-configs: persi-ci
-
-    - task: drats-with-integration-config
-      file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
-      privileged: true
-      input_mapping:
-        drats-integration-config: updated-integration-configs
-      params:
-        CONFIG_FILE_PATH: config/drats-nfs.json
-
 - name: pats
-  serial_groups:
-    - acceptance-tests
   plan:
   - in_parallel:
-      fail_fast: true
       steps:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
@@ -680,6 +610,64 @@ jobs:
       TEST_MOUNT_OPTIONS: true
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
+
+- name: cats-nfs
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: nfs-volume-release
+            passed: [ pats ]
+            trigger: true
+          - get: smith-env
+            passed: [ pats ]
+            trigger: true
+          - get: persi-ci
+          - get: cf-acceptance-tests
+          - get: cf-deployment-concourse-tasks
+    - task: generate-cats-config
+      file: persi-ci/scripts/ci/generate_cats_config.build.yml
+      params:
+        VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+        CF_USERNAME: admin
+        SERVICE_NAME: nfs
+        PLAN_NAME: Existing
+        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+    - task: run-cats
+      file: cf-deployment-concourse-tasks/run-cats/task.yml
+      input_mapping:
+        integration-config: cats-config
+      params:
+        CONFIG_FILE_PATH: cats.json
+
+- name: drats
+  plan:
+    - in_parallel:
+        fail_fast: true
+        steps:
+          - get: nfs-volume-release
+            passed: [ cats-nfs ]
+            trigger: true
+          - get: bbr-binary-release
+          - get: disaster-recovery-acceptance-tests
+          - get: persi-ci
+          - get: smith-env
+            passed: [ cats-nfs ]
+            trigger: true
+    - task: generate-integration-config
+      file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
+      params:
+        INTEGRATION_CONFIG_FILE_PATH: config/drats-nfs.json
+      input_mapping:
+        integration-configs: persi-ci
+
+    - task: drats-with-integration-config
+      file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
+      privileged: true
+      input_mapping:
+        drats-integration-config: updated-integration-configs
+      params:
+        CONFIG_FILE_PATH: config/drats-nfs.json
 
 - name: deploy-cf-with-ldap
   public: true
@@ -761,7 +749,6 @@ jobs:
       fail_fast: true
       steps:
       - get: smith-env
-
         passed:
         - deploy-cf-with-ldap
         trigger: true
@@ -774,23 +761,8 @@ jobs:
         passed:
         - deploy-cf-with-ldap
   - in_parallel:
-      fail_fast: true
-      steps:
-      - task: generate-legacy-pats-config
-
-        file: persi-ci/scripts/ci/generate_pats_config.build.yml
-        params:
-          VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
-          CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
-          DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-          PLAN_NAME: Existing
-          SERVICE_NAME: nfs-legacy
-        output_mapping:
-          pats-config: nfs-legacy-pats-config
+    - do:
       - task: generate-pats-config
-
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
@@ -802,18 +774,28 @@ jobs:
           SERVICE_NAME: nfs
         output_mapping:
           pats-config: nfs-pats-config
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - task: run-legacy-pats
-        input_mapping:
-          pats-config: nfs-legacy-pats-config
-        file: persi-ci/scripts/ci/run-pats.build.yml
-        params:
-          TEST_DOCKER_PORA: true
       - task: run-pats
         input_mapping:
           pats-config: nfs-pats-config
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        params:
+          TEST_DOCKER_PORA: true
+    - do:
+      - task: generate-legacy-pats-config
+        file: persi-ci/scripts/ci/generate_pats_config.build.yml
+        params:
+          VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+          CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
+          DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+          PLAN_NAME: Existing
+          SERVICE_NAME: nfs-legacy
+        output_mapping:
+          pats-config: nfs-legacy-pats-config
+      - task: run-legacy-pats
+        input_mapping:
+          pats-config: nfs-legacy-pats-config
         file: persi-ci/scripts/ci/run-pats.build.yml
         params:
           TEST_DOCKER_PORA: true
@@ -822,9 +804,7 @@ jobs:
   plan:
   - get: smith-env
     passed:
-    - pats
     - drats
-    - cats-nfs
     trigger: true
   - put: smith-env
     params:
@@ -834,7 +814,6 @@ jobs:
 - name: unclaim-ldap-env
   plan:
     - get: smith-env
-
       passed:
         - pats-nfs-ldap
       trigger: true
@@ -849,9 +828,7 @@ jobs:
     trigger: true
     passed:
     - pats-nfs-ldap
-    - pats
     - drats
-    - cats-nfs
   - put: nfs-volume-release
     params:
       merge: true
