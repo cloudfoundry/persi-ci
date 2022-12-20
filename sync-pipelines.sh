@@ -38,12 +38,20 @@ jobs:
     file: persi-ci/smb-broker.yml
   - set_pipeline: smb-driver
     file: persi-ci/smb-driver.yml
-  - set_pipeline: lts-toolsmiths-5.0
-    file: persi-ci/lts-toolsmiths.yml
+  - set_pipeline: lts-nfs-volume-release-v5.0
+    file: persi-ci/lts-nfs-volume-release-v5.0
     vars:
       lts-nfs-branch: v5.0
       mapfs-tag: v1.2.0
       nfs-semver-initial-version: 5.0.3
-      pas-version: us_2_10
+      pas-version: us_2_11_lts2
+  - set_pipeline: lts-nfsbroker-v5.0
+    file: persi-ci/lts-nfsbroker-v5.0.yml
+    vars:
+      lts-nfs-branch: v5.0
+  - set_pipeline: lts-nfsv3driver-v5.0
+    file: persi-ci/lts-nfsv3driver-v5.0.yml
+    vars:
+      lts-nfs-branch: v5.0
 EOF
 )

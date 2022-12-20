@@ -31,6 +31,29 @@ shared_functions:
             action: unclaim
             env_file: smith-env/metadata
 
+groups:
+  - name: bump
+    jobs:
+    - bump-golang
+    - update-go-directive-for-nfsv3driver
+    - update-go-directive-for-nfsbroker
+  - name: test
+    jobs:
+    - nfs-security-scan
+    - nfsdriver-unit
+    - nfsbroker-tests
+    - nfs-volume-release-job-tests
+    - nfsdriver-integration
+    - claim-env
+    - deploy-cf
+    - pats-nfs-ldap-ephemeral-environment
+    - pats-nfs-ldap-legacy-ephemeral-environment
+    - unclaim-env
+    - merge-pr
+  - name: release
+    jobs:
+    - manual-bump-nfs-patch
+    - shipit-nfs
 
 resources:
   - name: cryogenics-concourse-tasks
@@ -46,6 +69,7 @@ resources:
       branch: {{lts-nfs-branch}}
       private_key: ((github.ssh_key))
       uri: https://github.com/cloudfoundry/nfs-volume-release.git
+
   - name: smith-env
     type: pcf-pool
     source:
@@ -64,6 +88,7 @@ resources:
     source:
       branch: main
       uri: https://github.com/cloudfoundry-incubator/credhub
+
   - name: persi-ci
     type: git
     source:
@@ -77,7 +102,7 @@ resources:
       access_token: ((github.access_token))
       repository: cloudfoundry/nfs-volume-release
       disable_forks: true
-      autosync_pr: true
+      autosync_pr: false
 
   - name: nfs-volume-release-lts
     type: git
@@ -143,7 +168,7 @@ resources:
     type: git
 
   - icon: github
-    name: nfs-volume-release-bump-golang-master
+    name: nfs-volume-release-bump-golang-branch
     source:
       branch: {{lts-nfs-branch}}
       private_key: ((github.ssh_key))
@@ -151,23 +176,40 @@ resources:
       disable_ci_skip: true
     type: git
 
+  - icon: github
+    name: nfsv3driver-v5
+    source:
+      branch: {{lts-nfs-branch}}
+      private_key: ((github.ssh_key))
+      uri: git@github.com:cloudfoundry/nfsv3driver.git
+      disable_ci_skip: true
+    type: git
+
+  - icon: github
+    name: nfsbroker-v5
+    source:
+      branch: {{lts-nfs-branch}}
+      private_key: ((github.ssh_key))
+      uri: git@github.com:cloudfoundry/nfsbroker.git
+      disable_ci_skip: true
+    type: git
+
 resource_types:
-- name: git
-  type: docker-image
-  source:
-    repository: concourse/git-resource
-    tag: ubuntu
+  - name: git
+    type: docker-image
+    source:
+      repository: concourse/git-resource
+      tag: ubuntu
 
-- name: pcf-pool
+  - name: pcf-pool
+    type: docker-image
+    source:
+      repository: cftoolsmiths/toolsmiths-envs-resource
 
-  type: docker-image
-  source:
-    repository: cftoolsmiths/toolsmiths-envs-resource
-
-- name: pull-request
-  type: docker-image
-  source:
-    repository: cryogenics/pr-queue-resource
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: cryogenics/pr-queue-resource
 
 jobs:
   - name: bump-golang
@@ -176,11 +218,11 @@ jobs:
           - get: cryogenics-concourse-tasks
           - get: golang-release
             trigger: true
-          - get: nfs-volume-release-bump-golang-master
+          - get: nfs-volume-release-bump-golang-branch
       - task: bosh-vendor-package
         file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
         input_mapping:
-          release: nfs-volume-release-bump-golang-master
+          release: nfs-volume-release-bump-golang-branch
           vendored-package-release: golang-release
         params:
           VENDORED_PACKAGE_NAME: golang-1-linux
@@ -207,6 +249,90 @@ jobs:
             If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
         input_mapping:
           source-repo: nfs-volume-release-bump-golang
+
+  - name: update-go-directive-for-nfsv3driver
+    plan:
+    - in_parallel:
+      - get: nfs-volume-release-bump-golang
+        trigger: true
+        passed:
+        - bump-golang
+      - get: cryogenics-concourse-tasks
+      - get: nfsv3driver-v5
+    - task: update-go-directive
+      file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+      input_mapping:
+        bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+        golang-project-repo: nfsv3driver-v5
+      output_mapping:
+        golang-project-repo: nfsv3driver-v5
+      params:
+        COMMIT_USERNAME: bump-golang CI job
+        COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+        PATH_TO_GO_MODULE: .
+    - put: nfsv3driver-v5
+      params:
+        repository: nfsv3driver-v5
+        branch: &nfsv3driver-gomod-update-branch update-gomod-directive-v5
+    - task: create-gomod-directive-update-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *nfsv3driver-gomod-update-branch
+        LABELS: dependencies
+        TITLE: Update gomod directive
+        MESSAGE: |
+          This is an automatically generated Pull Request from the Cryogenics CI
+          Bot. I have detected a new version of
+          [golang-release](https://github.com/bosh-packages/golang-release) and
+          automatically updated the go mod directive for this go module. If this
+          does not look right, please reach out to the
+          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+          team.
+      input_mapping:
+        source-repo: nfsv3driver-v5
+
+  - name: update-go-directive-for-nfsbroker
+    plan:
+    - in_parallel:
+      - get: nfs-volume-release-bump-golang
+        trigger: true
+        passed:
+        - bump-golang
+      - get: cryogenics-concourse-tasks
+      - get: nfsbroker-v5
+    - task: update-go-directive
+      file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+      input_mapping:
+        bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+        golang-project-repo: nfsbroker-v5
+      output_mapping:
+        golang-project-repo: nfsbroker-v5
+      params:
+        COMMIT_USERNAME: bump-golang CI job
+        COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+        PATH_TO_GO_MODULE: .
+    - put: nfsbroker-v5
+      params:
+        repository: nfsbroker-v5
+        branch: &nfsbroker-gomod-update-branch update-gomod-directive-v5
+    - task: create-gomod-directive-update-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *nfsbroker-gomod-update-branch
+        LABELS: dependencies
+        TITLE: Update gomod directive
+        MESSAGE: |
+          This is an automatically generated Pull Request from the Cryogenics CI
+          Bot. I have detected a new version of
+          [golang-release](https://github.com/bosh-packages/golang-release) and
+          automatically updated the go mod directive for this go module. If this
+          does not look right, please reach out to the
+          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+          team.
+      input_mapping:
+        source-repo: nfsbroker-v5
 
   - name: nfs-security-scan
     plan:
@@ -468,7 +594,6 @@ jobs:
         params:
           action: unclaim
           env_file: smith-env/metadata
-
 
   - name: manual-bump-nfs-patch
     serial_groups:
