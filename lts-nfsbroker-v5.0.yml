@@ -1,0 +1,62 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
+
+resources:
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci.git
+    branch: master
+
+- name: nfsbroker
+  type: pull-request
+  source:
+    repository: cloudfoundry/nfsbroker
+    base_branch: v5.0
+    disable_forks: true
+    access_token: ((github.access_token))
+
+- name: credhub
+  type: git
+  source:
+    branch: main
+    uri: https://github.com/cloudfoundry-incubator/credhub
+
+jobs:
+- name: security-scan
+  plan:
+    - in_parallel:
+        - get: persi-ci
+        - get: nfsbroker
+          trigger: true
+    - task: build
+      file: persi-ci/scripts/ci/security-scan.build.yml
+      params:
+        PATHS: "./"
+      input_mapping:
+        release-dir: nfsbroker
+
+- name: unit-and-integration-test
+  public: true
+  plan:
+  - in_parallel:
+    - get: nfsbroker
+      trigger: true
+    - get: credhub
+  - task: build
+    file: nfsbroker/scripts/ci/run_unit_and_integration.build.yml
+
+- name: merge-pr
+  plan:
+  - get: nfsbroker
+    trigger: true
+    passed:
+    - security-scan
+    - unit-and-integration-test
+  - put: nfsbroker
+    params:
+      merge: true
+      repository: nfsbroker
