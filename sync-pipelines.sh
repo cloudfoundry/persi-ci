@@ -39,7 +39,7 @@ jobs:
   - set_pipeline: smbdriver
     file: persi-ci/smbdriver.yml
   - set_pipeline: lts-nfs-volume-release-v5.0
-    file: persi-ci/lts-nfs-volume-release-v5.0
+    file: persi-ci/lts-nfs-volume-release-v5.0.yml
     vars:
       lts-nfs-branch: v5.0
       mapfs-tag: v1.2.0
