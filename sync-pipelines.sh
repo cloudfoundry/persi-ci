@@ -18,26 +18,26 @@ jobs:
     trigger: true
   - set_pipeline: docker-image-build
     file: persi-ci/docker-image-build.yml
-  - set_pipeline: ephemeral-diego
-    file: persi-ci/ephemeral-diego.yml
-  - set_pipeline: ephemeral-diego-mapfs
-    file: persi-ci/ephemeral-diego-mapfs.yml
-  - set_pipeline: ephemeral-diego-smb
-    file: persi-ci/ephemeral-diego-smb.yml
+  - set_pipeline: nfs-volume-release
+    file: persi-ci/nfs-volume-release.yml
+  - set_pipeline: mapfs-release
+    file: persi-ci/mapfs-release.yml
+  - set_pipeline: smb-volume-release
+    file: persi-ci/smb-volume-release.yml
   - set_pipeline: mapfs
     file: persi-ci/mapfs.yml
-  - set_pipeline: nfs-broker
-    file: persi-ci/nfs-broker.yml
-  - set_pipeline: nfs-driver
-    file: persi-ci/nfs-driver.yml
+  - set_pipeline: nfsbroker
+    file: persi-ci/nfsbroker.yml
+  - set_pipeline: nfsv3driver
+    file: persi-ci/nfsv3driver.yml
   - set_pipeline: norsk
     file: persi-ci/norsk.yml
   - set_pipeline: shared-units
     file: persi-ci/shared-units.yml
-  - set_pipeline: smb-broker
-    file: persi-ci/smb-broker.yml
-  - set_pipeline: smb-driver
-    file: persi-ci/smb-driver.yml
+  - set_pipeline: smbbroker
+    file: persi-ci/smbbroker.yml
+  - set_pipeline: smbdriver
+    file: persi-ci/smbdriver.yml
   - set_pipeline: lts-nfs-volume-release-v5.0
     file: persi-ci/lts-nfs-volume-release-v5.0
     vars:
