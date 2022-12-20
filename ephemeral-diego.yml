@@ -5,6 +5,10 @@ groups:
   - bump-openldap
   - update-go-directive-for-nfsv3driver
   - update-go-directive-for-nfsbroker
+  - update-go-directive-for-volumedriver
+  - update-go-directive-for-volume-mount-options
+  - update-go-directive-for-existingvolumebroker
+  - update-go-directive-for-service-broker-store
 - name: test
   jobs:
   - nfs-volume-release-job-tests
@@ -206,6 +210,34 @@ resources:
     branch: master
     private_key: ((github.ssh_key))
 
+- name: service-broker-store
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/service-broker-store.git
+    branch: master
+    private_key: ((github.ssh_key))
+
+- name: existingvolumebroker
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/existingvolumebroker.git
+    branch: master
+    private_key: ((github.ssh_key))
+
+- name: volume-mount-options
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/volume-mount-options.git
+    branch: master
+    private_key: ((github.ssh_key))
+
+- name: volumedriver
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/volumedriver.git
+    branch: master
+    private_key: ((github.ssh_key))
+
 resource_types:
 - name: uscan
   source:
@@ -291,6 +323,7 @@ jobs:
     params:
       repository: nfsv3driver
       branch: &nfsv3driver-gomod-update-branch update-gomod-directive
+      force: true
   - task: create-gomod-directive-update-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
@@ -331,6 +364,7 @@ jobs:
       PATH_TO_GO_MODULE: .
   - put: nfsbroker
     params:
+      force: true
       repository: nfsbroker
       branch: &nfsbroker-gomod-update-branch update-gomod-directive
   - task: create-gomod-directive-update-pull-request
@@ -350,6 +384,178 @@ jobs:
         team.
     input_mapping:
       source-repo: nfsbroker
+
+- name: update-go-directive-for-volumedriver
+  plan:
+  - in_parallel:
+    - get: nfs-volume-release-bump-golang
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: volumedriver
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      golang-project-repo: volumedriver
+    output_mapping:
+      golang-project-repo: volumedriver
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: .
+  - put: volumedriver
+    params:
+      force: true
+      repository: volumedriver
+      branch: &volumedriver-gomod-update-branch update-gomod-directive
+  - task: create-gomod-directive-update-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *volumedriver-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: volumedriver
+
+- name: update-go-directive-for-volume-mount-options
+  plan:
+  - in_parallel:
+    - get: nfs-volume-release-bump-golang
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: volume-mount-options
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      golang-project-repo: volume-mount-options
+    output_mapping:
+      golang-project-repo: volume-mount-options
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: .
+  - put: volume-mount-options
+    params:
+      force: true
+      repository: volume-mount-options
+      branch: &volume-mount-options-gomod-update-branch update-gomod-directive
+  - task: create-gomod-directive-update-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *volume-mount-options-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: volume-mount-options
+
+- name: update-go-directive-for-existingvolumebroker
+  plan:
+  - in_parallel:
+    - get: nfs-volume-release-bump-golang
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: existingvolumebroker
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      golang-project-repo: existingvolumebroker
+    output_mapping:
+      golang-project-repo: existingvolumebroker
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: .
+  - put: existingvolumebroker
+    params:
+      force: true
+      repository: existingvolumebroker
+      branch: &existingvolumebroker-gomod-update-branch update-gomod-directive
+  - task: create-gomod-directive-update-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *existingvolumebroker-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: existingvolumebroker
+
+- name: update-go-directive-for-service-broker-store
+  plan:
+  - in_parallel:
+    - get: nfs-volume-release-bump-golang
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: service-broker-store
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      golang-project-repo: service-broker-store
+    output_mapping:
+      golang-project-repo: service-broker-store
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: .
+  - put: service-broker-store
+    params:
+      repository: service-broker-store
+      branch: &service-broker-store-gomod-update-branch update-gomod-directive
+      force: true
+  - task: create-gomod-directive-update-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *service-broker-store-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: service-broker-store
 
 - name: bump-openldap
   plan:
