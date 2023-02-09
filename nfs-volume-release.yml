@@ -1063,8 +1063,8 @@ jobs:
         updated-release-repo: nfs-final-release
         updated-release-tarball: nfs-final-release-tarball
       params:
-        AWS_ACCESS_KEY_ID: ((aws/volume-blobstore-creds-2022-10-20.id))
-        AWS_SECRET_ACCESS_KEY: ((aws/volume-blobstore-creds-2022-10-20.secret))
+        AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
+        AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
         GIT_USERNAME: ((github.user))
         GIT_EMAIL: ((github.email))
         FINAL: true
