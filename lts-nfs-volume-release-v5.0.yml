@@ -476,7 +476,7 @@ jobs:
           image_resource:
             type: docker-image
             source:
-              repository: cfpersi/lts-smith
+              repository: cryogenics/essentials-cf6
               tag: latest
           inputs:
             - name: nfs-volume-release

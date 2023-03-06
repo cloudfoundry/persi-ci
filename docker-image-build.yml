@@ -20,13 +20,6 @@ resources:
     username: ((dockerhub.username))
     password: ((dockerhub.password))
 
-- name: smith-cli-docker-image
-  type: docker-image
-  source:
-    repository: cfpersi/smith-cli
-    username: ((dockerhub.username))
-    password: ((dockerhub.password))
-
 - name: nfs-driver-integration-tests-docker-image
   type: docker-image
   source:
