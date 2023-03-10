@@ -1,7 +1,6 @@
 function set_cf_admin_password() {
     BOSH_ENV_NAME=$(cat smith-env/name)
-    BOSH_PARAMS="$(smith -e $BOSH_ENV_NAME bosh)"
-    eval $BOSH_PARAMS
+    eval "$(smith -e $BOSH_ENV_NAME bosh)"
     CF_ADMIN_PASSWORD=$(credhub find -j -n "cf_admin_password" | jq -r '.credentials[].name' | xargs credhub get -j -n | jq -r '.value')
     export CF_ADMIN_PASSWORD
 }
