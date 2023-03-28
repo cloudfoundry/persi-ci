@@ -202,6 +202,8 @@ jobs:
         - get: golang-release
           trigger: true
         - get: mapfs-release-bump-golang-master
+    - load_var: golang-release-version
+      file: golang-release/.git/describe_ref
     - task: bosh-vendor-package
       file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
       input_mapping:
@@ -209,7 +211,7 @@ jobs:
         vendored-package-release: golang-release
       params:
         VENDORED_PACKAGE_NAME: golang-1-linux
-        VENDOR_UPDATES_BRANCH: golang-vendor-update
+        VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
         COMMIT_USERNAME: bump-golang CI job
         COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
         AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.id))
@@ -217,7 +219,7 @@ jobs:
     - put: mapfs-release-bump-golang
       params:
         repository: release-with-updated-vendored-package
-        branch: golang-vendor-update
+        branch: *golang-vendor-branch
         force: true # If the last PR got stuck just overwrite it with new stuff
     - try:
         # We've seen cases where there are 2 or more new releases of
@@ -234,8 +236,8 @@ jobs:
         file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
         params:
           BASE: master
-          BRANCH: golang-vendor-update
-          LABELS: ci,bump-golang
+          BRANCH: *golang-vendor-branch
+          LABELS: dependencies
           TITLE: Update vendored package golang-1-linux
           MESSAGE: |
             This is an automatically generated Pull Request from the Cryogenics CI Bot.
@@ -248,7 +250,7 @@ jobs:
 - name: update-go-directive-for-mapfs
   plan:
   - in_parallel:
-    - get: mapfs-release-bump-golang-master
+    - get: golang-release
       trigger: true
       passed:
       - bump-golang
@@ -257,7 +259,7 @@ jobs:
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
-      bosh-release-repo-with-vendored-golang: mapfs-release-bump-golang-master
+      bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: mapfs
     output_mapping:
       golang-project-repo: mapfs
@@ -265,10 +267,12 @@ jobs:
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
       PATH_TO_GO_MODULE: .
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
   - put: mapfs
     params:
       repository: mapfs
-      branch: &mapfs-gomod-update-branch update-gomod-directive
+      branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
       force: true # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-update-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
