@@ -1,10 +1,6 @@
 number_of_retries: &number_of_retries 2
 
 groups:
-- name: bump
-  jobs:
-  - bump-golang
-  - update-go-directive-for-mapfs
 - name: test
   jobs:
   - nfs-volume-release-job-tests
@@ -21,7 +17,10 @@ groups:
   - pats-nfs-ldap
   - unclaim-ldap-env
   - merge-pr
-
+- name: bump
+  jobs:
+  - bump-golang
+  - update-go-directive-for-mapfs
 - name: release
   jobs:
   - shipit-mapfs
