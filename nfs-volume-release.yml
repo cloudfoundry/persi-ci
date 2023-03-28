@@ -1,3 +1,5 @@
+number_of_retries: &number_of_retries 2
+
 groups:
 - name: test
   jobs:
@@ -630,7 +632,7 @@ jobs:
       input_mapping:
         test-repo: nfs-volume-release
     - task: bosh-release-test
-      attempts: 3
+      attempts: *number_of_retries
       file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
       privileged: true
 
@@ -749,7 +751,7 @@ jobs:
     params:
       ERRAND_NAME: smoke_tests
   - task: run-nfs-broker-errand
-    attempts: 3
+    attempts: *number_of_retries
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: smith-env
@@ -788,7 +790,7 @@ jobs:
     input_mapping:
       pats-config: nfs-pats-config
     file: persi-ci/scripts/ci/run-pats.build.yml
-    attempts: 3
+    attempts: *number_of_retries
     params:
       PARALLEL_NODES: 5
       TEST_MOUNT_FAIL_LOGGING: true
@@ -920,7 +922,7 @@ jobs:
     params:
       ERRAND_NAME: smoke_tests
   - task: run-nfs-broker-errand
-    attempts: 3
+    attempts: *number_of_retries
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: smith-env
