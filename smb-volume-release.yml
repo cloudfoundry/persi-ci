@@ -2,6 +2,8 @@ groups:
 - name: bump
   jobs:
   - bump-golang
+  - update-go-directive-for-smbdriver-for-gomod-directive-updates
+  - update-go-directive-for-smbbroker-for-gomod-directive-updates
 - name: test
   jobs:
   - smb-volume-release-job-tests
@@ -147,6 +149,22 @@ resources:
     private_key: ((github.ssh_key))
     branch: main
 
+#! This resource must only be used for gomod directive updates: https://github.com/concourse/git-resource/blob/master/README.md?plain=1#L341-L345
+- name: smbdriver-for-gomod-directive-updates
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/smbdriver.git
+    private_key: ((github.ssh_key))
+
+#! This resource must only be used for gomod directive updates: https://github.com/concourse/git-resource/blob/master/README.md?plain=1#L341-L345
+- name: smbbroker-for-gomod-directive-updates
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/smbbroker.git
+    private_key: ((github.ssh_key))
+
 resource_types:
 - name: pcf-pool
   type: docker-image
@@ -172,6 +190,8 @@ jobs:
         - get: golang-release
           trigger: true
         - get: smb-volume-release-bump-golang-master
+    - load_var: golang-release-version
+      file: golang-release/.git/describe_ref
     - task: bosh-vendor-package
       file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
       input_mapping:
@@ -179,7 +199,7 @@ jobs:
         vendored-package-release: golang-release
       params:
         VENDORED_PACKAGE_NAME: golang-1-linux
-        VENDOR_UPDATES_BRANCH: golang-vendor-update
+        VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
         COMMIT_USERNAME: bump-golang CI job
         COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
         AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
@@ -187,21 +207,126 @@ jobs:
     - put: smb-volume-release-bump-golang
       params:
         repository: release-with-updated-vendored-package
-        branch: golang-vendor-update
-    - task: create-golang-vendor-pull-request
-      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+        branch: *golang-vendor-branch
+    - try:
+        # We've seen cases where there are 2 or more new releases of
+        # golang-release which causes this job to trigger 2x or more. A PR will
+        # be created on the 1st build. On the following ones, it is possible
+        # that this task will fail as there exist already a PR (which is
+        # probably flowing through the pipeline). To prevent this scenario
+        # we're making this step best-effort.
+        # This also makes the job idempotent. If we retrigger the job but if
+        # there are no new version of golang-release, this step will fail
+        # saying "Your branch is up to date with
+        # 'origin/golang-vendor-update'."
+        task: create-golang-vendor-pull-request
+        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+        params:
+          BASE: master
+          BRANCH: *golang-vendor-branch
+          LABELS: dependencies
+          TITLE: Update vendored package golang-1-linux
+          MESSAGE: |
+            This is an automatically generated Pull Request from the Cryogenics CI Bot.
+            I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped
+            this package to benefit from the latest changes.
+            If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+        input_mapping:
+          source-repo: smb-volume-release-bump-golang
+
+- name: update-go-directive-for-smbbroker-for-gomod-directive-updates
+  plan:
+  - in_parallel:
+    - get: golang-release
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: smbbroker-for-gomod-directive-updates
       params:
-        BASE: master
-        BRANCH: golang-vendor-update
-        LABELS: ci,bump-golang
-        TITLE: Update vendored package golang-1-linux
-        MESSAGE: |
-          This is an automatically generated Pull Request from the Cryogenics CI Bot.
-          I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped
-          this package to benefit from the latest changes.
-          If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
-      input_mapping:
-        source-repo: smb-volume-release-bump-golang
+        branch: master
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: golang-release
+      golang-project-repo: smbbroker-for-gomod-directive-updates
+    output_mapping:
+      golang-project-repo: smbbroker-for-gomod-directive-updates
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: .
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
+  - put: smbbroker-for-gomod-directive-updates
+    params:
+      repository: smbbroker-for-gomod-directive-updates
+      branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
+      force: true # If the last PR got stuck just overwrite it with new stuff
+  - task: create-gomod-directive-updates-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *mapfs-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: smbbroker-for-gomod-directive-updates
+
+- name: update-go-directive-for-smbdriver-for-gomod-directive-updates
+  plan:
+  - in_parallel:
+    - get: golang-release
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: smbdriver-for-gomod-directive-updates
+      params:
+        branch: master
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: golang-release
+      golang-project-repo: smbdriver-for-gomod-directive-updates
+    output_mapping:
+      golang-project-repo: smbdriver-for-gomod-directive-updates
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: .
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
+  - put: smbdriver-for-gomod-directive-updates
+    params:
+      repository: smbdriver-for-gomod-directive-updates
+      branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
+      force: true # If the last PR got stuck just overwrite it with new stuff
+  - task: create-gomod-directive-updates-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *mapfs-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: smbdriver-for-gomod-directive-updates
 
 - name: smb-volume-release-job-tests
   plan:
