@@ -728,6 +728,7 @@ jobs:
       GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: false
   - task: bosh-deploy-cf
+    attempts: *number_of_retries
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
       cf-deployment: cf-deployment
