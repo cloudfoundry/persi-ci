@@ -182,15 +182,6 @@ resources:
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
   type: git
 
-- icon: github
-  name: nfs-volume-release-bump-golang-master
-  source:
-    branch: master
-    private_key: ((github.ssh_key))
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-    disable_ci_skip: true
-  type: git
-
 - name: nfsv3driver
   type: git
   source:
@@ -259,18 +250,22 @@ jobs:
 - name: bump-golang
   plan:
     - in_parallel:
-        - get: cryogenics-concourse-tasks
         - get: golang-release
           trigger: true
-        - get: nfs-volume-release-bump-golang-master
+        - get: cryogenics-concourse-tasks
+        - get: nfs-volume-release-bump-golang
+          params:
+            branch: master
+    - load_var: golang-release-version
+      file: golang-release/.git/describe_ref
     - task: bosh-vendor-package
       file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
       input_mapping:
-        release: nfs-volume-release-bump-golang-master
+        release: nfs-volume-release-bump-golang
         vendored-package-release: golang-release
       params:
         VENDORED_PACKAGE_NAME: golang-1-linux
-        VENDOR_UPDATES_BRANCH: golang-vendor-update-v7
+        VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
         COMMIT_USERNAME: bump-golang CI job
         COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
         AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
@@ -278,279 +273,268 @@ jobs:
     - put: nfs-volume-release-bump-golang
       params:
         repository: release-with-updated-vendored-package
-        branch: golang-vendor-update-v7
-    - task: create-golang-vendor-pull-request
-      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      params:
-        BASE: master
-        BRANCH: golang-vendor-update-v7
-        LABELS: ci,bump-golang
-        TITLE: Update vendored package golang-1-linux
-        MESSAGE: |
-          This is an automatically generated Pull Request from the Cryogenics CI Bot.
-          I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped
-          this package to benefit from the latest changes.
-          If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
-      input_mapping:
-        source-repo: nfs-volume-release-bump-golang
+        branch: *golang-vendor-branch
+    - try:
+        # We've seen cases where there are 2 or more new releases of
+        # golang-release which causes this job to trigger 2x or more. A PR will
+        # be created on the 1st build. On the following ones, it is possible
+        # that this task will fail as there exist already a PR (which is
+        # probably flowing through the pipeline). To prevent this scenario
+        # we're making this step best-effort.
+        # This also makes the job idempotent. If we retrigger the job but if
+        # there are no new version of golang-release, this step will fail
+        # saying "Your branch is up to date with
+        # 'origin/golang-vendor-update'."
+        task: create-golang-vendor-pull-request
+        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+        params: &golang-bump-pr-params
+          BASE: master
+          BRANCH: *golang-vendor-branch
+          LABELS: dependencies
+          TITLE: Update vendored package golang-1-linux
+          MESSAGE: |
+            This is an automatically generated Pull Request from the Cryogenics CI Bot.
+            I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped
+            this package to benefit from the latest changes.
+            If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+        input_mapping:
+          source-repo: nfs-volume-release-bump-golang
 
 - name: update-go-directive-for-nfsv3driver
   plan:
   - in_parallel:
-    - get: nfs-volume-release-bump-golang
+    - get: golang-release
       trigger: true
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
     - get: nfsv3driver
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
-      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: nfsv3driver
     output_mapping:
       golang-project-repo: nfsv3driver
-    params:
-      COMMIT_USERNAME: bump-golang CI job
-      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      PATH_TO_GO_MODULE: .
   - put: nfsv3driver
     params:
       repository: nfsv3driver
-      branch: &nfsv3driver-gomod-update-branch update-gomod-directive
+      branch: *golang-vendor-branch
       force: true
-  - task: create-gomod-directive-update-pull-request
-    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-    params:
-      BASE: master
-      BRANCH: *nfsv3driver-gomod-update-branch
-      LABELS: dependencies
-      TITLE: Update gomod directive
-      MESSAGE: |
-        This is an automatically generated Pull Request from the Cryogenics CI
-        Bot. I have detected a new version of
-        [golang-release](https://github.com/bosh-packages/golang-release) and
-        automatically updated the go mod directive for this go module. If this
-        does not look right, please reach out to the
-        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
-        team.
-    input_mapping:
-      source-repo: nfsv3driver
+  - try:
+      # We've seen cases where there are 2 or more new releases of
+      # golang-release which causes this job to trigger 2x or more. A PR will
+      # be created on the 1st build. On the following ones, it is possible
+      # that this task will fail as there exist already a PR (which is
+      # probably flowing through the pipeline). To prevent this scenario
+      # we're making this step best-effort.
+      # This also makes the job idempotent. If we retrigger the job but if
+      # there are no new version of golang-release, this step will fail
+      # saying "Your branch is up to date with
+      # 'origin/golang-vendor-update'."
+      task: create-gomod-directive-update-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        <<: *golang-bump-pr-params
+      input_mapping:
+        source-repo: nfsv3driver
 
 - name: update-go-directive-for-nfsbroker
   plan:
   - in_parallel:
-    - get: nfs-volume-release-bump-golang
+    - get: golang-release
       trigger: true
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
     - get: nfsbroker
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
-      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: nfsbroker
     output_mapping:
       golang-project-repo: nfsbroker
-    params:
-      COMMIT_USERNAME: bump-golang CI job
-      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      PATH_TO_GO_MODULE: .
   - put: nfsbroker
     params:
       force: true
       repository: nfsbroker
-      branch: &nfsbroker-gomod-update-branch update-gomod-directive
+      branch: *golang-vendor-branch
   - task: create-gomod-directive-update-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
-      BASE: master
-      BRANCH: *nfsbroker-gomod-update-branch
-      LABELS: dependencies
-      TITLE: Update gomod directive
-      MESSAGE: |
-        This is an automatically generated Pull Request from the Cryogenics CI
-        Bot. I have detected a new version of
-        [golang-release](https://github.com/bosh-packages/golang-release) and
-        automatically updated the go mod directive for this go module. If this
-        does not look right, please reach out to the
-        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
-        team.
+    params:
+      <<: *golang-bump-pr-params
     input_mapping:
       source-repo: nfsbroker
 
 - name: update-go-directive-for-volumedriver
   plan:
   - in_parallel:
-    - get: nfs-volume-release-bump-golang
+    - get: golang-release
       trigger: true
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
     - get: volumedriver
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
-      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: volumedriver
     output_mapping:
       golang-project-repo: volumedriver
-    params:
-      COMMIT_USERNAME: bump-golang CI job
-      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      PATH_TO_GO_MODULE: .
   - put: volumedriver
     params:
       force: true
       repository: volumedriver
-      branch: &volumedriver-gomod-update-branch update-gomod-directive
-  - task: create-gomod-directive-update-pull-request
-    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-    params:
-      BASE: master
-      BRANCH: *volumedriver-gomod-update-branch
-      LABELS: dependencies
-      TITLE: Update gomod directive
-      MESSAGE: |
-        This is an automatically generated Pull Request from the Cryogenics CI
-        Bot. I have detected a new version of
-        [golang-release](https://github.com/bosh-packages/golang-release) and
-        automatically updated the go mod directive for this go module. If this
-        does not look right, please reach out to the
-        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
-        team.
-    input_mapping:
-      source-repo: volumedriver
+      branch: *golang-vendor-branch
+  - try:
+      # We've seen cases where there are 2 or more new releases of
+      # golang-release which causes this job to trigger 2x or more. A PR will
+      # be created on the 1st build. On the following ones, it is possible
+      # that this task will fail as there exist already a PR (which is
+      # probably flowing through the pipeline). To prevent this scenario
+      # we're making this step best-effort.
+      # This also makes the job idempotent. If we retrigger the job but if
+      # there are no new version of golang-release, this step will fail
+      # saying "Your branch is up to date with
+      # 'origin/golang-vendor-update'."
+      task: create-gomod-directive-update-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        <<: *golang-bump-pr-params
+      input_mapping:
+        source-repo: volumedriver
 
 - name: update-go-directive-for-volume-mount-options
   plan:
   - in_parallel:
-    - get: nfs-volume-release-bump-golang
+    - get: golang-release
       trigger: true
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
     - get: volume-mount-options
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
-      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: volume-mount-options
     output_mapping:
       golang-project-repo: volume-mount-options
-    params:
-      COMMIT_USERNAME: bump-golang CI job
-      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      PATH_TO_GO_MODULE: .
   - put: volume-mount-options
     params:
       force: true
       repository: volume-mount-options
-      branch: &volume-mount-options-gomod-update-branch update-gomod-directive
-  - task: create-gomod-directive-update-pull-request
-    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-    params:
-      BASE: master
-      BRANCH: *volume-mount-options-gomod-update-branch
-      LABELS: dependencies
-      TITLE: Update gomod directive
-      MESSAGE: |
-        This is an automatically generated Pull Request from the Cryogenics CI
-        Bot. I have detected a new version of
-        [golang-release](https://github.com/bosh-packages/golang-release) and
-        automatically updated the go mod directive for this go module. If this
-        does not look right, please reach out to the
-        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
-        team.
-    input_mapping:
-      source-repo: volume-mount-options
+      branch: *golang-vendor-branch
+  - try:
+      # We've seen cases where there are 2 or more new releases of
+      # golang-release which causes this job to trigger 2x or more. A PR will
+      # be created on the 1st build. On the following ones, it is possible
+      # that this task will fail as there exist already a PR (which is
+      # probably flowing through the pipeline). To prevent this scenario
+      # we're making this step best-effort.
+      # This also makes the job idempotent. If we retrigger the job but if
+      # there are no new version of golang-release, this step will fail
+      # saying "Your branch is up to date with
+      # 'origin/golang-vendor-update'."
+      task: create-gomod-directive-update-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        <<: *golang-bump-pr-params
+      input_mapping:
+        source-repo: volume-mount-options
 
 - name: update-go-directive-for-existingvolumebroker
   plan:
   - in_parallel:
-    - get: nfs-volume-release-bump-golang
+    - get: golang-release
       trigger: true
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
     - get: existingvolumebroker
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
-      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: existingvolumebroker
     output_mapping:
       golang-project-repo: existingvolumebroker
-    params:
-      COMMIT_USERNAME: bump-golang CI job
-      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      PATH_TO_GO_MODULE: .
   - put: existingvolumebroker
     params:
       force: true
       repository: existingvolumebroker
-      branch: &existingvolumebroker-gomod-update-branch update-gomod-directive
-  - task: create-gomod-directive-update-pull-request
-    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-    params:
-      BASE: master
-      BRANCH: *existingvolumebroker-gomod-update-branch
-      LABELS: dependencies
-      TITLE: Update gomod directive
-      MESSAGE: |
-        This is an automatically generated Pull Request from the Cryogenics CI
-        Bot. I have detected a new version of
-        [golang-release](https://github.com/bosh-packages/golang-release) and
-        automatically updated the go mod directive for this go module. If this
-        does not look right, please reach out to the
-        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
-        team.
-    input_mapping:
-      source-repo: existingvolumebroker
+      branch: *golang-vendor-branch
+  - try:
+      # We've seen cases where there are 2 or more new releases of
+      # golang-release which causes this job to trigger 2x or more. A PR will
+      # be created on the 1st build. On the following ones, it is possible
+      # that this task will fail as there exist already a PR (which is
+      # probably flowing through the pipeline). To prevent this scenario
+      # we're making this step best-effort.
+      # This also makes the job idempotent. If we retrigger the job but if
+      # there are no new version of golang-release, this step will fail
+      # saying "Your branch is up to date with
+      # 'origin/golang-vendor-update'."
+      task: create-gomod-directive-update-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        <<: *golang-bump-pr-params
+      input_mapping:
+        source-repo: existingvolumebroker
 
 - name: update-go-directive-for-service-broker-store
   plan:
   - in_parallel:
-    - get: nfs-volume-release-bump-golang
+    - get: golang-release
       trigger: true
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
     - get: service-broker-store
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
-      bosh-release-repo-with-vendored-golang: nfs-volume-release-bump-golang
+      bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: service-broker-store
     output_mapping:
       golang-project-repo: service-broker-store
-    params:
-      COMMIT_USERNAME: bump-golang CI job
-      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      PATH_TO_GO_MODULE: .
   - put: service-broker-store
     params:
       repository: service-broker-store
-      branch: &service-broker-store-gomod-update-branch update-gomod-directive
+      branch: *golang-vendor-branch
       force: true
-  - task: create-gomod-directive-update-pull-request
-    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-    params:
-      BASE: master
-      BRANCH: *service-broker-store-gomod-update-branch
-      LABELS: dependencies
-      TITLE: Update gomod directive
-      MESSAGE: |
-        This is an automatically generated Pull Request from the Cryogenics CI
-        Bot. I have detected a new version of
-        [golang-release](https://github.com/bosh-packages/golang-release) and
-        automatically updated the go mod directive for this go module. If this
-        does not look right, please reach out to the
-        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
-        team.
-    input_mapping:
-      source-repo: service-broker-store
+  - try:
+      # We've seen cases where there are 2 or more new releases of
+      # golang-release which causes this job to trigger 2x or more. A PR will
+      # be created on the 1st build. On the following ones, it is possible
+      # that this task will fail as there exist already a PR (which is
+      # probably flowing through the pipeline). To prevent this scenario
+      # we're making this step best-effort.
+      # This also makes the job idempotent. If we retrigger the job but if
+      # there are no new version of golang-release, this step will fail
+      # saying "Your branch is up to date with
+      # 'origin/golang-vendor-update'."
+      task: create-gomod-directive-update-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        <<: *golang-bump-pr-params
+      input_mapping:
+        source-repo: service-broker-store
 
 - name: bump-openldap
   plan:
