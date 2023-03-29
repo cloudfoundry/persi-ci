@@ -797,6 +797,12 @@ jobs:
           - get: persi-ci
           - get: cf-acceptance-tests
           - get: cf-deployment-concourse-tasks
+          - get: cryogenics-concourse-tasks
+    - task: alias-env
+      file: cryogenics-concourse-tasks/tasks/toolsmiths/bosh-envify/task.yml
+      input_mapping:
+        toolsmiths-env: smith-env
+        cryogenics-tasks: cryogenics-concourse-tasks
     - task: generate-cats-config
       file: persi-ci/scripts/ci/generate_cats_config.build.yml
       params:
