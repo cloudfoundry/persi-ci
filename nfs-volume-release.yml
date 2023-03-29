@@ -227,7 +227,7 @@ resources:
 resource_types:
 - name: uscan
   source:
-    repository: cflondonservices/concourse-uscan-resource
+    repository: cryogenics/concourse-uscan-resource
   type: registry-image
 
 - name: git
