@@ -1,9 +1,4 @@
 groups:
-- name: bump
-  jobs:
-  - bump-golang
-  - update-go-directive-for-smbdriver-for-gomod-directive-updates
-  - update-go-directive-for-smbbroker-for-gomod-directive-updates
 - name: test
   jobs:
   - smb-volume-release-job-tests
@@ -15,6 +10,11 @@ groups:
   - deploy-cf
   - unclaim-env
   - merge-pr
+- name: bump
+  jobs:
+  - bump-golang
+  - update-go-directive-for-smbdriver-for-gomod-directive-updates
+  - update-go-directive-for-smbbroker-for-gomod-directive-updates
 - name: release
   jobs:
   - shipit-smb
