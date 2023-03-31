@@ -58,3 +58,4 @@
     options:
       ca: ldap_test_server_ca
       common_name: mysql.service.cf.internal
+      alternative_names: [mysql.service.cf.internal]

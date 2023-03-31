@@ -1,36 +1,3 @@
-shared_functions:
-  - on_failure: &on_failure_unclaim
-      do:
-        - task: wait-1-hour
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source: {repository: alpine}
-            run:
-              path: sleep
-              args: [ "1" ]
-        - put: smith-env
-          params:
-            action: unclaim
-            env_file: smith-env/metadata
-
-  - on_error: &on_error_unclaim
-      do:
-        - task: wait-1-hour
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source: {repository: alpine}
-            run:
-              path: sleep
-              args: [ "1" ]
-        - put: smith-env
-          params:
-            action: unclaim
-            env_file: smith-env/metadata
-
 groups:
   - name: test
     jobs:
@@ -465,14 +432,11 @@ jobs:
   - name: deploy-cf
     public: true
     build_logs_to_retain: 100
-    on_failure: *on_failure_unclaim
-    on_error: *on_error_unclaim
     plan:
       - in_parallel:
           fail_fast: true
           steps:
             - get: smith-env
-
               passed: [ claim-env ]
               trigger: true
             - get: cf-deployment-concourse-tasks
@@ -481,7 +445,6 @@ jobs:
             - get: nfs-volume-release
               passed: [ claim-env ]
       - task: bosh-deploy
-
         config:
           platform: linux
           image_resource:
@@ -501,8 +464,8 @@ jobs:
               - -exc
               - |
                 BOSH_ENV_NAME=$(cat smith-env/name)
-                export env=$BOSH_ENV_NAME
-                eval "$(smith -e $BOSH_ENV_NAME bosh)"
+                export TOOLSMITHS_ENVIRONMENT_NAME=$BOSH_ENV_NAME
+                eval "$(smith bosh)"
                 export BOSH_DEPLOYMENT=$(smith bosh deployments -- --column=Name --json | jq -r ."Tables[0].Rows[0].name")
                 pushd nfs-volume-release
                   bosh create-release
@@ -516,8 +479,6 @@ jobs:
                 bosh run-errand nfsbrokerpush
 
   - name: pats-nfs-ldap-ephemeral-environment
-    on_failure: *on_failure_unclaim
-    on_error: *on_error_unclaim
     plan:
       - in_parallel:
           fail_fast: true
@@ -555,8 +516,6 @@ jobs:
                 TEST_DOCKER_PORA: true
 
   - name: pats-nfs-ldap-legacy-ephemeral-environment
-    on_failure: *on_failure_unclaim
-    on_error: *on_error_unclaim
     plan:
       - in_parallel:
           fail_fast: true
