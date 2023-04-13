@@ -164,7 +164,7 @@ jobs:
         resource: existingvolumebroker-pr
         trigger: true
   - task: existingvolumebroker-unit
-    file: persi-ci/scripts/ci/run_unit.build.yml
+    file: persi-ci/scripts/ci/run_unit_ginkgo_v2.build.yml
     input_mapping:
       gomod: existingvolumebroker
 
