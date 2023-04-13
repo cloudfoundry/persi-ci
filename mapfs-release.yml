@@ -21,6 +21,7 @@ groups:
   jobs:
   - bump-golang
   - update-go-directive-for-mapfs
+  - update-go-directive-for-mapfs-release
 - name: release
   jobs:
   - shipit-mapfs
@@ -292,6 +293,51 @@ jobs:
         team.
     input_mapping:
       source-repo: mapfs
+
+- name: update-go-directive-for-mapfs-release
+  plan:
+  - in_parallel:
+    - get: golang-release
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: mapfs-release
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: golang-release
+      golang-project-repo: mapfs-release
+    output_mapping:
+      golang-project-repo: mapfs-release
+    params:
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      PATH_TO_GO_MODULE: src/bosh_release
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
+  - put: mapfs-release
+    params:
+      repository: mapfs-release
+      branch: &mapfs-release-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
+      force: true # If the last PR got stuck just overwrite it with new stuff
+  - task: create-gomod-directive-update-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *mapfs-release-gomod-update-branch
+      LABELS: dependencies
+      TITLE: Update gomod directive
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI
+        Bot. I have detected a new version of
+        [golang-release](https://github.com/bosh-packages/golang-release) and
+        automatically updated the go mod directive for this go module. If this
+        does not look right, please reach out to the
+        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
+        team.
+    input_mapping:
+      source-repo: mapfs-release
 
 - name: nfs-volume-release-job-tests
   plan:
