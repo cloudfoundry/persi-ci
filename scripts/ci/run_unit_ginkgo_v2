@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -ex
+
+export PATH=/usr/local/go/bin:$PATH
+
+pushd gomod
+  go run github.com/onsi/ginkgo/v2/ginkgo -r --keep-going -p --race --trace --randomize-all --nodes "$NODES"
+popd

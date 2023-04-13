@@ -242,7 +242,7 @@ jobs:
         resource: volumedriver-pr
         trigger: true
   - task: volumedriver-unit
-    file: persi-ci/scripts/ci/run_unit.build.yml
+    file: persi-ci/scripts/ci/run_unit_ginkgo_v2.build.yml
     input_mapping:
       gomod: volumedriver
     params:
@@ -283,7 +283,7 @@ jobs:
         resource: volume-mount-options-pr
         trigger: true
   - task: volume-mount-options-unit
-    file: persi-ci/scripts/ci/run_unit.build.yml
+    file: persi-ci/scripts/ci/run_unit_ginkgo_v2.build.yml
     input_mapping:
       gomod: volume-mount-options
 
