@@ -302,7 +302,7 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
-    - get: mapfs-release
+    - get: mapfs-release-master
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
