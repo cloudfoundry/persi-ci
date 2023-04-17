@@ -307,16 +307,16 @@ jobs:
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
-      golang-project-repo: mapfs-release
+      golang-project-repo: mapfs-release-master
     output_mapping:
-      golang-project-repo: mapfs-release
+      golang-project-repo: mapfs-release-master
     params:
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
       PATH_TO_GO_MODULE: src/bosh_release
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
-  - put: mapfs-release
+  - put: mapfs-release-master
     params:
       repository: mapfs-release-master
       branch: &mapfs-release-gomod-update-branch bump-release-golang-vendor-((.:golang-release-version))
