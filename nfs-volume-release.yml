@@ -28,12 +28,24 @@ groups:
   - update-go-directive-for-service-broker-store
 - name: release
   jobs:
+  - check-for-changes
   - shipit-nfs
   - manual-bump-nfs-major
   - manual-bump-nfs-patch
   - manual-bump-nfs-minor
 
 resources:
+- name: slack-cryo-notification
+  type: slack-notification
+  icon: bell-ring
+  source:
+    url: ((slack.webhook))
+
+- name: every-week
+  type: time
+  source:
+    interval: 168h # 24h*7days
+
 - name: cryogenics-concourse-tasks
   type: git
   icon: github
@@ -225,6 +237,12 @@ resources:
     private_key: ((github.ssh_key))
 
 resource_types:
+- name: slack-notification
+  type: registry-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
 - name: uscan
   source:
     repository: cryogenics/concourse-uscan-resource
@@ -561,7 +579,7 @@ jobs:
         image_resource:
           type: docker-image
           source:
-            repository: cryogenics/essentials-cf6
+            repository: cryogenics/essentials
 
         inputs:
           - name: nfs-volume-release-master
@@ -1012,67 +1030,88 @@ jobs:
       merge: true
       repository: nfs-volume-release
 
+- name: check-for-changes
+  plan:
+  - in_parallel:
+    - get: every-week
+      trigger: true
+    - get: nfs-volume-release-master
+
 - name: shipit-nfs
   serial_groups:
     - nfs-version
+  ensure:
+    do:
+    - put: nfsvolume-version
+      params:
+        file: nfsvolume-version/number
   plan:
     - in_parallel:
-        fail_fast: true
         steps:
           - get: persi-ci
           - get: cryogenics-concourse-tasks
           - get: release
             resource: nfs-volume-release-master
-          - get: version
-            resource: nfsvolume-version
+            trigger: true
+            passed:
+              - check-for-changes
+          - get: nfsvolume-version
             params:
-              bump: final
-    - task: create-final-release
-      file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
-      input_mapping:
-        release-repo: release
-      output_mapping:
-        updated-release-repo: nfs-final-release
-        updated-release-tarball: nfs-final-release-tarball
-      params:
-        AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
-        AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
-        GIT_USERNAME: ((github.user))
-        GIT_EMAIL: ((github.email))
-        FINAL: true
-        RELEASE_NAME: nfs-volume
-    - task: create-release-notes
-      file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
-      input_mapping:
-        git-repo: release
-      params:
-        USE_LATEST_PUBLISHED_TAG: true
-    - task: format-release-notes
-      file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
-      input_mapping:
-        template-folder: cryogenics-concourse-tasks
-      params:
-        TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
-    - put: nfs-volume-version
-      resource: nfsvolume-version
-      params:
-        file: version/number
-    - put: nfs-volume-release-master
-      params:
-        repository: nfs-final-release
-        tag: version/number
-        tag_prefix: v
+              bump: patch
+    - in_parallel:
+      - do:
+        - task: create-final-release
+          file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
+          input_mapping:
+            release-repo: release
+            version: nfsvolume-version
+          output_mapping:
+            updated-release-repo: nfs-final-release
+            updated-release-tarball: nfs-final-release-tarball
+          params:
+            AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
+            AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
+            GIT_USERNAME: ((github.user))
+            GIT_EMAIL: ((github.email))
+            FINAL: true
+            RELEASE_NAME: nfs-volume
+        - put: nfs-volume-release-master
+          params:
+            repository: nfs-final-release
+            tag: nfsvolume-version/number
+            tag_prefix: v
+      - do:
+        - task: create-release-notes
+          file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
+          input_mapping:
+            git-repo: release
+          params:
+            USE_LATEST_PUBLISHED_TAG: true
+        - task: format-release-notes
+          file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
+          input_mapping:
+            template-folder: cryogenics-concourse-tasks
+          params:
+            TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
     - put: github-release-nfs
       params:
-        name: version/number
-        tag: version/number
+        name: nfsvolume-version/number
+        tag: nfsvolume-version/number
         body: release-notes/release-notes.md
         tag_prefix: v
         globs:
           - nfs-final-release-tarball/nfs-volume-*.tgz
-    - put: nfsvolume-version
+    - in_parallel:
+      - load_var: github-release-url
+        file: github-release-nfs/url
+      - load_var: version-number
+        file: nfsvolume-version/number
+    - put: slack-cryo-notification
       params:
-        bump: patch
+        text: |
+          *nfs-volume*: version `((.:version-number))` has been published 🎉
+          Next steps (cc <!subteam^S028XABEHAP>):
+            1. Review the release notes and undraft the release <((.:github-release-url))|here>.
 
 - name: manual-bump-nfs-patch
   serial_groups:
