@@ -318,8 +318,8 @@ jobs:
     file: golang-release/.git/describe_ref
   - put: mapfs-release
     params:
-      repository: mapfs-release
-      branch: &mapfs-release-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
+      repository: mapfs-release-master
+      branch: &mapfs-release-gomod-update-branch bump-release-golang-vendor-((.:golang-release-version))
       force: true # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-update-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
@@ -337,7 +337,7 @@ jobs:
         [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
         team.
     input_mapping:
-      source-repo: mapfs-release
+      source-repo: mapfs-release-master
 
 - name: nfs-volume-release-job-tests
   plan:
