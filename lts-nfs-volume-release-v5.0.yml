@@ -699,9 +699,6 @@ jobs:
       tag_prefix: v
       globs:
       - nfs-final-release-tarball/nfs-volume-*.tgz
-  - put: nfsvolume-version
-    params:
-      bump: patch
   - in_parallel:
     - load_var: github-release-url
       file: github-release-nfs/url
@@ -713,3 +710,6 @@ jobs:
         *nfs-volume*: version `((.:version-number))` has been published 🎉
         Next steps (cc <!subteam^S028XABEHAP>):
           1. Review the release notes and undraft the release <((.:github-release-url))|here>.
+  - put: nfsvolume-version
+    params:
+      bump: patch
