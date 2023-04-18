@@ -404,7 +404,6 @@ jobs:
   - task: create-gomod-directive-update-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
-    params:
       <<: *golang-bump-pr-params
     input_mapping:
       source-repo: nfsbroker
