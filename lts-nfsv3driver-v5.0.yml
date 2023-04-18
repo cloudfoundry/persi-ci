@@ -1,3 +1,4 @@
+---
 resource_types:
 - name: pull-request
   type: docker-image
@@ -12,7 +13,7 @@ resources:
     base_branch: v5.0
     disable_forks: true
     access_token: ((github.access_token))
-    
+
 - name: persi-ci
   type: git
   source:
@@ -43,18 +44,18 @@ jobs:
 
 - name: security-scan
   plan:
-    - in_parallel:
-        - get: persi-ci
-        - get: nfsv3driver
-          trigger: true
-          passed:
-            - unit-test
-    - task: build
-      file: persi-ci/scripts/ci/security-scan.build.yml
-      params:
-        PATHS: "./"
-      input_mapping:
-        release-dir: nfsv3driver
+  - in_parallel:
+    - get: persi-ci
+    - get: nfsv3driver
+      trigger: true
+      passed:
+      - unit-test
+  - task: build
+    file: persi-ci/scripts/ci/security-scan.build.yml
+    params:
+      PATHS: "./"
+    input_mapping:
+      release-dir: nfsv3driver
 
 - name: integration
   serial: true

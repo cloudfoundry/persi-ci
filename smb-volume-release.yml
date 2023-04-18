@@ -1,3 +1,4 @@
+---
 groups:
 - name: test
   jobs:
@@ -57,7 +58,7 @@ resources:
     private_key: ((github.ssh_key))
     uri: git@github.com:cloudfoundry/smb-volume-release.git
     ignore_paths:
-      - scripts
+    - scripts
 
 - name: smb-volume-version
   type: semver
@@ -149,7 +150,8 @@ resources:
     private_key: ((github.ssh_key))
     branch: main
 
-#! This resource must only be used for gomod directive updates: https://github.com/concourse/git-resource/blob/master/README.md?plain=1#L341-L345
+# This resource must only be used for gomod directive updates:
+#  https://github.com/concourse/git-resource/blob/master/README.md?plain=1#L341-L345
 - name: smbdriver-for-gomod-directive-updates
   type: git
   icon: github
@@ -157,7 +159,8 @@ resources:
     uri: git@github.com:cloudfoundry/smbdriver.git
     private_key: ((github.ssh_key))
 
-#! This resource must only be used for gomod directive updates: https://github.com/concourse/git-resource/blob/master/README.md?plain=1#L341-L345
+# This resource must only be used for gomod directive updates:
+#  https://github.com/concourse/git-resource/blob/master/README.md?plain=1#L341-L345
 - name: smbbroker-for-gomod-directive-updates
   type: git
   icon: github
@@ -185,54 +188,54 @@ resource_types:
 jobs:
 - name: bump-golang
   plan:
-    - in_parallel:
-        - get: cryogenics-concourse-tasks
-        - get: golang-release
-          trigger: true
-        - get: smb-volume-release-bump-golang-master
-    - load_var: golang-release-version
-      file: golang-release/.git/describe_ref
-    - task: bosh-vendor-package
-      file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
+  - in_parallel:
+    - get: cryogenics-concourse-tasks
+    - get: golang-release
+      trigger: true
+    - get: smb-volume-release-bump-golang-master
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
+  - task: bosh-vendor-package
+    file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
+    input_mapping:
+      release: smb-volume-release-bump-golang-master
+      vendored-package-release: golang-release
+    params:
+      VENDORED_PACKAGE_NAME: golang-1-linux
+      VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
+      AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.secret))
+  - put: smb-volume-release-bump-golang
+    params:
+      repository: release-with-updated-vendored-package
+      branch: *golang-vendor-branch
+  - try:
+      # We've seen cases where there are 2 or more new releases of
+      # golang-release which causes this job to trigger 2x or more. A PR will
+      # be created on the 1st build. On the following ones, it is possible
+      # that this task will fail as there exist already a PR (which is
+      # probably flowing through the pipeline). To prevent this scenario
+      # we're making this step best-effort.
+      # This also makes the job idempotent. If we retrigger the job but if
+      # there are no new version of golang-release, this step will fail
+      # saying "Your branch is up to date with
+      # 'origin/golang-vendor-update'."
+      task: create-golang-vendor-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        BASE: master
+        BRANCH: *golang-vendor-branch
+        LABELS: dependencies
+        TITLE: Update vendored package golang-1-linux
+        MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
+          \nI have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and \
+          automatically bumped\nthis package to benefit from the latest changes.\
+          \nIf this does not look right, please reach out to the \
+          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
-        release: smb-volume-release-bump-golang-master
-        vendored-package-release: golang-release
-      params:
-        VENDORED_PACKAGE_NAME: golang-1-linux
-        VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
-        COMMIT_USERNAME: bump-golang CI job
-        COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-        AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
-        AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.secret))
-    - put: smb-volume-release-bump-golang
-      params:
-        repository: release-with-updated-vendored-package
-        branch: *golang-vendor-branch
-    - try:
-        # We've seen cases where there are 2 or more new releases of
-        # golang-release which causes this job to trigger 2x or more. A PR will
-        # be created on the 1st build. On the following ones, it is possible
-        # that this task will fail as there exist already a PR (which is
-        # probably flowing through the pipeline). To prevent this scenario
-        # we're making this step best-effort.
-        # This also makes the job idempotent. If we retrigger the job but if
-        # there are no new version of golang-release, this step will fail
-        # saying "Your branch is up to date with
-        # 'origin/golang-vendor-update'."
-        task: create-golang-vendor-pull-request
-        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-        params:
-          BASE: master
-          BRANCH: *golang-vendor-branch
-          LABELS: dependencies
-          TITLE: Update vendored package golang-1-linux
-          MESSAGE: |
-            This is an automatically generated Pull Request from the Cryogenics CI Bot.
-            I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped
-            this package to benefit from the latest changes.
-            If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
-        input_mapping:
-          source-repo: smb-volume-release-bump-golang
+        source-repo: smb-volume-release-bump-golang
 
 - name: update-go-directive-for-smbbroker-for-gomod-directive-updates
   plan:
@@ -262,7 +265,7 @@ jobs:
     params:
       repository: smbbroker-for-gomod-directive-updates
       branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
-      force: true # If the last PR got stuck just overwrite it with new stuff
+      force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-updates-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
@@ -309,7 +312,7 @@ jobs:
     params:
       repository: smbdriver-for-gomod-directive-updates
       branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
-      force: true # If the last PR got stuck just overwrite it with new stuff
+      force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-updates-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
@@ -330,21 +333,21 @@ jobs:
 
 - name: smb-volume-release-job-tests
   plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: persi-ci
-          - get: smb-volume-release-concourse-tasks
-          - get: smb-volume-release
-            trigger: true
-    - task: rspec
-      file: persi-ci/scripts/ci/run-rspec.build.yml
-      input_mapping:
-        test-repo: smb-volume-release
-    - task: bosh-release-test
-      file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
-      privileged: true
-      attempts: 3
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: smb-volume-release-concourse-tasks
+      - get: smb-volume-release
+        trigger: true
+  - task: rspec
+    file: persi-ci/scripts/ci/run-rspec.build.yml
+    input_mapping:
+      test-repo: smb-volume-release
+  - task: bosh-release-test
+    file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+    privileged: true
+    attempts: 3
 
 - name: env-gate
   plan:
@@ -366,7 +369,7 @@ jobs:
       - get: smb-volume-release
         trigger: true
         passed:
-          - env-gate
+        - env-gate
   - put: smith-env
     params:
       action: claim
@@ -384,13 +387,13 @@ jobs:
       fail_fast: true
       steps:
       - get: smith-env
-        passed: [ claim-env ]
+        passed: [claim-env]
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
       - get: persi-ci
       - get: smb-volume-release
-        passed: [ claim-env ]
+        passed: [claim-env]
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
@@ -442,65 +445,65 @@ jobs:
 
 - name: cats
   plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: smb-volume-release
-            passed:
-              - pats
-            trigger: true
-          - get: smith-env
-            passed:
-              - pats
-            trigger: true
-          - get: persi-ci
-          - get: cf-acceptance-tests
-          - get: cf-deployment-concourse-tasks
-    - task: generate-cats-config
-      file: persi-ci/scripts/ci/generate_cats_config.build.yml
-      params:
-        VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-        CF_USERNAME: admin
-        SERVICE_NAME: smb
-        PLAN_NAME: Existing
-        CREATE_CONFIG: '{\"share\": \"((smb_cats.remote_path))\", \"username\": \"((smb_cats.username))\", \"password\": \"((smb_cats.password))\"}'
-        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-    - task: run-cats
-      file: cf-deployment-concourse-tasks/run-cats/task.yml
-      input_mapping:
-        integration-config: cats-config
-      params:
-        CONFIG_FILE_PATH: cats.json
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smb-volume-release
+        passed:
+        - pats
+        trigger: true
+      - get: smith-env
+        passed:
+        - pats
+        trigger: true
+      - get: persi-ci
+      - get: cf-acceptance-tests
+      - get: cf-deployment-concourse-tasks
+  - task: generate-cats-config
+    file: persi-ci/scripts/ci/generate_cats_config.build.yml
+    params:
+      VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+      CF_USERNAME: admin
+      SERVICE_NAME: smb
+      PLAN_NAME: Existing
+      CREATE_CONFIG: '{\"share\": \"((smb_cats.remote_path))\", \"username\": \"((smb_cats.username))\", \"password\": \"((smb_cats.password))\"}'  # yamllint disable-line rule:line-length
+      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+  - task: run-cats
+    file: cf-deployment-concourse-tasks/run-cats/task.yml
+    input_mapping:
+      integration-config: cats-config
+    params:
+      CONFIG_FILE_PATH: cats.json
 
 - name: drats
   serial: true
   plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: smb-volume-release
-            passed: [ cats ]
-            trigger: true
-          - get: bbr-binary-release
-          - get: disaster-recovery-acceptance-tests
-          - get: persi-ci
-          - get: smith-env
-            passed: [ cats ]
-            trigger: true
-    - task: generate-integration-config
-      file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
-      params:
-        INTEGRATION_CONFIG_FILE_PATH: config/drats-smb.json
-      input_mapping:
-        integration-configs: persi-ci
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smb-volume-release
+        passed: [cats]
+        trigger: true
+      - get: bbr-binary-release
+      - get: disaster-recovery-acceptance-tests
+      - get: persi-ci
+      - get: smith-env
+        passed: [cats]
+        trigger: true
+  - task: generate-integration-config
+    file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
+    params:
+      INTEGRATION_CONFIG_FILE_PATH: config/drats-smb.json
+    input_mapping:
+      integration-configs: persi-ci
 
-    - task: drats-with-integration-config
-      file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
-      privileged: true
-      input_mapping:
-        drats-integration-config: updated-integration-configs
-      params:
-        CONFIG_FILE_PATH: config/drats-smb.json
+  - task: drats-with-integration-config
+    file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
+    privileged: true
+    input_mapping:
+      drats-integration-config: updated-integration-configs
+    params:
+      CONFIG_FILE_PATH: config/drats-smb.json
 
 - name: pats
   plan:
@@ -510,10 +513,10 @@ jobs:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: smith-env
-        passed: [ deploy-cf ]
+        passed: [deploy-cf]
         trigger: true
       - get: smb-volume-release
-        passed: [ deploy-cf ]
+        passed: [deploy-cf]
       - get: smb-volume-release-concourse-tasks
         params:
           submodules: none
@@ -529,7 +532,7 @@ jobs:
       PLAN_NAME: Existing
       SERVICE_NAME: smb
       CREATE_CONFIG: '{\"share\":\"((smb_cats.remote_path))\"}'
-      BIND_CONFIG: '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'
+      BIND_CONFIG: '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'  # yamllint disable-line rule:line-length
     output_mapping:
       pats-config: smb-pats-config
   - task: run-pats-smb
@@ -568,98 +571,98 @@ jobs:
 
 - name: shipit-smb
   serial_groups:
-    - smb-version
+  - smb-version
   plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: persi-ci
-          - get: cryogenics-concourse-tasks
-          - get: release
-            resource: smb-volume-release-master
-          - get: version
-            resource: smb-volume-version
-            params:
-              bump: final
-    - task: create-final-release
-      file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
-      input_mapping:
-        release-repo: release
-      output_mapping:
-        updated-release-repo: smb-final-release
-        updated-release-tarball: smb-final-release-tarball
-      params:
-        AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
-        AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.secret))
-        GIT_USERNAME: ((github.user))
-        GIT_EMAIL: ((github.email))
-        FINAL: true
-        RELEASE_NAME: smb-volume
-    - task: create-release-notes
-      file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
-      input_mapping:
-        git-repo: release
-      params:
-        USE_LATEST_PUBLISHED_TAG: true
-    - task: format-release-notes
-      file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
-      input_mapping:
-        template-folder: cryogenics-concourse-tasks
-      params:
-        TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
-    - put: smb-volume-version
-      resource: smb-volume-version
-      params:
-        file: version/number
-    - put: smb-volume-release-master
-      params:
-        repository: smb-final-release
-        tag: version/number
-        tag_prefix: v
-    - put: github-release-smb
-      params:
-        name: version/number
-        tag: version/number
-        body: release-notes/release-notes.md
-        tag_prefix: v
-        globs:
-          - smb-final-release-tarball/smb-volume-*.tgz
-    - put: smb-volume-version
-      params:
-        bump: patch
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: cryogenics-concourse-tasks
+      - get: release
+        resource: smb-volume-release-master
+      - get: version
+        resource: smb-volume-version
+        params:
+          bump: final
+  - task: create-final-release
+    file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
+    input_mapping:
+      release-repo: release
+    output_mapping:
+      updated-release-repo: smb-final-release
+      updated-release-tarball: smb-final-release-tarball
+    params:
+      AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
+      AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.secret))
+      GIT_USERNAME: ((github.user))
+      GIT_EMAIL: ((github.email))
+      FINAL: true
+      RELEASE_NAME: smb-volume
+  - task: create-release-notes
+    file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
+    input_mapping:
+      git-repo: release
+    params:
+      USE_LATEST_PUBLISHED_TAG: true
+  - task: format-release-notes
+    file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
+    input_mapping:
+      template-folder: cryogenics-concourse-tasks
+    params:
+      TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
+  - put: smb-volume-version
+    resource: smb-volume-version
+    params:
+      file: version/number
+  - put: smb-volume-release-master
+    params:
+      repository: smb-final-release
+      tag: version/number
+      tag_prefix: v
+  - put: github-release-smb
+    params:
+      name: version/number
+      tag: version/number
+      body: release-notes/release-notes.md
+      tag_prefix: v
+      globs:
+      - smb-final-release-tarball/smb-volume-*.tgz
+  - put: smb-volume-version
+    params:
+      bump: patch
 
 - name: manual-bump-smb-patch
   serial_groups:
-    - smb-version
+  - smb-version
   plan:
-    - get: smb-volume-version
-      resource: smb-volume-version
-      params:
-        bump: final
-    - put: smb-volume-version
-      params:
-        bump: patch
+  - get: smb-volume-version
+    resource: smb-volume-version
+    params:
+      bump: final
+  - put: smb-volume-version
+    params:
+      bump: patch
 
 - name: manual-bump-smb-minor
   serial_groups:
-    - smb-version
+  - smb-version
   plan:
-    - get: smb-volume-version
-      resource: smb-volume-version
-      params:
-        bump: final
-    - put: smb-volume-version
-      params:
-        bump: minor
+  - get: smb-volume-version
+    resource: smb-volume-version
+    params:
+      bump: final
+  - put: smb-volume-version
+    params:
+      bump: minor
 
 - name: manual-bump-smb-major
   serial_groups:
-    - smb-version
+  - smb-version
   plan:
-    - get: smb-volume-version
-      resource: smb-volume-version
-      params:
-        bump: final
-    - put: smb-volume-version
-      params:
-        bump: major
+  - get: smb-volume-version
+    resource: smb-volume-version
+    params:
+      bump: final
+  - put: smb-volume-version
+    params:
+      bump: major

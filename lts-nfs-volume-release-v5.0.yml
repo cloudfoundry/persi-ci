@@ -1,714 +1,715 @@
+---
 groups:
-  - name: test
-    jobs:
-    - nfs-security-scan
-    - nfsdriver-unit
-    - nfsbroker-tests
-    - nfs-volume-release-job-tests
-    - nfsdriver-integration
-    - claim-env
-    - deploy-cf
-    - pats-nfs-ldap-ephemeral-environment
-    - pats-nfs-ldap-legacy-ephemeral-environment
-    - unclaim-env
-    - merge-pr
-  - name: bump
-    jobs:
-    - bump-golang
-    - update-go-directive-for-nfsv3driver
-    - update-go-directive-for-nfsbroker
-  - name: release
-    jobs:
-    - manual-bump-nfs-patch
-    - check-for-changes
-    - shipit-nfs
+- name: test
+  jobs:
+  - nfs-security-scan
+  - nfsdriver-unit
+  - nfsbroker-tests
+  - nfs-volume-release-job-tests
+  - nfsdriver-integration
+  - claim-env
+  - deploy-cf
+  - pats-nfs-ldap-ephemeral-environment
+  - pats-nfs-ldap-legacy-ephemeral-environment
+  - unclaim-env
+  - merge-pr
+- name: bump
+  jobs:
+  - bump-golang
+  - update-go-directive-for-nfsv3driver
+  - update-go-directive-for-nfsbroker
+- name: release
+  jobs:
+  - manual-bump-nfs-patch
+  - check-for-changes
+  - shipit-nfs
 
 resources:
-  - name: slack-cryo-notification
-    type: slack-notification
-    icon: bell-ring
-    source:
-      url: ((slack.webhook))
+- name: slack-cryo-notification
+  type: slack-notification
+  icon: bell-ring
+  source:
+    url: ((slack.webhook))
 
-  - name: cryogenics-concourse-tasks
-    type: git
-    icon: github
-    source:
-      uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
-      private_key: ((github.ssh_key))
+- name: cryogenics-concourse-tasks
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+    private_key: ((github.ssh_key))
 
-  - name: every-week
-    type: time
-    source:
-      interval: 168h # 24h*7days
+- name: every-week
+  type: time
+  source:
+    interval: 168h  # 24h*7days
 
-  - name: nfs-volume-release-concourse-tasks
-    type: git
-    source:
-      branch: {{lts-nfs-branch}}
-      private_key: ((github.ssh_key))
-      uri: https://github.com/cloudfoundry/nfs-volume-release.git
+- name: nfs-volume-release-concourse-tasks
+  type: git
+  source:
+    branch: {{lts-nfs-branch}}
+    private_key: ((github.ssh_key))
+    uri: https://github.com/cloudfoundry/nfs-volume-release.git
 
-  - name: smith-env
-    type: pcf-pool
-    source:
-      api_token: ((toolsmiths.api_token))
-      hostname: environments.toolsmiths.cf-app.com
-      pool_name: {{pas-version}}
+- name: smith-env
+  type: pcf-pool
+  source:
+    api_token: ((toolsmiths.api_token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: {{pas-version}}
 
-  - name: docker_driver_integration_tests
-    type: git
-    source:
-      branch: main
-      uri: https://github.com/cloudfoundry/docker_driver_integration_tests
+- name: docker_driver_integration_tests
+  type: git
+  source:
+    branch: main
+    uri: https://github.com/cloudfoundry/docker_driver_integration_tests
 
-  - name: credhub
-    type: git
-    source:
-      branch: main
-      uri: https://github.com/cloudfoundry-incubator/credhub
+- name: credhub
+  type: git
+  source:
+    branch: main
+    uri: https://github.com/cloudfoundry-incubator/credhub
 
-  - name: persi-ci
-    type: git
-    source:
-      uri: https://github.com/cloudfoundry/persi-ci
-      branch: master
+- name: persi-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/persi-ci
+    branch: master
 
-  - name: nfs-volume-release
-    type: pull-request
-    source:
-      base_branch: {{lts-nfs-branch}}
-      access_token: ((github.access_token))
-      repository: cloudfoundry/nfs-volume-release
-      disable_forks: true
-      autosync_pr: false
+- name: nfs-volume-release
+  type: pull-request
+  source:
+    base_branch: {{lts-nfs-branch}}
+    access_token: ((github.access_token))
+    repository: cloudfoundry/nfs-volume-release
+    disable_forks: true
+    autosync_pr: false
 
-  - name: nfs-volume-release-lts
-    type: git
-    source:
-      submodule_credentials:
-      - host: github.com
-        username: ((github.https_username))
-        password: ((github.https_password))
-      branch: {{lts-nfs-branch}}
-      private_key: ((github.ssh_key))
-      uri: git@github.com:cloudfoundry/nfs-volume-release.git
+- name: nfs-volume-release-lts
+  type: git
+  source:
+    submodule_credentials:
+    - host: github.com
+      username: ((github.https_username))
+      password: ((github.https_password))
+    branch: {{lts-nfs-branch}}
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
-  - name: nfs-volume-release-lts-production-files-only
-    type: git
-    source:
-      submodule_credentials:
-      - host: github.com
-        username: ((github.https_username))
-        password: ((github.https_password))
-      branch: {{lts-nfs-branch}}
-      private_key: ((github.ssh_key))
-      uri: git@github.com:cloudfoundry/nfs-volume-release.git
-      paths:
-      - .final_builds
-      - LICENSE
-      - NOTICE
-      - config
-      - jobs
-      - packages
-      - releases
-      - src
+- name: nfs-volume-release-lts-production-files-only
+  type: git
+  source:
+    submodule_credentials:
+    - host: github.com
+      username: ((github.https_username))
+      password: ((github.https_password))
+    branch: {{lts-nfs-branch}}
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+    paths:
+    - .final_builds
+    - LICENSE
+    - NOTICE
+    - config
+    - jobs
+    - packages
+    - releases
+    - src
 
-  - name: nfsvolume-version
-    type: semver
-    source:
-      access_key_id: ((aws/lts-nfsvolume-uploader.id))
-      bucket: lts-nfsvolume-release-versions
-      initial_version: {{nfs-semver-initial-version}}
-      key: {{lts-nfs-branch}}
-      region_name: us-west-2
-      secret_access_key: ((aws/lts-nfsvolume-uploader.secret))
+- name: nfsvolume-version
+  type: semver
+  source:
+    access_key_id: ((aws/lts-nfsvolume-uploader.id))
+    bucket: lts-nfsvolume-release-versions
+    initial_version: {{nfs-semver-initial-version}}
+    key: {{lts-nfs-branch}}
+    region_name: us-west-2
+    secret_access_key: ((aws/lts-nfsvolume-uploader.secret))
 
-  - name: cf-deployment
-    type: git
-    source:
-      branch: main
-      uri: https://github.com/cloudfoundry/cf-deployment.git
+- name: cf-deployment
+  type: git
+  source:
+    branch: main
+    uri: https://github.com/cloudfoundry/cf-deployment.git
 
-  - name: cf-deployment-concourse-tasks
-    type: git
-    source:
-      branch: main
-      uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
+- name: cf-deployment-concourse-tasks
+  type: git
+  source:
+    branch: main
+    uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
 
-  - name: cf-volume-services-acceptance-tests
-    type: git
-    source:
-      uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+- name: cf-volume-services-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
 
-  - name: github-release-nfs
-    type: github-release
-    source:
-      user: cloudfoundry
-      repository: nfs-volume-release
-      drafts: true
-      access_token: ((github.access_token))
+- name: github-release-nfs
+  type: github-release
+  source:
+    user: cloudfoundry
+    repository: nfs-volume-release
+    drafts: true
+    access_token: ((github.access_token))
 
-  - name: golang-release
-    type: git
-    icon: tag
-    source:
-      uri: https://github.com/bosh-packages/golang-release.git
-      tag_filter: v*
+- name: golang-release
+  type: git
+  icon: tag
+  source:
+    uri: https://github.com/bosh-packages/golang-release.git
+    tag_filter: v*
 
-  - icon: github
-    name: nfs-volume-release-bump-golang
-    source:
-      branch: {{lts-nfs-branch}}
-      private_key: ((github.ssh_key))
-      uri: git@github.com:cloudfoundry/nfs-volume-release.git
-    type: git
+- icon: github
+  name: nfs-volume-release-bump-golang
+  source:
+    branch: {{lts-nfs-branch}}
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+  type: git
 
-  - icon: github
-    name: nfs-volume-release-bump-golang-branch
-    source:
-      branch: {{lts-nfs-branch}}
-      private_key: ((github.ssh_key))
-      uri: git@github.com:cloudfoundry/nfs-volume-release.git
-      disable_ci_skip: true
-    type: git
+- icon: github
+  name: nfs-volume-release-bump-golang-branch
+  source:
+    branch: {{lts-nfs-branch}}
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+    disable_ci_skip: true
+  type: git
 
-  - icon: github
-    name: nfsv3driver-v5
-    source:
-      branch: {{lts-nfs-branch}}
-      private_key: ((github.ssh_key))
-      uri: git@github.com:cloudfoundry/nfsv3driver.git
-      disable_ci_skip: true
-    type: git
+- icon: github
+  name: nfsv3driver-v5
+  source:
+    branch: {{lts-nfs-branch}}
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfsv3driver.git
+    disable_ci_skip: true
+  type: git
 
-  - icon: github
-    name: nfsbroker-v5
-    source:
-      branch: {{lts-nfs-branch}}
-      private_key: ((github.ssh_key))
-      uri: git@github.com:cloudfoundry/nfsbroker.git
-      disable_ci_skip: true
-    type: git
+- icon: github
+  name: nfsbroker-v5
+  source:
+    branch: {{lts-nfs-branch}}
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfsbroker.git
+    disable_ci_skip: true
+  type: git
 
 resource_types:
-  - name: slack-notification
-    type: registry-image
-    source:
-      repository: cfcommunity/slack-notification-resource
-      tag: latest
+- name: slack-notification
+  type: registry-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
 
-  - name: git
-    type: docker-image
-    source:
-      repository: concourse/git-resource
-      tag: ubuntu
+- name: git
+  type: docker-image
+  source:
+    repository: concourse/git-resource
+    tag: ubuntu
 
-  - name: pcf-pool
-    type: docker-image
-    source:
-      repository: cftoolsmiths/toolsmiths-envs-resource
+- name: pcf-pool
+  type: docker-image
+  source:
+    repository: cftoolsmiths/toolsmiths-envs-resource
 
-  - name: pull-request
-    type: docker-image
-    source:
-      repository: cryogenics/pr-queue-resource
+- name: pull-request
+  type: docker-image
+  source:
+    repository: cryogenics/pr-queue-resource
 
 jobs:
-  - name: bump-golang
-    plan:
-      - in_parallel:
-          - get: golang-release
-            trigger: true
-          - get: cryogenics-concourse-tasks
-          - get: nfs-volume-release-bump-golang-branch
-            params:
-              branch: {{lts-nfs-branch}}
-      - load_var: golang-release-version
-        file: golang-release/.git/describe_ref
-      - task: bosh-vendor-package
-        file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
-        input_mapping:
-          release: nfs-volume-release-bump-golang-branch
-          vendored-package-release: golang-release
-        params:
-          VENDORED_PACKAGE_NAME: golang-1-linux
-          VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))-into-v5
-          COMMIT_USERNAME: bump-golang CI job
-          COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-          AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
-          AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
-      - put: nfs-volume-release-bump-golang
-        params:
-          repository: release-with-updated-vendored-package
-          branch: *golang-vendor-branch
-      - try:
-          # We've seen cases where there are 2 or more new releases of
-          # golang-release which causes this job to trigger 2x or more. A PR will
-          # be created on the 1st build. On the following ones, it is possible
-          # that this task will fail as there exist already a PR (which is
-          # probably flowing through the pipeline). To prevent this scenario
-          # we're making this step best-effort.
-          # This also makes the job idempotent. If we retrigger the job but if
-          # there are no new version of golang-release, this step will fail
-          # saying "Your branch is up-to-date with
-          # 'origin/golang-vendor-update'."
-          task: create-golang-vendor-pull-request
-          file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-          params: &golang-bump-pr-params
-            BASE: {{lts-nfs-branch}}
-            BRANCH: *golang-vendor-branch
-            LABELS: dependencies
-            TITLE: Update vendored package golang-1-linux
-            MESSAGE: |
-              This is an automatically generated Pull Request from the Cryogenics CI Bot.
-              I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped
-              this package to benefit from the latest changes.
-              If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
-          input_mapping:
-            source-repo: nfs-volume-release-bump-golang
-
-  - name: update-go-directive-for-nfsv3driver
-    plan:
-    - in_parallel:
-      - get: golang-release
-        trigger: true
-        passed:
-        - bump-golang
-      - get: cryogenics-concourse-tasks
-      - get: nfsv3driver-v5
-    - load_var: golang-release-version
-      file: golang-release/.git/describe_ref
-    - task: update-go-directive
-      file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
-      input_mapping:
-        bosh-release-repo-with-vendored-golang: golang-release
-        golang-project-repo: nfsv3driver-v5
-      output_mapping:
-        golang-project-repo: nfsv3driver-v5
-    - put: nfsv3driver-v5
+- name: bump-golang
+  plan:
+  - in_parallel:
+    - get: golang-release
+      trigger: true
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-bump-golang-branch
       params:
-        repository: nfsv3driver-v5
-        branch: *golang-vendor-branch
-    - try:
-        # We've seen cases where there are 2 or more new releases of
-        # golang-release which causes this job to trigger 2x or more. A PR will
-        # be created on the 1st build. On the following ones, it is possible
-        # that this task will fail as there exist already a PR (which is
-        # probably flowing through the pipeline). To prevent this scenario
-        # we're making this step best-effort.
-        # This also makes the job idempotent. If we retrigger the job but if
-        # there are no new version of golang-release, this step will fail
-        # saying "Your branch is up-to-date with
-        # 'origin/golang-vendor-update'."
-        task: create-gomod-directive-update-pull-request
-        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-        params:
-          <<: *golang-bump-pr-params
-        input_mapping:
-          source-repo: nfsv3driver-v5
-
-  - name: update-go-directive-for-nfsbroker
-    plan:
-    - in_parallel:
-      - get: golang-release
-        trigger: true
-        passed:
-        - bump-golang
-      - get: cryogenics-concourse-tasks
-      - get: nfsbroker-v5
-    - load_var: golang-release-version
-      file: golang-release/.git/describe_ref
-    - task: update-go-directive
-      file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+        branch: {{lts-nfs-branch}}
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
+  - task: bosh-vendor-package
+    file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
+    input_mapping:
+      release: nfs-volume-release-bump-golang-branch
+      vendored-package-release: golang-release
+    params:
+      VENDORED_PACKAGE_NAME: golang-1-linux
+      VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))-into-v5
+      COMMIT_USERNAME: bump-golang CI job
+      COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
+      AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
+      AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
+  - put: nfs-volume-release-bump-golang
+    params:
+      repository: release-with-updated-vendored-package
+      branch: *golang-vendor-branch
+  - try:
+      # We've seen cases where there are 2 or more new releases of
+      # golang-release which causes this job to trigger 2x or more. A PR will
+      # be created on the 1st build. On the following ones, it is possible
+      # that this task will fail as there exist already a PR (which is
+      # probably flowing through the pipeline). To prevent this scenario
+      # we're making this step best-effort.
+      # This also makes the job idempotent. If we retrigger the job but if
+      # there are no new version of golang-release, this step will fail
+      # saying "Your branch is up-to-date with
+      # 'origin/golang-vendor-update'."
+      task: create-golang-vendor-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params: &golang-bump-pr-params
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *golang-vendor-branch
+        LABELS: dependencies
+        TITLE: Update vendored package golang-1-linux
+        MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
+          \nI have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and \
+          automatically bumped\nthis package to benefit from the latest changes.\
+          \nIf this does not look right, please reach out to the \
+          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
-        bosh-release-repo-with-vendored-golang: golang-release
-        golang-project-repo: nfsbroker-v5
-      output_mapping:
-        golang-project-repo: nfsbroker-v5
-    - put: nfsbroker-v5
+        source-repo: nfs-volume-release-bump-golang
+
+- name: update-go-directive-for-nfsv3driver
+  plan:
+  - in_parallel:
+    - get: golang-release
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: nfsv3driver-v5
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: golang-release
+      golang-project-repo: nfsv3driver-v5
+    output_mapping:
+      golang-project-repo: nfsv3driver-v5
+  - put: nfsv3driver-v5
+    params:
+      repository: nfsv3driver-v5
+      branch: *golang-vendor-branch
+  - try:
+      # We've seen cases where there are 2 or more new releases of
+      # golang-release which causes this job to trigger 2x or more. A PR will
+      # be created on the 1st build. On the following ones, it is possible
+      # that this task will fail as there exist already a PR (which is
+      # probably flowing through the pipeline). To prevent this scenario
+      # we're making this step best-effort.
+      # This also makes the job idempotent. If we retrigger the job but if
+      # there are no new version of golang-release, this step will fail
+      # saying "Your branch is up-to-date with
+      # 'origin/golang-vendor-update'."
+      task: create-gomod-directive-update-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
-        repository: nfsbroker-v5
-        branch: *golang-vendor-branch
-    - try:
-        # We've seen cases where there are 2 or more new releases of
-        # golang-release which causes this job to trigger 2x or more. A PR will
-        # be created on the 1st build. On the following ones, it is possible
-        # that this task will fail as there exist already a PR (which is
-        # probably flowing through the pipeline). To prevent this scenario
-        # we're making this step best-effort.
-        # This also makes the job idempotent. If we retrigger the job but if
-        # there are no new version of golang-release, this step will fail
-        # saying "Your branch is up-to-date with
-        # 'origin/golang-vendor-update'."
-        task: create-gomod-directive-update-pull-request
-        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+        <<: *golang-bump-pr-params
+      input_mapping:
+        source-repo: nfsv3driver-v5
+
+- name: update-go-directive-for-nfsbroker
+  plan:
+  - in_parallel:
+    - get: golang-release
+      trigger: true
+      passed:
+      - bump-golang
+    - get: cryogenics-concourse-tasks
+    - get: nfsbroker-v5
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
+  - task: update-go-directive
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: golang-release
+      golang-project-repo: nfsbroker-v5
+    output_mapping:
+      golang-project-repo: nfsbroker-v5
+  - put: nfsbroker-v5
+    params:
+      repository: nfsbroker-v5
+      branch: *golang-vendor-branch
+  - try:
+      # We've seen cases where there are 2 or more new releases of
+      # golang-release which causes this job to trigger 2x or more. A PR will
+      # be created on the 1st build. On the following ones, it is possible
+      # that this task will fail as there exist already a PR (which is
+      # probably flowing through the pipeline). To prevent this scenario
+      # we're making this step best-effort.
+      # This also makes the job idempotent. If we retrigger the job but if
+      # there are no new version of golang-release, this step will fail
+      # saying "Your branch is up-to-date with
+      # 'origin/golang-vendor-update'."
+      task: create-gomod-directive-update-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        <<: *golang-bump-pr-params
+      input_mapping:
+        source-repo: nfsbroker-v5
+
+- name: nfs-security-scan
+  plan:
+  - in_parallel:
+    - get: persi-ci
+    - get: nfs-volume-release
+      trigger: true
+  - task: build
+    file: persi-ci/scripts/ci/security-scan.build.yml
+    params:
+      PATHS: "src/code.cloudfoundry.org/nfsv3driver/:src/code.cloudfoundry.org/nfsbroker/"
+      RELEASE_DIR: nfs-volume-release
+    input_mapping:
+      release-dir: nfs-volume-release
+
+- name: nfsdriver-unit
+  public: true
+  plan:
+  - in_parallel:
+    - get: nfs-volume-release-concourse-tasks
+      params:
+        submodules: none
+    - get: nfs-volume-release
+      trigger: true
+  - task: build
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
+
+- name: nfsbroker-tests
+  public: true
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: nfs-volume-release-concourse-tasks
         params:
-          <<: *golang-bump-pr-params
-        input_mapping:
-          source-repo: nfsbroker-v5
+          submodules: none
+      - get: nfs-volume-release
+        trigger: true
+      - get: credhub
+  - task: run-test
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
 
-  - name: nfs-security-scan
-    plan:
-      - in_parallel:
-          - get: persi-ci
-          - get: nfs-volume-release
-            trigger: true
-      - task: build
-        file: persi-ci/scripts/ci/security-scan.build.yml
+- name: nfs-volume-release-job-tests
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: nfs-volume-release-concourse-tasks
+      - get: nfs-volume-release
+        trigger: true
+  - task: rspec
+    file: persi-ci/scripts/ci/run-rspec.build.yml
+    input_mapping:
+      test-repo: nfs-volume-release
+  - task: bosh-release-test
+    attempts: 3
+    file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+    privileged: true
+
+- name: nfsdriver-integration
+  serial: true
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: docker_driver_integration_tests
+      - get: nfs-volume-release-concourse-tasks
         params:
-          PATHS: "src/code.cloudfoundry.org/nfsv3driver/:src/code.cloudfoundry.org/nfsbroker/"
-          RELEASE_DIR: nfs-volume-release
-        input_mapping:
-          release-dir: nfs-volume-release
-
-  - name: nfsdriver-unit
-    public: true
-    plan:
-      - in_parallel:
-          - get: nfs-volume-release-concourse-tasks
-            params:
-              submodules: none
-          - get: nfs-volume-release
-            trigger: true
-      - task: build
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
-
-  - name: nfsbroker-tests
-    public: true
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: nfs-volume-release-concourse-tasks
-              params:
-                submodules: none
-            - get: nfs-volume-release
-              trigger: true
-            - get: credhub
-      - task: run-test
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
-
-  - name: nfs-volume-release-job-tests
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: persi-ci
-            - get: nfs-volume-release-concourse-tasks
-            - get: nfs-volume-release
-              trigger: true
-      - task: rspec
-        file: persi-ci/scripts/ci/run-rspec.build.yml
-        input_mapping:
-          test-repo: nfs-volume-release
-      - task: bosh-release-test
-        attempts: 3
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+          submodules: none
+      - get: nfs-volume-release
+        passed:
+        - nfsdriver-unit
+        - nfsbroker-tests
+        - nfs-security-scan
+        trigger: true
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: run_docker_driver_integration_tests
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
-
-  - name: nfsdriver-integration
-    serial: true
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: persi-ci
-            - get: docker_driver_integration_tests
-            - get: nfs-volume-release-concourse-tasks
-              params:
-                submodules: none
-            - get: nfs-volume-release
-              passed:
-                - nfsdriver-unit
-                - nfsbroker-tests
-                - nfs-security-scan
-              trigger: true
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - task: run_docker_driver_integration_tests
-              file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-              privileged: true
-              params:
-                TEST_PACKAGE: docker_driver_integration_tests/
-            - task: run_docker_driver_lazy_unmount_integration_tests
-              file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-              privileged: true
-              params:
-                TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
-            - task: run_driver_broker_compatibility_tests
-              privileged: true
-              input_mapping:
-                director-state: bbl-state
-              params:
-                TEST_PACKAGE: docker_driver_integration_tests/compatibility
-              file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
-
-  - name: claim-env
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: persi-ci
-            - get: nfs-volume-release
-              trigger: true
-              passed:
-                - nfsdriver-integration
-                - nfs-volume-release-job-tests
-      - put: smith-env
         params:
-          action: claim
-
-      - task: output-env-details
-        file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+          TEST_PACKAGE: docker_driver_integration_tests/
+      - task: run_docker_driver_lazy_unmount_integration_tests
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+        privileged: true
+        params:
+          TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
+      - task: run_driver_broker_compatibility_tests
+        privileged: true
         input_mapping:
-          pooled-env: smith-env
+          director-state: bbl-state
+        params:
+          TEST_PACKAGE: docker_driver_integration_tests/compatibility
+        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
 
-  - name: deploy-cf
-    public: true
-    build_logs_to_retain: 100
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: smith-env
-              passed: [ claim-env ]
-              trigger: true
-            - get: cf-deployment-concourse-tasks
-            - get: cf-deployment
-            - get: persi-ci
-            - get: nfs-volume-release
-              passed: [ claim-env ]
-      - task: bosh-deploy
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: cryogenics/essentials-cf6
-              tag: latest
-          inputs:
-            - name: nfs-volume-release
-            - name: persi-ci
-            - name: smith-env
-          params:
-            TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-          run:
-            path: bash
-            args:
-              - -exc
-              - |
-                BOSH_ENV_NAME=$(cat smith-env/name)
-                export TOOLSMITHS_ENVIRONMENT_NAME=$BOSH_ENV_NAME
-                eval "$(smith bosh)"
-                export BOSH_DEPLOYMENT=$(smith bosh deployments -- --column=Name --json | jq -r ."Tables[0].Rows[0].name")
-                pushd nfs-volume-release
-                  bosh create-release
-                  bosh upload-release
-                  bosh manifest > /tmp/cf.yml
-                popd
-                bosh deploy -n /tmp/cf.yml \
+- name: claim-env
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: nfs-volume-release
+        trigger: true
+        passed:
+        - nfsdriver-integration
+        - nfs-volume-release-job-tests
+  - put: smith-env
+    params:
+      action: claim
+
+  - task: output-env-details
+    file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+    input_mapping:
+      pooled-env: smith-env
+
+- name: deploy-cf
+  public: true
+  build_logs_to_retain: 100
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: smith-env
+        passed: [claim-env]
+        trigger: true
+      - get: cf-deployment-concourse-tasks
+      - get: cf-deployment
+      - get: persi-ci
+      - get: nfs-volume-release
+        passed: [claim-env]
+  - task: bosh-deploy
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: cryogenics/essentials-cf6
+          tag: latest
+      inputs:
+      - name: nfs-volume-release
+      - name: persi-ci
+      - name: smith-env
+      params:
+        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+      run:
+        path: bash
+        args:
+        - -exc
+        - |
+            BOSH_ENV_NAME=$(cat smith-env/name)
+            export TOOLSMITHS_ENVIRONMENT_NAME=$BOSH_ENV_NAME
+            eval "$(smith bosh)"
+            export BOSH_DEPLOYMENT=$(smith bosh deployments -- --column=Name --json | jq -r ."Tables[0].Rows[0].name")
+            pushd nfs-volume-release
+              bosh create-release
+              bosh upload-release
+              bosh manifest > /tmp/cf.yml
+            popd
+            bosh deploy -n /tmp/cf.yml \
                 -o persi-ci/operations/pas/use-latest-releases.yml \
                 -o persi-ci/operations/pas/nfs-ldap-pas-mixin.yml \
                 -o persi-ci/operations/pas/remove-paths-from-releases.yml
-                bosh run-errand nfsbrokerpush
+            bosh run-errand nfsbrokerpush
 
-  - name: pats-nfs-ldap-ephemeral-environment
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: cf-volume-services-acceptance-tests
-            - get: persi-ci
-            - get: smith-env
-
-              passed: [ deploy-cf ]
-              trigger: true
-            - get: nfs-volume-release
-              passed: [ deploy-cf ]
-      - task: generate-pats-config-nfs
-
-        file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
-        params:
-          CF_USERNAME: admin
-          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
-          CREATE_CONFIG: '{\"share\":\"mysql.service.cf.internal/export/users\"}'
-          DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-          PLAN_NAME: Existing
-          SERVICE_NAME: nfs
-          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-        output_mapping:
-          pats-config: nfs-pats-config
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - task: run-pats-nfs-ephemeral
-              input_mapping:
-                pats-config: nfs-pats-config
-              file: persi-ci/scripts/ci/run-pats.build.yml
-              attempts: 3
-              params:
-                TEST_DOCKER_PORA: true
-
-  - name: pats-nfs-ldap-legacy-ephemeral-environment
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: cf-volume-services-acceptance-tests
-            - get: persi-ci
-            - get: smith-env
-
-              passed: [ deploy-cf ]
-              trigger: true
-            - get: nfs-volume-release
-              passed: [ deploy-cf ]
-      - task: generate-pats-config-nfs
-
-        file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
-        params:
-          CF_USERNAME: admin
-          BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
-          CREATE_CONFIG: '{\"share\":\"mysql.service.cf.internal/export/users\"}'
-          DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
-          PLAN_NAME: Existing
-          SERVICE_NAME: nfs-legacy
-          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
-        output_mapping:
-          pats-config: nfs-pats-config
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - task: run-pats-nfs-ephemeral
-              input_mapping:
-                pats-config: nfs-pats-config
-              file: persi-ci/scripts/ci/run-pats.build.yml
-              attempts: 3
-              params:
-                TEST_DOCKER_PORA: true
-
-  - name: unclaim-env
-    plan:
+- name: pats-nfs-ldap-ephemeral-environment
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-volume-services-acceptance-tests
+      - get: persi-ci
       - get: smith-env
 
-        passed:
-          - pats-nfs-ldap-legacy-ephemeral-environment
-          - pats-nfs-ldap-ephemeral-environment
+        passed: [deploy-cf]
         trigger: true
-      - put: smith-env
-        params:
-          action: unclaim
-          env_file: smith-env/metadata
+      - get: nfs-volume-release
+        passed: [deploy-cf]
+  - task: generate-pats-config-nfs
 
-  - name: manual-bump-nfs-patch
-    serial_groups:
-      - nfs-version
-    plan:
-      - get: nfs-volume-version
+    file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
+    params:
+      CF_USERNAME: admin
+      BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+      CREATE_CONFIG: '{\"share\":\"mysql.service.cf.internal/export/users\"}'
+      DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs
+      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+    output_mapping:
+      pats-config: nfs-pats-config
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: run-pats-nfs-ephemeral
+        input_mapping:
+          pats-config: nfs-pats-config
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        attempts: 3
+        params:
+          TEST_DOCKER_PORA: true
+
+- name: pats-nfs-ldap-legacy-ephemeral-environment
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: cf-volume-services-acceptance-tests
+      - get: persi-ci
+      - get: smith-env
+
+        passed: [deploy-cf]
+        trigger: true
+      - get: nfs-volume-release
+        passed: [deploy-cf]
+  - task: generate-pats-config-nfs
+
+    file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
+    params:
+      CF_USERNAME: admin
+      BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
+      CREATE_CONFIG: '{\"share\":\"mysql.service.cf.internal/export/users\"}'
+      DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
+      PLAN_NAME: Existing
+      SERVICE_NAME: nfs-legacy
+      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+    output_mapping:
+      pats-config: nfs-pats-config
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - task: run-pats-nfs-ephemeral
+        input_mapping:
+          pats-config: nfs-pats-config
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        attempts: 3
+        params:
+          TEST_DOCKER_PORA: true
+
+- name: unclaim-env
+  plan:
+  - get: smith-env
+
+    passed:
+    - pats-nfs-ldap-legacy-ephemeral-environment
+    - pats-nfs-ldap-ephemeral-environment
+    trigger: true
+  - put: smith-env
+    params:
+      action: unclaim
+      env_file: smith-env/metadata
+
+- name: manual-bump-nfs-patch
+  serial_groups:
+  - nfs-version
+  plan:
+  - get: nfs-volume-version
+    resource: nfsvolume-version
+    params:
+      bump: final
+  - put: nfsvolume-version
+    params:
+      bump: patch
+
+- name: merge-pr
+  plan:
+  - get: nfs-volume-release
+    trigger: true
+    passed:
+    - pats-nfs-ldap-legacy-ephemeral-environment
+    - pats-nfs-ldap-ephemeral-environment
+  - put: nfs-volume-release
+    params:
+      merge: true
+      repository: nfs-volume-release
+
+- name: check-for-changes
+  plan:
+  - in_parallel:
+    - get: every-week
+      trigger: true
+    - get: nfs-volume-release-lts
+    - get: nfs-volume-release-lts-production-files-only
+
+
+- name: shipit-nfs
+  serial_groups:
+  - nfs-version
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: cryogenics-concourse-tasks
+      - get: nfs-volume-release-lts-production-files-only
+        trigger: true
+        passed:
+        - check-for-changes
+      - get: release
+        resource: nfs-volume-release-lts
+        passed:
+        - check-for-changes
+      - get: version
         resource: nfsvolume-version
         params:
           bump: final
-      - put: nfsvolume-version
-        params:
-          bump: patch
-
-  - name: merge-pr
-    plan:
-    - get: nfs-volume-release
-      trigger: true
-      passed:
-      - pats-nfs-ldap-legacy-ephemeral-environment
-      - pats-nfs-ldap-ephemeral-environment
-    - put: nfs-volume-release
-      params:
-        merge: true
-        repository: nfs-volume-release
-
-  - name: check-for-changes
-    plan:
-    - in_parallel:
-      - get: every-week
-        trigger: true
-      - get: nfs-volume-release-lts
-      - get: nfs-volume-release-lts-production-files-only
-
-
-  - name: shipit-nfs
-    serial_groups:
-      - nfs-version
-    plan:
-      - in_parallel:
-          fail_fast: true
-          steps:
-            - get: persi-ci
-            - get: cryogenics-concourse-tasks
-            - get: nfs-volume-release-lts-production-files-only
-              trigger: true
-              passed:
-              - check-for-changes
-            - get: release
-              resource: nfs-volume-release-lts
-              passed:
-              - check-for-changes
-            - get: version
-              resource: nfsvolume-version
-              params:
-                bump: final
-      - task: create-final-release
-        file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
-        input_mapping:
-          release-repo: release
-        output_mapping:
-          updated-release-repo: nfs-final-release
-          updated-release-tarball: nfs-final-release-tarball
-        params:
-          AWS_ACCESS_KEY_ID: ((aws/lts-nfsvolume-uploader.id))
-          AWS_SECRET_ACCESS_KEY: ((aws/lts-nfsvolume-uploader.secret))
-          GIT_USERNAME: ((github.user))
-          GIT_EMAIL: ((github.email))
-          FINAL: true
-          RELEASE_NAME: nfs-volume
-      - task: create-release-notes
-        file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
-        input_mapping:
-          git-repo: release
-        params:
-          USE_LATEST_PUBLISHED_TAG: true
-      - task: format-release-notes
-        file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
-        input_mapping:
-          template-folder: cryogenics-concourse-tasks
-        params:
-          TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
-      - put: nfs-volume-version
-        resource: nfsvolume-version
-        params:
-          file: version/number
-      - put: nfs-volume-release-lts
-        params:
-          repository: nfs-final-release
-          tag: version/number
-          tag_prefix: v
-      - put: github-release-nfs
-        params:
-          name: version/number
-          tag: version/number
-          body: release-notes/release-notes.md
-          tag_prefix: v
-          globs:
-            - nfs-final-release-tarball/nfs-volume-*.tgz
-      - put: nfsvolume-version
-        params:
-          bump: patch
-      - in_parallel:
-        - load_var: github-release-url
-          file: github-release-nfs/url
-        - load_var: version-number
-          file: nfsvolume-version/number
-      - put: slack-cryo-notification
-        params:
-          text: |
-            *nfs-volume*: version `((.:version-number))` has been published 🎉
-            Next steps (cc <!subteam^S028XABEHAP>):
-              1. Review the release notes and undraft the release <((.:github-release-url))|here>.
+  - task: create-final-release
+    file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
+    input_mapping:
+      release-repo: release
+    output_mapping:
+      updated-release-repo: nfs-final-release
+      updated-release-tarball: nfs-final-release-tarball
+    params:
+      AWS_ACCESS_KEY_ID: ((aws/lts-nfsvolume-uploader.id))
+      AWS_SECRET_ACCESS_KEY: ((aws/lts-nfsvolume-uploader.secret))
+      GIT_USERNAME: ((github.user))
+      GIT_EMAIL: ((github.email))
+      FINAL: true
+      RELEASE_NAME: nfs-volume
+  - task: create-release-notes
+    file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
+    input_mapping:
+      git-repo: release
+    params:
+      USE_LATEST_PUBLISHED_TAG: true
+  - task: format-release-notes
+    file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
+    input_mapping:
+      template-folder: cryogenics-concourse-tasks
+    params:
+      TEMPLATE_PATH: release-automation/release-notes-templates/release-notes-auto.md.erb
+  - put: nfs-volume-version
+    resource: nfsvolume-version
+    params:
+      file: version/number
+  - put: nfs-volume-release-lts
+    params:
+      repository: nfs-final-release
+      tag: version/number
+      tag_prefix: v
+  - put: github-release-nfs
+    params:
+      name: version/number
+      tag: version/number
+      body: release-notes/release-notes.md
+      tag_prefix: v
+      globs:
+      - nfs-final-release-tarball/nfs-volume-*.tgz
+  - put: nfsvolume-version
+    params:
+      bump: patch
+  - in_parallel:
+    - load_var: github-release-url
+      file: github-release-nfs/url
+    - load_var: version-number
+      file: nfsvolume-version/number
+  - put: slack-cryo-notification
+    params:
+      text: |
+        *nfs-volume*: version `((.:version-number))` has been published 🎉
+        Next steps (cc <!subteam^S028XABEHAP>):
+          1. Review the release notes and undraft the release <((.:github-release-url))|here>.

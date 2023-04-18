@@ -1,3 +1,4 @@
+---
 resource_types:
 - name: pull-request
   type: docker-image
@@ -30,16 +31,16 @@ jobs:
 
 - name: security-scan
   plan:
-    - in_parallel:
-        - get: persi-ci
-        - get: smbbroker
-          trigger: true
-    - task: build
-      file: persi-ci/scripts/ci/security-scan.build.yml
-      params:
-        PATHS: "./"
-      input_mapping:
-        release-dir: smbbroker
+  - in_parallel:
+    - get: persi-ci
+    - get: smbbroker
+      trigger: true
+  - task: build
+    file: persi-ci/scripts/ci/security-scan.build.yml
+    params:
+      PATHS: "./"
+    input_mapping:
+      release-dir: smbbroker
 
 - name: merge-pr
   plan:
