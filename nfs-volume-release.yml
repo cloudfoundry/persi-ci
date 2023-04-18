@@ -96,6 +96,25 @@ resources:
     private_key: ((github.ssh_key))
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
+# Resource used to track production changes in the release job so that we don't
+# trigger a release with only changes (CI, tests, etc) that are not relevant to
+# customers.
+- name: nfs-volume-release-production-files-only
+  type: git
+  source:
+    branch: master
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+    paths:
+      - .final_builds
+      - LICENSE
+      - NOTICE
+      - config
+      - jobs
+      - packages
+      - releases
+      - src
+
 - name: nfs-volume-release-master
   type: git
   source:
@@ -1036,6 +1055,7 @@ jobs:
     - get: every-week
       trigger: true
     - get: nfs-volume-release-master
+    - get: nfs-volume-release-production-files-only
 
 - name: shipit-nfs
   serial_groups:
@@ -1050,9 +1070,12 @@ jobs:
         steps:
           - get: persi-ci
           - get: cryogenics-concourse-tasks
+          - get: nfs-volume-release-production-files-only
+            trigger: true
+            passed:
+              - check-for-changes
           - get: release
             resource: nfs-volume-release-master
-            trigger: true
             passed:
               - check-for-changes
           - get: nfsvolume-version
