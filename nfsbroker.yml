@@ -1,3 +1,4 @@
+---
 resource_types:
 - name: pull-request
   type: docker-image
@@ -28,16 +29,16 @@ resources:
 jobs:
 - name: security-scan
   plan:
-    - in_parallel:
-        - get: persi-ci
-        - get: nfsbroker
-          trigger: true
-    - task: build
-      file: persi-ci/scripts/ci/security-scan.build.yml
-      params:
-        PATHS: "./"
-      input_mapping:
-        release-dir: nfsbroker
+  - in_parallel:
+    - get: persi-ci
+    - get: nfsbroker
+      trigger: true
+  - task: build
+    file: persi-ci/scripts/ci/security-scan.build.yml
+    params:
+      PATHS: "./"
+    input_mapping:
+      release-dir: nfsbroker
 
 - name: unit-and-integration-test
   public: true

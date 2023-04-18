@@ -1,3 +1,4 @@
+---
 groups:
 - name: auto-tagging
   jobs:
@@ -171,65 +172,65 @@ jobs:
 - name: bump-existingvolumebroker-gate
   serial: true
   plan:
-    - get: every-monday
-      trigger: true
-    - get: existingvolumebroker
-  
+  - get: every-monday
+    trigger: true
+  - get: existingvolumebroker
+
 - name: bump-minor-existingvolumebroker-version
   serial: true
   plan:
-    - get: existingvolumebroker
-      passed: [bump-existingvolumebroker-gate]
-      trigger: true
-    - get: existingvolumebroker-version
-    - put: existingvolumebroker
-      params:
-        repository: existingvolumebroker
-        tag: existingvolumebroker-version/version
-        tag_prefix: "v"
-        only_tag: true
-    - put: existingvolumebroker-version
-      params:
-        bump: minor
+  - get: existingvolumebroker
+    passed: [bump-existingvolumebroker-gate]
+    trigger: true
+  - get: existingvolumebroker-version
+  - put: existingvolumebroker
+    params:
+      repository: existingvolumebroker
+      tag: existingvolumebroker-version/version
+      tag_prefix: "v"
+      only_tag: true
+  - put: existingvolumebroker-version
+    params:
+      bump: minor
 
 - name: service-broker-store-unit
   public: true
   plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: persi-ci
-          - get: service-broker-store
-            resource: service-broker-store-pr
-            trigger: true
-    - task: service-broker-store-unit
-      file: persi-ci/scripts/ci/run_unit_ginkgo_v2.build.yml
-      input_mapping:
-        gomod: service-broker-store
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: service-broker-store
+        resource: service-broker-store-pr
+        trigger: true
+  - task: service-broker-store-unit
+    file: persi-ci/scripts/ci/run_unit_ginkgo_v2.build.yml
+    input_mapping:
+      gomod: service-broker-store
 
 - name: bump-service-broker-store-gate
   serial: true
   plan:
-    - get: every-monday
-      trigger: true
-    - get: service-broker-store
+  - get: every-monday
+    trigger: true
+  - get: service-broker-store
 
 - name: bump-minor-service-broker-store-version
   serial: true
   plan:
-    - get: service-broker-store
-      passed: [bump-service-broker-store-gate]
-      trigger: true
-    - get: service-broker-store-version
-    - put: service-broker-store
-      params:
-        repository: service-broker-store
-        tag: service-broker-store-version/version
-        tag_prefix: "v"
-        only_tag: true
-    - put: service-broker-store-version
-      params:
-        bump: minor
+  - get: service-broker-store
+    passed: [bump-service-broker-store-gate]
+    trigger: true
+  - get: service-broker-store-version
+  - put: service-broker-store
+    params:
+      repository: service-broker-store
+      tag: service-broker-store-version/version
+      tag_prefix: "v"
+      only_tag: true
+  - put: service-broker-store-version
+    params:
+      bump: minor
 
 - name: volumedriver-unit
   public: true
@@ -251,26 +252,26 @@ jobs:
 - name: bump-volumedriver-gate
   serial: true
   plan:
-    - get: every-monday
-      trigger: true
-    - get: volumedriver
+  - get: every-monday
+    trigger: true
+  - get: volumedriver
 
 - name: bump-minor-volumedriver-version
   serial: true
   plan:
-    - get: volumedriver
-      passed: [bump-volumedriver-gate]
-      trigger: true
-    - get: volumedriver-version
-    - put: volumedriver
-      params:
-        repository: volumedriver
-        tag: volumedriver-version/version
-        tag_prefix: "v"
-        only_tag: true
-    - put: volumedriver-version
-      params:
-        bump: minor
+  - get: volumedriver
+    passed: [bump-volumedriver-gate]
+    trigger: true
+  - get: volumedriver-version
+  - put: volumedriver
+    params:
+      repository: volumedriver
+      tag: volumedriver-version/version
+      tag_prefix: "v"
+      only_tag: true
+  - put: volumedriver-version
+    params:
+      bump: minor
 
 - name: volume-mount-options-unit
   public: true
@@ -290,84 +291,84 @@ jobs:
 - name: bump-volume-mount-options-gate
   serial: true
   plan:
-    - get: every-monday
-      trigger: true
-    - get: volume-mount-options
+  - get: every-monday
+    trigger: true
+  - get: volume-mount-options
 
 - name: bump-minor-volume-mount-options-version
   serial: true
   plan:
-    - get: volume-mount-options
-      passed: [bump-volume-mount-options-gate]
-      trigger: true
-    - get: volume-mount-options-version
-    - put: volume-mount-options
-      params:
-        repository: volume-mount-options
-        tag: volume-mount-options-version/version
-        tag_prefix: "v"
-        only_tag: true
-    - put: volume-mount-options-version
-      params:
-        bump: minor
+  - get: volume-mount-options
+    passed: [bump-volume-mount-options-gate]
+    trigger: true
+  - get: volume-mount-options-version
+  - put: volume-mount-options
+    params:
+      repository: volume-mount-options
+      tag: volume-mount-options-version/version
+      tag_prefix: "v"
+      only_tag: true
+  - put: volume-mount-options-version
+    params:
+      bump: minor
 
 - name: goshims-build
   public: true
   plan:
-    - in_parallel:
-        fail_fast: true
-        steps:
-          - get: persi-ci
-          - get: goshims
-            resource: goshims-pr
-            trigger: true
-    - task: build
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source:
-            repository: golang
-            tag: latest
-        inputs:
-          - name: goshims
-        run:
-          path: bash
-          args:
-            - -exc
-            - |
-              cd goshims
-              go build ./...
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: goshims
+        resource: goshims-pr
+        trigger: true
+  - task: build
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: golang
+          tag: latest
+      inputs:
+      - name: goshims
+      run:
+        path: bash
+        args:
+        - -exc
+        - |
+          cd goshims
+          go build ./...
 
 - name: bump-goshims-gate
   serial: true
   plan:
-    - get: every-monday
-      trigger: true
-    - get: goshims
+  - get: every-monday
+    trigger: true
+  - get: goshims
 
 - name: bump-minor-goshims-version
   serial: true
   plan:
-    - get: goshims
-      passed: [bump-goshims-gate]
-      trigger: true
-    - get: goshims-version
-    - put: goshims
-      params:
-        repository: goshims
-        tag: goshims-version/version
-        tag_prefix: "v"
-        only_tag: true
-    - put: goshims-version
-      params:
-        bump: minor
+  - get: goshims
+    passed: [bump-goshims-gate]
+    trigger: true
+  - get: goshims-version
+  - put: goshims
+    params:
+      repository: goshims
+      tag: goshims-version/version
+      tag_prefix: "v"
+      only_tag: true
+  - put: goshims-version
+    params:
+      bump: minor
 
 - name: volumedriver-merge-pr
   plan:
   - get: volumedriver-pr
     passed:
-      - volumedriver-unit
+    - volumedriver-unit
     trigger: true
   - put: volumedriver-pr
     params:
@@ -378,7 +379,7 @@ jobs:
   plan:
   - get: goshims-pr
     passed:
-      - goshims-build
+    - goshims-build
     trigger: true
   - put: goshims-pr
     params:
@@ -389,7 +390,7 @@ jobs:
   plan:
   - get: existingvolumebroker-pr
     passed:
-      - existingvolumebroker-unit
+    - existingvolumebroker-unit
     trigger: true
   - put: existingvolumebroker-pr
     params:
@@ -400,7 +401,7 @@ jobs:
   plan:
   - get: service-broker-store-pr
     passed:
-      - service-broker-store-unit
+    - service-broker-store-unit
     trigger: true
   - put: service-broker-store-pr
     params:
@@ -411,7 +412,7 @@ jobs:
   plan:
   - get: volume-mount-options-pr
     passed:
-      - volume-mount-options-unit
+    - volume-mount-options-unit
     trigger: true
   - put: volume-mount-options-pr
     params:

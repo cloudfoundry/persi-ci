@@ -1,3 +1,4 @@
+---
 resources:
 
 - name: nightly
@@ -77,43 +78,43 @@ jobs:
 
 - name: build-nfs-driver-integration-tests-docker-image
   plan:
-    - get: nightly
-      trigger: true
-    - get: nfs-volume-release
-      trigger: true
-    - put: nfs-driver-integration-tests-docker-image
-      params:
-        build: nfs-volume-release/dockerfiles/nfs-integration-tests
+  - get: nightly
+    trigger: true
+  - get: nfs-volume-release
+    trigger: true
+  - put: nfs-driver-integration-tests-docker-image
+    params:
+      build: nfs-volume-release/dockerfiles/nfs-integration-tests
 
 - name: build-bosh-release-test-docker-image
   plan:
-    - get: nightly
-      trigger: true
-    - get: persi-ci
-      trigger: true
-    - put: bosh-release-test-docker-image
-      params:
-        build: persi-ci/dockerfiles/bosh-release-tests
+  - get: nightly
+    trigger: true
+  - get: persi-ci
+    trigger: true
+  - put: bosh-release-test-docker-image
+    params:
+      build: persi-ci/dockerfiles/bosh-release-tests
 
 - name: build-nfs-unit-tests-docker-image
   plan:
-    - get: nightly
-      trigger: true
-    - get: nfs-volume-release
-      trigger: true
-    - put: nfs-unit-tests-docker-image
-      params:
-        build: nfs-volume-release/dockerfiles/nfs-unit-tests
+  - get: nightly
+    trigger: true
+  - get: nfs-volume-release
+    trigger: true
+  - put: nfs-unit-tests-docker-image
+    params:
+      build: nfs-volume-release/dockerfiles/nfs-unit-tests
 
 - name: build-nfs-cats-docker-image
   plan:
-    - get: nightly
-      trigger: true
-    - get: nfs-volume-release
-      trigger: true
-    - put: nfs-cats-docker-image
-      params:
-        build: nfs-volume-release/dockerfiles/nfs-cats
+  - get: nightly
+    trigger: true
+  - get: nfs-volume-release
+    trigger: true
+  - put: nfs-cats-docker-image
+    params:
+      build: nfs-volume-release/dockerfiles/nfs-cats
 
 - name: build-mapfs-tests-docker-image
   plan:
@@ -127,10 +128,10 @@ jobs:
 
 - name: build-smb-unit-tests-docker-image
   plan:
-    - get: nightly
-      trigger: true
-    - get: smb-volume-release
-      trigger: true
-    - put: smb-unit-tests-docker-image
-      params:
-        build: smb-volume-release/dockerfiles/smb-unit-tests
+  - get: nightly
+    trigger: true
+  - get: smb-volume-release
+    trigger: true
+  - put: smb-unit-tests-docker-image
+    params:
+      build: smb-volume-release/dockerfiles/smb-unit-tests

@@ -1,3 +1,4 @@
+---
 resources:
 - name: oslo-scan-status
   type: git
@@ -19,7 +20,7 @@ jobs:
       platform: linux
       image_resource:
         type: docker-image
-        source: { repository: ubuntu }
+        source: {repository: ubuntu}
       inputs:
       - name: oslo-scan-status
       run:
@@ -35,7 +36,9 @@ jobs:
             echo "No failures found"
             exit 0
           else
-            echo "$num_failures failures found! Please check your norsk-viewers pipelines specified in the status.json and resolve the errors. Contact the OSL team if you need help."
+            echo "$num_failures failures found!"
+            echo "Please check your norsk-viewers pipelines specified in the status.json and resolve the errors."
+            echo "Contact the OSL team if you need help."
             exit 1
           fi
 
@@ -48,7 +51,7 @@ jobs:
       platform: linux
       image_resource:
         type: docker-image
-        source: { repository: ubuntu }
+        source: {repository: ubuntu}
       inputs:
       - name: oslo-scan-status
       run:
@@ -64,7 +67,9 @@ jobs:
             echo "No failures found"
             exit 0
           else
-            echo "$num_failures failures found! Please check your norsk-viewers pipelines specified in the status.json and resolve the errors. Contact the OSL team if you need help."
+            echo "$num_failures failures found!"
+            echo "Please check your norsk-viewers pipelines specified in the status.json and resolve the errors."
+            echo "Contact the OSL team if you need help."
             exit 1
           fi
 
@@ -77,7 +82,7 @@ jobs:
       platform: linux
       image_resource:
         type: docker-image
-        source: { repository: ubuntu }
+        source: {repository: ubuntu}
       inputs:
       - name: oslo-scan-status
       run:
@@ -93,6 +98,8 @@ jobs:
             echo "No failures found"
             exit 0
           else
-            echo "$num_failures failures found! Please check your norsk-viewers pipelines specified in the status.json and resolve the errors. Contact the OSL team if you need help."
+            echo "$num_failures failures found!"
+            echo "Please check your norsk-viewers pipelines specified in the status.json and resolve the errors."
+            echo "Contact the OSL team if you need help."
             exit 1
           fi
