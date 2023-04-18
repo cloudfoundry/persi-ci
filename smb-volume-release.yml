@@ -18,17 +18,29 @@ groups:
   - update-go-directive-for-smbbroker-for-gomod-directive-updates
 - name: release
   jobs:
+  - check-for-changes
   - shipit-smb
   - manual-bump-smb-patch
   - manual-bump-smb-minor
   - manual-bump-smb-major
 
 resources:
+- name: slack-cryo-notification
+  type: slack-notification
+  icon: bell-ring
+  source:
+    url: ((slack.webhook))
+
 - name: every-hour
   type: time
   icon: clock-outline
   source:
     interval: 1h
+
+- name: every-week
+  type: time
+  source:
+    interval: 168h  # 24h*7days
 
 - name: smith-env
   type: pcf-pool
@@ -57,8 +69,22 @@ resources:
     branch: master
     private_key: ((github.ssh_key))
     uri: git@github.com:cloudfoundry/smb-volume-release.git
-    ignore_paths:
-    - scripts
+
+- name: smb-volume-release-master-production-files-only
+  type: git
+  source:
+    branch: master
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/smb-volume-release.git
+    paths:
+    - .final_builds
+    - LICENSE
+    - NOTICE
+    - config
+    - jobs
+    - packages
+    - releases
+    - src
 
 - name: smb-volume-version
   type: semver
@@ -169,6 +195,12 @@ resources:
     private_key: ((github.ssh_key))
 
 resource_types:
+- name: slack-notification
+  type: registry-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
 - name: pcf-pool
   type: docker-image
   source:
@@ -569,6 +601,14 @@ jobs:
       merge: true
       repository: smb-volume-release
 
+- name: check-for-changes
+  plan:
+  - in_parallel:
+    - get: every-week
+      trigger: true
+    - get: smb-volume-release-master
+    - get: smb-volume-release-master-production-files-only
+
 - name: shipit-smb
   serial_groups:
   - smb-version
@@ -578,8 +618,14 @@ jobs:
       steps:
       - get: persi-ci
       - get: cryogenics-concourse-tasks
+      - get: smb-volume-release-master-production-files-only
+        trigger: true
+        passed:
+        - check-for-changes
       - get: release
         resource: smb-volume-release-master
+        passed:
+        - check-for-changes
       - get: version
         resource: smb-volume-version
         params:
@@ -627,6 +673,17 @@ jobs:
       tag_prefix: v
       globs:
       - smb-final-release-tarball/smb-volume-*.tgz
+  - in_parallel:
+    - load_var: github-release-url
+      file: github-release-smb/url
+    - load_var: version-number
+      file: smb-volume-version/number
+  - put: slack-cryo-notification
+    params:
+      text: |
+        *smb-volume*: version `((.:version-number))` has been published 🎉
+        Next steps (cc <!subteam^S028XABEHAP>):
+          1. Review the release notes and undraft the release <((.:github-release-url))|here>.
   - put: smb-volume-version
     params:
       bump: patch
