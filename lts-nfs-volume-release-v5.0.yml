@@ -20,15 +20,27 @@ groups:
   - name: release
     jobs:
     - manual-bump-nfs-patch
+    - check-for-changes
     - shipit-nfs
 
 resources:
+  - name: slack-cryo-notification
+    type: slack-notification
+    icon: bell-ring
+    source:
+      url: ((slack.webhook))
+
   - name: cryogenics-concourse-tasks
     type: git
     icon: github
     source:
       uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
       private_key: ((github.ssh_key))
+
+  - name: every-week
+    type: time
+    source:
+      interval: 168h # 24h*7days
 
   - name: nfs-volume-release-concourse-tasks
     type: git
@@ -81,8 +93,26 @@ resources:
       branch: {{lts-nfs-branch}}
       private_key: ((github.ssh_key))
       uri: git@github.com:cloudfoundry/nfs-volume-release.git
-      ignore_paths:
-        - scripts
+
+  - name: nfs-volume-release-lts-production-files-only
+    type: git
+    source:
+      submodule_credentials:
+      - host: github.com
+        username: ((github.https_username))
+        password: ((github.https_password))
+      branch: {{lts-nfs-branch}}
+      private_key: ((github.ssh_key))
+      uri: git@github.com:cloudfoundry/nfs-volume-release.git
+      paths:
+      - .final_builds
+      - LICENSE
+      - NOTICE
+      - config
+      - jobs
+      - packages
+      - releases
+      - src
 
   - name: nfsvolume-version
     type: semver
@@ -162,6 +192,12 @@ resources:
     type: git
 
 resource_types:
+  - name: slack-notification
+    type: registry-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: latest
+
   - name: git
     type: docker-image
     source:
@@ -215,7 +251,7 @@ jobs:
           # we're making this step best-effort.
           # This also makes the job idempotent. If we retrigger the job but if
           # there are no new version of golang-release, this step will fail
-          # saying "Your branch is up to date with
+          # saying "Your branch is up-to-date with
           # 'origin/golang-vendor-update'."
           task: create-golang-vendor-pull-request
           file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
@@ -263,7 +299,7 @@ jobs:
         # we're making this step best-effort.
         # This also makes the job idempotent. If we retrigger the job but if
         # there are no new version of golang-release, this step will fail
-        # saying "Your branch is up to date with
+        # saying "Your branch is up-to-date with
         # 'origin/golang-vendor-update'."
         task: create-gomod-directive-update-pull-request
         file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
@@ -303,7 +339,7 @@ jobs:
         # we're making this step best-effort.
         # This also makes the job idempotent. If we retrigger the job but if
         # there are no new version of golang-release, this step will fail
-        # saying "Your branch is up to date with
+        # saying "Your branch is up-to-date with
         # 'origin/golang-vendor-update'."
         task: create-gomod-directive-update-pull-request
         file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
@@ -589,6 +625,15 @@ jobs:
         merge: true
         repository: nfs-volume-release
 
+  - name: check-for-changes
+    plan:
+    - in_parallel:
+      - get: every-week
+        trigger: true
+      - get: nfs-volume-release-lts
+      - get: nfs-volume-release-lts-production-files-only
+
+
   - name: shipit-nfs
     serial_groups:
       - nfs-version
@@ -598,8 +643,14 @@ jobs:
           steps:
             - get: persi-ci
             - get: cryogenics-concourse-tasks
+            - get: nfs-volume-release-lts-production-files-only
+              trigger: true
+              passed:
+              - check-for-changes
             - get: release
               resource: nfs-volume-release-lts
+              passed:
+              - check-for-changes
             - get: version
               resource: nfsvolume-version
               params:
@@ -650,3 +701,14 @@ jobs:
       - put: nfsvolume-version
         params:
           bump: patch
+      - in_parallel:
+        - load_var: github-release-url
+          file: github-release-nfs/url
+        - load_var: version-number
+          file: nfsvolume-version/number
+      - put: slack-cryo-notification
+        params:
+          text: |
+            *nfs-volume*: version `((.:version-number))` has been published 🎉
+            Next steps (cc <!subteam^S028XABEHAP>):
+              1. Review the release notes and undraft the release <((.:github-release-url))|here>.
