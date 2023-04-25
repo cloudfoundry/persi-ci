@@ -703,7 +703,7 @@ jobs:
     - load_var: github-release-url
       file: github-release-nfs/url
     - load_var: version-number
-      file: nfsvolume-version/number
+      file: version/number
   - put: slack-cryo-notification
     params:
       text: |
