@@ -10,12 +10,9 @@ fi
 export CONFIG="${PWD}/${CONFIG_FILE_PATH}"
 
 pushd cf-volume-services-acceptance-tests
-  export GOPATH="${PWD}"
-  export PATH="${GOPATH}/bin:${PATH}"
-
   if [[ -n "${PARALLEL_NODES}" ]]; then
-    ./bin/test -flakeAttempts=3 --slowSpecThreshold=300 -nodes "${PARALLEL_NODES}" .
+    ./bin/test --flakeAttempts 3 --slow-spec-threshold 300s --nodes "${PARALLEL_NODES}" .
   else
-    ./bin/test -flakeAttempts=3 --slowSpecThreshold=300 -p .
+    ./bin/test --flakeAttempts 3 --slow-spec-threshold 300s -p .
   fi
 popd
