@@ -11,8 +11,8 @@ export CONFIG="${PWD}/${CONFIG_FILE_PATH}"
 
 pushd cf-volume-services-acceptance-tests
   if [[ -n "${PARALLEL_NODES}" ]]; then
-    ./bin/test --flakeAttempts 3 --slow-spec-threshold 300s --nodes "${PARALLEL_NODES}" .
+    ./bin/test --flake-attempts 3 --slow-spec-threshold 300s --nodes "${PARALLEL_NODES}" .
   else
-    ./bin/test --flakeAttempts 3 --slow-spec-threshold 300s -p .
+    ./bin/test --flake-attempts 3 --slow-spec-threshold 300s -p .
   fi
 popd
