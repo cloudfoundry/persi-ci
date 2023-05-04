@@ -25,12 +25,24 @@ groups:
   - update-go-directive-for-mapfs-release
 - name: release
   jobs:
+  - check-for-changes
   - shipit-mapfs
   - manual-bump-mapfs-patch
   - manual-bump-mapfs-minor
   - manual-bump-mapfs-major
 
 resources:
+- name: slack-cryo-notification
+  type: slack-notification
+  icon: bell-ring
+  source:
+    url: ((slack.webhook))
+
+- name: every-week
+  type: time
+  source:
+    interval: 168h # 24h*7days
+
 - name: every-hour
   type: time
   icon: clock-outline
@@ -85,8 +97,25 @@ resources:
     branch: master
     private_key: ((github.ssh_key))
     uri: git@github.com:cloudfoundry/mapfs-release.git
-    ignore_paths:
-    - scripts
+
+# Resource used to track production changes in the release job so that we don't
+# trigger a release with only changes (CI, tests, etc.) that are not relevant to
+# customers.
+- name: mapfs-release-master-production-files-only
+  type: git
+  source:
+    branch: master
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry/mapfs-release.git
+    paths:
+    - .final_builds
+    - LICENSE
+    - NOTICE
+    - config
+    - jobs
+    - packages
+    - releases
+    - src
 
 - name: mapfs-version
   type: semver
@@ -181,6 +210,12 @@ resources:
     branch: main
 
 resource_types:
+- name: slack-notification
+  type: registry-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
 - name: git
   type: docker-image
   source:
@@ -789,9 +824,22 @@ jobs:
       merge: true
       repository: mapfs-release
 
+- name: check-for-changes
+  plan:
+  - in_parallel:
+      - get: every-week
+        trigger: true
+      - get: mapfs-release-master
+      - get: mapfs-release-master-production-files-only
+
 - name: shipit-mapfs
   serial_groups:
   - mapfs-version
+  ensure:
+    do:
+    - put: mapfs-version
+      params:
+        bump: patch
   plan:
   - in_parallel:
       fail_fast: true
@@ -800,6 +848,10 @@ jobs:
       - get: cryogenics-concourse-tasks
       - get: release
         resource: mapfs-release-master
+      - get: mapfs-release-master-production-files-only
+        trigger: true
+        passed:
+        - check-for-changes
       - get: version
         resource: mapfs-version
         params:
@@ -847,9 +899,17 @@ jobs:
       tag_prefix: v
       globs:
       - mapfs-final-release-tarball/mapfs-*.tgz
-  - put: mapfs-version
+  - in_parallel:
+    - load_var: github-release-url
+      file: github-release-mapfs/url
+    - load_var: version-number
+      file: version/number
+  - put: slack-cryo-notification
     params:
-      bump: patch
+      text: |
+        *mapfs*: version `((.:version-number))` has been published 🎉
+        Next steps (cc <!subteam^S028XABEHAP>):
+          1. Review the release notes and undraft the release <((.:github-release-url))|here>.
 
 - name: manual-bump-mapfs-patch
   serial_groups:
