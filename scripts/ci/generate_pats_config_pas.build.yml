@@ -1,20 +1,15 @@
----
 platform: linux
-
 image_resource:
   type: docker-image
   source:
     repository: cryogenics/essentials
-    tag: latest
-
+    tag: 0.1.51
 inputs:
-- name: smith-env
-  optional: true
-- name: persi-ci
-
+  - name: smith-env
+    optional: true
+  - name: persi-ci
 outputs:
-- name: pats-config
-
+  - name: pats-config
 params:
   VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/pas_helpers.sh
   CF_USERNAME: admin
@@ -28,9 +23,8 @@ params:
   DEFAULT_TIMEOUT: 30
   DISALLOWED_LDAP_BIND_CONFIG:
   DISALLOWED_OVERRIDE_BIND_CONFIG:
-  PLAN_NAME: ~
-  SERVICE_NAME: ~
-  TOOLSMITHS_API_TOKEN: ~
-
+  PLAN_NAME:
+  SERVICE_NAME:
+  TOOLSMITHS_API_TOKEN:
 run:
   path: persi-ci/scripts/ci/generate_pats_config.sh

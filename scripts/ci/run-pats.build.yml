@@ -1,21 +1,17 @@
----
 platform: linux
-
 image_resource:
   type: docker-image
   source:
     repository: cryogenics/essentials
-
+    tag: 0.1.51
 inputs:
-- name: pats-config
-- name: persi-ci
-- name: cf-volume-services-acceptance-tests
-- name: cluster-info
-  optional: true
-
+  - name: pats-config
+  - name: persi-ci
+  - name: cf-volume-services-acceptance-tests
+  - name: cluster-info
+    optional: true
 outputs:
   - name: cluster-info
-
 params:
   CONFIG_FILE_PATH: pats-config/pats.json
   PARALLEL_NODES:
@@ -24,6 +20,5 @@ params:
   TEST_MOUNT_OPTIONS: false
   TEST_MULTI_CELL: false
   TEST_READ_ONLY: false
-
 run:
   path: persi-ci/scripts/ci/run-pats.sh

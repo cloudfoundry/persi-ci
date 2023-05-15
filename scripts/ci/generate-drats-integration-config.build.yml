@@ -1,12 +1,9 @@
----
 platform: linux
-
 image_resource:
   type: docker-image
   source:
     repository: cryogenics/essentials-cf6
-    tag: latest
-
+    tag: 0.1.51
 inputs:
   - name: smith-env
     path: cf-deployment-env
@@ -14,15 +11,12 @@ inputs:
   - name: disaster-recovery-acceptance-tests
   - name: integration-configs
   - name: persi-ci
-
 outputs:
   - name: updated-integration-configs
-
 params:
   CF_DEPLOYMENT_NAME: cf
   INTEGRATION_CONFIG_FILE_PATH: ci/integration_config.json
   CF_USERNAME: admin
   BBL_STATE_DIR: .
-
 run:
   path: persi-ci/scripts/ci/generate-drats-integration-config.sh

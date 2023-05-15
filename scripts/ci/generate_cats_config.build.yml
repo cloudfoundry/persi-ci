@@ -1,28 +1,22 @@
----
 platform: linux
-
 image_resource:
   type: docker-image
   source:
     repository: cryogenics/essentials
-    tag: latest
-
+    tag: 0.1.51
 inputs:
-- name: smith-env
-- name: persi-ci
-- name: bosh-env
-  optional: true
-
+  - name: smith-env
+  - name: persi-ci
+  - name: bosh-env
+    optional: true
 outputs:
-- name: cats-config
-
+  - name: cats-config
 params:
-  VAR_RESOLVER_SCRIPT: ~
+  VAR_RESOLVER_SCRIPT:
   CF_USERNAME: admin
-  PLAN_NAME: ~
-  SERVICE_NAME: ~
+  PLAN_NAME:
+  SERVICE_NAME:
   CREATE_CONFIG:
   BIND_CONFIG:
-
 run:
   path: persi-ci/scripts/ci/generate_cats_config.sh
