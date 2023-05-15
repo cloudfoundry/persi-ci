@@ -3,7 +3,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: alpine
+    repository: cryogenics/essentials
 
 inputs:
 - name: pooled-env
@@ -14,5 +14,4 @@ run:
     - "-c"
     - |
       set -euo pipefail
-      apk add --no-cache jq > /dev/null
       jq . pooled-env/metadata

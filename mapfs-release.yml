@@ -21,6 +21,7 @@ groups:
 - name: bump
   jobs:
   - bump-golang
+  - bump-ci-tasks
   - update-go-directive-for-mapfs
   - update-go-directive-for-mapfs-release
 - name: release
@@ -61,6 +62,13 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/persi-ci
     branch: master
+
+- name: persi-ci-task-bump
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/persi-ci.git
+    branch: master
+    private_key: ((github.ssh_key))
 
 - name: nfs-volume-release
   type: git
@@ -209,6 +217,11 @@ resources:
     private_key: ((github.ssh_key))
     branch: main
 
+- name: cryogenics-essentials
+  type: registry-image
+  source:
+    repository: cryogenics/essentials
+
 resource_types:
 - name: slack-notification
   type: registry-image
@@ -284,6 +297,45 @@ jobs:
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
         source-repo: mapfs-release-bump-golang
+
+- name: bump-ci-tasks
+  plan:
+    - in_parallel:
+      - get: cryogenics-essentials
+        trigger: true
+      - get: cryogenics-concourse-tasks
+      - get: persi-ci
+    - in_parallel:
+      - load_var: cryogenics-essentials-version
+        file: cryogenics-essentials/tag
+      - task: bump-tasks
+        file: cryogenics-concourse-tasks/deps-automation/bump-concourse-tasks/task.yml
+        params:
+          TASKS_FOLDER: scripts/ci
+        input_mapping:
+          repo: persi-ci
+          image: cryogenics-essentials
+        output_mapping:
+          repo: persi-ci
+    - put: persi-ci-task-bump
+      params:
+        repository: persi-ci
+        branch: &bump-ci-task-branch bump-cryogenics-essentials-to-v((.:cryogenics-essentials-version))
+        force: true
+    - task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        BASE: master
+        BRANCH: *bump-ci-task-branch
+        LABELS: dependencies
+        TITLE: Bump cryogenics/essentials to v((.:cryogenics-essentials-version))
+        MESSAGE: |
+          This is an automatically generated Pull Request from the Cryogenics CI Bot.
+          I have detected a new version of [cryogenics/essentials](https://hub.docker.com/r/cryogenics/essentials/tags) and automatically bumped
+          this package to benefit from the latest changes.
+          If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+      input_mapping:
+        source-repo: persi-ci-task-bump
 
 - name: update-go-directive-for-mapfs
   plan:
@@ -620,7 +672,6 @@ jobs:
       - get: mapfs-release
         passed: [deploy-cf]
   - task: generate-pats-config-nfs
-
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
@@ -743,7 +794,6 @@ jobs:
       fail_fast: true
       steps:
       - task: generate-legacy-pats-config
-
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
@@ -756,7 +806,6 @@ jobs:
         output_mapping:
           pats-config: nfs-legacy-pats-config
       - task: generate-pats-config
-
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
