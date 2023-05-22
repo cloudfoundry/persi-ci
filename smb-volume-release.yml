@@ -227,8 +227,8 @@ jobs:
     - get: smb-volume-release-bump-golang-master
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
-  - task: bosh-vendor-package
-    file: cryogenics-concourse-tasks/deps-automation/bosh-vendor-package/task.yml
+  - task: bump-golang
+    file: cryogenics-concourse-tasks/deps-automation/bump-golang/task.yml
     input_mapping:
       release: smb-volume-release-bump-golang-master
       vendored-package-release: golang-release
