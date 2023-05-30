@@ -277,6 +277,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: nfsv3driver-v5
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
@@ -317,6 +319,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: nfsbroker-v5
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref

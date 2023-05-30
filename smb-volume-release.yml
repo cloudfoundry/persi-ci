@@ -277,6 +277,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: smbbroker-for-gomod-directive-updates
       params:
         branch: master
@@ -324,6 +326,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: smbdriver-for-gomod-directive-updates
       params:
         branch: master
