@@ -89,12 +89,13 @@ resources:
 - name: smb-volume-version
   type: semver
   source:
-    access_key_id: ((aws/smbvolume-uploader.id))
+    access_key_id: ((aws/smbvolume-uploader.role_id))
     bucket: smb-volume-release-versions
     initial_version: 3.0.2
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/smbvolume-uploader.secret))
+    secret_access_key: ((aws/smbvolume-uploader.role_secret))
+    assume_role_arn: ((aws/smbvolume-uploader.role_arn))
 
 - name: github-release-smb
   type: github-release
@@ -237,8 +238,9 @@ jobs:
       VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
-      AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.secret))
+      AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.role_id))
+      AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.role_secret))
+      AWS_ROLE_ARN: ((aws/nfsvolume-uploader.role_arn))
   - put: smb-volume-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
@@ -638,8 +640,9 @@ jobs:
       updated-release-repo: smb-final-release
       updated-release-tarball: smb-final-release-tarball
     params:
-      AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.id))
-      AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.secret))
+      AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.role_id))
+      AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.role_secret))
+      AWS_ROLE_ARN: ((aws/smbvolume-uploader.role_arn))
       GIT_USERNAME: ((github.user))
       GIT_EMAIL: ((github.email))
       FINAL: true

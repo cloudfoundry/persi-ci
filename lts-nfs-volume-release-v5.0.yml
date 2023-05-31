@@ -118,12 +118,13 @@ resources:
 - name: nfsvolume-version
   type: semver
   source:
-    access_key_id: ((aws/lts-nfsvolume-uploader.id))
+    access_key_id: ((aws/lts-nfsvolume-uploader.role_id))
+    assume_role_arn: ((aws/lts-nfsvolume-uploader.role_arn))
     bucket: lts-nfsvolume-release-versions
     initial_version: {{nfs-semver-initial-version}}
     key: {{lts-nfs-branch}}
     region_name: us-west-2
-    secret_access_key: ((aws/lts-nfsvolume-uploader.secret))
+    secret_access_key: ((aws/lts-nfsvolume-uploader.role_secret))
 
 - name: cf-deployment
   type: git
@@ -237,8 +238,9 @@ jobs:
       VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))-into-v5
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.id))
-      AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.secret))
+      AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.role_id))
+      AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.role_secret))
+      AWS_ROLE_ARN: ((aws/nfsvolume-uploader.role_arn))
   - put: nfs-volume-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
@@ -664,8 +666,9 @@ jobs:
       updated-release-repo: nfs-final-release
       updated-release-tarball: nfs-final-release-tarball
     params:
-      AWS_ACCESS_KEY_ID: ((aws/lts-nfsvolume-uploader.id))
-      AWS_SECRET_ACCESS_KEY: ((aws/lts-nfsvolume-uploader.secret))
+      AWS_ACCESS_KEY_ID: ((aws/lts-nfsvolume-uploader.role_id))
+      AWS_SECRET_ACCESS_KEY: ((aws/lts-nfsvolume-uploader.role_secret))
+      AWS_ROLE_ARN: ((aws/lts-nfsvolume-uploader.role_arn))
       GIT_USERNAME: ((github.user))
       GIT_EMAIL: ((github.email))
       FINAL: true

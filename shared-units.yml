@@ -45,22 +45,24 @@ resources:
 - name: goshims-version
   type: semver
   source:
-    access_key_id: ((aws/goshims-uploader.id))
+    access_key_id: ((aws/goshims-uploader.role_id))
     bucket: goshims-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/goshims-uploader.secret))
+    secret_access_key: ((aws/goshims-uploader.role_secret))
+    assume_role_arn: ((aws/goshims-uploader.role_arn))
 
 - name: existingvolumebroker-version
   type: semver
   source:
-    access_key_id: ((aws/existingvolumebroker-uploader.id))
+    access_key_id: ((aws/existingvolumebroker-uploader.role_id))
     bucket: existingvolumebroker-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/existingvolumebroker-uploader.secret))
+    secret_access_key: ((aws/existingvolumebroker-uploader.role_secret))
+    assume_role_arn: ((aws/existingvolumebroker-uploader.role_arn))
 
 - name: service-broker-store
   type: git
@@ -72,12 +74,13 @@ resources:
 - name: service-broker-store-version
   type: semver
   source:
-    access_key_id: ((aws/service-broker-store-uploader.id))
+    access_key_id: ((aws/service-broker-store-uploader.role_id))
     bucket: service-broker-store-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/service-broker-store-uploader.secret))
+    secret_access_key: ((aws/service-broker-store-uploader.role_secret))
+    assume_role_arn: ((aws/service-broker-store-uploader.role_arn))
 
 - name: volumedriver
   type: git
@@ -89,12 +92,13 @@ resources:
 - name: volumedriver-version
   type: semver
   source:
-    access_key_id: ((aws/volumedriver-uploader.id))
+    access_key_id: ((aws/volumedriver-uploader.role_id))
     bucket: volumedriver-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/volumedriver-uploader.secret))
+    secret_access_key: ((aws/volumedriver-uploader.role_secret))
+    assume_role_arn: ((aws/volumedriver-uploader.role_arn))
 
 - name: volume-mount-options
   type: git
@@ -106,12 +110,13 @@ resources:
 - name: volume-mount-options-version
   type: semver
   source:
-    access_key_id: ((aws/volume-mount-options-uploader.id))
+    access_key_id: ((aws/volume-mount-options-uploader.role_id))
     bucket: volume-mount-options-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/volume-mount-options-uploader.secret))
+    secret_access_key: ((aws/volume-mount-options-uploader.role_secret))
+    assume_role_arn: ((aws/volume-mount-options-uploader.role_arn))
 
 - name: volumedriver-pr
   type: pull-request
