@@ -120,12 +120,13 @@ resources:
 - name: mapfs-version
   type: semver
   source:
-    access_key_id: ((aws/mapfs-uploader.id))
+    access_key_id: ((aws/mapfs-uploader.role_id))
     bucket: mapfs-versions
     initial_version: 1.2.4
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/mapfs-uploader.secret))
+    secret_access_key: ((aws/mapfs-uploader.role_secret))
+    assume_role_arn: ((aws/mapfs-uploader.role_arn))
 
 - name: github-release-mapfs
   type: github-release
@@ -252,8 +253,9 @@ jobs:
       VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.id))
-      AWS_SECRET_ACCESS_KEY: ((aws/mapfs-uploader.secret))
+      AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.role_id))
+      AWS_SECRET_ACCESS_KEY: ((aws/mapfs-uploader.role_secret))
+      AWS_ROLE_ARN: ((aws/mapfs-uploader.role_arn))
   - put: mapfs-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
@@ -864,8 +866,9 @@ jobs:
       updated-release-repo: mapfs-final-release
       updated-release-tarball: mapfs-final-release-tarball
     params:
-      AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.id))
-      AWS_SECRET_ACCESS_KEY: ((aws/mapfs-uploader.secret))
+      AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.role_id))
+      AWS_SECRET_ACCESS_KEY: ((aws/mapfs-uploader.role_secret))
+      AWS_ROLE_ARN: ((aws/mapfs-uploader.role_arn))
       GIT_USERNAME: ((github.user))
       GIT_EMAIL: ((github.email))
       FINAL: true
