@@ -354,6 +354,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: nfsv3driver
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
@@ -395,6 +397,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: nfsbroker
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
@@ -425,6 +429,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: volumedriver
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
@@ -466,6 +472,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: volume-mount-options
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
@@ -507,6 +515,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: existingvolumebroker
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
@@ -548,6 +558,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: service-broker-store
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref

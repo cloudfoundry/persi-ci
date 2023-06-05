@@ -301,6 +301,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: mapfs
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
@@ -346,6 +348,8 @@ jobs:
       passed:
       - bump-golang
     - get: cryogenics-concourse-tasks
+      passed:
+      - bump-golang
     - get: mapfs-release-master
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
