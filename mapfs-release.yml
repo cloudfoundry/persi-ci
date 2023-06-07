@@ -261,7 +261,7 @@ jobs:
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
       AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.role_id))
       AWS_SECRET_ACCESS_KEY: ((aws/mapfs-uploader.role_secret))
-      AWS_ROLE_ARN: ((aws/mapfs-uploader.role_arn))
+      AWS_ASSUME_ROLE_ARN: ((aws/mapfs-uploader.role_arn))
   - put: mapfs-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
