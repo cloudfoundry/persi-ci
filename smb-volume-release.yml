@@ -1,4 +1,45 @@
 ---
+#  To set the pipeline, run:
+#    fly -t runway-cryogenics set-pipeline -p smb-volume-release -c pipeline.yml
+#
+# ************************************
+# Secrets we need to run this pipeline
+# ************************************
+
+aws-uploader:
+  # CloudGate credentials for the service user assuming a role in CF Diego Persistence CI
+  role_arn: &upload_role_arn ((aws/volume-services/smb.role_arn))
+  role_id: &upload_role_id ((aws/volume-services/smb.role_id))
+  role_secret: &upload_role_secret ((aws/volume-services/smb.role_secret))
+github:
+  access_token: &github_access_token ((github.access_token))
+  # Access token used for accessing PRs, GH release, and BBR binary GH release
+  ssh_key: &github_ssh_key ((github.ssh_key))
+  # SSH key is used for accessing the GH release, as well as
+  email: &github_email ((github.email))
+  user: &github_user ((github.user))
+  # GH user and email used to cut the final version
+cats:
+  remote_path: ((smb_cats.remote_path))  # used in the composite values below
+  username: ((smb_cats.username))  # used in the composite values below
+  password: ((smb_cats.password))  # used in the composite values below
+  create_config: &cats_create_config '{\"share\": \"((smb_cats.remote_path))\", \"username\": \"((smb_cats.username))\", \"password\": \"((smb_cats.password))\"}'  # yamllint disable-line rule:line-length
+pats:
+  password: &pats_password ((smb_pats.password))
+  username: &pats_username ((smb_pats.username))
+  create_config: &pats_create_config '{\"share\":\"((smb_cats.remote_path))\"}'
+  bind_config: &pats_bind_config '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'  # yamllint disable-line rule:line-length
+slack.webhook: &slack_webhook ((slack.webhook))
+# Slack webhook is used for notifications, currently its origins are unknown
+toolsmiths.api_token: &toolsmiths_api_token ((toolsmiths.api_token))
+# Toolsmiths API token was needed on 2023-07-07 for claiming TAS environments to run xATS test suites.
+# The token was given to us by the #cf-toolsmiths team, and is in lastpass at
+# Shared-Cryogenics/infrastructure-root/cryo-toolsmiths-api-token
+
+# **************
+# End of secrets
+# **************
+
 groups:
 - name: test
   jobs:
@@ -29,7 +70,7 @@ resources:
   type: slack-notification
   icon: bell-ring
   source:
-    url: ((slack.webhook))
+    url: *slack_webhook
 
 - name: every-hour
   type: time
@@ -45,7 +86,7 @@ resources:
 - name: smith-env
   type: pcf-pool
   source:
-    api_token: ((toolsmiths.api_token))
+    api_token: *toolsmiths_api_token
     hostname: environments.toolsmiths.cf-app.com
     pool_name: cf-deployment
 
@@ -59,7 +100,7 @@ resources:
   type: pull-request
   source:
     base_branch: master
-    access_token: ((github.access_token))
+    access_token: *github_access_token
     repository: cloudfoundry/smb-volume-release
     disable_forks: true
 
@@ -67,14 +108,14 @@ resources:
   type: git
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/smb-volume-release.git
 
 - name: smb-volume-release-master-production-files-only
   type: git
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/smb-volume-release.git
     paths:
     - .final_builds
@@ -89,13 +130,13 @@ resources:
 - name: smb-volume-version
   type: semver
   source:
-    access_key_id: ((aws/smbvolume-uploader.role_id))
+    access_key_id: *upload_role_id
     bucket: smb-volume-release-versions
     initial_version: 3.0.2
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/smbvolume-uploader.role_secret))
-    assume_role_arn: ((aws/smbvolume-uploader.role_arn))
+    secret_access_key: *upload_role_secret
+    assume_role_arn: *upload_role_arn
 
 - name: github-release-smb
   type: github-release
@@ -103,7 +144,7 @@ resources:
     user: cloudfoundry
     repository: smb-volume-release
     drafts: true
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: smb-volume-release-concourse-tasks
   type: git
@@ -138,7 +179,7 @@ resources:
   source:
     owner: cloudfoundry-incubator
     repository: bosh-backup-and-restore
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: disaster-recovery-acceptance-tests
   type: git
@@ -156,7 +197,7 @@ resources:
   name: smb-volume-release-bump-golang
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/smb-volume-release.git
   type: git
 
@@ -164,7 +205,7 @@ resources:
   name: smb-volume-release-bump-golang-master
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/smb-volume-release.git
     disable_ci_skip: true
   type: git
@@ -174,7 +215,7 @@ resources:
   icon: github
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     branch: main
 
 # This resource must only be used for gomod directive updates:
@@ -184,7 +225,7 @@ resources:
   icon: github
   source:
     uri: git@github.com:cloudfoundry/smbdriver.git
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 # This resource must only be used for gomod directive updates:
 #  https://github.com/concourse/git-resource/blob/master/README.md?plain=1#L341-L345
@@ -193,7 +234,7 @@ resources:
   icon: github
   source:
     uri: git@github.com:cloudfoundry/smbbroker.git
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 resource_types:
 - name: semver
@@ -244,9 +285,9 @@ jobs:
       VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.role_id))
-      AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.role_secret))
-      AWS_ASSUME_ROLE_ARN: ((aws/smbvolume-uploader.role_arn))
+      AWS_ACCESS_KEY_ID: *upload_role_id
+      AWS_SECRET_ACCESS_KEY: *upload_role_secret
+      AWS_ASSUME_ROLE_ARN: *upload_role_arn
   - put: smb-volume-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
@@ -260,7 +301,7 @@ jobs:
       # we're making this step best-effort.
       # This also makes the job idempotent. If we retrigger the job but if
       # there are no new version of golang-release, this step will fail
-      # saying "Your branch is up to date with
+      # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-golang-vendor-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
@@ -454,8 +495,8 @@ jobs:
     params:
       GENERATE_NFS_VARS: false
       GENERATE_SMB_VARS: true
-      SMB_USERNAME: ((smb_pats.username))
-      SMB_PASSWORD: ((smb_pats.password))
+      SMB_USERNAME: *pats_username
+      SMB_PASSWORD: *pats_password
   - task: bosh-deploy-cf
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
@@ -510,8 +551,8 @@ jobs:
       CF_USERNAME: admin
       SERVICE_NAME: smb
       PLAN_NAME: Existing
-      CREATE_CONFIG: '{\"share\": \"((smb_cats.remote_path))\", \"username\": \"((smb_cats.username))\", \"password\": \"((smb_cats.password))\"}'  # yamllint disable-line rule:line-length
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+      CREATE_CONFIG: *cats_create_config
+      TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
   - task: run-cats
     file: cf-deployment-concourse-tasks/run-cats/task.yml
     input_mapping:
@@ -569,14 +610,14 @@ jobs:
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+      TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
       CF_USERNAME: admin
       DISALLOWED_OVERRIDE_BIND_CONFIG: '{\"share\":\"//smbtestserver.service.cf.internal/export/vol2\"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"//smb.bogus/export/nonexistensevol\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: smb
-      CREATE_CONFIG: '{\"share\":\"((smb_cats.remote_path))\"}'
-      BIND_CONFIG: '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'  # yamllint disable-line rule:line-length
+      CREATE_CONFIG: *pats_create_config
+      BIND_CONFIG: *pats_bind_config
     output_mapping:
       pats-config: smb-pats-config
   - task: run-pats-smb
@@ -650,11 +691,11 @@ jobs:
       updated-release-repo: smb-final-release
       updated-release-tarball: smb-final-release-tarball
     params:
-      AWS_ACCESS_KEY_ID: ((aws/smbvolume-uploader.role_id))
-      AWS_SECRET_ACCESS_KEY: ((aws/smbvolume-uploader.role_secret))
-      AWS_ROLE_ARN: ((aws/smbvolume-uploader.role_arn))
-      GIT_USERNAME: ((github.user))
-      GIT_EMAIL: ((github.email))
+      AWS_ACCESS_KEY_ID: *upload_role_id
+      AWS_SECRET_ACCESS_KEY: *upload_role_secret
+      AWS_ROLE_ARN: *upload_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
       FINAL: true
       RELEASE_NAME: smb-volume
   - task: create-release-notes

@@ -3,7 +3,10 @@ yaml-files:
 - '*.yml'
 
 rules:
-  anchors: enable
+  anchors:
+    forbid-undeclared-aliases: true
+    forbid-duplicated-anchors: false
+    forbid-unused-anchors: true
   braces: enable
   brackets: enable
   colons: enable
