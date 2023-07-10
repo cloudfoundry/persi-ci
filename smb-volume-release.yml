@@ -1,6 +1,6 @@
 ---
 #  To set the pipeline, run:
-#    fly -t runway-cryogenics set-pipeline -p smb-volume-release -c pipeline.yml
+#    fly -t runway-cryogenics set-pipeline -p smb-volume-release -c smb-volume-release.yml
 #
 # ************************************
 # Secrets we need to run this pipeline
@@ -291,6 +291,7 @@ jobs:
   - put: smb-volume-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
+      merge: true
       branch: *golang-vendor-branch
   - try:
       # We've seen cases where there are 2 or more new releases of
