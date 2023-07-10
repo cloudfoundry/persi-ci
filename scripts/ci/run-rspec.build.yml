@@ -16,8 +16,8 @@ image_resource:
     # https://github.com/cloudfoundry/bosh/blob/da56d19e30234239582ecfdd6a2da682631f6832/src/bosh-template/lib/bosh/template/evaluation_context.rb#L63
 
 inputs:
-  - name: persi-ci
-  - name: test-repo
+- name: persi-ci
+- name: test-repo
 
 run:
   path: persi-ci/scripts/ci/run-rspec.sh

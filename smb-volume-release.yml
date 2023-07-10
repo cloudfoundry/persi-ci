@@ -236,12 +236,21 @@ resources:
     uri: git@github.com:cloudfoundry/smbbroker.git
     private_key: *github_ssh_key
 
+
+# This image is for use in cryogenics-concourse-tasks
+# It needs to be removed after migration to runway is complete
+- name: cryogenics-essentials
+  type: registry-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/cryogenics/essentials
+
 resource_types:
 - name: semver
+  type: docker-image
   source:
     repository: concourse/semver-resource
     tag: 1.6
-  type: docker-image
 
 - name: slack-notification
   type: registry-image
@@ -263,7 +272,7 @@ resource_types:
 - name: pull-request
   type: docker-image
   source:
-    repository: cryogenics/pr-queue-resource
+    repository: harbor-repo.vmware.com/cryogenics/pr-queue-resource
 
 jobs:
 - name: bump-golang
@@ -273,10 +282,12 @@ jobs:
     - get: golang-release
       trigger: true
     - get: smb-volume-release-bump-golang-master
+    - get: cryogenics-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: bump-golang
     file: cryogenics-concourse-tasks/deps-automation/bump-golang/task.yml
+    image: cryogenics-essentials
     input_mapping:
       release: smb-volume-release-bump-golang-master
       vendored-package-release: golang-release
@@ -306,6 +317,7 @@ jobs:
       # 'origin/golang-vendor-update'."
       task: create-golang-vendor-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: cryogenics-essentials
       params:
         BASE: master
         BRANCH: *golang-vendor-branch
@@ -332,8 +344,10 @@ jobs:
     - get: smbbroker-for-gomod-directive-updates
       params:
         branch: master
+    - get: cryogenics-essentials
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    image: cryogenics-essentials
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: smbbroker-for-gomod-directive-updates
@@ -352,6 +366,7 @@ jobs:
       force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-updates-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    image: cryogenics-essentials
     params:
       BASE: master
       BRANCH: *mapfs-gomod-update-branch
@@ -381,8 +396,10 @@ jobs:
     - get: smbdriver-for-gomod-directive-updates
       params:
         branch: master
+    - get: cryogenics-essentials
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    image: cryogenics-essentials
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: smbdriver-for-gomod-directive-updates
@@ -401,6 +418,7 @@ jobs:
       force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-updates-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    image: cryogenics-essentials
     params:
       BASE: master
       BRANCH: *mapfs-gomod-update-branch
