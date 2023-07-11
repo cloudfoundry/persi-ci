@@ -245,6 +245,44 @@ resources:
   source:
     repository: harbor-repo.vmware.com/cryogenics/essentials
 
+- name: ruby-31
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/ruby
+    tag: 3.1
+
+- name: python-394
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
+    tag: 3.9.4
+
+- name: alpine
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/alpine
+
+- name: main-bosh-docker
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/main-bosh-docker
+
+- name: image-cf-deployment-concourse-tasks
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/relintdockerhubpushbot/cf-deployment-concourse-tasks
+
+- name: image-backup-and-restore
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pcfplatformrecovery/backup-and-restore
+
 resource_types:
 - name: semver
   type: docker-image
@@ -441,15 +479,19 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: ruby-31
+      - get: main-bosh-docker
       - get: smb-volume-release-concourse-tasks
       - get: smb-volume-release
         trigger: true
   - task: rspec
     file: persi-ci/scripts/ci/run-rspec.build.yml
+    image: ruby-31
     input_mapping:
       test-repo: smb-volume-release
   - task: bosh-release-test
     file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+    image: main-bosh-docker
     privileged: true
     attempts: 3
 
@@ -470,6 +512,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: alpine
       - get: smb-volume-release
         trigger: true
         passed:
@@ -480,6 +523,7 @@ jobs:
 
   - task: output-env-details
     file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+    image: alpine
     input_mapping:
       pooled-env: smith-env
 
@@ -494,16 +538,20 @@ jobs:
         passed: [claim-env]
         trigger: true
       - get: cf-deployment-concourse-tasks
+      - get: image-cf-deployment-concourse-tasks
+      - get: cryogenics-essentials
       - get: cf-deployment
       - get: persi-ci
       - get: smb-volume-release
         passed: [claim-env]
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+    image: image-cf-deployment-concourse-tasks
     input_mapping:
       toolsmiths-env: smith-env
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    image: image-cf-deployment-concourse-tasks
     input_mapping:
       base-ops-files: cf-deployment-pinned
       new-ops-files: persi-ci
@@ -511,6 +559,7 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
+    image: image-cf-deployment-concourse-tasks
     params:
       GENERATE_NFS_VARS: false
       GENERATE_SMB_VARS: true
@@ -518,6 +567,7 @@ jobs:
       SMB_PASSWORD: *pats_password
   - task: bosh-deploy-cf
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
+    image: cryogenics-essentials
     input_mapping:
       cf-deployment: cf-deployment-pinned
       toolsmiths-env: smith-env
@@ -534,6 +584,7 @@ jobs:
                   operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    image: image-cf-deployment-concourse-tasks
     input_mapping:
       toolsmiths-env: smith-env
     params:
@@ -541,6 +592,7 @@ jobs:
   - task: run-smb-broker-errand
     attempts: 3
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    image: image-cf-deployment-concourse-tasks
     input_mapping:
       toolsmiths-env: smith-env
     params:
@@ -563,8 +615,11 @@ jobs:
       - get: persi-ci
       - get: cf-acceptance-tests
       - get: cf-deployment-concourse-tasks
+      - get: image-cf-deployment-concourse-tasks
+      - get: cryogenics-essentials
   - task: generate-cats-config
     file: persi-ci/scripts/ci/generate_cats_config.build.yml
+    image: cryogenics-essentials
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
       CF_USERNAME: admin
@@ -574,6 +629,7 @@ jobs:
       TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
   - task: run-cats
     file: cf-deployment-concourse-tasks/run-cats/task.yml
+    image: image-cf-deployment-concourse-tasks
     input_mapping:
       integration-config: cats-config
     params:
@@ -591,11 +647,13 @@ jobs:
       - get: bbr-binary-release
       - get: disaster-recovery-acceptance-tests
       - get: persi-ci
+      - get: cryogenics-essentials
       - get: smith-env
         passed: [cats]
         trigger: true
   - task: generate-integration-config
     file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
+    image: cryogenics-essentials
     params:
       INTEGRATION_CONFIG_FILE_PATH: config/drats-smb.json
     input_mapping:
@@ -603,6 +661,7 @@ jobs:
 
   - task: drats-with-integration-config
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
+    image: cryogenics-essentials
     privileged: true
     input_mapping:
       drats-integration-config: updated-integration-configs
@@ -621,12 +680,13 @@ jobs:
         trigger: true
       - get: smb-volume-release
         passed: [deploy-cf]
+      - get: cryogenics-essentials
       - get: smb-volume-release-concourse-tasks
         params:
           submodules: none
   - task: generate-pats-config-smb
-
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    image: cryogenics-essentials
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
       TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
@@ -643,6 +703,7 @@ jobs:
     input_mapping:
       pats-config: smb-pats-config
     file: persi-ci/scripts/ci/run-pats.build.yml
+    image: cryogenics-essentials
     attempts: 3
     params:
       PARALLEL_NODES: 5
@@ -690,6 +751,9 @@ jobs:
       steps:
       - get: persi-ci
       - get: cryogenics-concourse-tasks
+      - get: cryogenics-essentials
+      - get: image-backup-and-restore
+      - get: python-394
       - get: smb-volume-release-master-production-files-only
         trigger: true
         passed:
@@ -704,6 +768,7 @@ jobs:
           bump: final
   - task: create-final-release
     file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
+    image: cryogenics-essentials
     input_mapping:
       release-repo: release
     output_mapping:
@@ -719,12 +784,14 @@ jobs:
       RELEASE_NAME: smb-volume
   - task: create-release-notes
     file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
+    image: python-394
     input_mapping:
       git-repo: release
     params:
       USE_LATEST_PUBLISHED_TAG: true
   - task: format-release-notes
     file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
+    image: image-backup-and-restore
     input_mapping:
       template-folder: cryogenics-concourse-tasks
     params:
