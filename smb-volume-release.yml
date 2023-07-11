@@ -576,7 +576,7 @@ jobs:
                   operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    image: image-cf-deployment-concourse-tasks
+    image: cryogenics-essentials
     input_mapping:
       toolsmiths-env: smith-env
     params:
@@ -584,7 +584,7 @@ jobs:
   - task: run-smb-broker-errand
     attempts: 3
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    image: image-cf-deployment-concourse-tasks
+    image: cryogenics-essentials
     input_mapping:
       toolsmiths-env: smith-env
     params:
