@@ -8,17 +8,17 @@ image_resource:
     tag: latest
 
 inputs:
-- name: persi-ci
+- name: persi-ci  # - This repo
 - name: toolsmiths-env  # - Directory containing Toolsmiths metadata file
   optional: true
-- name: bbl-state # - The repo containing the Director's bbl state dir
+- name: bbl-state  # - The repo containing the Director's bbl state dir
   optional: true
 - name: cf-deployment  # - The cf-deployment manifest
 - name: ops-files  # - Operations files to be made available
   optional: true
 - name: vars-files  # - Variable files to be made available
   optional: true
-- name: cf-deployment-concourse-tasks  # - This repo
+- name: cf-deployment-concourse-tasks  # - Original repo for the task, used to load shell script libraries
 - name: nfs-volume-release
   optional: true
 - name: mapfs-release
