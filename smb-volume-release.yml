@@ -264,6 +264,7 @@ resources:
   icon: docker
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/alpine
+    tag: latest
 
 - name: image-cf-deployment-concourse-tasks
   type: docker-image
