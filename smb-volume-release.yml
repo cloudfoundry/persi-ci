@@ -265,12 +265,6 @@ resources:
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/alpine
 
-- name: main-bosh-docker
-  type: docker-image
-  icon: docker
-  source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/main-bosh-docker
-
 - name: image-cf-deployment-concourse-tasks
   type: docker-image
   icon: docker
@@ -480,8 +474,6 @@ jobs:
       steps:
       - get: persi-ci
       - get: ruby-31
-      - get: main-bosh-docker
-      - get: smb-volume-release-concourse-tasks
       - get: smb-volume-release
         trigger: true
   - task: rspec
@@ -490,8 +482,7 @@ jobs:
     input_mapping:
       test-repo: smb-volume-release
   - task: bosh-release-test
-    file: smb-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
-    image: main-bosh-docker
+    file: persi-ci/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
     attempts: 3
 
