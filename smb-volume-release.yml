@@ -335,7 +335,6 @@ jobs:
   - put: smb-volume-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
-      merge: true
       branch: *golang-vendor-branch
   - try:
       # We've seen cases where there are 2 or more new releases of
@@ -621,7 +620,7 @@ jobs:
       TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
   - task: run-cats
     file: cf-deployment-concourse-tasks/run-cats/task.yml
-    image: image-cf-deployment-concourse-tasks
+    image: cryogenics-essentials
     input_mapping:
       integration-config: cats-config
     params:
