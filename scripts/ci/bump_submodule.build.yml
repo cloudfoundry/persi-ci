@@ -13,7 +13,7 @@ inputs:
 - name: submodule-repo
 
 outputs:
-  - name: bumped-repo
+- name: bumped-repo
 
 params:
   SUBMODULE_PATH: replace-me

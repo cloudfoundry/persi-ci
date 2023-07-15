@@ -25,4 +25,5 @@ params:
   GIT_BRANCH:
   BLOB_NAME:
 
-run: persi-ci/scripts/ci/bump-ftp-blob
+run:
+  path: persi-ci/scripts/ci/bump-ftp-blob
