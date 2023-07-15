@@ -342,7 +342,7 @@ jobs:
   - load_var: autoconf-version
     file: autoconf-latest/version
   - task: bump-autoconf
-    file: persi-ci/scripts/ci/bump-ftp-blob
+    file: persi-ci/scripts/ci/bump-ftp-blob.build.yml
     input_mapping:
       distributed-package: autoconf-latest
       bosh-release: smb-volume-release-master
@@ -380,6 +380,7 @@ jobs:
   plan:
   - in_parallel:
     - get: automake-latest
+      trigger: true
     - get: cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
@@ -387,7 +388,7 @@ jobs:
   - load_var: automake-version
     file: automake-latest/version
   - task: bump-automake
-    file: persi-ci/scripts/ci/bump-ftp-blob
+    file: persi-ci/scripts/ci/bump-ftp-blob.build.yml
     input_mapping:
       distributed-package: automake-latest
       bosh-release: smb-volume-release-master
