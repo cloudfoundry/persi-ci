@@ -57,6 +57,7 @@ groups:
   - bump-golang
   - update-go-directive-for-smbdriver-for-gomod-directive-updates
   - update-go-directive-for-smbbroker-for-gomod-directive-updates
+  - &bump-blob-autoconf-job-name bump-blob-autoconf
 - name: release
   jobs:
   - check-for-changes
@@ -106,6 +107,7 @@ resources:
 
 - name: smb-volume-release-master
   type: git
+  icon: github
   source:
     branch: master
     private_key: *github_ssh_key
@@ -278,6 +280,13 @@ resources:
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pcfplatformrecovery/backup-and-restore
 
+- name: autoconf-latest
+  type: ftp
+  icon: download-network-outline
+  source:
+    url: 'ftp://ftp.gnu.org/gnu/autoconf/'
+    version_regex: '^autoconf-(?P<version>[0-9][0-9.]+[0-9]).tar.gz$'
+
 resource_types:
 - name: semver
   type: docker-image
@@ -307,7 +316,58 @@ resource_types:
   source:
     repository: harbor-repo.vmware.com/cryogenics/pr-queue-resource
 
+- name: ftp
+  type: docker-image
+  source:
+    repository: harbor-repo.vmware.com/cryogenics/concourse-ftp-resource
+
 jobs:
+- name: *bump-blob-autoconf-job-name
+  plan:
+  - in_parallel:
+    - get: autoconf-latest
+      trigger: true
+    - get: cryogenics-essentials
+    - get: smb-volume-release-master
+    - get: cryogenics-concourse-tasks
+    - get: persi-ci
+  - load_var: autoconf-version
+    file: autoconf-latest/version
+  - task: bump-autoconf
+    image: cryogenics-essentials
+    input_mapping:
+      distributed-package: autoconf-latest
+      bosh-release: smb-volume-release-master
+      task-repo: cryogenics-concourse-tasks
+    params:
+      AWS_ACCESS_KEY_ID: *upload_role_id
+      AWS_SECRET_ACCESS_KEY: *upload_role_secret
+      AWS_ROLE_ARN: *upload_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &bump-autoconf-branch bump-autoconf-to-((.:autoconf-version))
+      BLOB_NAME: autoconf
+  - put: smb-volume-release-master
+    params:
+      repository: bosh-release-updated
+      branch: *bump-autoconf-branch
+  - try:
+      task: create-autoconf-update-pr
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: cryogenics-essentials
+      params:
+        BASE: master
+        BRANCH: *bump-autoconf-branch
+        LABELS: dependencies
+        TITLE: Update autoconf tarball blob to ((.:autoconf-version))
+        MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
+          \nI have detected a new version of [autoconf](https://ftp.gnu.org/gnu/autoconf/) and \
+          automatically bumped\nthis package to benefit from the latest changes.\
+          \nIf this does not look right, please reach out to the \
+          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+      input_mapping:
+        source-repo: smb-volume-release-master
+
 - name: bump-golang
   plan:
   - in_parallel:
