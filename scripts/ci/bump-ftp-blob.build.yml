@@ -24,6 +24,7 @@ params:
   GIT_EMAIL:
   GIT_BRANCH:
   BLOB_NAME:
+  BLOB_EXTENSION: tar.xz
 
 run:
   path: persi-ci/scripts/ci/bump-ftp-blob

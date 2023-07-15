@@ -10,7 +10,7 @@ cd bosh-release-updated
 git checkout -b "$GIT_BRANCH"
 
 current_filename=$(bosh blobs | grep $BLOB_NAME | awk '{print $1}')
-current_version=$(echo "$current_filename" | sed -r 's/^.+-([0-9.]+).tar.gz.*/\1/')
+current_version=$(echo "$current_filename" | sed -r 's/^.+-([0-9.]+)\.'"$BLOB_EXTENSTION"'.*/\1/')
 new_filename=$(ls ../distributed-package | grep -v version)
 new_version=$(cat ../distributed-package/version)
 if [[ "${current_version}" == "${new_version}" ]]; then

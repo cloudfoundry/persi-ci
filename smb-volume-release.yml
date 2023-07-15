@@ -362,6 +362,7 @@ jobs:
       GIT_EMAIL: *github_email
       GIT_BRANCH: &bump-autoconf-branch bump-autoconf-to-((.:autoconf-version))
       BLOB_NAME: autoconf
+      BLOB_EXTENSION: tar.gz
   - put: smb-volume-release-master
     params:
       repository: bosh-release-updated
