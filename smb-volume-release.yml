@@ -390,7 +390,7 @@ jobs:
           \nIf this does not look right, please reach out to the \
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
-        source-repo: smb-volume-release-master
+        source-repo: smb-volume-release-master-write
 
 - name: *bump-blob-automake-job-name
   plan:
@@ -437,7 +437,7 @@ jobs:
           \nIf this does not look right, please reach out to the \
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
-        source-repo: smb-volume-release-master
+        source-repo: smb-volume-release-master-write
 
 - name: *bump-blob-libtool-job-name
   plan:
@@ -484,7 +484,7 @@ jobs:
           \nIf this does not look right, please reach out to the \
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
-        source-repo: smb-volume-release-master
+        source-repo: smb-volume-release-master-write
 
 - name: bump-golang
   plan:
