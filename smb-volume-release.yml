@@ -115,6 +115,14 @@ resources:
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/smb-volume-release.git
 
+- name: smb-volume-release-master-write
+  type: git
+  icon: github
+  source:
+    branch: master
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/smb-volume-release.git
+
 - name: smb-volume-release-master-production-files-only
   type: git
   source:
@@ -292,14 +300,14 @@ resources:
   icon: download-network-outline
   source:
     url: 'ftp://ftp.gnu.org/gnu/automake/'
-    version_regex: '^automake-(?P<version>[0-9][0-9.]+[0-9]).tar.gz$'
+    version_regex: '^automake-(?P<version>[0-9][0-9.]+[0-9]).tar.xz$'
 
 - name: libtool-latest
   type: ftp
   icon: download-network-outline
   source:
     url: 'ftp://ftp.gnu.org/gnu/libtool/'
-    version_regex: '^libtool-(?P<version>[0-9][0-9.]+[0-9]).tar.gz$'
+    version_regex: '^libtool-(?P<version>[0-9][0-9.]+[0-9]).tar.xz$'
 
 resource_types:
 - name: semver
@@ -363,7 +371,7 @@ jobs:
       GIT_BRANCH: &bump-autoconf-branch bump-autoconf-to-((.:autoconf-version))
       BLOB_NAME: autoconf
       BLOB_EXTENSION: tar.gz
-  - put: smb-volume-release-master
+  - put: smb-volume-release-master-write
     params:
       repository: bosh-release-updated
       branch: *bump-autoconf-branch
@@ -410,7 +418,7 @@ jobs:
       GIT_EMAIL: *github_email
       GIT_BRANCH: &bump-automake-branch bump-automake-to-((.:automake-version))
       BLOB_NAME: automake
-  - put: smb-volume-release-master
+  - put: smb-volume-release-master-write
     params:
       repository: bosh-release-updated
       branch: *bump-automake-branch
@@ -457,7 +465,7 @@ jobs:
       GIT_EMAIL: *github_email
       GIT_BRANCH: &bump-libtool-branch bump-libtool-to-((.:libtool-version))
       BLOB_NAME: libtool
-  - put: smb-volume-release-master
+  - put: smb-volume-release-master-write
     params:
       repository: bosh-release-updated
       branch: *bump-libtool-branch
