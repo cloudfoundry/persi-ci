@@ -58,6 +58,7 @@ groups:
   - update-go-directive-for-smbdriver-for-gomod-directive-updates
   - update-go-directive-for-smbbroker-for-gomod-directive-updates
   - &bump-blob-autoconf-job-name bump-blob-autoconf
+  - &bump-blob-automake-job-name bump-blob-automake
 - name: release
   jobs:
   - check-for-changes
@@ -287,6 +288,13 @@ resources:
     url: 'ftp://ftp.gnu.org/gnu/autoconf/'
     version_regex: '^autoconf-(?P<version>[0-9][0-9.]+[0-9]).tar.gz$'
 
+- name: automake-latest
+  type: ftp
+  icon: download-network-outline
+  source:
+    url: 'ftp://ftp.gnu.org/gnu/automake/'
+    version_regex: '^automake-(?P<version>[0-9][0-9.]+[0-9]).tar.gz$'
+
 resource_types:
 - name: semver
   type: docker-image
@@ -334,7 +342,7 @@ jobs:
   - load_var: autoconf-version
     file: autoconf-latest/version
   - task: bump-autoconf
-    image: cryogenics-essentials
+    file: persi-ci/scripts/ci/bump-ftp-blob
     input_mapping:
       distributed-package: autoconf-latest
       bosh-release: smb-volume-release-master
@@ -362,6 +370,51 @@ jobs:
         TITLE: Update autoconf tarball blob to ((.:autoconf-version))
         MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
           \nI have detected a new version of [autoconf](https://ftp.gnu.org/gnu/autoconf/) and \
+          automatically bumped\nthis package to benefit from the latest changes.\
+          \nIf this does not look right, please reach out to the \
+          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+      input_mapping:
+        source-repo: smb-volume-release-master
+
+- name: *bump-blob-automake-job-name
+  plan:
+  - in_parallel:
+    - get: automake-latest
+    - get: cryogenics-essentials
+    - get: smb-volume-release-master
+    - get: cryogenics-concourse-tasks
+    - get: persi-ci
+  - load_var: automake-version
+    file: automake-latest/version
+  - task: bump-automake
+    file: persi-ci/scripts/ci/bump-ftp-blob
+    input_mapping:
+      distributed-package: automake-latest
+      bosh-release: smb-volume-release-master
+      task-repo: cryogenics-concourse-tasks
+    params:
+      AWS_ACCESS_KEY_ID: *upload_role_id
+      AWS_SECRET_ACCESS_KEY: *upload_role_secret
+      AWS_ROLE_ARN: *upload_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &bump-automake-branch bump-automake-to-((.:automake-version))
+      BLOB_NAME: automake
+  - put: smb-volume-release-master
+    params:
+      repository: bosh-release-updated
+      branch: *bump-automake-branch
+  - try:
+      task: create-automake-update-pr
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: cryogenics-essentials
+      params:
+        BASE: master
+        BRANCH: *bump-automake-branch
+        LABELS: dependencies
+        TITLE: Update automake tarball blob to ((.:automake-version))
+        MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
+          \nI have detected a new version of [automake](https://ftp.gnu.org/gnu/automake/) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
