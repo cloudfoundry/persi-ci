@@ -3,7 +3,7 @@
 set -eux
 
 pushd test-repo > /dev/null
-  gem install bundler
+  bundle update --bundler
   bundle install
   bundle exec rspec
 popd > /dev/null

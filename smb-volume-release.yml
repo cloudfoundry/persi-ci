@@ -255,12 +255,11 @@ resources:
   source:
     repository: harbor-repo.vmware.com/cryogenics/essentials
 
-- name: ruby-31
+- name: ruby
   type: docker-image
   icon: docker
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/ruby
-    tag: 3.1
 
 - name: python-394
   type: docker-image
@@ -651,12 +650,12 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: ruby-31
+      - get: ruby
       - get: smb-volume-release
         trigger: true
   - task: rspec
     file: persi-ci/scripts/ci/run-rspec.build.yml
-    image: ruby-31
+    image: ruby
     input_mapping:
       test-repo: smb-volume-release
   - task: bosh-release-test
