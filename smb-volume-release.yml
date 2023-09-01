@@ -81,7 +81,7 @@ resources:
 - name: stemcell
   type: bosh-io-stemcell
   source:
-    name: bosh-gcp-kvm-ubuntu-jammy-go_agent
+    name: bosh-google-kvm-ubuntu-jammy-go_agent
 
 - name: smith-env
   type: pcf-pool
