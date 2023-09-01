@@ -44,11 +44,9 @@ groups:
 - name: test
   jobs:
   - smb-volume-release-job-tests
-  - env-gate
   - cats
   - drats
   - pats
-  - claim-env
   - deploy-cf
   - unclaim-env
   - merge-pr
@@ -74,12 +72,6 @@ resources:
   icon: bell-ring
   source:
     url: *slack_webhook
-
-- name: every-hour
-  type: time
-  icon: clock-outline
-  source:
-    interval: 1h
 
 - name: every-week
   type: time
@@ -272,13 +264,6 @@ resources:
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
     tag: 3.9.4
-
-- name: alpine
-  type: docker-image
-  icon: docker
-  source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/alpine
-    tag: latest
 
 - name: image-cf-deployment-concourse-tasks
   type: docker-image
