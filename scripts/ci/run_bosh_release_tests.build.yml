@@ -5,12 +5,14 @@ image_resource:
   type: docker-image
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/essentials
-    tag: latest
+    tag: 0.1.67
 
 inputs:
 - name: persi-ci
-- name: smb-volume-release
+- name: test-repo
 - name: env
+- name: stemcell
+  optional: true
 
 
 run:

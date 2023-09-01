@@ -86,6 +86,11 @@ resources:
   source:
     interval: 168h  # 24h*7days
 
+- name: stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-gcp-kvm-ubuntu-jammy-go_agent
+
 - name: smith-env
   type: pcf-pool
   source:
@@ -653,6 +658,10 @@ jobs:
       - get: ruby
       - get: smb-volume-release
         trigger: true
+      - get: stemcell
+      - put: smith-env
+        params:
+          action: claim
   - task: rspec
     file: persi-ci/scripts/ci/run-rspec.build.yml
     image: ruby
@@ -660,40 +669,15 @@ jobs:
       test-repo: smb-volume-release
   - task: bosh-release-test
     file: persi-ci/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
     attempts: 3
-
-- name: env-gate
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: smb-volume-release
-        trigger: true
-        passed:
-        - smb-volume-release-job-tests
-      - get: every-hour
-
-- name: claim-env
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: persi-ci
-      - get: alpine
-      - get: smb-volume-release
-        trigger: true
-        passed:
-        - env-gate
-  - put: smith-env
-    params:
-      action: claim
-
-  - task: output-env-details
-    file: persi-ci/scripts/ci/claim-pooled-env.build.yml
-    image: alpine
     input_mapping:
-      pooled-env: smith-env
+      test-repo: smb-volume-release
+      env: smith-env
+    on_error:
+      put: smith-env
+      params:
+        action: unclaim
+        env_file: smith-env/metadata
 
 - name: deploy-cf
   public: true
@@ -703,7 +687,7 @@ jobs:
       fail_fast: true
       steps:
       - get: smith-env
-        passed: [claim-env]
+        passed: [smb-volume-release-job-tests]
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: image-cf-deployment-concourse-tasks
@@ -711,7 +695,7 @@ jobs:
       - get: cf-deployment
       - get: persi-ci
       - get: smb-volume-release
-        passed: [claim-env]
+        passed: [smb-volume-release-job-tests]
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     image: image-cf-deployment-concourse-tasks
