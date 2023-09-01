@@ -658,7 +658,7 @@ jobs:
     input_mapping:
       test-repo: smb-volume-release
       env: smith-env
-    on_error:
+    on_failure:
       put: smith-env
       params:
         action: unclaim

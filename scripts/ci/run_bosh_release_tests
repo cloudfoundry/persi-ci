@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-source <(smith -l env/*.json bosh )
+source <(smith -l env/metadata bosh )
 unset BOSH_DEPLOYMENT
 export STEMCELL_PATH=$(ls ${PWD}/stemcell/stemcell.tgz)
 export RELEASE_PATH=${PWD}/test-repo
