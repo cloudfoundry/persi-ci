@@ -4,13 +4,14 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    privileged: true
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/docker-cpi
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/essentials
     tag: latest
 
 inputs:
 - name: persi-ci
 - name: smb-volume-release
+- name: env
+
 
 run:
   path: persi-ci/scripts/ci/run_bosh_release_tests
