@@ -2,7 +2,7 @@
 
 source <(smith -l env/*.json bosh )
 unset BOSH_DEPLOYMENT
-export STEMCELL_PATH=$(ls ${PWD}/stemcell/*bosh-*-ubuntu-*.tgz)
+export STEMCELL_PATH=$(ls ${PWD}/stemcell/stemcell.tgz)
 export RELEASE_PATH=${PWD}/test-repo
 pushd $PWD/test-repo/src/bosh_release
   go run github.com/onsi/ginkgo/v2/ginkgo -nodes 1 -r -v .
