@@ -308,7 +308,7 @@ resource_types:
 - name: slack-notification
   type: registry-image
   source:
-    repository: cfcommunity/slack-notification-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfcommunity/slack-notification-resource
     tag: latest
 
 - name: pcf-pool
