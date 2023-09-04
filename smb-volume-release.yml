@@ -341,16 +341,14 @@ jobs:
     - get: cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
-    - get: persi-ci
   - load_var: autoconf-version
     file: autoconf-latest/version
   - task: bump-autoconf
-    file: persi-ci/scripts/ci/bump-ftp-blob.build.yml
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     image: cryogenics-essentials
     input_mapping:
       distributed-package: autoconf-latest
       bosh-release: smb-volume-release-master
-      task-repo: cryogenics-concourse-tasks
     params:
       AWS_ACCESS_KEY_ID: *upload_role_id
       AWS_SECRET_ACCESS_KEY: *upload_role_secret
@@ -389,16 +387,14 @@ jobs:
     - get: cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
-    - get: persi-ci
   - load_var: automake-version
     file: automake-latest/version
   - task: bump-automake
-    file: persi-ci/scripts/ci/bump-ftp-blob.build.yml
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     image: cryogenics-essentials
     input_mapping:
       distributed-package: automake-latest
       bosh-release: smb-volume-release-master
-      task-repo: cryogenics-concourse-tasks
     params:
       AWS_ACCESS_KEY_ID: *upload_role_id
       AWS_SECRET_ACCESS_KEY: *upload_role_secret
@@ -436,16 +432,14 @@ jobs:
     - get: cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
-    - get: persi-ci
   - load_var: libtool-version
     file: libtool-latest/version
   - task: bump-libtool
-    file: persi-ci/scripts/ci/bump-ftp-blob.build.yml
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     image: cryogenics-essentials
     input_mapping:
       distributed-package: libtool-latest
       bosh-release: smb-volume-release-master
-      task-repo: cryogenics-concourse-tasks
     params:
       AWS_ACCESS_KEY_ID: *upload_role_id
       AWS_SECRET_ACCESS_KEY: *upload_role_secret
