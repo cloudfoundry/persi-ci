@@ -40,6 +40,8 @@ toolsmiths.api_token: &toolsmiths_api_token ((toolsmiths.api_token))
 # End of secrets
 # **************
 
+number_of_claim_env_retries: &number_of_claim_env_retries 5
+
 groups:
 - name: test
   jobs:
@@ -639,6 +641,7 @@ jobs:
         trigger: true
       - get: stemcell
       - put: smith-env
+        attempts: *number_of_claim_env_retries
         params:
           action: claim
   - task: rspec
@@ -654,6 +657,7 @@ jobs:
       env: smith-env
     on_failure:
       put: smith-env
+      attempts: *number_of_claim_env_retries
       params:
         action: unclaim
         env_file: smith-env/metadata
@@ -850,6 +854,7 @@ jobs:
     - drats
     trigger: true
   - put: smith-env
+    attempts: *number_of_claim_env_retries
     params:
       action: unclaim
       env_file: smith-env/metadata
