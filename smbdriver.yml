@@ -1,9 +1,24 @@
 ---
+#!  WARNING: this pipeline is automatically set and manual changes will go away.
+#!
+#!  To set pipeline manually run:
+#!    fly set-pipeline -p smbdriver -c smbdriver.yml
+
+# ************************************
+# Secrets we need to run this pipeline
+# ************************************
+
+github_access_token: &github_access_token ((github.access_token))
+
+# **************
+# End of secrets
+# **************
+
 resource_types:
 - name: pull-request
   type: docker-image
   source:
-    repository: cryogenics/pr-queue-resource
+    repository: harbor-repo.vmware.com/cryogenics/pr-queue-resource
 
 resources:
 - name: smbdriver
@@ -12,7 +27,7 @@ resources:
     repository: cloudfoundry/smbdriver
     base_branch: master
     disable_forks: true
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: persi-ci
   type: git
@@ -26,22 +41,46 @@ resources:
     branch: main
     uri: https://github.com/cloudfoundry/docker_driver_integration_tests
 
+- name: image-nfs-unit-tests
+  type: docker-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
+    tag: latest
+
+- name: image-golang
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/golang
+    tag: latest
+
+- name: image-bosh
+  type: docker-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/docker-cpi
+    privileged: true
+    tag: latest
+
 jobs:
 - name: unit-test
   public: true
   plan:
-  - get: smbdriver
-    trigger: true
+  - in_parallel:
+    - get: smbdriver
+      trigger: true
+    - get: image-golang
   - task: build
+    image: image-golang
     file: smbdriver/scripts/ci/run_unit.build.yml
 
 - name: security-scan
   plan:
   - in_parallel:
+    - get: image-nfs-unit-tests
     - get: persi-ci
     - get: smbdriver
       trigger: true
   - task: build
+    image: image-nfs-unit-tests
     file: persi-ci/scripts/ci/security-scan.build.yml
     params:
       PATHS: "./"
@@ -60,25 +99,26 @@ jobs:
         passed:
         - unit-test
         trigger: true
+      - get: image-bosh
   - in_parallel:
       fail_fast: true
       steps:
       - task: run_docker_driver_integration_tests
+        image: image-bosh
         file: smbdriver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
-        tags: [os_ubuntu]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
       - task: run_docker_driver_lazy_unmount_integration_tests
+        image: image-bosh
         file: smbdriver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
-        tags: [os_ubuntu]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
       - task: run_driver_broker_compatibility_tests
+        image: image-bosh
         file: smbdriver/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
-        tags: [os_ubuntu]
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
 

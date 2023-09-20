@@ -22,8 +22,6 @@ jobs:
     file: persi-ci/nfs-volume-release.yml
   - set_pipeline: mapfs-release
     file: persi-ci/mapfs-release.yml
-#  - set_pipeline: smb-volume-release
-#    file: persi-ci/smb-volume-release.yml
   - set_pipeline: mapfs
     file: persi-ci/mapfs.yml
   - set_pipeline: nfsbroker
@@ -36,8 +34,6 @@ jobs:
     file: persi-ci/shared-units.yml
   - set_pipeline: smbbroker
     file: persi-ci/smbbroker.yml
-  - set_pipeline: smbdriver
-    file: persi-ci/smbdriver.yml
   - set_pipeline: lts-nfs-volume-release-v5.0
     file: persi-ci/lts-nfs-volume-release-v5.0.yml
     vars:
