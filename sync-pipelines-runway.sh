@@ -34,8 +34,8 @@ jobs:
 #    file: persi-ci/norsk.yml
 #  - set_pipeline: shared-units
 #    file: persi-ci/shared-units.yml
-#  - set_pipeline: smbbroker
-#    file: persi-ci/smbbroker.yml
+  - set_pipeline: smbbroker
+    file: persi-ci/smbbroker.yml
   - set_pipeline: smbdriver
     file: persi-ci/smbdriver.yml
 #  - set_pipeline: lts-nfs-volume-release-v5.0
