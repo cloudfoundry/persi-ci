@@ -1,4 +1,19 @@
 ---
+#!  WARNING: this pipeline is automatically set and manual changes will go away.
+#!
+#!  To set pipeline manually run:
+#!    fly set-pipeline -p smbbroker -c smbbroker.yml
+
+# ************************************
+# Secrets we need to run this pipeline
+# ************************************
+
+github_access_token: &github_access_token ((github.access_token))
+
+# **************
+# End of secrets
+# **************
+
 resource_types:
 - name: pull-request
   type: docker-image
@@ -12,7 +27,7 @@ resources:
     repository: cloudfoundry/smbbroker
     base_branch: master
     disable_forks: true
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: persi-ci
   type: git
@@ -20,22 +35,38 @@ resources:
     uri: https://github.com/cloudfoundry/persi-ci.git
     branch: master
 
+- name: image-nfs-unit-tests
+  type: docker-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
+    tag: latest
+    
+- name: image-golang
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/golang
+    tag: latest
+
 jobs:
 - name: unit-test
   public: true
   plan:
   - get: smbbroker
     trigger: true
+  - get: image-golang
   - task: build
+    image: image-golang
     file: smbbroker/scripts/ci/run_unit.build.yml
 
 - name: security-scan
   plan:
   - in_parallel:
+    - get: image-nfs-unit-tests
     - get: persi-ci
     - get: smbbroker
       trigger: true
   - task: build
+    image: image-nfs-unit-tests
     file: persi-ci/scripts/ci/security-scan.build.yml
     params:
       PATHS: "./"
