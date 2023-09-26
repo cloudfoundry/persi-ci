@@ -28,8 +28,8 @@ jobs:
 #    file: persi-ci/mapfs.yml
 #  - set_pipeline: nfsbroker
 #    file: persi-ci/nfsbroker.yml
-#  - set_pipeline: nfsv3driver
-#    file: persi-ci/nfsv3driver.yml
+  - set_pipeline: nfsv3driver
+    file: persi-ci/nfsv3driver.yml
 #  - set_pipeline: norsk
 #    file: persi-ci/norsk.yml
   - set_pipeline: shared-units
