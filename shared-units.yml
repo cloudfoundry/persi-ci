@@ -1,4 +1,46 @@
 ---
+#  This pipeline is set automatics, any none committed changes will be lost.
+#
+# To set the pipeline, run:
+#    fly -t cryo-runway set-pipeline -p shared-units -c shared-units.yml
+#
+# ************************************
+# Secrets we need to run this pipeline
+# ************************************
+
+github_ssh_key: &github_ssh_key ((github.ssh_key))
+github_access_token: &github_access_token ((github.access_token))
+# SSH key/access token is used for accessing the GH release and PRs
+
+goshims_uploader_role_id: &goshims_uploader_role_id ((aws/volume-services/goshims-uploader.role_id))
+goshims_uploader_role_secret: &goshims_uploader_role_secret ((aws/volume-services/goshims-uploader.role_secret))
+goshims_uploader_role_arn: &goshims_uploader_role_arn ((aws/volume-services/goshims-uploader.role_arn))
+# Used to get a semver of goshims
+
+existingvolumebroker_uploader_role_id: &existingvolumebroker_uploader_role_id ((aws/volume-services/existingvolumebroker-uploader.role_id))
+existingvolumebroker_uploader_role_secret: &existingvolumebroker_uploader_role_secret ((aws/volume-services/existingvolumebroker-uploader.role_secret))
+existingvolumebroker_uploader_role_arn: &existingvolumebroker_uploader_role_arn ((aws/volume-services/existingvolumebroker-uploader.role_arn))
+# Used to get a semver of existingvolumebroker
+
+service_broker_store_uploader_role_id: &service_broker_store_uploader_role_id ((aws/volume-services/service-broker-store-uploader.role_id))
+service_broker_store_uploader_role_secret: &service_broker_store_uploader_role_secret ((aws/volume-services/service-broker-store-uploader.role_secret))
+service_broker_store_uploader_role_arn: &service_broker_store_uploader_role_arn ((aws/volume-services/service-broker-store-uploader.role_arn))
+# Used to get a semver of service_broker_store_uploader
+
+volumedriver_uploader_role_id: &volumedriver_uploader_role_id ((aws/volume-services/volumedriver-uploader.role_id))
+volumedriver_uploader_role_secret: &volumedriver_uploader_role_secret ((aws/volume-services/volumedriver-uploader.role_secret))
+volumedriver_uploader_role_arn: &volumedriver_uploader_role_arn ((aws/volume-services/volumedriver-uploader.role_arn))
+# Used to get a semver of volumedriver_uploader
+
+volume_mount_options_uploader_role_id: &volume_mount_options_uploader_role_id ((aws/volume-services/volume-mount-options-uploader.role_id))
+volume_mount_options_uploader_role_secret: &volume_mount_options_uploader_role_secret ((aws/volume-services/volume-mount-options-uploader.role_secret))
+volume_mount_options_uploader_role_arn: &volume_mount_options_uploader_role_arn ((aws/volume-services/volume-mount-options-uploader.role_arn))
+# Used to get a semver of volume_mount_options_uploader
+
+# **************
+# End of secrets
+# **************
+
 groups:
 - name: auto-tagging
   jobs:
@@ -13,14 +55,14 @@ groups:
 resource_types:
 - name: semver
   source:
-    repository: concourse/semver-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/semver-resource
     tag: 1.6
   type: docker-image
 
 - name: pull-request
   type: docker-image
   source:
-    repository: cryogenics/pr-queue-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
 
 resources:
 - name: every-monday
@@ -39,97 +81,97 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/existingvolumebroker.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: goshims
   type: git
   source:
     uri: git@github.com:cloudfoundry/goshims.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: goshims-version
   type: semver
   source:
-    access_key_id: ((aws/goshims-uploader.role_id))
+    access_key_id: *goshims_uploader_role_id
     bucket: goshims-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/goshims-uploader.role_secret))
-    assume_role_arn: ((aws/goshims-uploader.role_arn))
+    secret_access_key: *goshims_uploader_role_secret
+    assume_role_arn: *goshims_uploader_role_arn
 
 - name: existingvolumebroker-version
   type: semver
   source:
-    access_key_id: ((aws/existingvolumebroker-uploader.role_id))
+    access_key_id: *existingvolumebroker_uploader_role_id
     bucket: existingvolumebroker-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/existingvolumebroker-uploader.role_secret))
-    assume_role_arn: ((aws/existingvolumebroker-uploader.role_arn))
+    secret_access_key: *existingvolumebroker_uploader_role_secret
+    assume_role_arn: *existingvolumebroker_uploader_role_arn
 
 - name: service-broker-store
   type: git
   source:
     uri: git@github.com:cloudfoundry/service-broker-store.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: service-broker-store-version
   type: semver
   source:
-    access_key_id: ((aws/service-broker-store-uploader.role_id))
+    access_key_id: *service_broker_store_uploader_role_id
     bucket: service-broker-store-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/service-broker-store-uploader.role_secret))
-    assume_role_arn: ((aws/service-broker-store-uploader.role_arn))
+    secret_access_key: *service_broker_store_uploader_role_secret
+    assume_role_arn: *service_broker_store_uploader_role_arn
 
 - name: volumedriver
   type: git
   source:
     uri: git@github.com:cloudfoundry/volumedriver.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: volumedriver-version
   type: semver
   source:
-    access_key_id: ((aws/volumedriver-uploader.role_id))
+    access_key_id: *volumedriver_uploader_role_id
     bucket: volumedriver-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/volumedriver-uploader.role_secret))
-    assume_role_arn: ((aws/volumedriver-uploader.role_arn))
+    secret_access_key: *volumedriver_uploader_role_secret
+    assume_role_arn: *volumedriver_uploader_role_arn
 
 - name: volume-mount-options
   type: git
   source:
     uri: git@github.com:cloudfoundry/volume-mount-options.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: volume-mount-options-version
   type: semver
   source:
-    access_key_id: ((aws/volume-mount-options-uploader.role_id))
+    access_key_id: *volume_mount_options_uploader_role_id
     bucket: volume-mount-options-versions
     initial_version: 0.1.0
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/volume-mount-options-uploader.role_secret))
-    assume_role_arn: ((aws/volume-mount-options-uploader.role_arn))
+    secret_access_key: *volume_mount_options_uploader_role_secret
+    assume_role_arn: *volume_mount_options_uploader_role_arn
 
 - name: volumedriver-pr
   type: pull-request
   source:
     repository: cloudfoundry/volumedriver
     base_branch: master
-    access_token: ((github.access_token))
+    access_token: *github_access_token
     disable_forks: true
 
 - name: goshims-pr
@@ -137,7 +179,7 @@ resources:
   source:
     repository: cloudfoundry/goshims
     base_branch: master
-    access_token: ((github.access_token))
+    access_token: *github_access_token
     disable_forks: true
 
 - name: existingvolumebroker-pr
@@ -145,7 +187,7 @@ resources:
   source:
     repository: cloudfoundry/existingvolumebroker
     base_branch: master
-    access_token: ((github.access_token))
+    access_token: *github_access_token
     disable_forks: true
 
 - name: service-broker-store-pr
@@ -153,7 +195,7 @@ resources:
   source:
     repository: cloudfoundry/service-broker-store
     base_branch: master
-    access_token: ((github.access_token))
+    access_token: *github_access_token
     disable_forks: true
 
 - name: volume-mount-options-pr
@@ -161,8 +203,14 @@ resources:
   source:
     repository: cloudfoundry/volume-mount-options
     base_branch: master
-    access_token: ((github.access_token))
+    access_token: *github_access_token
     disable_forks: true
+
+- name: image-golang
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/golang
+    tag: latest
 
 jobs:
 - name: existingvolumebroker-unit
@@ -172,10 +220,12 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: image-golang
       - get: existingvolumebroker
         resource: existingvolumebroker-pr
         trigger: true
   - task: existingvolumebroker-unit
+    image: image-golang
     file: persi-ci/scripts/ci/run_unit_ginkgo_v2.build.yml
     input_mapping:
       gomod: existingvolumebroker
@@ -211,10 +261,12 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: image-golang
       - get: service-broker-store
         resource: service-broker-store-pr
         trigger: true
   - task: service-broker-store-unit
+    image: image-golang
     file: persi-ci/scripts/ci/run_unit_ginkgo_v2.build.yml
     input_mapping:
       gomod: service-broker-store
@@ -250,10 +302,12 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: image-golang
       - get: volumedriver
         resource: volumedriver-pr
         trigger: true
   - task: volumedriver-unit
+    image: image-golang
     file: persi-ci/scripts/ci/run_unit_ginkgo_v2.build.yml
     input_mapping:
       gomod: volumedriver
@@ -291,10 +345,12 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: image-golang
       - get: volume-mount-options
         resource: volume-mount-options-pr
         trigger: true
   - task: volume-mount-options-unit
+    image: image-golang
     file: persi-ci/scripts/ci/run_unit_ginkgo_v2.build.yml
     input_mapping:
       gomod: volume-mount-options
@@ -330,17 +386,14 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: image-golang
       - get: goshims
         resource: goshims-pr
         trigger: true
   - task: build
+    image: image-golang
     config:
       platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: golang
-          tag: latest
       inputs:
       - name: goshims
       run:
