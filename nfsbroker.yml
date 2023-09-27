@@ -1,9 +1,26 @@
 ---
+#  This pipeline is set automatics, any none committed changes will be lost.
+#
+# To set the pipeline, run:
+#    fly -t cryo-runway set-pipeline -p nfsbroker -c nfsbroker.yml
+#
+# ************************************
+# Secrets we need to run this pipeline
+# ************************************
+
+github_ssh_key: &github_ssh_key ((github.ssh_key))
+github_access_token: &github_access_token ((github.access_token))
+# used to get pull requests and get git repos
+
+# **************
+# End of secrets
+# **************
+
 resource_types:
 - name: pull-request
   type: docker-image
   source:
-    repository: cryogenics/pr-queue-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
 
 resources:
 - name: persi-ci
@@ -18,7 +35,7 @@ resources:
     repository: cloudfoundry/nfsbroker
     base_branch: master
     disable_forks: true
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: credhub
   type: git
@@ -26,14 +43,22 @@ resources:
     branch: main
     uri: https://github.com/cloudfoundry-incubator/credhub
 
+- name: image-nfs-unit-tests
+  type: docker-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
+    tag: latest
+
 jobs:
 - name: security-scan
   plan:
   - in_parallel:
     - get: persi-ci
+    - get: image-nfs-unit-tests
     - get: nfsbroker
       trigger: true
   - task: build
+    image: image-nfs-unit-tests
     file: persi-ci/scripts/ci/security-scan.build.yml
     params:
       PATHS: "./"

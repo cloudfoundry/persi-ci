@@ -24,8 +24,6 @@ jobs:
     file: persi-ci/mapfs-release.yml
   - set_pipeline: mapfs
     file: persi-ci/mapfs.yml
-  - set_pipeline: nfsbroker
-    file: persi-ci/nfsbroker.yml
   - set_pipeline: norsk
     file: persi-ci/norsk.yml
   - set_pipeline: lts-nfs-volume-release-v5.0
