@@ -45,10 +45,10 @@ jobs:
 #      mapfs-tag: v1.2.0
 #      nfs-semver-initial-version: 5.0.3
 #      pas-version: us_2_11_lts2
-#  - set_pipeline: lts-nfsbroker-v5.0
-#    file: persi-ci/lts-nfsbroker-v5.0.yml
-#    vars:
-#      lts-nfs-branch: v5.0
+  - set_pipeline: lts-nfsbroker-v5.0
+    file: persi-ci/lts-nfsbroker-v5.0.yml
+    vars:
+      lts-nfs-branch: v5.0
   - set_pipeline: lts-nfsv3driver-v5.0
     file: persi-ci/lts-nfsv3driver-v5.0.yml
     vars:
