@@ -37,9 +37,6 @@ jobs:
     file: persi-ci/lts-nfsbroker-v5.0.yml
     vars:
       lts-nfs-branch: v5.0
-  - set_pipeline: lts-nfsv3driver-v5.0
-    file: persi-ci/lts-nfsv3driver-v5.0.yml
-    vars:
-      lts-nfs-branch: v5.0
+
 EOF
 )
