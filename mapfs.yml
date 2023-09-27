@@ -1,9 +1,25 @@
 ---
+#  This pipeline is set automatics, any none committed changes will be lost.
+#
+# To set the pipeline, run:
+#    fly -t cryo-runway set-pipeline -p mapfs -c mapfs.yml
+#
+# ************************************
+# Secrets we need to run this pipeline
+# ************************************
+
+github_access_token: &github_access_token ((github.access_token))
+# used to get pull requests
+
+# **************
+# End of secrets
+# **************
+
 resource_types:
 - name: pull-request
   type: docker-image
   source:
-    repository: cryogenics/pr-queue-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
 
 resources:
 - name: mapfs
@@ -12,7 +28,7 @@ resources:
     repository: cloudfoundry/mapfs
     base_branch: master
     disable_forks: true
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: fstest
   type: git
@@ -24,6 +40,12 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
     branch: master
+
+- name: image-nfs-unit-tests
+  type: docker-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
+    tag: latest
 
 jobs:
 - name: unit-test
@@ -49,9 +71,11 @@ jobs:
   plan:
   - in_parallel:
     - get: persi-ci
+    - get: image-nfs-unit-tests
     - get: mapfs
       trigger: true
   - task: build
+    image: image-nfs-unit-tests
     file: persi-ci/scripts/ci/security-scan.build.yml
     params:
       PATHS: "./"

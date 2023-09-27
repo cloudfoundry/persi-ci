@@ -24,8 +24,8 @@ jobs:
 #    file: persi-ci/mapfs-release.yml
   - set_pipeline: smb-volume-release
     file: persi-ci/smb-volume-release.yml
-#  - set_pipeline: mapfs
-#    file: persi-ci/mapfs.yml
+  - set_pipeline: mapfs
+    file: persi-ci/mapfs.yml
   - set_pipeline: nfsbroker
     file: persi-ci/nfsbroker.yml
   - set_pipeline: nfsv3driver
