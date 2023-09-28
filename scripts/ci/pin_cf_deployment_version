@@ -1,7 +1,10 @@
 #!/bin/bash -eux
 
 if [ -d toolsmiths-env ]; then
-  VERS=`cat "toolsmiths-env/metadata" | jq -r '."cf-deployment_version"'`
+  VERS=$(jq -r '."cf-deployment_version"' toolsmiths-env/metadata)
+  if [[ "$VERS" =~ ^[0-9] ]]; then
+    VERS="v${VERS}"
+  fi
 
   cp -a cf-deployment/. cf-deployment-pinned/
 

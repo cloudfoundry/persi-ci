@@ -1,4 +1,29 @@
 ---
+#  This pipeline is set automatically, any non-committed changes will be lost.
+#
+# To set the pipeline, run:
+#    fly -t cryo-runway set-pipeline -p mapfs-release -c mapfs-release.yml
+#
+# ************************************
+# Secrets we need to run this pipeline
+# ************************************
+
+github_ssh_key: &github-ssh-key ((github.ssh_key))
+github_access_token: &github-access-token ((github.access_token))
+github_user: &github-user ((github.user))
+github_email: &github-email ((github.email))
+
+slack_webhook: &slack-webhook ((slack.webhook))
+
+aws_mapfs_uploader_role_id: &aws-uploader-role-id ((aws/mapfs-uploader.role_id))
+aws_mapfs_uploader_role_secret: &aws-uploader-role-secret ((aws/mapfs-uploader.role_secret))
+aws_mapfs_uploader_role_arn: &aws-uploader-role-arn ((aws/mapfs-uploader.role_arn))
+
+shepherd_token: &shepherd-token ((shepherd.sa_key))
+
+# **************
+# End of secrets
+# **************
 number_of_retries: &number_of_retries 2
 
 groups:
@@ -31,17 +56,47 @@ groups:
   - manual-bump-mapfs-minor
   - manual-bump-mapfs-major
 
+resource_types:
+- name: semver
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/semver-resource
+    tag: "1.6"
+  type: docker-image
+
+- name: slack-notification
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfcommunity/slack-notification-resource
+    tag: latest
+
+- name: git
+  type: docker-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/git-resource
+    tag: ubuntu
+
+- name: pcf-pool
+  type: docker-image
+  source:
+    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+    tag: v1
+
+- name: pull-request
+  type: docker-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
+
 resources:
 - name: slack-cryo-notification
   type: slack-notification
   icon: bell-ring
   source:
-    url: ((slack.webhook))
+    url: *slack-webhook
 
 - name: every-week
   type: time
   source:
-    interval: 168h # 24h*7days
+    interval: 168h  # 24h*7days
 
 - name: every-hour
   type: time
@@ -49,24 +104,30 @@ resources:
   source:
     interval: 1h
 
-- name: smith-env
+- name: shepherd-env
   type: pcf-pool
   source:
-    api_token: ((toolsmiths.api_token))
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: cf-deployment
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd-token
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: cfd
+    compatibility_mode: environments-app
+    debug: true
 
 - name: persi-ci
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci
-    branch: master
+    branch: ci-shepherd-cfd
 
 - name: nfs-volume-release
   type: git
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
     ignore_paths:
     - scripts
@@ -74,20 +135,21 @@ resources:
 - name: nfs-volume-release-concourse-tasks
   type: git
   source:
-    private_key: ((github.ssh_key))
+    private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
+    branch: ci-fix-1
 
 - name: mapfs
   type: git
   source:
-    private_key: ((github.ssh_key))
+    private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs.git
 
 - name: mapfs-release
   type: pull-request
   source:
     base_branch: master
-    access_token: ((github.access_token))
+    access_token: *github-access-token
     repository: cloudfoundry/mapfs-release
     disable_forks: true
 
@@ -95,7 +157,7 @@ resources:
   type: git
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs-release.git
 
 # Resource used to track production changes in the release job so that we don't
@@ -105,7 +167,7 @@ resources:
   type: git
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs-release.git
     paths:
     - .final_builds
@@ -120,13 +182,13 @@ resources:
 - name: mapfs-version
   type: semver
   source:
-    access_key_id: ((aws/mapfs-uploader.role_id))
+    access_key_id: *aws-uploader-role-id
     bucket: mapfs-versions
     initial_version: 1.2.4
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/mapfs-uploader.role_secret))
-    assume_role_arn: ((aws/mapfs-uploader.role_arn))
+    secret_access_key: *aws-uploader-role-secret
+    assume_role_arn: *aws-uploader-role-arn
 
 - name: github-release-mapfs
   type: github-release
@@ -134,12 +196,12 @@ resources:
     user: cloudfoundry
     repository: mapfs-release
     drafts: true
-    access_token: ((github.access_token))
+    access_token: *github-access-token
 
 - name: mapfs-release-concourse-tasks
   type: git
   source:
-    branch: master
+    branch: ci-fix
     private_key: ((github.ssh_key))
     uri: git@github.com:cloudfoundry/mapfs-release.git
 
@@ -171,7 +233,7 @@ resources:
   source:
     owner: cloudfoundry-incubator
     repository: bosh-backup-and-restore
-    access_token: ((github.access_token))
+    access_token: *github-access-token
 
 - name: disaster-recovery-acceptance-tests
   type: git
@@ -189,7 +251,7 @@ resources:
   name: mapfs-release-bump-golang
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs-release.git
   type: git
 
@@ -197,7 +259,7 @@ resources:
   name: mapfs-release-bump-golang-master
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs-release.git
     disable_ci_skip: true
   type: git
@@ -207,37 +269,57 @@ resources:
   icon: github
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
-    private_key: ((github.ssh_key))
+    private_key: *github-ssh-key
     branch: main
 
-resource_types:
-- name: semver
-  source:
-    repository: concourse/semver-resource
-    tag: 1.6
-  type: docker-image
-
-- name: slack-notification
+- name: main-bosh-docker
+  icon: docker
   type: registry-image
   source:
-    repository: cfcommunity/slack-notification-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/main-bosh-docker
     tag: latest
 
-- name: git
-  type: docker-image
+- name: cf-deployment-concourse-tasks-docker
+  icon: docker
+  type: registry-image
   source:
-    repository: concourse/git-resource
-    tag: ubuntu
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: latest
 
-- name: pcf-pool
-  type: docker-image
+- name: cryogenics-essentials-docker
+  icon: docker
+  type: registry-image
   source:
-    repository: cftoolsmiths/toolsmiths-envs-resource
+    repository: &cryogenics-essentials harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/essentials
+    tag: latest
 
-- name: pull-request
-  type: docker-image
+- name: backup-and-restore-docker
+  icon: docker
+  type: registry-image
   source:
-    repository: cryogenics/pr-queue-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pcfplatformrecovery/backup-and-restore
+    tag: latest
+
+- name: python-docker
+  icon: docker
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/python
+    tag: 3.9.4
+
+- name: alpine-docker
+  icon: docker
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/alpine
+    tag: latest
+
+- name: ruby-docker
+  icon: docker
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/ruby
+    tag: "3.2"
 
 jobs:
 - name: bump-golang
@@ -247,10 +329,12 @@ jobs:
     - get: golang-release
       trigger: true
     - get: mapfs-release-bump-golang-master
+    - get: cryogenics-essentials-docker
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: bump-golang
     file: cryogenics-concourse-tasks/deps-automation/bump-golang/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
       release: mapfs-release-bump-golang-master
       vendored-package-release: golang-release
@@ -259,9 +343,9 @@ jobs:
       VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.role_id))
-      AWS_SECRET_ACCESS_KEY: ((aws/mapfs-uploader.role_secret))
-      AWS_ASSUME_ROLE_ARN: ((aws/mapfs-uploader.role_arn))
+      AWS_ACCESS_KEY_ID: *aws-uploader-role-id
+      AWS_SECRET_ACCESS_KEY: *aws-uploader-role-secret
+      AWS_ASSUME_ROLE_ARN: *aws-uploader-role-arn
   - put: mapfs-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
@@ -280,6 +364,7 @@ jobs:
       # 'origin/golang-vendor-update'."
       task: create-golang-vendor-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: cryogenics-essentials-docker
       params:
         BASE: master
         BRANCH: *golang-vendor-branch
@@ -304,8 +389,10 @@ jobs:
       passed:
       - bump-golang
     - get: mapfs
+    - get: cryogenics-essentials-docker
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: mapfs
@@ -324,6 +411,7 @@ jobs:
       force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-update-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    image: cryogenics-essentials-docker
     params:
       BASE: master
       BRANCH: *mapfs-gomod-update-branch
@@ -351,8 +439,10 @@ jobs:
       passed:
       - bump-golang
     - get: mapfs-release-master
+    - get: cryogenics-essentials-docker
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: mapfs-release-master
@@ -371,6 +461,7 @@ jobs:
       force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-update-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    image: cryogenics-essentials-docker
     params:
       BASE: master
       BRANCH: *mapfs-release-gomod-update-branch
@@ -397,14 +488,20 @@ jobs:
       - get: mapfs-release
         trigger: true
       - get: nfs-volume-release
+      - get: main-bosh-docker
+      - get: ruby-docker
   - task: rspec
     file: persi-ci/scripts/ci/run-rspec.build.yml
+    image: ruby-docker
     input_mapping:
       test-repo: nfs-volume-release
   - task: bosh-release-test
+    image: main-bosh-docker
     attempts: *number_of_retries
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
+    params:
+      DOCKER_IMAGE: *cryogenics-essentials
 
 - name: mapfs-release-job-tests
   plan:
@@ -414,10 +511,15 @@ jobs:
       - get: mapfs-release
         trigger: true
       - get: mapfs-release-concourse-tasks
+      - get: main-bosh-docker
   - task: bosh-release-test
     file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+    image: main-bosh-docker
+    attempts: *number_of_retries
     privileged: true
     timeout: 1h
+    params:
+      DOCKER_IMAGE: *cryogenics-essentials
 
 - name: env-gate
   plan:
@@ -440,6 +542,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: alpine-docker
       - get: nfs-volume-release
         passed:
         - env-gate
@@ -447,14 +550,22 @@ jobs:
         trigger: true
         passed:
         - env-gate
-  - put: smith-env
+  - put: shepherd-env
     params:
-      action: claim
-
+      action: create
+      duration: 6h
+      resource: shepherd-env
+    timeout: 6h
+  - put: shepherd-env
+    params:
+      action: extend
+      expire-in: 6h
+      resource: shepherd-env
   - task: output-env-details
     file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+    image: alpine-docker
     input_mapping:
-      pooled-env: smith-env
+      pooled-env: shepherd-env
 
 - name: claim-ldap-env
   plan:
@@ -462,6 +573,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: alpine-docker
       - get: nfs-volume-release
         passed:
         - env-gate
@@ -469,14 +581,22 @@ jobs:
         trigger: true
         passed:
         - env-gate
-  - put: smith-env
+  - put: shepherd-env
     params:
-      action: claim
-
+      action: create
+      duration: 6h
+      resource: shepherd-env
+    timeout: 6h
+  - put: shepherd-env
+    params:
+      action: extend
+      expire-in: 2h
+      resource: shepherd-env
   - task: output-env-details
     file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+    image: alpine-docker
     input_mapping:
-      pooled-env: smith-env
+      pooled-env: shepherd-env
 
 - name: deploy-cf
   public: true
@@ -485,23 +605,26 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: smith-env
-
-        passed: [claim-env]
+      - get: shepherd-env
+        passed: [ claim-env ]
         trigger: true
       - get: cf-deployment-concourse-tasks
+      - get: cf-deployment-concourse-tasks-docker
+      - get: cryogenics-essentials-docker
       - get: cf-deployment
       - get: persi-ci
       - get: nfs-volume-release
-        passed: [claim-env]
+        passed: [ claim-env ]
       - get: mapfs-release
-        passed: [claim-env]
+        passed: [ claim-env ]
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+    image: cf-deployment-concourse-tasks-docker
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: shepherd-env
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    image: cf-deployment-concourse-tasks-docker
     input_mapping:
       base-ops-files: cf-deployment
       new-ops-files: persi-ci
@@ -509,15 +632,19 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
+    image: cf-deployment-concourse-tasks-docker
+    input_mapping:
+      smith-env: shepherd-env
     params:
       GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: false
   - task: bosh-deploy-cf
     attempts: *number_of_retries
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
+    image: cryogenics-essentials-docker
     input_mapping:
       cf-deployment: cf-deployment
-      toolsmiths-env: smith-env
+      toolsmiths-env: shepherd-env
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
@@ -532,15 +659,17 @@ jobs:
                   operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: shepherd-env
     params:
       ERRAND_NAME: smoke_tests
   - task: run-nfs-broker-errand
     attempts: *number_of_retries
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: shepherd-env
     params:
       ERRAND_NAME: nfsbrokerpush
       INSTANCE: nfs-broker-push
@@ -553,27 +682,29 @@ jobs:
       fail_fast: true
       steps:
       - get: nfs-volume-release
-        passed: [deploy-cf]
-      - get: smith-env
-
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
+      - get: shepherd-env
+        passed: [ deploy-cf ]
         trigger: true
       - get: persi-ci
       - get: cf-acceptance-tests
       - get: cf-deployment-concourse-tasks
+      - get: cryogenics-essentials-docker
       - get: mapfs-release
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
   - task: generate-cats-config
     file: persi-ci/scripts/ci/generate_cats_config.build.yml
-
+    image: cryogenics-essentials-docker
+    input_mapping:
+      smith-env: shepherd-env
     params:
-      VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
+      VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers_shp.sh
       CF_USERNAME: admin
-      SERVICE_NAME: nfs
       PLAN_NAME: Existing
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+      SERVICE_NAME: nfs
   - task: run-cats
     file: cf-deployment-concourse-tasks/run-cats/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
       integration-config: cats-config
     params:
@@ -588,26 +719,28 @@ jobs:
       fail_fast: true
       steps:
       - get: nfs-volume-release
-        passed: [deploy-cf]
-
+        passed: [ deploy-cf ]
       - get: bbr-binary-release
       - get: disaster-recovery-acceptance-tests
+      - get: cryogenics-essentials-docker
       - get: persi-ci
       - get: mapfs-release
-        passed: [deploy-cf]
-      - get: smith-env
-
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
+      - get: shepherd-env
+        passed: [ deploy-cf ]
         trigger: true
   - task: generate-integration-config
     file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
+    image: cryogenics-essentials-docker
     params:
       INTEGRATION_CONFIG_FILE_PATH: config/drats-nfs.json
+      UPDATE_INTEGRATION_CONFIG_SCRIPT: persi-ci/scripts/ci/drats-update-integration-config-shp.sh
     input_mapping:
       integration-configs: persi-ci
-
+      smith-env: shepherd-env
   - task: drats-with-integration-config
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
+    image: cryogenics-essentials-docker
     privileged: true
     input_mapping:
       drats-integration-config: updated-integration-configs
@@ -623,20 +756,19 @@ jobs:
       steps:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
-      - get: smith-env
-
-        passed: [deploy-cf]
+      - get: cryogenics-essentials-docker
+      - get: shepherd-env
+        passed: [ deploy-cf ]
         trigger: true
       - get: nfs-volume-release
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
       - get: mapfs-release
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
-
-    file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    file: persi-ci/scripts/ci/generate_pats_config_shp.build.yml
+    image: cryogenics-essentials-docker
     params:
-      VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+      VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers_shp.sh
       CF_USERNAME: admin
       BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}"]'  # yamllint disable-line rule:line-length
@@ -644,12 +776,15 @@ jobs:
       CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
+    input_mapping:
+      smith-env: shepherd-env
     output_mapping:
       pats-config: nfs-pats-config
   - task: run-pats-nfs
+    file: persi-ci/scripts/ci/run-pats.build.yml
+    image: cryogenics-essentials-docker
     input_mapping:
       pats-config: nfs-pats-config
-    file: persi-ci/scripts/ci/run-pats.build.yml
     attempts: *number_of_retries
     params:
       PARALLEL_NODES: 5
@@ -665,14 +800,14 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: smith-env
-
+      - get: shepherd-env
         passed:
         - claim-ldap-env
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
       - get: persi-ci
+      - get: cryogenics-essentials-docker
       - get: nfs-volume-release
         passed:
         - claim-ldap-env
@@ -681,10 +816,12 @@ jobs:
         - claim-ldap-env
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
+    image: cryogenics-essentials-docker
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: shepherd-env
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
       base-ops-files: cf-deployment
       new-ops-files: persi-ci
@@ -692,6 +829,9 @@ jobs:
       BASE_OPS_FILE_DIR: "operations"
   - task: generate-variables
     file: persi-ci/scripts/ci/generate_variables.build.yml
+    image: cryogenics-essentials-docker
+    input_mapping:
+      smith-env: shepherd-env
     params:
       GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: false
@@ -703,8 +843,9 @@ jobs:
       LDAP_USER_FQDN: "ou=Users,dc=domain,dc=com"
   - task: bosh-deploy-cf
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
+    image: cryogenics-essentials-docker
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: shepherd-env
       cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
@@ -720,15 +861,17 @@ jobs:
                   operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: shepherd-env
     params:
       ERRAND_NAME: smoke_tests
   - task: run-nfs-broker-errand
     attempts: *number_of_retries
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: shepherd-env
     params:
       ERRAND_NAME: nfsbrokerpush
       INSTANCE: nfs-broker-push
@@ -738,13 +881,13 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: smith-env
-
+      - get: shepherd-env
         passed:
         - deploy-cf-with-ldap
         trigger: true
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
+      - get: cryogenics-essentials-docker
       - get: nfs-volume-release
         passed:
         - deploy-cf-with-ldap
@@ -755,72 +898,74 @@ jobs:
       fail_fast: true
       steps:
       - task: generate-legacy-pats-config
-
-        file: persi-ci/scripts/ci/generate_pats_config.build.yml
+        file: persi-ci/scripts/ci/generate_pats_config_shp.build.yml
+        image: cryogenics-essentials-docker
         params:
-          VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+          VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers_shp.sh
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
           CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
           DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
           PLAN_NAME: Existing
           SERVICE_NAME: nfs-legacy
+        input_mapping:
+          smith-env: shepherd-env
         output_mapping:
           pats-config: nfs-legacy-pats-config
       - task: generate-pats-config
-
-        file: persi-ci/scripts/ci/generate_pats_config.build.yml
+        file: persi-ci/scripts/ci/generate_pats_config_shp.build.yml
+        image: cryogenics-essentials-docker
         params:
-          VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+          VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers_shp.sh
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
           CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
           DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
           PLAN_NAME: Existing
           SERVICE_NAME: nfs
+        input_mapping:
+          smith-env: shepherd-env
         output_mapping:
           pats-config: nfs-pats-config
   - in_parallel:
       fail_fast: true
       steps:
       - task: run-legacy-pats
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        image: cryogenics-essentials-docker
         input_mapping:
           pats-config: nfs-legacy-pats-config
-        file: persi-ci/scripts/ci/run-pats.build.yml
         params:
           TEST_DOCKER_PORA: true
       - task: run-pats
+        file: persi-ci/scripts/ci/run-pats.build.yml
+        image: cryogenics-essentials-docker
         input_mapping:
           pats-config: nfs-pats-config
-        file: persi-ci/scripts/ci/run-pats.build.yml
         params:
           TEST_DOCKER_PORA: true
 
 - name: unclaim-env
   plan:
-  - get: smith-env
-
+  - get: shepherd-env
     passed:
     - pats
     - drats
     - cats-nfs
     trigger: true
-  - put: smith-env
+  - put: shepherd-env
     params:
-      action: unclaim
-      env_file: smith-env/metadata
+      action: release
+      resource: shepherd-env
 
 - name: unclaim-ldap-env
   plan:
-  - get: smith-env
-
+  - get: shepherd-env
     passed:
     - pats-nfs-ldap
     trigger: true
-  - put: smith-env
+  - put: shepherd-env
     params:
-      action: unclaim
-      env_file: smith-env/metadata
+      action: release
+      resource: shepherd-env
 
 - name: merge-pr
   plan:
@@ -839,10 +984,10 @@ jobs:
 - name: check-for-changes
   plan:
   - in_parallel:
-      - get: every-week
-        trigger: true
-      - get: mapfs-release-master
-      - get: mapfs-release-master-production-files-only
+    - get: every-week
+      trigger: true
+    - get: mapfs-release-master
+    - get: mapfs-release-master-production-files-only
 
 - name: shipit-mapfs
   serial_groups:
@@ -858,6 +1003,9 @@ jobs:
       steps:
       - get: persi-ci
       - get: cryogenics-concourse-tasks
+      - get: cryogenics-essentials-docker
+      - get: backup-and-restore-docker
+      - get: python-docker
       - get: release
         resource: mapfs-release-master
       - get: mapfs-release-master-production-files-only
@@ -870,27 +1018,30 @@ jobs:
           bump: final
   - task: create-final-release
     file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
+    image: cryogenics-essentials-docker
     input_mapping:
       release-repo: release
     output_mapping:
       updated-release-repo: mapfs-final-release
       updated-release-tarball: mapfs-final-release-tarball
     params:
-      AWS_ACCESS_KEY_ID: ((aws/mapfs-uploader.role_id))
-      AWS_SECRET_ACCESS_KEY: ((aws/mapfs-uploader.role_secret))
-      AWS_ROLE_ARN: ((aws/mapfs-uploader.role_arn))
-      GIT_USERNAME: ((github.user))
-      GIT_EMAIL: ((github.email))
+      AWS_ACCESS_KEY_ID: *aws-uploader-role-id
+      AWS_SECRET_ACCESS_KEY: *aws-uploader-role-secret
+      AWS_ROLE_ARN: *aws-uploader-role-arn
+      GIT_USERNAME: *github-user
+      GIT_EMAIL: *github-email
       FINAL: true
       RELEASE_NAME: mapfs
   - task: create-release-notes
     file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
+    image: python-docker
     input_mapping:
       git-repo: release
     params:
       USE_LATEST_PUBLISHED_TAG: true
   - task: format-release-notes
     file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
+    image: backup-and-restore-docker
     input_mapping:
       template-folder: cryogenics-concourse-tasks
     params:
