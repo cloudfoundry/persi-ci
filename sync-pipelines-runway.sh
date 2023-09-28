@@ -18,8 +18,8 @@ jobs:
     trigger: true
 #  - set_pipeline: docker-image-build
 #    file: persi-ci/docker-image-build.yml
-#  - set_pipeline: nfs-volume-release
-#    file: persi-ci/nfs-volume-release.yml
+  - set_pipeline: nfs-volume-release
+    file: persi-ci/nfs-volume-release.yml
 #  - set_pipeline: mapfs-release
 #    file: persi-ci/mapfs-release.yml
   - set_pipeline: smb-volume-release
