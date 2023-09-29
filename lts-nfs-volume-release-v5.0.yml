@@ -1,4 +1,32 @@
 ---
+#  This pipeline is set automatically, any non-committed changes will be lost.
+#
+# To set the pipeline, run:
+#    fly -t cryo-runway set-pipeline -p lts-nfs-volume-release-v5.0 -c lts-nfs-volume-release-v5.0.yml -v lts-nfs-branch=v5.0 -v nfs-semver-initial-version=5.0.3 -v pas-pool-name=tas-2_11
+#
+# ************************************
+# Secrets we need to run this pipeline
+# ************************************
+
+
+aws_uploader_role_arn: &aws_uploader_role_arn ((aws/lts-nfsvolume-uploader.role_arn))
+aws_uploader_role_id: &aws_uploader_role_id ((aws/lts-nfsvolume-uploader.role_id))
+aws_uploader_role_secret: &aws_uploader_role_secret ((aws/lts-nfsvolume-uploader.role_secret))
+
+github_access_token: &github_access_token ((github.access_token))
+github_email: &github_email ((github.email))
+github_https_password: &github_https_password ((github.https_password))
+github_https_username: &github_https_username ((github.https_username))
+github_ssh_key: &github_ssh_key ((github.ssh_key))
+
+slack_webhook: &slack_webhook ((slack.webhook))
+
+shepherd_token: &shepherd-token ((shepherd.sa_key))
+
+# **************
+# End of secrets
+# **************
+
 groups:
 - name: test
   jobs:
@@ -24,19 +52,84 @@ groups:
   - check-for-changes
   - shipit-nfs
 
+resource_types:
+- name: semver
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/semver-resource
+    tag: "1.6"
+  type: registry-image
+
+- name: slack-notification
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfcommunity/slack-notification-resource
+    tag: latest
+
+- name: git
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/git-resource
+    tag: ubuntu
+
+- name: pcf-pool
+  type: registry-image
+  source:
+    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+    tag: v1
+
+- name: pull-request
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
+
 resources:
+- name: bosh-integration-docker
+  icon: docker
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/integration
+    tag: main
+
+- name: cfpersi-nfs-unit-tests-docker
+  icon: docker
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
+    tag: latest
+
+- name: cfpersi-nfs-integration-tests-docker
+  icon: docker
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-integration-tests
+    tag: latest
+
+- name: main-bosh-docker
+  icon: docker
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/main-bosh-docker
+    tag: latest
+
+- name: cryogenics-essentials-docker
+  icon: docker
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/essentials
+    tag: latest
+
 - name: slack-cryo-notification
   type: slack-notification
   icon: bell-ring
   source:
-    url: ((slack.webhook))
+    url: *slack_webhook
 
 - name: cryogenics-concourse-tasks
   type: git
   icon: github
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: every-week
   type: time
@@ -45,65 +138,87 @@ resources:
 
 - name: nfs-volume-release-concourse-tasks
   type: git
+  icon: github
   source:
-    branch: {{lts-nfs-branch}}
-    private_key: ((github.ssh_key))
+    #  branch: {{lts-nfs-branch}}
+    branch: v5.0-ci-fix
+    private_key: *github_ssh_key
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
 
-- name: smith-env
+- name: shepherd-env
   type: pcf-pool
+  icon: pool
   source:
-    api_token: ((toolsmiths.api_token))
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: {{pas-version}}
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd-token
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: {{pas-pool-name}}
+    compatibility_mode: environments-app
+    debug: true
 
 - name: docker_driver_integration_tests
   type: git
+  icon: github
   source:
     branch: main
     uri: https://github.com/cloudfoundry/docker_driver_integration_tests
 
 - name: credhub
   type: git
+  icon: github
+  # PINNED
+  # https://github.com/cloudfoundry/credhub/commit/4dab29337629ebe9df6f7b9cdd921038f652867e - sets the
+  #   minimum required Java version to 11, while bosh integration docker image has Java 8 installed.
+  #   For LTS testing purposes, pinning the CredHub version should be sufficient.
+  # See https://www.pivotaltracker.com/story/show/186290510 for updates.
+  version:
+    ref: f636d571375f8dc5a61848eda9cbc9ac50bc5bff
   source:
     branch: main
     uri: https://github.com/cloudfoundry-incubator/credhub
 
 - name: persi-ci
   type: git
+  icon: github
   source:
     uri: https://github.com/cloudfoundry/persi-ci
     branch: master
 
 - name: nfs-volume-release
   type: pull-request
+  icon: source-pull
   source:
     base_branch: {{lts-nfs-branch}}
-    access_token: ((github.access_token))
+    access_token: *github_access_token
     repository: cloudfoundry/nfs-volume-release
     disable_forks: true
     autosync_pr: false
 
 - name: nfs-volume-release-lts
   type: git
+  icon: github
   source:
     submodule_credentials:
     - host: github.com
-      username: ((github.https_username))
-      password: ((github.https_password))
+      username: *github_https_username
+      password: *github_https_password
     branch: {{lts-nfs-branch}}
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: nfs-volume-release-lts-production-files-only
   type: git
+  icon: github
   source:
     submodule_credentials:
     - host: github.com
-      username: ((github.https_username))
-      password: ((github.https_password))
+      username: *github_https_username
+      password: *github_https_password
     branch: {{lts-nfs-branch}}
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
     paths:
     - .final_builds
@@ -117,10 +232,11 @@ resources:
 
 - name: nfsvolume-version
   type: semver
+  icon: counter
   source:
-    access_key_id: ((aws/lts-nfsvolume-uploader.role_id))
-    secret_access_key: ((aws/lts-nfsvolume-uploader.role_secret))
-    assume_role_arn: ((aws/lts-nfsvolume-uploader.role_arn))
+    access_key_id: *aws_uploader_role_id
+    secret_access_key: *aws_uploader_role_secret
+    assume_role_arn: *aws_uploader_role_arn
     bucket: lts-nfsvolume-release-versions
     initial_version: {{nfs-semver-initial-version}}
     key: {{lts-nfs-branch}}
@@ -128,28 +244,32 @@ resources:
 
 - name: cf-deployment
   type: git
+  icon: github
   source:
     branch: main
     uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
   type: git
+  icon: github
   source:
     branch: main
     uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
 
 - name: cf-volume-services-acceptance-tests
   type: git
+  icon: github
   source:
     uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
 
 - name: github-release-nfs
   type: github-release
+  icon: package-variant-closed-check
   source:
     user: cloudfoundry
     repository: nfs-volume-release
     drafts: true
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: golang-release
   type: git
@@ -158,74 +278,46 @@ resources:
     uri: https://github.com/bosh-packages/golang-release.git
     tag_filter: v*
 
-- icon: github
-  name: nfs-volume-release-bump-golang
-  source:
-    branch: {{lts-nfs-branch}}
-    private_key: ((github.ssh_key))
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+- name: nfs-volume-release-bump-golang
   type: git
-
-- icon: github
-  name: nfs-volume-release-bump-golang-branch
+  icon: github
   source:
     branch: {{lts-nfs-branch}}
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+
+- name: nfs-volume-release-bump-golang-branch
+  type: git
+  icon: github
+  source:
+    branch: {{lts-nfs-branch}}
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
     disable_ci_skip: true
-  type: git
 
-- icon: github
-  name: nfsv3driver-v5
+- name: nfsv3driver-v5
+  type: git
+  icon: github
   source:
     branch: {{lts-nfs-branch}}
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfsv3driver.git
     disable_ci_skip: true
-  type: git
 
-- icon: github
-  name: nfsbroker-v5
+- name: nfsbroker-v5
+  type: git
+  icon: github
   source:
     branch: {{lts-nfs-branch}}
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfsbroker.git
     disable_ci_skip: true
-  type: git
-
-resource_types:
-- name: semver
-  source:
-    repository: concourse/semver-resource
-    tag: 1.6
-  type: docker-image
-
-- name: slack-notification
-  type: registry-image
-  source:
-    repository: cfcommunity/slack-notification-resource
-    tag: latest
-
-- name: git
-  type: docker-image
-  source:
-    repository: concourse/git-resource
-    tag: ubuntu
-
-- name: pcf-pool
-  type: docker-image
-  source:
-    repository: cftoolsmiths/toolsmiths-envs-resource
-
-- name: pull-request
-  type: docker-image
-  source:
-    repository: cryogenics/pr-queue-resource
 
 jobs:
 - name: bump-golang
   plan:
   - in_parallel:
+    - get: cryogenics-essentials-docker
     - get: golang-release
       trigger: true
     - get: cryogenics-concourse-tasks
@@ -235,6 +327,7 @@ jobs:
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: bump-golang
+    image: cryogenics-essentials-docker
     file: cryogenics-concourse-tasks/deps-automation/bump-golang/task.yml
     input_mapping:
       release: nfs-volume-release-bump-golang-branch
@@ -244,9 +337,9 @@ jobs:
       VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))-into-v5
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      AWS_ACCESS_KEY_ID: ((aws/lts-nfsvolume-uploader.role_id))
-      AWS_SECRET_ACCESS_KEY: ((aws/lts-nfsvolume-uploader.role_secret))
-      AWS_ASSUME_ROLE_ARN: ((aws/lts-nfsvolume-uploader.role_arn))
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ASSUME_ROLE_ARN: *aws_uploader_role_arn
   - put: nfs-volume-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
@@ -263,6 +356,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-golang-vendor-pull-request
+      image: cryogenics-essentials-docker
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params: &golang-bump-pr-params
         BASE: {{lts-nfs-branch}}
@@ -280,6 +374,7 @@ jobs:
 - name: update-go-directive-for-nfsv3driver
   plan:
   - in_parallel:
+    - get: cryogenics-essentials-docker
     - get: golang-release
       trigger: true
       passed:
@@ -291,6 +386,7 @@ jobs:
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
+    image: cryogenics-essentials-docker
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -313,6 +409,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-gomod-directive-update-pull-request
+      image: cryogenics-essentials-docker
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         <<: *golang-bump-pr-params
@@ -322,6 +419,7 @@ jobs:
 - name: update-go-directive-for-nfsbroker
   plan:
   - in_parallel:
+    - get: cryogenics-essentials-docker
     - get: golang-release
       trigger: true
       passed:
@@ -333,6 +431,7 @@ jobs:
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
+    image: cryogenics-essentials-docker
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -355,6 +454,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-gomod-directive-update-pull-request
+      image: cryogenics-essentials-docker
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         <<: *golang-bump-pr-params
@@ -365,9 +465,11 @@ jobs:
   plan:
   - in_parallel:
     - get: persi-ci
+    - get: cfpersi-nfs-unit-tests-docker
     - get: nfs-volume-release
       trigger: true
   - task: build
+    image: cfpersi-nfs-unit-tests-docker
     file: persi-ci/scripts/ci/security-scan.build.yml
     params:
       PATHS: "src/code.cloudfoundry.org/nfsv3driver/:src/code.cloudfoundry.org/nfsbroker/"
@@ -379,12 +481,14 @@ jobs:
   public: true
   plan:
   - in_parallel:
+    - get: cfpersi-nfs-unit-tests-docker
     - get: nfs-volume-release-concourse-tasks
       params:
         submodules: none
     - get: nfs-volume-release
       trigger: true
   - task: build
+    image: cfpersi-nfs-unit-tests-docker
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
 
 - name: nfsbroker-tests
@@ -393,6 +497,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
+      - get: bosh-integration-docker
       - get: nfs-volume-release-concourse-tasks
         params:
           submodules: none
@@ -400,6 +505,7 @@ jobs:
         trigger: true
       - get: credhub
   - task: run-test
+    image: bosh-integration-docker
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
 
 - name: nfs-volume-release-job-tests
@@ -407,18 +513,24 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
+      - get: cryogenics-essentials-docker
+      - get: main-bosh-docker
       - get: persi-ci
       - get: nfs-volume-release-concourse-tasks
       - get: nfs-volume-release
         trigger: true
   - task: rspec
+    image: cryogenics-essentials-docker
     file: persi-ci/scripts/ci/run-rspec.build.yml
     input_mapping:
       test-repo: nfs-volume-release
   - task: bosh-release-test
+    image: main-bosh-docker
     attempts: 3
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
+    params:
+      DOCKER_IMAGE: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/essentials
 
 - name: nfsdriver-integration
   serial: true
@@ -426,6 +538,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
+      - get: cfpersi-nfs-integration-tests-docker
       - get: persi-ci
       - get: docker_driver_integration_tests
       - get: nfs-volume-release-concourse-tasks
@@ -441,16 +554,19 @@ jobs:
       fail_fast: true
       steps:
       - task: run_docker_driver_integration_tests
+        image: cfpersi-nfs-integration-tests-docker
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
       - task: run_docker_driver_lazy_unmount_integration_tests
+        image: cfpersi-nfs-integration-tests-docker
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
       - task: run_driver_broker_compatibility_tests
+        image: cfpersi-nfs-integration-tests-docker
         privileged: true
         input_mapping:
           director-state: bbl-state
@@ -464,19 +580,28 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: cryogenics-essentials-docker
       - get: nfs-volume-release
         trigger: true
         passed:
         - nfsdriver-integration
         - nfs-volume-release-job-tests
-  - put: smith-env
+  - put: shepherd-env
     params:
-      action: claim
-
+      action: create
+      duration: 6h
+      resource: shepherd-env
+    timeout: 6h
+  - put: shepherd-env
+    params:
+      action: extend
+      expire-in: 6h
+      resource: shepherd-env
   - task: output-env-details
+    image: cryogenics-essentials-docker
     file: persi-ci/scripts/ci/claim-pooled-env.build.yml
     input_mapping:
-      pooled-env: smith-env
+      pooled-env: shepherd-env
 
 - name: deploy-cf
   public: true
@@ -485,64 +610,57 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: smith-env
-        passed: [claim-env]
+      - get: cryogenics-essentials-docker
+      - get: shepherd-env
+        passed: [ claim-env ]
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
       - get: persi-ci
       - get: nfs-volume-release
-        passed: [claim-env]
+        passed: [ claim-env ]
   - task: bosh-deploy
+    image: cryogenics-essentials-docker
     config:
       platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: cryogenics/essentials
-          tag: latest
       inputs:
       - name: nfs-volume-release
       - name: persi-ci
-      - name: smith-env
-      params:
-        TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+      - name: shepherd-env
       run:
         path: bash
         args:
         - -exc
         - |
-            BOSH_ENV_NAME=$(cat smith-env/name)
-            export TOOLSMITHS_ENVIRONMENT_NAME=$BOSH_ENV_NAME
-            eval "$(smith bosh)"
-            export BOSH_DEPLOYMENT=$(smith bosh deployments -- --column=Name --json | jq -r ."Tables[0].Rows[0].name")
-            pushd nfs-volume-release
-              bosh create-release
-              bosh upload-release
-              bosh manifest > /tmp/cf.yml
-            popd
-            bosh deploy -n /tmp/cf.yml \
-                -o persi-ci/operations/pas/use-latest-releases.yml \
-                -o persi-ci/operations/pas/nfs-ldap-pas-mixin.yml \
-                -o persi-ci/operations/pas/remove-paths-from-releases.yml
-            bosh run-errand nfsbrokerpush
+          eval "$(smith bosh -l shepherd-env/metadata)"
+          export BOSH_DEPLOYMENT=$(smith bosh -l shepherd-env/metadata deployments -- --column=Name --json | jq -r ."Tables[0].Rows[0].name")
+          pushd nfs-volume-release
+            bosh create-release
+            bosh upload-release
+            bosh manifest > /tmp/cf.yml
+          popd
+          bosh deploy -n /tmp/cf.yml \
+              -o persi-ci/operations/pas/use-latest-releases.yml \
+              -o persi-ci/operations/pas/nfs-ldap-pas-mixin.yml \
+              -o persi-ci/operations/pas/remove-paths-from-releases.yml
+          bosh run-errand nfsbrokerpush
 
 - name: pats-nfs-ldap-ephemeral-environment
   plan:
   - in_parallel:
       fail_fast: true
       steps:
+      - get: cryogenics-essentials-docker
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
-      - get: smith-env
-
-        passed: [deploy-cf]
+      - get: shepherd-env
+        passed: [ deploy-cf ]
         trigger: true
       - get: nfs-volume-release
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
-
-    file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
+    image: cryogenics-essentials-docker
+    file: persi-ci/scripts/ci/generate_pats_config_pas_shp.build.yml
     params:
       CF_USERNAME: admin
       BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
@@ -550,13 +668,15 @@ jobs:
       DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+    input_mapping:
+      smith-env: shepherd-env
     output_mapping:
       pats-config: nfs-pats-config
   - in_parallel:
       fail_fast: true
       steps:
       - task: run-pats-nfs-ephemeral
+        image: cryogenics-essentials-docker
         input_mapping:
           pats-config: nfs-pats-config
         file: persi-ci/scripts/ci/run-pats.build.yml
@@ -569,17 +689,17 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
+      - get: cryogenics-essentials-docker
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
-      - get: smith-env
-
-        passed: [deploy-cf]
+      - get: shepherd-env
+        passed: [ deploy-cf ]
         trigger: true
       - get: nfs-volume-release
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
-
-    file: persi-ci/scripts/ci/generate_pats_config_pas.build.yml
+    image: cryogenics-essentials-docker
+    file: persi-ci/scripts/ci/generate_pats_config_pas_shp.build.yml
     params:
       CF_USERNAME: admin
       BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
@@ -587,13 +707,15 @@ jobs:
       DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       PLAN_NAME: Existing
       SERVICE_NAME: nfs-legacy
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+    input_mapping:
+      smith-env: shepherd-env
     output_mapping:
       pats-config: nfs-pats-config
   - in_parallel:
       fail_fast: true
       steps:
       - task: run-pats-nfs-ephemeral
+        image: cryogenics-essentials-docker
         input_mapping:
           pats-config: nfs-pats-config
         file: persi-ci/scripts/ci/run-pats.build.yml
@@ -603,16 +725,15 @@ jobs:
 
 - name: unclaim-env
   plan:
-  - get: smith-env
-
+  - get: shepherd-env
     passed:
     - pats-nfs-ldap-legacy-ephemeral-environment
     - pats-nfs-ldap-ephemeral-environment
     trigger: true
-  - put: smith-env
+  - put: shepherd-env
     params:
-      action: unclaim
-      env_file: smith-env/metadata
+      action: release
+      resource: shepherd-env
 
 - name: manual-bump-nfs-patch
   serial_groups:
@@ -655,6 +776,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: cryogenics-essentials-docker
       - get: cryogenics-concourse-tasks
       - get: nfs-volume-release-lts-production-files-only
         trigger: true
@@ -669,6 +791,7 @@ jobs:
         params:
           bump: final
   - task: create-final-release
+    image: cryogenics-essentials-docker
     file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
     input_mapping:
       release-repo: release
@@ -676,20 +799,22 @@ jobs:
       updated-release-repo: nfs-final-release
       updated-release-tarball: nfs-final-release-tarball
     params:
-      AWS_ACCESS_KEY_ID: ((aws/lts-nfsvolume-uploader.role_id))
-      AWS_SECRET_ACCESS_KEY: ((aws/lts-nfsvolume-uploader.role_secret))
-      AWS_ROLE_ARN: ((aws/lts-nfsvolume-uploader.role_arn))
-      GIT_USERNAME: ((github.user))
-      GIT_EMAIL: ((github.email))
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_https_username
+      GIT_EMAIL: *github_email
       FINAL: true
       RELEASE_NAME: nfs-volume
   - task: create-release-notes
+    image: cryogenics-essentials-docker
     file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
     input_mapping:
       git-repo: release
     params:
       USE_LATEST_PUBLISHED_TAG: true
   - task: format-release-notes
+    image: cryogenics-essentials-docker
     file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
     input_mapping:
       template-folder: cryogenics-concourse-tasks
