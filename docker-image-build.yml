@@ -1,4 +1,21 @@
 ---
+#!  This pipeline is manually set
+#!
+#!  To set pipeline manually run:
+#!    fly set-pipeline -p volume-services-docker-image-build -c docker-image-build.yml
+
+# ************************************
+# Secrets we need to run this pipeline
+# ************************************
+
+dockerhub_username: &dockerhub_username ((dockerhub.username))
+dockerhub_password: &dockerhub_password ((dockerhub.password))
+# Used to upload to docker hub the images built by this pipeline. The password is set via the dockerhub UI.
+
+# **************
+# End of secrets
+# **************
+
 resources:
 
 - name: nightly
@@ -18,43 +35,43 @@ resources:
   type: docker-image
   source:
     repository: cfpersi/mapfs-tests
-    username: ((dockerhub.username))
-    password: ((dockerhub.password))
+    username: *dockerhub_username
+    password: *dockerhub_password
 
 - name: nfs-driver-integration-tests-docker-image
   type: docker-image
   source:
     repository: cfpersi/nfs-integration-tests
-    username: ((dockerhub.username))
-    password: ((dockerhub.password))
+    username: *dockerhub_username
+    password: *dockerhub_password
 
 - name: bosh-release-test-docker-image
   type: docker-image
   source:
     repository: cfpersi/bosh-release-tests
-    username: ((dockerhub.username))
-    password: ((dockerhub.password))
+    username: *dockerhub_username
+    password: *dockerhub_password
 
 - name: nfs-unit-tests-docker-image
   type: docker-image
   source:
     repository: cfpersi/nfs-unit-tests
-    username: ((dockerhub.username))
-    password: ((dockerhub.password))
+    username: *dockerhub_username
+    password: *dockerhub_password
 
 - name: smb-unit-tests-docker-image
   type: docker-image
   source:
     repository: cfpersi/smb-unit-tests
-    username: ((dockerhub.username))
-    password: ((dockerhub.password))
+    username: *dockerhub_username
+    password: *dockerhub_password
 
 - name: nfs-cats-docker-image
   type: docker-image
   source:
     repository: cfpersi/nfs-cats
-    username: ((dockerhub.username))
-    password: ((dockerhub.password))
+    username: *dockerhub_username
+    password: *dockerhub_password
 
 - name: smb-volume-release
   type: git
