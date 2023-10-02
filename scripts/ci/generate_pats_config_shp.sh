@@ -10,6 +10,19 @@ set -euo pipefail
 source "$(dirname $0)/helpers.sh"
 source "${VAR_RESOLVER_SCRIPT}"
 
+function setup_bosh_env_vars() {
+  set +x
+  if [ -d smith-env ]; then
+    eval "$(bbl print-env --metadata-file smith-env/metadata)"
+    export SYSTEM_DOMAIN="$(jq -r .name smith-env/metadata).cf-app.com"
+    export TCP_DOMAIN="tcp.${SYSTEM_DOMAIN}"
+  else
+    echo "Must provide either smith-env as an input"
+    exit 1
+  fi
+  set -x
+}
+
 function write_config_to_file() {
   # This config file contains fields from both the standard CATs config AND
   # the PATs config structs.
@@ -40,6 +53,7 @@ function write_config_to_file() {
 EOF
 }
 
+setup_bosh_env_vars
 set_cf_admin_password
 set_cf_api_url
 set_apps_domain
