@@ -10,6 +10,12 @@ set -euo pipefail
 source "$(dirname $0)/helpers.sh"
 source "${VAR_RESOLVER_SCRIPT}"
 
+function ensure_smith_env_name() {
+  if [[ -d smith-env && ! -f smith-env/name ]]; then
+    jq -r .name smith-env/metadata > smith-env/name
+  fi
+}
+
 function write_config_to_file() {
   # This config file contains fields from both the standard CATs config AND
   # the PATs config structs.
@@ -40,6 +46,7 @@ function write_config_to_file() {
 EOF
 }
 
+ensure_smith_env_name
 set_cf_admin_password
 set_cf_api_url
 set_apps_domain
