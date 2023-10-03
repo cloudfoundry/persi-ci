@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    privileged: true
+    repository: bosh/main-bosh-docker
+    tag: latest
+
+inputs:
+- name: persi-ci
+- name: mapfs-release
+
+run:
+  path: persi-ci/scripts/ci/run-mapfs-bosh-release-tests.sh
+
+params:
+  DOCKER_IMAGE: ~
