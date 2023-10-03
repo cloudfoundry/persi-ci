@@ -8,19 +8,20 @@ image_resource:
     tag: latest
 
 inputs:
-  - name: smith-env
-    path: cf-deployment-env
-    optional: true
-  - name: disaster-recovery-acceptance-tests
-  - name: integration-configs
-  - name: persi-ci
+- name: smith-env
+  path: cf-deployment-env
+  optional: true
+- name: disaster-recovery-acceptance-tests
+- name: integration-configs
+- name: persi-ci
 
 outputs:
-  - name: updated-integration-configs
+- name: updated-integration-configs
 
 params:
   CF_DEPLOYMENT_NAME: cf
   INTEGRATION_CONFIG_FILE_PATH: ci/integration_config.json
+  UPDATE_INTEGRATION_CONFIG_SCRIPT: ~
   CF_USERNAME: admin
   BBL_STATE_DIR: .
 

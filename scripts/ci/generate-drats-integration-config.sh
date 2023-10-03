@@ -24,4 +24,8 @@ export CF_API_ENDPOINT="api.${ENV}.cf-app.com"
 export SYSTEM_DOMAIN="${ENV}.cf-app.com"
 export -f bbl
 
-$SCRIPTS_ROOT_DIR/disaster-recovery-acceptance-tests/ci/tasks/update-integration-config/task.sh
+if [[ -x "$UPDATE_INTEGRATION_CONFIG_SCRIPT" ]]; then
+  "$UPDATE_INTEGRATION_CONFIG_SCRIPT"
+else
+  "$SCRIPTS_ROOT_DIR"/disaster-recovery-acceptance-tests/ci/tasks/update-integration-config/task.sh
+fi
