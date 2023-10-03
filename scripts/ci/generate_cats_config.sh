@@ -10,7 +10,12 @@ set -euo pipefail
 source "$(dirname $0)/helpers.sh"
 source "${VAR_RESOLVER_SCRIPT}"
 
-[ -d bosh-env/alias-env.sh ] && source bosh-env/alias-env.sh
+if [[ -d bosh-env/alias-env.sh ]]; then
+  source bosh-env/alias-env.sh
+else
+  eval "$(smith -l smith-env/metadata bosh)"
+fi
+
 
 function write_config_to_file() {
   CONFIG_FILE="cats-config/cats.json"
