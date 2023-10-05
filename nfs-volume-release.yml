@@ -1,4 +1,39 @@
 ---
+#! ************************************
+#! Secrets we need to run this pipeline
+#! ************************************
+
+aws_nfsvolume_uploader_role_arn: &aws_nfsvolume_uploader_role_arn ((aws/nfsvolume-uploader.role_arn))
+    #! aws_nfsvolume_uploader_role_arn was needed on 2023-10-05 for defining the AWS role assumed when accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
+
+aws_nfsvolume_uploader_role_id: &aws_nfsvolume_uploader_role_id ((aws/nfsvolume-uploader.role_id))
+    #! aws_nfsvolume_uploader_role_id was needed on 2023-10-05 for defining the AWS Access Key for accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
+
+aws_nfsvolume_uploader_role_secret: &aws_nfsvolume_uploader_role_secret ((aws/nfsvolume-uploader.role_secret))
+    #! aws_nfsvolume_uploader_role_secret was needed on 2023-10-05 for defining the AWS Access Secret for accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
+
+github_access_token: &github_access_token ((github.access_token))
+    #! github_access_token was needed on 2023-10-05 for accessing the Github API in order to consume PRs, create and download releases. Genearted using github account and lives in lastpass at Shared-Cryogenics/infrastructure-root/github-ci-account.
+
+github_email: &github_email ((github.email))
+    #! github_email was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
+
+github_ssh_key: &github_ssh_key ((github.ssh_key))
+    #! github_ssh_key was needed on 2023-10-05 by the git-resource to access various Git repos via SSH. Genearted using github account and lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
+
+github_user: &github_user ((github.user))
+    #! github_user was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics' as well as in Lastpass at Shared-Cryogenics/infrastructure-root/github-ci-account.
+
+slack_webhook: &slack_webhook ((slack.webhook))
+    #! slack_webhook was needed on 2023-10-05 for sending notifications in our Slack channel. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
+
+toolsmiths_api_token: &toolsmiths_api_token ((toolsmiths.api_token))
+    #! toolsmiths_api_token was needed on 2023-10-05 for claiming Toolsmiths envs and interact with the Toolsmiths API. It was given to us by the #cf-toolsmiths team and it lives in Lastpass under 'Shared-Cryogenics\infrastructure-root\cryo-toolsmiths-api-token'.
+
+#! **************
+#! End of secrets
+#! **************
+
 number_of_retries: &number_of_retries 2
 
 groups:
@@ -40,7 +75,7 @@ resources:
   type: slack-notification
   icon: bell-ring
   source:
-    url: ((slack.webhook))
+    url: *slack_webhook
 
 - name: every-week
   type: time
@@ -52,7 +87,7 @@ resources:
   icon: github
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: openldap-version
   type: uscan
@@ -72,7 +107,7 @@ resources:
 - name: smith-env
   type: pcf-pool
   source:
-    api_token: ((toolsmiths.api_token))
+    api_token: *toolsmiths_api_token
     hostname: environments.toolsmiths.cf-app.com
     pool_name: cf-deployment
 
@@ -80,13 +115,14 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci
-    branch: master
+    branch: 186121722-move-nfs-to-runway
+    # branch: master
 
 - name: nfs-volume-release
   type: pull-request
   source:
     base_branch: master
-    access_token: ((github.access_token))
+    access_token: *github_access_token
     repository: cloudfoundry/nfs-volume-release
     disable_forks: true
     autosync_pr: true
@@ -94,7 +130,7 @@ resources:
 - name: nfs-volume-release-bump
   type: git
   source:
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 # Resource used to track production changes in the release job so that we don't
@@ -104,7 +140,7 @@ resources:
   type: git
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
     paths:
     - .final_builds
@@ -120,19 +156,19 @@ resources:
   type: git
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: nfsvolume-version
   type: semver
   source:
-    access_key_id: ((aws/nfsvolume-uploader.role_id))
+    access_key_id: *aws_nfsvolume_uploader_role_id
     bucket: nfsvolume-release-versions
     initial_version: 7.0.2
     key: current-version
     region_name: us-east-1
-    secret_access_key: ((aws/nfsvolume-uploader.role_secret))
-    assume_role_arn: ((aws/nfsvolume-uploader.role_arn))
+    secret_access_key: *aws_nfsvolume_uploader_role_secret
+    assume_role_arn: *aws_nfsvolume_uploader_role_arn
 
 - name: github-release-nfs
   type: github-release
@@ -140,20 +176,21 @@ resources:
     user: cloudfoundry
     repository: nfs-volume-release
     drafts: true
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: nfs-volume-release-concourse-tasks
   type: git
   source:
-    branch: master
-    private_key: ((github.ssh_key))
+    # branch: master
+    branch: 186121722-migrate-ci-to-runway
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: mapfs-release
   type: git
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/mapfs-release.git
     ignore_paths:
     - scripts
@@ -161,8 +198,9 @@ resources:
 - name: mapfs-release-concourse-tasks
   type: git
   source:
-    branch: master
-    private_key: ((github.ssh_key))
+    # branch: master
+    branch: 186121722-migrate-ci-to-runway
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/mapfs-release.git
 
 - name: cf-deployment
@@ -193,7 +231,7 @@ resources:
   source:
     owner: cloudfoundry-incubator
     repository: bosh-backup-and-restore
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: disaster-recovery-acceptance-tests
   type: git
@@ -211,7 +249,7 @@ resources:
   name: nfs-volume-release-bump-golang
   source:
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
   type: git
 
@@ -220,42 +258,42 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/nfsv3driver.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: nfsbroker
   type: git
   source:
     uri: git@github.com:cloudfoundry/nfsbroker.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: service-broker-store
   type: git
   source:
     uri: git@github.com:cloudfoundry/service-broker-store.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: existingvolumebroker
   type: git
   source:
     uri: git@github.com:cloudfoundry/existingvolumebroker.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: volume-mount-options
   type: git
   source:
     uri: git@github.com:cloudfoundry/volume-mount-options.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 - name: volumedriver
   type: git
   source:
     uri: git@github.com:cloudfoundry/volumedriver.git
     branch: master
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
 
 resource_types:
 - name: semver
@@ -321,9 +359,9 @@ jobs:
       VENDOR_UPDATES_BRANCH: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
-      AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.role_id))
-      AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.role_secret))
-      AWS_ASSUME_ROLE_ARN: ((aws/nfsvolume-uploader.role_arn))
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ASSUME_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
   - put: nfs-volume-release-bump-golang
     params:
       repository: release-with-updated-vendored-package
@@ -614,9 +652,9 @@ jobs:
   - task: bump-openldap
     config:
       params:
-        S3_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.role_id))
-        S3_ACCESS_KEY: ((aws/nfsvolume-uploader.role_secret))
-        S3_ROLE_ARN: ((aws/nfsvolume-uploader.role_arn))
+        S3_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+        S3_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+        S3_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
         GIT_AUTHOR_NAME: &git_author_name 'Cryogenics CI Bot'
         GIT_AUTHOR_EMAIL: &git_author_email 'mapbu-cryogenics@groups.vmware.com'
         GIT_COMMITTER_NAME: *git_author_name
@@ -660,7 +698,7 @@ jobs:
       input_mapping:
         repo: nfs-volume-release-bump
       params:
-        GITHUB_TOKEN: ((github.access_token))
+        GITHUB_TOKEN: *github_access_token
         BASE: master
         BRANCH: *openldap-bump-branch
         TITLE: "Bump OpenLDAP to version ((.:openldap.version.ref))"
@@ -825,7 +863,7 @@ jobs:
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+      TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
       CF_USERNAME: admin
       BIND_BOGUS_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
       BIND_CONFIG: '["{\"uid\":\"1000\",\"gid\":\"1000\"}", "{\"uid\":\"1000\",\"gid\":\"1000\",\"mount\": \"/var/vcap/data/foo\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"3\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.0\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.1\"}", "{\"uid\":\"1000\",\"gid\":\"1000\", \"version\": \"4.2\"}"]'  # yamllint disable-line rule:line-length
@@ -874,7 +912,7 @@ jobs:
       CF_USERNAME: admin
       SERVICE_NAME: nfs
       PLAN_NAME: Existing
-      TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+      TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
   - task: run-cats
     file: cf-deployment-concourse-tasks/run-cats/task.yml
     input_mapping:
@@ -1008,7 +1046,7 @@ jobs:
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+          TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
           CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
           DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
@@ -1027,7 +1065,7 @@ jobs:
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-          TOOLSMITHS_API_TOKEN: ((toolsmiths.api_token))
+          TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
           CREATE_CONFIG: '{\"share\":\"nfstestserver.service.cf.internal/export/users\"}'
           DISALLOWED_LDAP_BIND_CONFIG: '{\"uid\":\"1000\",\"gid\":\"1000\"}'
@@ -1119,11 +1157,11 @@ jobs:
           updated-release-repo: nfs-final-release
           updated-release-tarball: nfs-final-release-tarball
         params:
-          AWS_ACCESS_KEY_ID: ((aws/nfsvolume-uploader.role_id))
-          AWS_SECRET_ACCESS_KEY: ((aws/nfsvolume-uploader.role_secret))
-          AWS_ROLE_ARN: ((aws/nfsvolume-uploader.role_arn))
-          GIT_USERNAME: ((github.user))
-          GIT_EMAIL: ((github.email))
+          AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+          AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+          AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+          GIT_USERNAME: *github_user
+          GIT_EMAIL: *github_email
           FINAL: true
           RELEASE_NAME: nfs-volume
       - put: nfs-volume-release-master
