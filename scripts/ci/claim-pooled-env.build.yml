@@ -13,10 +13,9 @@ inputs:
 - name: pooled-env
 
 run:
-  path: /bin/sh
+  path: /bin/bash
   args:
   - "-c"
   - |
     set -euo pipefail
-    apk add --no-cache jq > /dev/null
     jq . pooled-env/metadata
