@@ -2,9 +2,11 @@
 platform: linux
 
 image_resource:
-  type: docker-image
+  type: registry-image
   source:
-    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    repository: cryogenics/essentials
     tag: latest
 
 inputs:
