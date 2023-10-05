@@ -260,36 +260,44 @@ resources:
 resource_types:
 - name: semver
   source:
+    registry_mirror:
+      host: harbor-repo.vmware.com
     repository: concourse/semver-resource
-    tag: 1.6
-  type: docker-image
+  type: registry-image
 
 - name: slack-notification
   type: registry-image
   source:
-    repository: cfcommunity/slack-notification-resource
-    tag: latest
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    repository: dockerhub-proxy-cache/cfcommunity/slack-notification-resource
 
 - name: uscan
   source:
+    registry_mirror:
+      host: harbor-repo.vmware.com
     repository: cryogenics/concourse-uscan-resource
   type: registry-image
 
 - name: git
-  type: docker-image
+  type: registry-image
   source:
     repository: concourse/git-resource
     tag: ubuntu
 
 - name: pcf-pool
-  type: docker-image
+  type: registry-image
   source:
-    repository: cftoolsmiths/toolsmiths-envs-resource
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    repository: dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
 
 - name: pull-request
-  type: docker-image
+  type: registry-image
   source:
-    repository: cryogenics/pr-queue-resource
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    repository: dockerhub-proxy-cache/cryogenics/pr-queue-resource
 
 jobs:
 - name: bump-golang
@@ -617,8 +625,10 @@ jobs:
       platform: linux
 
       image_resource:
-        type: docker-image
+        type: registry-image
         source:
+          registry_mirror:
+            host: harbor-repo.vmware.com
           repository: cryogenics/essentials
 
       inputs:
