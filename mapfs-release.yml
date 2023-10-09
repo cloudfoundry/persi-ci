@@ -121,7 +121,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci
-    branch: ci-shepherd-cfd
+    branch: master
 
 - name: nfs-volume-release
   type: git
