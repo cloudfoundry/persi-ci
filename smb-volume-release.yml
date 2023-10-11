@@ -1,4 +1,3 @@
----
 #  To set the pipeline, run:
 #    fly -t runway-cryogenics set-pipeline -p smb-volume-release -c smb-volume-release.yml
 #
