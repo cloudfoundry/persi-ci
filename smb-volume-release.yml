@@ -667,7 +667,7 @@ jobs:
       put: cf-deployment-env
       attempts: *number_of_claim_env_retries
       params:
-        action: releases
+        action: release
         resource: cf-deployment-env
 
 - name: deploy-cf
@@ -867,7 +867,7 @@ jobs:
   - put: cf-deployment-env
     attempts: *number_of_claim_env_retries
     params:
-      action: resource
+      action: release
       resource: cf-deployment-env
 
 - name: merge-pr
