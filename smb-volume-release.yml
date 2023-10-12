@@ -30,10 +30,8 @@ pats:
   bind_config: &pats_bind_config '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'  # yamllint disable-line rule:line-length
 slack.webhook: &slack_webhook ((slack.webhook))
 # Slack webhook is used for notifications, currently its origins are unknown
-toolsmiths.api_token: &toolsmiths_api_token ((toolsmiths.api_token))
-# Toolsmiths API token was needed on 2023-07-07 for claiming TAS environments to run xATS test suites.
-# The token was given to us by the #cf-toolsmiths team, and is in lastpass at
-# Shared-Cryogenics/infrastructure-root/cryo-toolsmiths-api-token
+shepherd_account_key: &shepherd_account_key ((shepherd.sa_key))
+  #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
 
 # **************
 # End of secrets
@@ -49,7 +47,7 @@ groups:
   - drats
   - pats
   - deploy-cf
-  - unclaim-env
+  - release-env
   - merge-pr
 - name: bump
   jobs:
@@ -84,12 +82,18 @@ resources:
   source:
     name: bosh-google-kvm-ubuntu-jammy-go_agent
 
-- name: smith-env
-  type: pcf-pool
+- name: cf-deployment-env
+  icon: pool
+  type: shepherd
   source:
-    api_token: *toolsmiths_api_token
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: cf-deployment
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd_account_key
+    compatibility-mode: environments-app
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: cfd
 
 - name: persi-ci
   type: git
@@ -312,10 +316,11 @@ resource_types:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfcommunity/slack-notification-resource
     tag: latest
 
-- name: pcf-pool
-  type: docker-image
+- name: shepherd
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
+    tag: v1
+    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+  type: registry-image
 
 - name: git
   type: docker-image
@@ -639,10 +644,14 @@ jobs:
       - get: smb-volume-release
         trigger: true
       - get: stemcell
-      - put: smith-env
+      - put: cf-deployment-env
+        timeout: 6h
         attempts: *number_of_claim_env_retries
         params:
-          action: claim
+          action: create
+          duration: 24h
+          resource: cf-deployment
+          timeout: 6h
   - task: rspec
     file: persi-ci/scripts/ci/run-rspec.build.yml
     image: ruby
@@ -653,13 +662,13 @@ jobs:
     attempts: 3
     input_mapping:
       test-repo: smb-volume-release
-      env: smith-env
+      env: cf-deployment-env
     on_failure:
-      put: smith-env
+      put: cf-deployment-env
       attempts: *number_of_claim_env_retries
       params:
-        action: unclaim
-        env_file: smith-env/metadata
+        action: releases
+        resource: cf-deployment-env
 
 - name: deploy-cf
   public: true
@@ -668,7 +677,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: smith-env
+      - get: cf-deployment-env
         passed: [smb-volume-release-job-tests]
         trigger: true
       - get: cf-deployment-concourse-tasks
@@ -682,7 +691,7 @@ jobs:
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     image: image-cf-deployment-concourse-tasks
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: cf-deployment-env
   - task: collect-persi-ci-ops-files
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     image: image-cf-deployment-concourse-tasks
@@ -704,7 +713,7 @@ jobs:
     image: cryogenics-essentials
     input_mapping:
       cf-deployment: cf-deployment-pinned
-      toolsmiths-env: smith-env
+      toolsmiths-env: cf-deployment-env
       ops-files: collected-ops-files
       vars-files: generated-vars
     params:
@@ -720,7 +729,7 @@ jobs:
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     image: cryogenics-essentials
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: cf-deployment-env
     params:
       ERRAND_NAME: smoke_tests
   - task: run-smb-broker-errand
@@ -728,7 +737,7 @@ jobs:
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     image: cryogenics-essentials
     input_mapping:
-      toolsmiths-env: smith-env
+      toolsmiths-env: cf-deployment-env
     params:
       ERRAND_NAME: smbbrokerpush
       INSTANCE: smb-broker-push
@@ -742,7 +751,7 @@ jobs:
         passed:
         - pats
         trigger: true
-      - get: smith-env
+      - get: cf-deployment-env
         passed:
         - pats
         trigger: true
@@ -754,13 +763,14 @@ jobs:
   - task: generate-cats-config
     file: persi-ci/scripts/ci/generate_cats_config.build.yml
     image: cryogenics-essentials
+    input_mapping:
+      smith-env: cf-deployment-env
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
       CF_USERNAME: admin
       SERVICE_NAME: smb
       PLAN_NAME: Existing
       CREATE_CONFIG: *cats_create_config
-      TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
   - task: run-cats
     file: cf-deployment-concourse-tasks/run-cats/task.yml
     image: cryogenics-essentials
@@ -782,7 +792,7 @@ jobs:
       - get: disaster-recovery-acceptance-tests
       - get: persi-ci
       - get: cryogenics-essentials
-      - get: smith-env
+      - get: cf-deployment-env
         passed: [cats]
         trigger: true
   - task: generate-integration-config
@@ -792,6 +802,7 @@ jobs:
       INTEGRATION_CONFIG_FILE_PATH: config/drats-smb.json
     input_mapping:
       integration-configs: persi-ci
+      smith-env: cf-deployment-env
 
   - task: drats-with-integration-config
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
@@ -809,7 +820,7 @@ jobs:
       steps:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
-      - get: smith-env
+      - get: cf-deployment-env
         passed: [deploy-cf]
         trigger: true
       - get: smb-volume-release
@@ -821,9 +832,10 @@ jobs:
   - task: generate-pats-config-smb
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     image: cryogenics-essentials
+    input_mapping:
+      smith-env: cf-deployment-env
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
-      TOOLSMITHS_API_TOKEN: *toolsmiths_api_token
       CF_USERNAME: admin
       DISALLOWED_OVERRIDE_BIND_CONFIG: '{\"share\":\"//smbtestserver.service.cf.internal/export/vol2\"}'
       CREATE_BOGUS_CONFIG: '{\"share\":\"//smb.bogus/export/nonexistensevol\"}'
@@ -846,17 +858,17 @@ jobs:
       TEST_MULTI_CELL: true
       TEST_READ_ONLY: true
 
-- name: unclaim-env
+- name: release-env
   plan:
-  - get: smith-env
+  - get: cf-deployment-env
     passed:
     - drats
     trigger: true
-  - put: smith-env
+  - put: cf-deployment-env
     attempts: *number_of_claim_env_retries
     params:
-      action: unclaim
-      env_file: smith-env/metadata
+      action: resource
+      resource: cf-deployment-env
 
 - name: merge-pr
   plan:
