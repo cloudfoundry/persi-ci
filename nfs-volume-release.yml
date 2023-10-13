@@ -876,6 +876,8 @@ jobs:
         passed: [deploy-cf]
   - task: generate-pats-config-nfs
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
+    input_mapping:
+      smith-env: env
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
       CF_USERNAME: admin
@@ -1057,6 +1059,8 @@ jobs:
     - do:
       - task: generate-pats-config
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
+        input_mapping:
+          smith-env: env
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
@@ -1075,6 +1079,8 @@ jobs:
     - do:
       - task: generate-legacy-pats-config
         file: persi-ci/scripts/ci/generate_pats_config.build.yml
+        input_mapping:
+          smith-env: env
         params:
           VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
           BIND_CONFIG: '["{\"username\":\"user1000\",\"password\":\"secret\"}"]'
