@@ -923,6 +923,8 @@ jobs:
       cryogenics-tasks: cryogenics-concourse-tasks
   - task: generate-cats-config
     file: persi-ci/scripts/ci/generate_cats_config.build.yml
+    input_mapping:
+      smith-env: env
     params:
       VAR_RESOLVER_SCRIPT: persi-ci/scripts/ci/cf_deployment_helpers.sh
       CF_USERNAME: admin
@@ -954,8 +956,8 @@ jobs:
     params:
       INTEGRATION_CONFIG_FILE_PATH: config/drats-nfs.json
     input_mapping:
+      smith-env: env
       integration-configs: persi-ci
-
   - task: drats-with-integration-config
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
     privileged: true
