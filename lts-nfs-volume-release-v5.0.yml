@@ -267,7 +267,7 @@ jobs:
       params: &golang-bump-pr-params
         BASE: {{lts-nfs-branch}}
         BRANCH: *golang-vendor-branch
-        LABELS: dependencies
+        LABELS: dependencies, v5
         TITLE: Update vendored package golang-1-linux
         MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
           \nI have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and \
