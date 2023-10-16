@@ -202,7 +202,7 @@ resources:
   type: git
   source:
     branch: ci-fix
-    private_key: ((github.ssh_key))
+    private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/mapfs-release.git
 
 - name: cf-deployment

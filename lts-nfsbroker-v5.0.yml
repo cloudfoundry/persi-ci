@@ -35,7 +35,7 @@ resources:
     repository: cloudfoundry/nfsbroker
     base_branch: v5.0
     disable_forks: true
-    access_token: ((github.access_token))
+    access_token: *github_access_token
 
 - name: credhub
   type: git
