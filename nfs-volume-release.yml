@@ -122,8 +122,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/persi-ci
-    branch: 186121722-move-nfs-to-runway
-    # branch: master
+    branch: master
 
 - name: nfs-volume-release
   type: pull-request
@@ -188,8 +187,7 @@ resources:
 - name: nfs-volume-release-concourse-tasks
   type: git
   source:
-    # branch: master
-    branch: 186121722-migrate-ci-to-runway
+    branch: master
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
@@ -205,8 +203,7 @@ resources:
 - name: mapfs-release-concourse-tasks
   type: git
   source:
-    # branch: master
-    branch: 186121722-migrate-ci-to-runway
+    branch: master
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/mapfs-release.git
 
