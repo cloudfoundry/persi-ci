@@ -49,6 +49,12 @@ resources:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
     tag: latest
 
+- name: image-golang
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/golang
+    tag: latest
+
 jobs:
 - name: security-scan
   plan:
@@ -72,7 +78,9 @@ jobs:
     - get: nfsbroker
       trigger: true
     - get: credhub
+    - get: image-golang
   - task: build
+    image: image-golang
     file: nfsbroker/scripts/ci/run_unit_and_integration.build.yml
 
 - name: merge-pr
