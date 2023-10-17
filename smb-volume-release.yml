@@ -49,6 +49,7 @@ groups:
   - deploy-cf
   - release-env
   - merge-pr
+  - check-for-cves
 - name: bump
   jobs:
   - bump-golang
@@ -66,6 +67,26 @@ groups:
   - manual-bump-smb-major
 
 resources:
+- name: git-concourse-cve-scan
+  type: git
+  source:
+    uri: git@github.com:pivotal/concourse-cve-scan.git
+    branch: feat/add-vex-consideration
+    private_key: *github_ssh_key
+
+- name: git-tas-vex
+  type: git
+  source:
+    uri: git@github.com:pivotal/tas-vex.git
+    private_key: *github_ssh_key
+
+- name: github-release-tas-cve
+  type: github-release
+  source:
+    access_token: *github_access_token
+    repository: tas-cve
+    user: pivotal
+
 - name: slack-cryo-notification
   type: slack-notification
   icon: bell-ring
@@ -339,6 +360,27 @@ resource_types:
     repository: harbor-repo.vmware.com/cryogenics/concourse-ftp-resource
 
 jobs:
+- name: check-for-cves
+  plan:
+    - in_parallel:
+        - get: git-concourse-cve-scan
+        - get: github-release-tas-cve
+        - get: smb-volume-release
+          trigger: true
+        - get: git-tas-vex
+    - task: run-scan
+      file: git-concourse-cve-scan/tasks/scan/scan.yml
+      input_mapping:
+        concourse-cve-scan: git-concourse-cve-scan
+        tas-cve: github-release-tas-cve
+        target-bosh-release: smb-volume-release
+        tas-vex: git-tas-vex
+      params:
+        DRY_RUN: true
+        GRYPE_FAILURE_LEVEL: negligible #! Can be any of: none | negligible | low | medium | high | critical
+        RELEASE_NAME: smb-volume
+        RELEASE_VERSION: pre-release-cve-scan
+
 - name: *bump-blob-autoconf-job-name
   plan:
   - in_parallel:
