@@ -173,6 +173,7 @@ resources:
     access_token: *github-access-token
     repository: cloudfoundry/mapfs-release
     disable_forks: true
+    autosync_pr: true
 
 - name: mapfs-release-master
   type: git
