@@ -171,26 +171,25 @@ jobs:
       PIPELINE_TO_CHECK: ./pipeline-repo/smbdriver.yml
   - set_pipeline: smbdriver
     file: persi-ci/smbdriver.yml
-# - name: reset-lts-nfs-volume-release-v5.0
-#   plan:
-#   - in_parallel:
-#     - get: persi-ci
-#       trigger: true
-#     - get: cryogenics-concourse-tasks
-#   - task: check-pipeline-for-stray-secrets
-#     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
-#     input_mapping:
-#       cryogenics-concourse-tasks: cryogenics-concourse-tasks
-#       pipeline-repo: persi-ci
-#     params:
-#       PIPELINE_TO_CHECK: ./pipeline-repo/lts-nfs-volume-release-v5.0.yml
-#   - set_pipeline: lts-nfs-volume-release-v5.0
-#     file: persi-ci/lts-nfs-volume-release-v5.0.yml
-#     vars:
-#       lts-nfs-branch: v5.0
-#       mapfs-tag: v1.2.0
-#       nfs-semver-initial-version: 5.0.3
-#       pas-version: us_2_11_lts2
+  - name: reset-lts-nfs-volume-release-v5.0
+    plan:
+    - in_parallel:
+      - get: persi-ci
+        trigger: true
+      - get: cryogenics-concourse-tasks
+    - task: check-pipeline-for-stray-secrets
+      file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
+      input_mapping:
+        cryogenics-concourse-tasks: cryogenics-concourse-tasks
+        pipeline-repo: persi-ci
+      params:
+        PIPELINE_TO_CHECK: ./pipeline-repo/lts-nfs-volume-release-v5.0.yml
+    - set_pipeline: lts-nfs-volume-release-v5.0
+      file: persi-ci/lts-nfs-volume-release-v5.0.yml
+      vars:
+        lts-nfs-branch: v5.0
+        nfs-semver-initial-version: 5.0.3
+        pas-pool-name: tas-2_11
 - name: reset-lts-nfsbroker-v5.0
   plan:
   - in_parallel:
