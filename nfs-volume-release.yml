@@ -7,32 +7,38 @@
 #! ************************************
 #! Secrets we need to run this pipeline
 #! ************************************
+#! this needs to come first, else all other vars can't be resolved.
+#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
+cerberus: &cerberus
+  role_id: ((cerberus-auth.role_id))
+  secret_id: ((cerberus-auth.secret_id))
+cerberus_url: &cerberus_url ((cerberus-auth.url))
 
-aws_nfsvolume_uploader_role_arn: &aws_nfsvolume_uploader_role_arn ((aws/nfsvolume-uploader.role_arn))
+aws_nfsvolume_uploader_role_arn: &aws_nfsvolume_uploader_role_arn ((cerberus:aws/nfsvolume-uploader.role_arn))
     #! aws_nfsvolume_uploader_role_arn was needed on 2023-10-05 for defining the AWS role assumed when accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
 
-aws_nfsvolume_uploader_role_id: &aws_nfsvolume_uploader_role_id ((aws/nfsvolume-uploader.role_id))
+aws_nfsvolume_uploader_role_id: &aws_nfsvolume_uploader_role_id ((cerberus:aws/nfsvolume-uploader.role_id))
     #! aws_nfsvolume_uploader_role_id was needed on 2023-10-05 for defining the AWS Access Key for accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
 
-aws_nfsvolume_uploader_role_secret: &aws_nfsvolume_uploader_role_secret ((aws/nfsvolume-uploader.role_secret))
+aws_nfsvolume_uploader_role_secret: &aws_nfsvolume_uploader_role_secret ((cerberus:aws/nfsvolume-uploader.role_secret))
     #! aws_nfsvolume_uploader_role_secret was needed on 2023-10-05 for defining the AWS Access Secret for accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
 
-github_access_token: &github_access_token ((github.access_token))
+github_access_token: &github_access_token ((cerberus:github.access_token))
     #! github_access_token was needed on 2023-10-05 for accessing the Github API in order to consume PRs, create and download releases. Genearted using Github account and lives in Lastpass.
 
-github_email: &github_email ((github.email))
+github_email: &github_email ((cerberus:github.email))
     #! github_email was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault.
 
-github_ssh_key: &github_ssh_key ((github.ssh_key))
+github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
     #! github_ssh_key was needed on 2023-10-05 by the git-resource to access various Git repos via SSH. Genearted using Github account and lives in Runway's Vault.
 
-github_user: &github_user ((github.user))
+github_user: &github_user ((cerberus:github.user))
     #! github_user was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault as well as in Lastpass.
 
-slack_webhook: &slack_webhook ((slack.webhook))
+slack_webhook: &slack_webhook ((cerberus:slack.webhook))
     #! slack_webhook was needed on 2023-10-05 for sending notifications in our Slack channel. It lives in Runway's Vault.
 
-shepherd_account_key: &shepherd_account_key ((shepherd.sa_key))
+shepherd_account_key: &shepherd_account_key ((cerberus:shepherd.sa_key))
   #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
 
 
@@ -41,6 +47,14 @@ shepherd_account_key: &shepherd_account_key ((shepherd.sa_key))
 #! **************
 
 number_of_retries: &number_of_retries 2
+var_sources:
+- name: cerberus
+  type: vault
+  config:
+    auth_backend: approle
+    auth_params: *cerberus
+    url: *cerberus_url
+    path_prefix: secret
 
 groups:
 - name: test

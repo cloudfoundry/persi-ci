@@ -1,11 +1,25 @@
 #!/bin/bash
 set -x
 
-fly -t cryo-runway set-pipeline -p keep-volume-service-pipelines-sync -c <(
+fly -t runway set-pipeline -p keep-volume-service-pipelines-sync -c <(
 cat <<EOF
 
-github_ssh_key: &github_ssh_key ((github.ssh_key))
+#! this needs to come first, else all other vars can't be resolved.
+#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
+cerberus: &cerberus
+  role_id: ((cerberus-auth.role_id))
+  secret_id: ((cerberus-auth.secret_id))
+cerberus_url: &cerberus_url ((cerberus-auth.url))
+github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
 
+var_sources:
+- name: cerberus
+  type: vault
+  config:
+    auth_backend: approle
+    auth_params: *cerberus
+    url: *cerberus_url
+    path_prefix: secret
 resources:
 - name: persi-ci
   type: git

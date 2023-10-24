@@ -8,24 +8,39 @@
 # Secrets we need to run this pipeline
 # ************************************
 
-github_ssh_key: &github-ssh-key ((github.ssh_key))
-github_access_token: &github-access-token ((github.access_token))
-github_user: &github-user ((github.user))
-github_email: &github-email ((github.email))
+#! this needs to come first, else all other vars can't be resolved.
+#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
+cerberus: &cerberus
+  role_id: ((cerberus-auth.role_id))
+  secret_id: ((cerberus-auth.secret_id))
+cerberus_url: &cerberus_url ((cerberus-auth.url))
 
-slack_webhook: &slack-webhook ((slack.webhook))
+github_ssh_key: &github-ssh-key ((cerberus:github.ssh_key))
+github_access_token: &github-access-token ((cerberus:github.access_token))
+github_user: &github-user ((cerberus:github.user))
+github_email: &github-email ((cerberus:github.email))
 
-aws_mapfs_uploader_role_id: &aws-uploader-role-id ((aws/mapfs-uploader.role_id))
-aws_mapfs_uploader_role_secret: &aws-uploader-role-secret ((aws/mapfs-uploader.role_secret))
-aws_mapfs_uploader_role_arn: &aws-uploader-role-arn ((aws/mapfs-uploader.role_arn))
+slack_webhook: &slack-webhook ((cerberus:slack.webhook))
 
-shepherd_token: &shepherd-token ((shepherd.sa_key))
+aws_mapfs_uploader_role_id: &aws-uploader-role-id ((cerberus:aws/mapfs-uploader.role_id))
+aws_mapfs_uploader_role_secret: &aws-uploader-role-secret ((cerberus:aws/mapfs-uploader.role_secret))
+aws_mapfs_uploader_role_arn: &aws-uploader-role-arn ((cerberus:aws/mapfs-uploader.role_arn))
+
+shepherd_token: &shepherd-token ((cerberus:shepherd.sa_key))
 
 # **************
 # End of secrets
 # **************
 number_of_retries: &number_of_retries 2
 
+var_sources:
+- name: cerberus
+  type: vault
+  config:
+    auth_backend: approle
+    auth_params: *cerberus
+    url: *cerberus_url
+    path_prefix: secret
 groups:
 - name: test
   jobs:

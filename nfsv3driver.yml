@@ -7,14 +7,28 @@
 # ************************************
 # Secrets we need to run this pipeline
 # ************************************
+#! this needs to come first, else all other vars can't be resolved.
+#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
+cerberus: &cerberus
+  role_id: ((cerberus-auth.role_id))
+  secret_id: ((cerberus-auth.secret_id))
+cerberus_url: &cerberus_url ((cerberus-auth.url))
 
-github_ssh_key: &github_ssh_key ((github.ssh_key))
-github_access_token: &github_access_token ((github.access_token))
+github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
+github_access_token: &github_access_token ((cerberus:github.access_token))
 # used to get pull requests and get git repos
 
 # **************
 # End of secrets
 # **************
+var_sources:
+- name: cerberus
+  type: vault
+  config:
+    auth_backend: approle
+    auth_params: *cerberus
+    url: *cerberus_url
+    path_prefix: secret
 
 resource_types:
 - name: pull-request

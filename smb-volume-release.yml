@@ -4,33 +4,39 @@
 # ************************************
 # Secrets we need to run this pipeline
 # ************************************
+#! this needs to come first, else all other vars can't be resolved.
+#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
+cerberus: &cerberus
+  role_id: ((cerberus-auth.role_id))
+  secret_id: ((cerberus-auth.secret_id))
+cerberus_url: &cerberus_url ((cerberus-auth.url))
 
 aws-uploader:
   # CloudGate credentials for the service user assuming a role in CF Diego Persistence CI
-  role_arn: &upload_role_arn ((aws/volume-services/smb.role_arn))
-  role_id: &upload_role_id ((aws/volume-services/smb.role_id))
-  role_secret: &upload_role_secret ((aws/volume-services/smb.role_secret))
+  role_arn: &upload_role_arn ((cerberus:aws/volume-services/smb.role_arn))
+  role_id: &upload_role_id ((cerberus:aws/volume-services/smb.role_id))
+  role_secret: &upload_role_secret ((cerberus:aws/volume-services/smb.role_secret))
 github:
-  access_token: &github_access_token ((github.access_token))
+  access_token: &github_access_token ((cerberus:github.access_token))
   # Access token used for accessing PRs, GH release, and BBR binary GH release
-  ssh_key: &github_ssh_key ((github.ssh_key))
+  ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
   # SSH key is used for accessing the GH release, as well as
-  email: &github_email ((github.email))
-  user: &github_user ((github.user))
+  email: &github_email ((cerberus:github.email))
+  user: &github_user ((cerberus:github.user))
   # GH user and email used to cut the final version
 cats:
-  remote_path: ((smb_cats.remote_path))  # used in the composite values below
-  username: ((smb_cats.username))  # used in the composite values below
-  password: ((smb_cats.password))  # used in the composite values below
-  create_config: &cats_create_config '{\"share\": \"((smb_cats.remote_path))\", \"username\": \"((smb_cats.username))\", \"password\": \"((smb_cats.password))\"}'  # yamllint disable-line rule:line-length
+  remote_path: ((cerberus:smb_cats.remote_path))  # used in the composite values below
+  username: ((cerberus:smb_cats.username))  # used in the composite values below
+  password: ((cerberus:smb_cats.password))  # used in the composite values below
+  create_config: &cats_create_config '{\"share\": \"((cerberus:smb_cats.remote_path))\", \"username\": \"((cerberus:smb_cats.username))\", \"password\": \"((cerberus:smb_cats.password))\"}'  # yamllint disable-line rule:line-length
 pats:
-  password: &pats_password ((smb_pats.password))
-  username: &pats_username ((smb_pats.username))
-  create_config: &pats_create_config '{\"share\":\"((smb_cats.remote_path))\"}'
-  bind_config: &pats_bind_config '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'  # yamllint disable-line rule:line-length
-slack.webhook: &slack_webhook ((slack.webhook))
+  password: &pats_password ((cerberus:smb_pats.password))
+  username: &pats_username ((cerberus:smb_pats.username))
+  create_config: &pats_create_config '{\"share\":\"((cerberus:smb_cats.remote_path))\"}'
+  bind_config: &pats_bind_config '["{\"username\":\"((cerberus:smb_cats.username))\",\"password\":\"((cerberus:smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((cerberus:smb_cats.username))\",\"password\":\"((cerberus:smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((cerberus:smb_cats.username))\",\"password\":\"((cerberus:smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'  # yamllint disable-line rule:line-length
+slack.webhook: &slack_webhook ((cerberus:slack.webhook))
 # Slack webhook is used for notifications, currently its origins are unknown
-shepherd_account_key: &shepherd_account_key ((shepherd.sa_key))
+shepherd_account_key: &shepherd_account_key ((cerberus:shepherd.sa_key))
   #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
 
 # **************
@@ -39,6 +45,14 @@ shepherd_account_key: &shepherd_account_key ((shepherd.sa_key))
 
 number_of_claim_env_retries: &number_of_claim_env_retries 5
 
+var_sources:
+- name: cerberus
+  type: vault
+  config:
+    auth_backend: approle
+    auth_params: *cerberus
+    url: *cerberus_url
+    path_prefix: secret
 groups:
 - name: test
   jobs:

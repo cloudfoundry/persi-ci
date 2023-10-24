@@ -7,39 +7,53 @@
 # ************************************
 # Secrets we need to run this pipeline
 # ************************************
+#! this needs to come first, else all other vars can't be resolved.
+#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
+cerberus: &cerberus
+  role_id: ((cerberus-auth.role_id))
+  secret_id: ((cerberus-auth.secret_id))
+cerberus_url: &cerberus_url ((cerberus-auth.url))
 
-github_ssh_key: &github_ssh_key ((github.ssh_key))
-github_access_token: &github_access_token ((github.access_token))
+github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
+github_access_token: &github_access_token ((cerberus:github.access_token))
 # SSH key/access token is used for accessing the GH release and PRs
 
-goshims_uploader_role_id: &goshims_uploader_role_id ((aws/volume-services/goshims-uploader.role_id))
-goshims_uploader_role_secret: &goshims_uploader_role_secret ((aws/volume-services/goshims-uploader.role_secret))
-goshims_uploader_role_arn: &goshims_uploader_role_arn ((aws/volume-services/goshims-uploader.role_arn))
+goshims_uploader_role_id: &goshims_uploader_role_id ((cerberus:aws/volume-services/goshims-uploader.role_id))
+goshims_uploader_role_secret: &goshims_uploader_role_secret ((cerberus:aws/volume-services/goshims-uploader.role_secret))
+goshims_uploader_role_arn: &goshims_uploader_role_arn ((cerberus:aws/volume-services/goshims-uploader.role_arn))
 # Used to get a semver of goshims
 
-existingvolumebroker_uploader_role_id: &existingvolumebroker_uploader_role_id ((aws/volume-services/existingvolumebroker-uploader.role_id))
-existingvolumebroker_uploader_role_secret: &existingvolumebroker_uploader_role_secret ((aws/volume-services/existingvolumebroker-uploader.role_secret))
-existingvolumebroker_uploader_role_arn: &existingvolumebroker_uploader_role_arn ((aws/volume-services/existingvolumebroker-uploader.role_arn))
+existingvolumebroker_uploader_role_id: &existingvolumebroker_uploader_role_id ((cerberus:aws/volume-services/existingvolumebroker-uploader.role_id))
+existingvolumebroker_uploader_role_secret: &existingvolumebroker_uploader_role_secret ((cerberus:aws/volume-services/existingvolumebroker-uploader.role_secret))
+existingvolumebroker_uploader_role_arn: &existingvolumebroker_uploader_role_arn ((cerberus:aws/volume-services/existingvolumebroker-uploader.role_arn))
 # Used to get a semver of existingvolumebroker
 
-service_broker_store_uploader_role_id: &service_broker_store_uploader_role_id ((aws/volume-services/service-broker-store-uploader.role_id))
-service_broker_store_uploader_role_secret: &service_broker_store_uploader_role_secret ((aws/volume-services/service-broker-store-uploader.role_secret))
-service_broker_store_uploader_role_arn: &service_broker_store_uploader_role_arn ((aws/volume-services/service-broker-store-uploader.role_arn))
+service_broker_store_uploader_role_id: &service_broker_store_uploader_role_id ((cerberus:aws/volume-services/service-broker-store-uploader.role_id))
+service_broker_store_uploader_role_secret: &service_broker_store_uploader_role_secret ((cerberus:aws/volume-services/service-broker-store-uploader.role_secret))
+service_broker_store_uploader_role_arn: &service_broker_store_uploader_role_arn ((cerberus:aws/volume-services/service-broker-store-uploader.role_arn))
 # Used to get a semver of service_broker_store_uploader
 
-volumedriver_uploader_role_id: &volumedriver_uploader_role_id ((aws/volume-services/volumedriver-uploader.role_id))
-volumedriver_uploader_role_secret: &volumedriver_uploader_role_secret ((aws/volume-services/volumedriver-uploader.role_secret))
-volumedriver_uploader_role_arn: &volumedriver_uploader_role_arn ((aws/volume-services/volumedriver-uploader.role_arn))
+volumedriver_uploader_role_id: &volumedriver_uploader_role_id ((cerberus:aws/volume-services/volumedriver-uploader.role_id))
+volumedriver_uploader_role_secret: &volumedriver_uploader_role_secret ((cerberus:aws/volume-services/volumedriver-uploader.role_secret))
+volumedriver_uploader_role_arn: &volumedriver_uploader_role_arn ((cerberus:aws/volume-services/volumedriver-uploader.role_arn))
 # Used to get a semver of volumedriver_uploader
 
-volume_mount_options_uploader_role_id: &volume_mount_options_uploader_role_id ((aws/volume-services/volume-mount-options-uploader.role_id))
-volume_mount_options_uploader_role_secret: &volume_mount_options_uploader_role_secret ((aws/volume-services/volume-mount-options-uploader.role_secret))
-volume_mount_options_uploader_role_arn: &volume_mount_options_uploader_role_arn ((aws/volume-services/volume-mount-options-uploader.role_arn))
+volume_mount_options_uploader_role_id: &volume_mount_options_uploader_role_id ((cerberus:aws/volume-services/volume-mount-options-uploader.role_id))
+volume_mount_options_uploader_role_secret: &volume_mount_options_uploader_role_secret ((cerberus:aws/volume-services/volume-mount-options-uploader.role_secret))
+volume_mount_options_uploader_role_arn: &volume_mount_options_uploader_role_arn ((cerberus:aws/volume-services/volume-mount-options-uploader.role_arn))
 # Used to get a semver of volume_mount_options_uploader
 
 # **************
 # End of secrets
 # **************
+var_sources:
+- name: cerberus
+  type: vault
+  config:
+    auth_backend: approle
+    auth_params: *cerberus
+    url: *cerberus_url
+    path_prefix: secret
 
 groups:
 - name: auto-tagging
