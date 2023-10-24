@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 
-fly -t runway-cryogenics set-pipeline -p keep-volume-service-pipelines-sync -c <(
+fly -t cryo-runway set-pipeline -p keep-volume-service-pipelines-sync -c <(
 cat <<EOF
 
 github_ssh_key: &github_ssh_key ((github.ssh_key))
@@ -20,6 +20,12 @@ resources:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
     private_key: *github_ssh_key
 
+- name: cryogenics-essentials
+  type: registry-image
+  source:
+    repository: cryogenics/essentials
+    registry_mirror:
+      host: harbor-repo.vmware.com
 jobs:
 - name: reset-docker-image-build
   plan:
@@ -27,7 +33,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -42,7 +50,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -57,7 +67,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -72,7 +84,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -87,7 +101,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -102,7 +118,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -117,7 +135,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -132,7 +152,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -147,7 +169,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -162,7 +186,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -177,7 +203,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -196,7 +224,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
@@ -213,7 +243,9 @@ jobs:
     - get: persi-ci
       trigger: true
     - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
   - task: check-pipeline-for-stray-secrets
+    image: cryogenics-essentials
     file: cryogenics-concourse-tasks/pipeline-linting/check-pipeline-for-stray-secrets/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-concourse-tasks
