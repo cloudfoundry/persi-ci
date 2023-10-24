@@ -85,6 +85,13 @@ resources:
     branch: feat/add-vex-consideration
     private_key: *github_ssh_key
 
+- name: image-cryo-essentials
+  type: registry-image
+  source:
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    repository: cryogenics/essentials
+
 - name: git-tas-vex
   type: git
   source:
@@ -995,6 +1002,7 @@ jobs:
       - get: env
         passed: [cats-nfs]
         trigger: true
+      - get: image-cryo-essentials
   - task: generate-integration-config
     file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
     params:
@@ -1003,6 +1011,7 @@ jobs:
       smith-env: env
       integration-configs: persi-ci
   - task: drats-with-integration-config
+    image: image-cryo-essentials
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
     privileged: true
     input_mapping:
