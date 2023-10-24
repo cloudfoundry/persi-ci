@@ -404,9 +404,11 @@ jobs:
     - get: nfs-volume-release-bump-golang
       params:
         branch: master
+    - get: image-cryo-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: bump-golang
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-golang/task.yml
     input_mapping:
       release: nfs-volume-release-bump-golang
@@ -435,6 +437,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-golang-vendor-pull-request
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params: &golang-bump-pr-params
         BASE: master
@@ -460,9 +463,11 @@ jobs:
       passed:
       - bump-golang
     - get: nfsv3driver
+    - get: image-cryo-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -486,6 +491,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-gomod-directive-update-pull-request
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         <<: *golang-bump-pr-params
@@ -503,9 +509,11 @@ jobs:
       passed:
       - bump-golang
     - get: nfsbroker
+    - get: image-cryo-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -518,6 +526,7 @@ jobs:
       repository: nfsbroker
       branch: *golang-vendor-branch
   - task: create-gomod-directive-update-pull-request
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
       <<: *golang-bump-pr-params
@@ -535,9 +544,11 @@ jobs:
       passed:
       - bump-golang
     - get: volumedriver
+    - get: image-cryo-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -561,6 +572,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-gomod-directive-update-pull-request
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         <<: *golang-bump-pr-params
@@ -578,9 +590,11 @@ jobs:
       passed:
       - bump-golang
     - get: volume-mount-options
+    - get: image-cryo-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -604,6 +618,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-gomod-directive-update-pull-request
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         <<: *golang-bump-pr-params
@@ -621,9 +636,11 @@ jobs:
       passed:
       - bump-golang
     - get: existingvolumebroker
+    - get: image-cryo-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -647,6 +664,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-gomod-directive-update-pull-request
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         <<: *golang-bump-pr-params
@@ -664,9 +682,11 @@ jobs:
       passed:
       - bump-golang
     - get: service-broker-store
+    - get: image-cryo-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -690,6 +710,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-gomod-directive-update-pull-request
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         <<: *golang-bump-pr-params
@@ -703,6 +724,7 @@ jobs:
       trigger: true
     - get: nfs-volume-release-master
     - get: cryogenics-concourse-tasks
+    - get: image-cryo-essentials
   - load_var: openldap
     file: openldap-version/version
     format: json
@@ -751,6 +773,7 @@ jobs:
         branch: &openldap-bump-branch bump-openldap-to-version-((.:openldap.version.ref))
 
     - task: create-pull-request
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/tasks/create-pr/task.yml
       input_mapping:
         repo: nfs-volume-release-bump
@@ -770,7 +793,9 @@ jobs:
       - get: mapfs-release
       - get: nfs-volume-release
         trigger: true
+      - get: image-cryo-essentials
   - task: rspec
+    image: image-cryo-essentials
     file: persi-ci/scripts/ci/run-rspec.build.yml
     input_mapping:
       test-repo: nfs-volume-release
@@ -967,12 +992,15 @@ jobs:
       - get: cf-acceptance-tests
       - get: cf-deployment-concourse-tasks
       - get: cryogenics-concourse-tasks
+      - get: image-cryo-essentials
   - task: alias-env
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
       toolsmiths-env: env
       cryogenics-tasks: cryogenics-concourse-tasks
   - task: generate-cats-config
+    image: image-cryo-essentials
     file: persi-ci/scripts/ci/generate_cats_config.build.yml
     input_mapping:
       smith-env: env
