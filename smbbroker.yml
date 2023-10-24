@@ -15,7 +15,7 @@ cerberus: &cerberus
   secret_id: ((cerberus-auth.secret_id))
 cerberus_url: &cerberus_url ((cerberus-auth.url))
 
-github_access_token: &github_access_token ((cerberusgithub.access_token))
+github_access_token: &github_access_token ((cerberus:github.access_token))
 
 # **************
 # End of secrets
