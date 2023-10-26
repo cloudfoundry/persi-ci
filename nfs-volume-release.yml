@@ -130,6 +130,19 @@ resources:
   source:
     interval: 168h # 24h*7days
 
+- name: python-394
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
+    tag: 3.9.4
+
+- name: image-backup-and-restore
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pcfplatformrecovery/backup-and-restore
+
 - name: cryogenics-concourse-tasks
   type: git
   icon: github
@@ -1260,9 +1273,13 @@ jobs:
       - get: nfsvolume-version
         params:
           bump: patch
+      - get: image-cryo-essentials
+      - get: image-backup-and-restore
+      - get: python-394
   - in_parallel:
     - do:
       - task: create-final-release
+        image: image-cryo-essentials
         file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
         input_mapping:
           release-repo: release
@@ -1285,12 +1302,14 @@ jobs:
           tag_prefix: v
     - do:
       - task: create-release-notes
+        image: python-394
         file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
         input_mapping:
           git-repo: release
         params:
           USE_LATEST_PUBLISHED_TAG: true
       - task: format-release-notes
+        image: image-backup-and-restore
         file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
         input_mapping:
           template-folder: cryogenics-concourse-tasks
