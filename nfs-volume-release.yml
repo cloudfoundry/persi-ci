@@ -77,6 +77,7 @@ groups:
   jobs:
   - bump-golang
   - bump-openldap
+  - bump-openssl
   - update-go-directive-for-nfsv3driver
   - update-go-directive-for-nfsbroker
   - update-go-directive-for-volumedriver
@@ -92,6 +93,13 @@ groups:
   - manual-bump-nfs-minor
 
 resources:
+- name: openssl
+  type: github-release
+  source:
+    owner: openssl
+    repository: openssl
+    tag_filter: ^openssl-?([0-9]+\.[0-9]+\.[0-9]+)$
+    access_token: *github_access_token
 - name: git-concourse-cve-scan
   type: git
   source:
@@ -155,15 +163,7 @@ resources:
   source:
     watchfile: |
       version=4
-      https://www.openldap.org/software/download/OpenLDAP/openldap-release/ openldap-(2.5[\d\.]+)\.tgz
-      # As of 2022-10-24, the LTS branch of OpenLDAP is 2.5. The
-      # latest features branch is 2.6.  Also, the latest 2.5 will
-      # build on xenial, and the latest 2.6 will not. We should jump
-      # to a later branch when we stop supporting xenial, or when 2.5
-      # stops being supported.
-      #
-      # See https://www.openldap.org/software/download/ for which
-      # branches are currently supported.
+      https://www.openldap.org/software/download/OpenLDAP/openldap-release/ openldap-(2.[\d\.]+)\.tgz
 
 - name: env
   icon: pool
@@ -744,6 +744,50 @@ jobs:
       input_mapping:
         source-repo: service-broker-store
 
+- name: bump-openssl
+  plan:
+  - in_parallel:
+    - get: openssl
+      trigger: true
+    - get: nfs-volume-release-master
+    - get: cryogenics-concourse-tasks
+  - load_var: new-version
+    file: openssl/version
+  - task: bump-openssl
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: openssl
+      bosh-release: nfs-volume-release-master
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-master
+    params:
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &openssl-bump-branch bump-openssl-to-v((.:new-version))
+      BLOB_NAME: openssl-
+      BLOB_EXTENSION: .tar.gz
+      BLOB_DIRECTORY: test-dependencies/
+  - put: nfs-volume-release-master
+    params:
+      repository: nfs-volume-release-master
+      force: true
+      branch: *openssl-bump-branch
+    on_success:
+      task: create-pull-request
+      image: image-cryo-essentials
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-master
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: master
+        BRANCH: *openssl-bump-branch
+        TITLE: "Bump OpenSSL to v((.:new-version))"
+        LABELS: dependencies
+
 - name: bump-openldap
   plan:
   - in_parallel:
@@ -755,41 +799,55 @@ jobs:
   - load_var: openldap
     file: openldap-version/version
     format: json
-  - task: bump-openldap
+  - task: get-openldap-source
+    image: image-cryo-essentials
     config:
-      params:
-        S3_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
-        S3_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
-        S3_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
-        GIT_AUTHOR_NAME: &git_author_name 'Cryogenics CI Bot'
-        GIT_AUTHOR_EMAIL: *github_email
-        GIT_COMMITTER_NAME: *git_author_name
-        GIT_COMMITTER_EMAIL: *github_email
-
       platform: linux
-
-      image_resource:
-        type: registry-image
-        source:
-          registry_mirror:
-            host: harbor-repo.vmware.com
-          repository: cryogenics/essentials
-
-      inputs:
-      - name: nfs-volume-release-master
-      outputs:
-      - name: nfs-volume-release-master
-
-      run:
+      params:
+        NEW_VERSION: ((.:openldap.version.ref))
+      run: 
         path: /bin/sh
         args:
         - -c
         - |
-          set -eu
-          set -x
-          [ -d nfs-volume-release-master ]
-          cd nfs-volume-release-master
-          ./scripts/bump-openldap ((.:openldap.version.ref))
+            wget -O "openldap-tarball/openldap-${NEW_VERSION}.tgz" "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-${NEW_VERSION}.tgz" 
+            echo ${NEW_VERSION} > openldap-tarball/version
+      outputs:
+      - name: openldap-tarball
+  - task: bump-openldap
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: openldap-tarball
+      bosh-release: nfs-volume-release-master
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-master
+    params:
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &openldap-bump-branch bump-openldap-to-v((.:openldap.version.ref))
+      BLOB_NAME: openldap-
+      BLOB_EXTENSION: .tgz
+      BLOB_DIRECTORY: openldap/
+  - put: nfs-volume-release-master
+    params:
+      repository: nfs-volume-release-master
+      force: true
+      branch: *openldap-bump-branch
+    on_success:
+      task: create-pull-request
+      image: image-cryo-essentials
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-master
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: master
+        BRANCH: *openldap-bump-branch
+        TITLE: "Bump Openldap to v((.:openldap.version.ref))"
+        LABELS: dependencies
 
   on_success:
     do:
