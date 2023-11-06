@@ -173,7 +173,7 @@ resources:
   source:
     private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
-    branch: ci-fix-1
+    branch: master
 
 - name: mapfs
   type: git
