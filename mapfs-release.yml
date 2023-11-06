@@ -8,8 +8,8 @@
 # Secrets we need to run this pipeline
 # ************************************
 
-#! this needs to come first, else all other vars can't be resolved.
-#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
+#  this needs to come first, else all other vars can't be resolved.
+#  cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
 cerberus: &cerberus
   role_id: ((cerberus-auth.role_id))
   secret_id: ((cerberus-auth.secret_id))
@@ -361,24 +361,24 @@ resources:
 jobs:
 - name: check-for-cves
   plan:
-    - in_parallel:
-        - get: git-concourse-cve-scan
-        - get: github-release-tas-cve
-        - get: mapfs-release
-          trigger: true
-        - get: git-tas-vex
-    - task: run-scan
-      file: git-concourse-cve-scan/tasks/scan/scan.yml
-      input_mapping:
-        concourse-cve-scan: git-concourse-cve-scan
-        tas-cve: github-release-tas-cve
-        target-bosh-release: mapfs-release
-        tas-vex: git-tas-vex
-      params:
-        DRY_RUN: true
-        GRYPE_FAILURE_LEVEL: negligible #! Can be any of: none | negligible | low | medium | high | critical
-        RELEASE_NAME: mapfs
-        RELEASE_VERSION: pre-release-cve-scan
+  - in_parallel:
+    - get: git-concourse-cve-scan
+    - get: github-release-tas-cve
+    - get: mapfs-release
+      trigger: true
+    - get: git-tas-vex
+  - task: run-scan
+    file: git-concourse-cve-scan/tasks/scan/scan.yml
+    input_mapping:
+      concourse-cve-scan: git-concourse-cve-scan
+      tas-cve: github-release-tas-cve
+      target-bosh-release: mapfs-release
+      tas-vex: git-tas-vex
+    params:
+      DRY_RUN: true
+      GRYPE_FAILURE_LEVEL: negligible  # Can be any of: none | negligible | low | medium | high | critical
+      RELEASE_NAME: mapfs
+      RELEASE_VERSION: pre-release-cve-scan
 
 - name: bump-golang
   plan:
