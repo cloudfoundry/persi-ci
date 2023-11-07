@@ -25,6 +25,9 @@ github_https_password: &github_https_password ((cerberus:github.https_password))
 github_https_username: &github_https_username ((cerberus:github.https_username))
 github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
 
+github_user: &github_user ((cerberus:github.user))
+    #! github_user was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault as well as in Lastpass.
+
 slack_webhook: &slack_webhook ((cerberus:slack.webhook))
 
 shepherd_token: &shepherd-token ((cerberus:shepherd.sa_key))
@@ -60,6 +63,8 @@ groups:
   - bump-golang
   - update-go-directive-for-nfsv3driver
   - update-go-directive-for-nfsbroker
+  - bump-openssl
+  - bump-openldap
 - name: release
   jobs:
   - manual-bump-nfs-patch
@@ -67,6 +72,12 @@ groups:
   - shipit-nfs
 
 resource_types:
+- name: uscan
+  source:
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    repository: cryogenics/concourse-uscan-resource
+  type: registry-image
 - name: semver
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/semver-resource
@@ -97,6 +108,25 @@ resource_types:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
 
 resources:
+- name: openldap-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://www.openldap.org/software/download/OpenLDAP/openldap-release/ openldap-(2.[\d\.]+)\.tgz
+- name: image-cryo-essentials
+  type: registry-image
+  source:
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    repository: cryogenics/essentials
+- name: openssl
+  type: github-release
+  source:
+    owner: openssl
+    repository: openssl
+    tag_filter: ^openssl-?([0-9]+\.[0-9]+\.[0-9]+)$
+    access_token: *github_access_token
 - name: bosh-integration-docker
   icon: docker
   type: registry-image
@@ -123,13 +153,6 @@ resources:
   type: registry-image
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/main-bosh-docker
-    tag: latest
-
-- name: cryogenics-essentials-docker
-  icon: docker
-  type: registry-image
-  source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/essentials
     tag: latest
 
 - name: slack-cryo-notification
@@ -328,10 +351,116 @@ resources:
     disable_ci_skip: true
 
 jobs:
+- name: bump-openldap
+  plan:
+  - in_parallel:
+    - get: openldap-version
+      trigger: true
+    - get: nfs-volume-release-lts
+    - get: cryogenics-concourse-tasks
+    - get: image-cryo-essentials
+  - load_var: openldap
+    file: openldap-version/version
+    format: json
+  - task: get-openldap-source
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:openldap.version.ref))
+      run: 
+        path: /bin/sh
+        args:
+        - -c
+        - |
+            wget -O "openldap-tarball/openldap-${NEW_VERSION}.tgz" "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-${NEW_VERSION}.tgz" 
+            echo ${NEW_VERSION} > openldap-tarball/version
+
+      outputs:
+      - name: openldap-tarball
+  - task: bump-openldap
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: openldap-tarball
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &openldap-bump-branch v5-bump-openldap-to-v((.:openldap.version.ref))
+      BLOB_NAME: openldap-
+      BLOB_EXTENSION: .tgz
+      BLOB_DIRECTORY: openldap/
+  - put: nfs-volume-release-lts
+    params:
+      repository: nfs-volume-release-lts
+      force: true
+      branch: *openldap-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: image-cryo-essentials
+      input_mapping:
+        source-repo: nfs-volume-release-lts
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: v5.0
+        BRANCH: *openldap-bump-branch
+        TITLE: "Bump Openldap to v((.:openldap.version.ref))"
+        LABELS: dependencies
+
+- name: bump-openssl
+  plan:
+  - in_parallel:
+    - get: openssl
+      trigger: true
+    - get: nfs-volume-release-lts
+    - get: cryogenics-concourse-tasks
+    - get: image-cryo-essentials
+  - load_var: new-version
+    file: openssl/version
+  - task: bump-openssl
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: openssl
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &openssl-bump-branch v5-bump-openssl-to-v((.:new-version))
+      BLOB_NAME: openssl-
+      BLOB_EXTENSION: .tar.gz
+      BLOB_DIRECTORY: test-dependencies/
+  - put: nfs-volume-release-lts
+    params:
+      repository: nfs-volume-release-lts
+      force: true
+      branch: *openssl-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: image-cryo-essentials
+      input_mapping:
+        source-repo: nfs-volume-release-lts
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: v5.0
+        BRANCH: *openssl-bump-branch
+        TITLE: "Bump OpenSSL to v((.:new-version))"
+        LABELS: dependencies
 - name: bump-golang
   plan:
   - in_parallel:
-    - get: cryogenics-essentials-docker
+    - get: image-cryo-essentials
     - get: golang-release
       trigger: true
     - get: cryogenics-concourse-tasks
@@ -341,7 +470,7 @@ jobs:
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: bump-golang
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-golang/task.yml
     input_mapping:
       release: nfs-volume-release-bump-golang-branch
@@ -370,7 +499,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-golang-vendor-pull-request
-      image: cryogenics-essentials-docker
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params: &golang-bump-pr-params
         BASE: {{lts-nfs-branch}}
@@ -388,7 +517,7 @@ jobs:
 - name: update-go-directive-for-nfsv3driver
   plan:
   - in_parallel:
-    - get: cryogenics-essentials-docker
+    - get: image-cryo-essentials
     - get: golang-release
       trigger: true
       passed:
@@ -400,7 +529,7 @@ jobs:
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -423,7 +552,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-gomod-directive-update-pull-request
-      image: cryogenics-essentials-docker
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         <<: *golang-bump-pr-params
@@ -433,7 +562,7 @@ jobs:
 - name: update-go-directive-for-nfsbroker
   plan:
   - in_parallel:
-    - get: cryogenics-essentials-docker
+    - get: image-cryo-essentials
     - get: golang-release
       trigger: true
       passed:
@@ -445,7 +574,7 @@ jobs:
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: update-go-directive
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
@@ -468,7 +597,7 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-gomod-directive-update-pull-request
-      image: cryogenics-essentials-docker
+      image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         <<: *golang-bump-pr-params
@@ -527,14 +656,14 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: cryogenics-essentials-docker
+      - get: image-cryo-essentials
       - get: main-bosh-docker
       - get: persi-ci
       - get: nfs-volume-release-concourse-tasks
       - get: nfs-volume-release
         trigger: true
   - task: rspec
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: persi-ci/scripts/ci/run-rspec.build.yml
     input_mapping:
       test-repo: nfs-volume-release
@@ -594,7 +723,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: cryogenics-essentials-docker
+      - get: image-cryo-essentials
       - get: nfs-volume-release
         trigger: true
         passed:
@@ -612,7 +741,7 @@ jobs:
       expire-in: 6h
       resource: shepherd-env
   - task: output-env-details
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: persi-ci/scripts/ci/claim-pooled-env.build.yml
     input_mapping:
       pooled-env: shepherd-env
@@ -624,7 +753,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: cryogenics-essentials-docker
+      - get: image-cryo-essentials
       - get: shepherd-env
         passed: [ claim-env ]
         trigger: true
@@ -634,7 +763,7 @@ jobs:
       - get: nfs-volume-release
         passed: [ claim-env ]
   - task: bosh-deploy
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     config:
       platform: linux
       inputs:
@@ -664,7 +793,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: cryogenics-essentials-docker
+      - get: image-cryo-essentials
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: shepherd-env
@@ -673,7 +802,7 @@ jobs:
       - get: nfs-volume-release
         passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: persi-ci/scripts/ci/generate_pats_config_pas_shp.build.yml
     params:
       CF_USERNAME: admin
@@ -690,7 +819,7 @@ jobs:
       fail_fast: true
       steps:
       - task: run-pats-nfs-ephemeral
-        image: cryogenics-essentials-docker
+        image: image-cryo-essentials
         input_mapping:
           pats-config: nfs-pats-config
         file: persi-ci/scripts/ci/run-pats.build.yml
@@ -703,7 +832,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: cryogenics-essentials-docker
+      - get: image-cryo-essentials
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: shepherd-env
@@ -712,7 +841,7 @@ jobs:
       - get: nfs-volume-release
         passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: persi-ci/scripts/ci/generate_pats_config_pas_shp.build.yml
     params:
       CF_USERNAME: admin
@@ -729,7 +858,7 @@ jobs:
       fail_fast: true
       steps:
       - task: run-pats-nfs-ephemeral
-        image: cryogenics-essentials-docker
+        image: image-cryo-essentials
         input_mapping:
           pats-config: nfs-pats-config
         file: persi-ci/scripts/ci/run-pats.build.yml
@@ -790,7 +919,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: cryogenics-essentials-docker
+      - get: image-cryo-essentials
       - get: cryogenics-concourse-tasks
       - get: nfs-volume-release-lts-production-files-only
         trigger: true
@@ -805,7 +934,7 @@ jobs:
         params:
           bump: final
   - task: create-final-release
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
     input_mapping:
       release-repo: release
@@ -821,14 +950,14 @@ jobs:
       FINAL: true
       RELEASE_NAME: nfs-volume
   - task: create-release-notes
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
     input_mapping:
       git-repo: release
     params:
       USE_LATEST_PUBLISHED_TAG: true
   - task: format-release-notes
-    image: cryogenics-essentials-docker
+    image: image-cryo-essentials
     file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
     input_mapping:
       template-folder: cryogenics-concourse-tasks
