@@ -247,7 +247,7 @@ resources:
 - name: nfs-volume-release-concourse-tasks
   type: git
   source:
-    branch: 186371233-fix-flaky-ci
+    branch: master
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
