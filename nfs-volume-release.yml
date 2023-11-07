@@ -751,6 +751,7 @@ jobs:
       trigger: true
     - get: nfs-volume-release-master
     - get: cryogenics-concourse-tasks
+    - get: image-cryo-essentials
   - load_var: new-version
     file: openssl/version
   - task: bump-openssl
