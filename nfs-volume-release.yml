@@ -856,7 +856,7 @@ jobs:
       params:
         repository: nfs-volume-release-master
         force: true
-        branch: &openldap-bump-branch bump-openldap-to-version-((.:openldap.version.ref))
+        branch: *openldap-bump-branch
 
     - task: create-pull-request
       image: image-cryo-essentials
