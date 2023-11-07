@@ -410,7 +410,7 @@ jobs:
         GITHUB_TOKEN: *github_access_token
         BASE: v5.0
         BRANCH: *openldap-bump-branch
-        TITLE: "Bump Openldap to v((.:openldap.version.ref))"
+        TITLE: "V5.0 Bump Openldap to v((.:openldap.version.ref))"
         LABELS: dependencies
 
 - name: bump-openssl
@@ -505,7 +505,7 @@ jobs:
         BASE: {{lts-nfs-branch}}
         BRANCH: *golang-vendor-branch
         LABELS: dependencies, v5
-        TITLE: Update vendored package golang-1-linux
+        TITLE: V5.0 Update vendored package golang-1-linux
         MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
           \nI have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and \
           automatically bumped\nthis package to benefit from the latest changes.\
