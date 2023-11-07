@@ -177,8 +177,7 @@ resources:
   type: git
   icon: github
   source:
-    #  branch: {{lts-nfs-branch}}
-    branch: v5.0-ci-fix
+    branch: {{lts-nfs-branch}}
     private_key: *github_ssh_key
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
 
