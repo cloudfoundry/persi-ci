@@ -44,7 +44,8 @@ resources:
 - name: persi-ci
   type: git
   source:
-    paths: dockerfiles/*
+    paths:
+    - dockerfiles/*
     uri: https://github.com/cloudfoundry/persi-ci
     branch: master
 
@@ -93,21 +94,24 @@ resources:
 - name: smb-volume-release
   type: git
   source:
-    paths: dockerfiles/*
+    paths:
+    - dockerfiles/*
     branch: master
     uri: https://github.com/cloudfoundry/smb-volume-release.git
 
 - name: nfs-volume-release
   type: git
   source:
-    paths: dockerfiles/*
+    paths:
+    - dockerfiles/*
     branch: master
     uri: https://github.com/cloudfoundry/nfs-volume-release.git
 
 - name: mapfs-release
   type: git
   source:
-    paths: dockerfiles/*
+    paths:
+    - dockerfiles/*
     branch: master
     uri: https://github.com/cloudfoundry/mapfs-release.git
 
