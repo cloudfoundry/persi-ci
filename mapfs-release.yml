@@ -344,13 +344,6 @@ resources:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/python
     tag: 3.9.4
 
-- name: alpine-docker
-  icon: docker
-  type: registry-image
-  source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/alpine
-    tag: latest
-
 - name: ruby-docker
   icon: docker
   type: registry-image
@@ -600,7 +593,6 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: alpine-docker
       - get: nfs-volume-release
         passed:
         - env-gate
@@ -630,7 +622,6 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: alpine-docker
       - get: nfs-volume-release
         passed:
         - env-gate
