@@ -650,15 +650,46 @@ jobs:
     image: bosh-integration-docker
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
 
+- name: claim-env-xenial
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: persi-ci
+      - get: image-cryo-essentials
+      - get: nfs-volume-release
+        trigger: true
+        passed:
+        - nfsdriver-integration
+        - nfs-volume-release-job-tests
+  - put: shepherd-env-xenial
+    params:
+      action: create
+      duration: 6h
+      resource: shepherd-env
+    timeout: 6h
+  - put: shepherd-env-xenial
+    params:
+      action: extend
+      expire-in: 6h
+      resource: shepherd-env-xenial
+  - task: output-env-details
+    image: image-cryo-essentials
+    file: persi-ci/scripts/ci/claim-pooled-env.build.yml
+    input_mapping:
+      pooled-env: shepherd-env-xenial
+
 - name: nfs-volume-release-job-tests
   plan:
   - in_parallel:
       fail_fast: true
       steps:
+      - get: shepherd-env-xenial
+        passed:
+        - claim-env-xenial
       - get: image-cryo-essentials
-      - get: main-bosh-docker
+      - get: cryogenics-concourse-tasks
       - get: persi-ci
-      - get: nfs-volume-release-concourse-tasks
       - get: nfs-volume-release
         trigger: true
   - task: rspec
@@ -666,11 +697,11 @@ jobs:
     file: persi-ci/scripts/ci/run-rspec.build.yml
     input_mapping:
       test-repo: nfs-volume-release
+      shepherd-env: shepherd-env-xenial
   - task: bosh-release-test
-    image: main-bosh-docker
+    image: image-cryo-essentials
     attempts: 3
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
+    file: cryogenics-concourse-tasks/
     params:
       DOCKER_IMAGE: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/essentials
 
