@@ -165,6 +165,19 @@ resources:
       version=4
       https://www.openldap.org/software/download/OpenLDAP/openldap-release/ openldap-(2.[\d\.]+)\.tgz
 
+- name: env-xenial
+  icon: pool
+  type: shepherd
+  source:
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd_account_key
+    compatibility-mode: environments-app
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: tas-2_11
+
 - name: env
   icon: pool
   type: shepherd
@@ -243,13 +256,6 @@ resources:
     repository: nfs-volume-release
     drafts: true
     access_token: *github_access_token
-
-- name: nfs-volume-release-concourse-tasks
-  type: git
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: mapfs-release
   type: git
@@ -805,12 +811,12 @@ jobs:
       platform: linux
       params:
         NEW_VERSION: ((.:openldap.version.ref))
-      run: 
+      run:
         path: /bin/sh
         args:
         - -c
         - |
-            wget -O "openldap-tarball/openldap-${NEW_VERSION}.tgz" "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-${NEW_VERSION}.tgz" 
+            wget -O "openldap-tarball/openldap-${NEW_VERSION}.tgz" "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-${NEW_VERSION}.tgz"
             echo ${NEW_VERSION} > openldap-tarball/version
       outputs:
       - name: openldap-tarball
@@ -874,20 +880,37 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: nfs-volume-release-concourse-tasks
+      - get: cryogenics-concourse-tasks
       - get: mapfs-release
       - get: nfs-volume-release
         trigger: true
       - get: image-cryo-essentials
+      - put: env-xenial
+        params:
+          action: create
+          duration: 6h
+          resource: env
+        timeout: 6h
   - task: rspec
     image: image-cryo-essentials
     file: persi-ci/scripts/ci/run-rspec.build.yml
     input_mapping:
       test-repo: nfs-volume-release
   - task: bosh-release-test
+    image: image-cryo-essentials
     attempts: *number_of_retries
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
-    privileged: true
+    file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests-in-shepherd/task.yml
+    params:
+      TEST_REPO: nfs-volume-release
+    input_mapping:
+      shepherd-env: env-xenial
+    ensure:
+      do:
+      - put: env-xenial
+        params:
+          action: release
+          resource: env-xenial
+
 
 - name: mapfs-release-job-tests
   plan:
