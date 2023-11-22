@@ -165,7 +165,7 @@ resources:
       version=4
       https://www.openldap.org/software/download/OpenLDAP/openldap-release/ openldap-(2.[\d\.]+)\.tgz
 
-- name: env-xenial
+- name: env-tas-jammy
   icon: pool
   type: shepherd
   source:
@@ -176,7 +176,7 @@ resources:
       namespace: cryogenics
       pool:
         namespace: official
-        name: tas-2_11
+        name: tas-5_0
 
 - name: env
   icon: pool
@@ -885,7 +885,7 @@ jobs:
       - get: nfs-volume-release
         trigger: true
       - get: image-cryo-essentials
-      - put: env-xenial
+      - put: env-tas-jammy
         params:
           action: create
           duration: 6h
@@ -903,13 +903,13 @@ jobs:
     params:
       TEST_REPO: nfs-volume-release
     input_mapping:
-      shepherd-env: env-xenial
+      shepherd-env: env-tas-jammy
     ensure:
       do:
-      - put: env-xenial
+      - put: env-tas-jammy
         params:
           action: release
-          resource: env-xenial
+          resource: env-tas-jammy
 
 
 - name: mapfs-release-job-tests
