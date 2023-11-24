@@ -539,6 +539,12 @@ jobs:
         trigger: true
       - get: nfs-volume-release
       - get: cryogenics-essentials-docker
+      - put: env-tas-xenial
+        params:
+          action: create
+          duration: 6h
+          resource: env
+        timeout: 6h
   - task: rspec
     file: persi-ci/scripts/ci/run-rspec.build.yml
     image: cryogenics-essentials-docker
