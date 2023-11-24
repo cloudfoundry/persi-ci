@@ -556,6 +556,7 @@ jobs:
     file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests-in-shepherd/task.yml
     params:
       STEMCELL_LINE: xenial
+      TEST_REPO: nfs-volume-release
     input_mapping:
       shepherd-env: env-tas-xenial
     ensure:
