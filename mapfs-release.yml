@@ -549,7 +549,7 @@ jobs:
     file: persi-ci/scripts/ci/run-rspec.build.yml
     image: cryogenics-essentials-docker
     input_mapping:
-      test-repo: mapfs-release
+      test-repo: nfs-volume-release
   - task: bosh-release-test
     image: cryogenics-essentials-docker
     attempts: *number_of_retries
