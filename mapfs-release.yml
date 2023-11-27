@@ -44,8 +44,7 @@ var_sources:
 groups:
 - name: test
   jobs:
-  - nfs-volume-release-job-tests
-  - mapfs-release-job-tests
+  - combined-nfs-mapfs-volume-release-tests
   - env-gate
   - claim-env
   - deploy-cf
@@ -241,12 +240,6 @@ resources:
     drafts: true
     access_token: *github-access-token
 
-- name: mapfs-release-concourse-tasks
-  type: git
-  source:
-    branch: ci-fix
-    private_key: *github-ssh-key
-    uri: git@github.com:cloudfoundry/mapfs-release.git
 
 - name: cf-deployment
   type: git
@@ -314,13 +307,6 @@ resources:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
     private_key: *github-ssh-key
     branch: main
-
-- name: main-bosh-docker
-  icon: docker
-  type: registry-image
-  source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/main-bosh-docker
-    tag: latest
 
 - name: cf-deployment-concourse-tasks-docker
   icon: docker
@@ -528,7 +514,7 @@ jobs:
     input_mapping:
       source-repo: mapfs-release-master
 
-- name: nfs-volume-release-job-tests
+- name: combined-nfs-mapfs-volume-release-tests
   plan:
   - in_parallel:
       fail_fast: true
@@ -550,39 +536,31 @@ jobs:
     image: cryogenics-essentials-docker
     input_mapping:
       test-repo: nfs-volume-release
-  - task: bosh-release-test
-    image: cryogenics-essentials-docker
-    attempts: *number_of_retries
-    file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests-in-shepherd/task.yml
-    params:
-      STEMCELL_LINE: xenial
-      TEST_REPO: nfs-volume-release
-    input_mapping:
-      shepherd-env: env-tas-xenial
+  - in_parallel:
+    - task: bosh-release-test
+      image: cryogenics-essentials-docker
+      file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests-in-shepherd/task.yml
+      params:
+        STEMCELL_LINE: xenial
+        TEST_REPO: nfs-volume-release
+      input_mapping:
+        shepherd-env: env-tas-xenial
+    - task: bosh-release-test-mapfs
+      image: cryogenics-essentials-docker
+      attempts: *number_of_retries
+      file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests-in-shepherd/task.yml
+      image: cryogenics-essentials-docker
+      params:
+        STEMCELL_LINE: xenial
+        TEST_REPO: mapfs-release
+      input_mapping:
+        shepherd-env: env-tas-xenial
     ensure:
       do:
       - put: env-tas-xenial
         params:
           action: release
           resource: env-tas-xenial
-
-- name: mapfs-release-job-tests
-  plan:
-  - in_parallel:
-      fail_fast: true
-      steps:
-      - get: mapfs-release
-        trigger: true
-      - get: mapfs-release-concourse-tasks
-      - get: main-bosh-docker
-  - task: bosh-release-test
-    file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
-    image: main-bosh-docker
-    attempts: *number_of_retries
-    privileged: true
-    timeout: 1h
-    params:
-      DOCKER_IMAGE: *cryogenics-essentials
 
 - name: env-gate
   plan:
@@ -591,12 +569,11 @@ jobs:
       steps:
       - get: nfs-volume-release
         passed:
-        - nfs-volume-release-job-tests
+        - combined-nfs-mapfs-volume-release-tests
       - get: mapfs-release
         trigger: true
         passed:
-        - nfs-volume-release-job-tests
-        - mapfs-release-job-tests
+        - combined-nfs-mapfs-volume-release-tests
       - get: every-hour
 
 - name: claim-env
