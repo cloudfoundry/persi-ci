@@ -60,6 +60,7 @@ groups:
   - check-for-cves
 - name: bump
   jobs:
+  - bump-libfuse
   - bump-golang
   - update-go-directive-for-mapfs
   - update-go-directive-for-mapfs-release
@@ -127,6 +128,14 @@ resources:
   source:
     uri: git@github.com:pivotal/tas-vex.git
     private_key: *github-ssh-key
+
+- name: libfuse-git-release
+  type: github-release
+  source:
+    access_token: *github-access-token
+    repository: libfuse
+    user: libfuse
+    tag_filter: "fuse-(.*)"
 
 - name: github-release-tas-cve
   type: github-release
@@ -357,6 +366,51 @@ jobs:
       GRYPE_FAILURE_LEVEL: negligible  # Can be any of: none | negligible | low | medium | high | critical
       RELEASE_NAME: mapfs
       RELEASE_VERSION: pre-release-cve-scan
+
+- name: bump-libfuse
+  plan:
+  - in_parallel:
+    - get: cryogenics-concourse-tasks
+    - get: libfuse-git-release
+      trigger: true
+    - get: mapfs-release-master
+    - get: cryogenics-essentials-docker
+  - load_var: libfuse-release-version
+    file: libfuse-git-release/version
+  - task: bump-libfuse
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: libfuse-git-release
+      bosh-release: mapfs-release-master
+    output_mapping:
+      bosh-release-updated: mapfs-release-bumped
+    params:
+      AWS_ACCESS_KEY_ID: *aws-uploader-role-id
+      AWS_SECRET_ACCESS_KEY: *aws-uploader-role-secret
+      AWS_ROLE_ARN: *aws-uploader-role-arn
+      GIT_USERNAME: *github-user
+      GIT_EMAIL: *github-email
+      GIT_BRANCH: &libfuse-bump-branch bump-libfuse-to-v((.:libfuse-release-version))
+      BLOB_NAME: fuse-
+      BLOB_EXTENSION: .tar.gz
+      BLOB_DIRECTORY: fuse/
+  - put: mapfs-release-master
+    params:
+      repository: mapfs-release-bumped
+      branch: *libfuse-bump-branch
+      force: true  # If the last PR got stuck just overwrite it with new stuff
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: cryogenics-essentials-docker
+      input_mapping:
+        source-repo: mapfs-release-master
+      params:
+        GITHUB_TOKEN: *github-access-token
+        BASE: master
+        BRANCH: *libfuse-bump-branch
+        TITLE: "Bump libfuse to v((.:libfuse-release-version))"
+        LABELS: dependencies
 
 - name: bump-golang
   plan:
