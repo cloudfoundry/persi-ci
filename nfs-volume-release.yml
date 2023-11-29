@@ -75,6 +75,7 @@ groups:
   - check-for-cves
 - name: bump
   jobs:
+  - bump-nfs-utils
   - bump-golang
   - bump-openldap
   - bump-openssl
@@ -164,6 +165,13 @@ resources:
     watchfile: |
       version=4
       https://www.openldap.org/software/download/OpenLDAP/openldap-release/ openldap-(2.[\d\.]+)\.tgz
+
+- name: nfs-utils-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://www.kernel.org/pub/linux/utils/nfs-utils/([\d\.]+)/nfs-utils-([\d\.]+).tar.xz
 
 - name: env-tas-jammy
   icon: pool
@@ -427,6 +435,67 @@ jobs:
         GRYPE_FAILURE_LEVEL: negligible #! Can be any of: none | negligible | low | medium | high | critical
         RELEASE_NAME: nfs-volume
         RELEASE_VERSION: pre-release-cve-scan
+
+- name: bump-nfs-utils
+  plan:
+  - in_parallel:
+    - get: nfs-utils-version
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-nfs-utils-bump
+  - load_var: nfs-utils
+    file: nfs-utils-version/version
+    format: json
+  - task: download-nfs-utils
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:nfs-utils.version.ref))
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+            wget -O "nfs-debs-nfs-utils/nfs-utils-${NEW_VERSION}.tar.xz" "https://www.kernel.org/pub/linux/utils/nfs-utils/${NEW_VERSION}/nfs-utils-${NEW_VERSION}.tar.xz"
+            echo ${NEW_VERSION} > nfs-debs-nfs-utils/version
+      outputs:
+      - name: nfs-debs-nfs-utils
+  - task: bump-nfs-utils
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-nfs-utils
+      bosh-release: nfs-volume-release-nfs-utils-bump
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-nfs-utils-bump
+    params:
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &nfs-utils-bump-branch bump-nfs-utils-to-v((.:nfs-utils.version.ref))
+      BLOB_NAME: nfs-utils
+      BLOB_EXTENSION: .tar.xz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-nfs-utils-bump
+    params:
+      repository: nfs-volume-release-nfs-utils-bump
+      force: true
+      branch: *nfs-utils-bump-branch
+    on_success:
+      task: create-pull-request
+      image: image-cryo-essentials
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-nfs-utils-bump
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: master
+        BRANCH: *nfs-utils-bump-branch
+        TITLE: "Bump NFS-Utils to v((.:nfs-utils.version.ref))"
+        LABELS: dependencies
 
 - name: bump-golang
   plan:
