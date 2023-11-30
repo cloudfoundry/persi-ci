@@ -77,6 +77,7 @@ groups:
   jobs:
   - bump-nfs-utils
   - bump-sqlite
+  - bump-libevent
   - bump-golang
   - bump-openldap
   - bump-openssl
@@ -181,6 +182,14 @@ resources:
     tag_filter: version-*
     private_key: *github_ssh_key
 
+- name: libevent-release
+  type: github-release
+  source:
+    owner: libevent
+    repository: libevent
+    tag_filter: release-([\d\.]+\d+)-stable
+    access_token: *github_access_token
+
 - name: env-tas-jammy
   icon: pool
   type: shepherd
@@ -262,6 +271,13 @@ resources:
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: nfs-volume-release-sqlite-bump
+  type: git
+  source:
+    branch: master
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+
+- name: nfs-volume-release-libevent-bump
   type: git
   source:
     branch: master
@@ -583,6 +599,49 @@ jobs:
         BRANCH: *sqlite-bump-branch
         TITLE: "Bump SQLite to v((.:sqlite-version))"
         LABELS: dependencies
+
+- name: bump-libevent
+  plan:
+    - in_parallel:
+      - get: libevent-release
+        trigger: true
+      - get: cryogenics-concourse-tasks
+      - get: nfs-volume-release-libevent-bump
+    - load_var: libevent-version
+      file: libevent-release/version
+    - task: bump
+      file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+      input_mapping:
+        distributed-package: libevent-release
+        bosh-release: nfs-volume-release-libevent-bump
+      output_mapping:
+        bosh-release-updated: nfs-volume-release-libevent-bump
+      params:
+        AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+        AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+        AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+        GIT_USERNAME: *github_user
+        GIT_EMAIL: *github_email
+        GIT_BRANCH: &libevent-bump-branch bump-libevent-to-v((.:libevent-version))
+        BLOB_NAME: libevent
+        BLOB_EXTENSION: -stable.tar.gz
+        BLOB_DIRECTORY: nfs-debs/
+    - put: nfs-volume-release-libevent-bump
+      params:
+        repository: nfs-volume-release-libevent-bump
+        force: true
+        branch: *libevent-bump-branch
+      on_success:
+        task: create-pull-request
+        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+        input_mapping:
+          source-repo: nfs-volume-release-libevent-bump
+        params:
+          GITHUB_TOKEN: *github_access_token
+          BASE: master
+          BRANCH: *libevent-bump-branch
+          TITLE: "Bump Libevent to v((.:libevent-version))"
+          LABELS: dependencies
 
 - name: bump-golang
   plan:
