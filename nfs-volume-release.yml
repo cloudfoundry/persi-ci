@@ -76,6 +76,7 @@ groups:
 - name: bump
   jobs:
   - bump-nfs-utils
+  - bump-sqlite
   - bump-golang
   - bump-openldap
   - bump-openssl
@@ -173,6 +174,13 @@ resources:
       version=4
       https://www.kernel.org/pub/linux/utils/nfs-utils/([\d\.]+)/nfs-utils-([\d\.]+).tar.xz
 
+- name: sqlite-release
+  type: git
+  source:
+    uri: git@github.com:sqlite/sqlite.git
+    tag_filter: version-*
+    private_key: *github_ssh_key
+
 - name: env-tas-jammy
   icon: pool
   type: shepherd
@@ -240,6 +248,20 @@ resources:
     - src
 
 - name: nfs-volume-release-master
+  type: git
+  source:
+    branch: master
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+
+- name: nfs-volume-release-nfs-utils-bump
+  type: git
+  source:
+    branch: master
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+
+- name: nfs-volume-release-sqlite-bump
   type: git
   source:
     branch: master
@@ -495,6 +517,71 @@ jobs:
         BASE: master
         BRANCH: *nfs-utils-bump-branch
         TITLE: "Bump NFS-Utils to v((.:nfs-utils.version.ref))"
+        LABELS: dependencies
+
+- name: bump-sqlite
+  plan:
+  - in_parallel:
+    - get: sqlite-release
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-sqlite-bump
+  - load_var: sqlite-version
+    file: sqlite-release/VERSION
+    format: trim
+  - task: create-tarball
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:sqlite-version))
+      inputs:
+        - name: sqlite-release
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+            set -x
+            mkdir -p nfs-debs-sqlite
+            cp -r sqlite-release/ sqlite-version-${NEW_VERSION}
+            tar -zcvf nfs-debs-sqlite/sqlite-${NEW_VERSION}.tar.gz --exclude=.git sqlite-version-${NEW_VERSION}
+            echo ${NEW_VERSION} > nfs-debs-sqlite/version
+      outputs:
+      - name: nfs-debs-sqlite
+  - task: bump-sqlite
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-sqlite
+      bosh-release: nfs-volume-release-sqlite-bump
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-sqlite-bump
+    params:
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &sqlite-bump-branch bump-sqlite-to-v((.:sqlite-version))
+      BLOB_NAME: sqlite
+      BLOB_EXTENSION: .tar.gz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-sqlite-bump
+    params:
+      repository: nfs-volume-release-sqlite-bump
+      force: true
+      branch: *sqlite-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-sqlite-bump
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: master
+        BRANCH: *sqlite-bump-branch
+        TITLE: "Bump SQLite to v((.:sqlite-version))"
         LABELS: dependencies
 
 - name: bump-golang
