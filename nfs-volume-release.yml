@@ -78,6 +78,7 @@ groups:
   - bump-nfs-utils
   - bump-sqlite
   - bump-libevent
+  - bump-libtirpc
   - bump-golang
   - bump-openldap
   - bump-openssl
@@ -174,6 +175,13 @@ resources:
     watchfile: |
       version=4
       https://www.kernel.org/pub/linux/utils/nfs-utils/([\d\.]+)/nfs-utils-([\d\.]+).tar.xz
+
+- name: libtirpc-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://sf.net/libtirpc/ libtirpc-(.+)\.tar\.bz2
 
 - name: sqlite-release
   type: git
@@ -278,6 +286,13 @@ resources:
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: nfs-volume-release-libevent-bump
+  type: git
+  source:
+    branch: master
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+
+- name: nfs-volume-release-libtirpc-bump
   type: git
   source:
     branch: master
@@ -642,6 +657,66 @@ jobs:
           BRANCH: *libevent-bump-branch
           TITLE: "Bump Libevent to v((.:libevent-version))"
           LABELS: dependencies
+
+- name: bump-libtirpc
+  plan:
+  - in_parallel:
+    - get: libtirpc-version
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-libtirpc-bump
+  - load_var: libtirpc
+    file: libtirpc-version/version
+    format: json
+  - task: download-libtirpc
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:libtirpc.version.ref))
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+            wget -O "nfs-debs-libtirpc/libtirpc-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/libtirpc/files/libtirpc/${NEW_VERSION}/libtirpc-${NEW_VERSION}.tar.bz2/download"
+            echo ${NEW_VERSION} > nfs-debs-libtirpc/version
+      outputs:
+      - name: nfs-debs-libtirpc
+  - task: bump-libtirpc
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-libtirpc
+      bosh-release: nfs-volume-release-libtirpc-bump
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-libtirpc-bump
+    params:
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &libtirpc-bump-branch bump-libtirpc-to-v((.:libtirpc.version.ref))
+      BLOB_NAME: libtirpc
+      BLOB_EXTENSION: .tar.bz2
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-libtirpc-bump
+    params:
+      repository: nfs-volume-release-libtirpc-bump
+      force: true
+      branch: *libtirpc-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-libtirpc-bump
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: master
+        BRANCH: *libtirpc-bump-branch
+        TITLE: "Bump Libtirpc to v((.:libtirpc.version.ref))"
+        LABELS: dependencies
 
 - name: bump-golang
   plan:
