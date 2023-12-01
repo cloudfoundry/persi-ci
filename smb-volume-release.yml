@@ -72,6 +72,9 @@ groups:
   - &bump-blob-autoconf-job-name bump-blob-autoconf
   - &bump-blob-automake-job-name bump-blob-automake
   - &bump-blob-libtool-job-name bump-blob-libtool
+  - &bump-blob-cifs-utils-job-name bump-blob-cifs-utils
+  - &bump-blob-keyutils-job-name bump-blob-keyutils
+  - &bump-blob-talloc-job-name bump-blob-talloc
 - name: release
   jobs:
   - check-for-changes
@@ -317,6 +320,28 @@ resources:
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pcfplatformrecovery/backup-and-restore
 
+- name: cifs-utils-latest
+  type: git
+  icon: github
+  source:
+    branch: master
+    uri: git://git.samba.org/cifs-utils.git
+    tag_regex: ^cifs-utils-([0-9]*\.[0-9]*)
+
+- name: keyutils-latest
+  type: git
+  icon: github
+  source:
+    uri: https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/keyutils.git
+    tag_regex: ^v[0-9]*\.[0-9]*\.[0-9]*
+
+- name: talloc-latest
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://www.samba.org/ftp/talloc/talloc-([0-9]+\.[0-9]+\.[0-9]+).tar.gz
+
 - name: autoconf-latest
   type: ftp
   icon: download-network-outline
@@ -339,6 +364,12 @@ resources:
     version_regex: '^libtool-(?P<version>[0-9][0-9.]+[0-9]).tar.xz$'
 
 resource_types:
+- name: uscan
+  source:
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    repository: cryogenics/concourse-uscan-resource
+  type: registry-image
 - name: semver
   type: docker-image
   source:
@@ -394,6 +425,129 @@ jobs:
         GRYPE_FAILURE_LEVEL: negligible #! Can be any of: none | negligible | low | medium | high | critical
         RELEASE_NAME: smb-volume
         RELEASE_VERSION: pre-release-cve-scan
+
+- name: *bump-blob-cifs-utils-job-name
+  plan:
+  - in_parallel:
+    - get: cifs-utils-latest
+      trigger: true
+    - get: cryogenics-essentials
+    - get: smb-volume-release-master
+    - get: cryogenics-concourse-tasks
+  - task: create-blob-tarball-and-version
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/busybox }
+      run:
+        path: sh
+        args:
+          - -exc
+          - |
+            cat cifs-utils-latest/.git/ref | sed 's/cifs-utils-//g' > distributed-package/version
+            tar -cjf distributed-package/keyutils-$(cat distributed-package/version).tar.bz -C cifs-utils-latest .
+      inputs:
+      - name: cifs-utils-latest
+      outputs:
+      - name: distributed-package
+  - load_var: cifs-utils-version
+    file: distributed-package/version
+  - task: bump-cifs-utils
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    image: cryogenics-essentials
+    input_mapping:
+      bosh-release: smb-volume-release-master
+    params:
+      AWS_ACCESS_KEY_ID: *upload_role_id
+      AWS_SECRET_ACCESS_KEY: *upload_role_secret
+      AWS_ROLE_ARN: *upload_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &bump-cifs-utils-branch bump-cifs-utils-to-((.:cifs-utils-version))
+      BLOB_NAME: cifs-utils 
+      BLOB_EXTENSION: tar.bz2
+  - put: smb-volume-release-master-write
+    params:
+      repository: bosh-release-updated
+      branch: *bump-cifs-utils-branch
+  - try:
+      task: create-cifs-utils-update-pr
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: cryogenics-essentials
+      params:
+        BASE: master
+        BRANCH: *bump-cifs-utils-branch
+        LABELS: dependencies
+        TITLE: Update cifs-utils tarball blob to ((.:cifs-utils-version))
+        MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
+          \nI have detected a new version of [cifs-utils](https://git.samba.org/?p=cifs-utils.git;a=summary) and \
+          automatically bumped\nthis package to benefit from the latest changes.\
+          \nIf this does not look right, please reach out to the \
+          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+      input_mapping:
+        source-repo: smb-volume-release-master-write
+- name: *bump-blob-keyutils-job-name
+  plan:
+  - in_parallel:
+    - get: keyutils-latest
+      trigger: true
+    - get: cryogenics-essentials
+    - get: smb-volume-release-master
+    - get: cryogenics-concourse-tasks
+  - task: create-blob-tarball-and-version
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/busybox }
+      run:
+        path: sh
+        args:
+          - -exc
+          - |
+            cat keyutils-latest/.git/ref | sed 's/v//g' > distributed-package/version
+            tar -czf distributed-package/keyutils-$(cat distributed-package/version).tar.gz -C keyutils-latest .
+      inputs:
+      - name: keyutils-latest
+      outputs:
+      - name: distributed-package
+  - load_var: keyutils-version
+    file: distributed-package/version
+  - task: bump-keyutils
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    image: cryogenics-essentials
+    input_mapping:
+      bosh-release: smb-volume-release-master
+    params:
+      AWS_ACCESS_KEY_ID: *upload_role_id
+      AWS_SECRET_ACCESS_KEY: *upload_role_secret
+      AWS_ROLE_ARN: *upload_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &bump-keyutils-branch bump-keyutils-to-((.:keyutils-version))
+      BLOB_NAME: keyutils 
+      BLOB_EXTENSION: tar.gz
+  - put: smb-volume-release-master-write
+    params:
+      repository: bosh-release-updated
+      branch: *bump-keyutils-branch
+  - try:
+      task: create-keyutils-update-pr
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: cryogenics-essentials
+      params:
+        BASE: master
+        BRANCH: *bump-keyutils-branch
+        LABELS: dependencies
+        TITLE: Update keyutils tarball blob to ((.:keyutils-version))
+        MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
+          \nI have detected a new version of [keyutils](https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/keyutils.git) and \
+          automatically bumped\nthis package to benefit from the latest changes.\
+          \nIf this does not look right, please reach out to the \
+          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+      input_mapping:
+        source-repo: smb-volume-release-master-write
 
 - name: *bump-blob-autoconf-job-name
   plan:
@@ -480,6 +634,68 @@ jobs:
         TITLE: Update automake tarball blob to ((.:automake-version))
         MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
           \nI have detected a new version of [automake](https://ftp.gnu.org/gnu/automake/) and \
+          automatically bumped\nthis package to benefit from the latest changes.\
+          \nIf this does not look right, please reach out to the \
+          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+      input_mapping:
+        source-repo: smb-volume-release-master-write
+
+- name: *bump-blob-talloc-job-name
+  plan:
+  - in_parallel:
+    - get: talloc-latest
+      trigger: true
+    - get: cryogenics-essentials
+    - get: smb-volume-release-master
+    - get: cryogenics-concourse-tasks
+  - load_var: talloc-version
+    file: talloc-latest/version
+    format: json
+  - task: rewrite-version-file
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/busybox }
+      run:
+        path: sh
+        args:
+          - -exc
+          - cp -r talloc-latest/* distributed-package/ && echo ((.:talloc-version.version.ref)) > distributed-package/version
+      inputs:
+      - name: talloc-latest
+      outputs:
+      - name: distributed-package
+  - task: bump-talloc
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    image: cryogenics-essentials
+    input_mapping:
+      bosh-release: smb-volume-release-master
+    params:
+      AWS_ACCESS_KEY_ID: *upload_role_id
+      AWS_SECRET_ACCESS_KEY: *upload_role_secret
+      AWS_ROLE_ARN: *upload_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &bump-talloc-branch bump-talloc-to-((.:talloc-version.version.ref))
+      BLOB_NAME: talloc 
+      BLOB_EXTENSION: tar.gz
+      KEEP_BLOBS_FILTER: xenial-talloc-2.3.1.tar.gz
+  - put: smb-volume-release-master-write
+    params:
+      repository: bosh-release-updated
+      branch: *bump-talloc-branch
+  - try:
+      task: create-talloc-update-pr
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: cryogenics-essentials
+      params:
+        BASE: master
+        BRANCH: *bump-talloc-branch
+        LABELS: dependencies
+        TITLE: Update talloc tarball blob to ((.:talloc-version.version.ref))
+        MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
+          \nI have detected a new version of [talloc](https://www.samba.org/ftp/talloc/) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
@@ -715,7 +931,7 @@ jobs:
       test-repo: smb-volume-release
   - task: bosh-release-test
     file: persi-ci/scripts/ci/run_bosh_release_tests.build.yml
-    attempts: 3
+    attempts: 1
     input_mapping:
       test-repo: smb-volume-release
       env: cf-deployment-env
