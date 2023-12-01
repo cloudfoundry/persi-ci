@@ -78,6 +78,7 @@ groups:
   - bump-nfs-utils
   - bump-sqlite
   - bump-libevent
+  - bump-rpcsvc-proto
   - bump-libtirpc
   - bump-rpcbind
   - bump-golang
@@ -206,6 +207,14 @@ resources:
     tag_filter: release-([\d\.]+\d+)-stable
     access_token: *github_access_token
 
+- name: rpcsvc-proto-release
+  type: github-release
+  source:
+    owner: thkukuk
+    repository: rpcsvc-proto
+    tag_filter: v([\d\.]+\d+)
+    access_token: *github_access_token
+
 - name: env-tas-jammy
   icon: pool
   type: shepherd
@@ -287,6 +296,13 @@ resources:
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: nfs-volume-release-sqlite-bump
+  type: git
+  source:
+    branch: master
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+
+- name: nfs-volume-release-rpcsvc-proto-bump
   type: git
   source:
     branch: master
@@ -671,6 +687,49 @@ jobs:
           BASE: master
           BRANCH: *libevent-bump-branch
           TITLE: "Bump Libevent to v((.:libevent-version))"
+          LABELS: dependencies
+
+- name: bump-rpcsvc-proto
+  plan:
+    - in_parallel:
+      - get: rpcsvc-proto-release
+        trigger: true
+      - get: cryogenics-concourse-tasks
+      - get: nfs-volume-release-rpcsvc-proto-bump
+    - load_var: rpcsvc-proto-version
+      file: rpcsvc-proto-release/version
+    - task: bump
+      file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+      input_mapping:
+        distributed-package: rpcsvc-proto-release
+        bosh-release: nfs-volume-release-rpcsvc-proto-bump
+      output_mapping:
+        bosh-release-updated: nfs-volume-release-rpcsvc-proto-bump
+      params:
+        AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+        AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+        AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+        GIT_USERNAME: *github_user
+        GIT_EMAIL: *github_email
+        GIT_BRANCH: &rpcsvc-proto-bump-branch bump-rpcsvc-proto-to-v((.:rpcsvc-proto-version))
+        BLOB_NAME: rpcsvc-proto
+        BLOB_EXTENSION: .tar.xz
+        BLOB_DIRECTORY: nfs-debs/
+    - put: nfs-volume-release-rpcsvc-proto-bump
+      params:
+        repository: nfs-volume-release-rpcsvc-proto-bump
+        force: true
+        branch: *rpcsvc-proto-bump-branch
+      on_success:
+        task: create-pull-request
+        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+        input_mapping:
+          source-repo: nfs-volume-release-rpcsvc-proto-bump
+        params:
+          GITHUB_TOKEN: *github_access_token
+          BASE: master
+          BRANCH: *rpcsvc-proto-bump-branch
+          TITLE: "Bump rpcsvc-proto to v((.:rpcsvc-proto-version))"
           LABELS: dependencies
 
 - name: bump-libtirpc
