@@ -79,6 +79,7 @@ groups:
   - bump-sqlite
   - bump-libevent
   - bump-libtirpc
+  - bump-rpcbind
   - bump-golang
   - bump-openldap
   - bump-openssl
@@ -182,6 +183,13 @@ resources:
     watchfile: |
       version=4
       https://sf.net/libtirpc/ libtirpc-(.+)\.tar\.bz2
+
+- name: rpcbind-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://sf.net/rpcbind/ rpcbind-(.+)\.tar\.bz2
 
 - name: sqlite-release
   type: git
@@ -293,6 +301,13 @@ resources:
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: nfs-volume-release-libtirpc-bump
+  type: git
+  source:
+    branch: master
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+
+- name: nfs-volume-release-rpcbind-bump
   type: git
   source:
     branch: master
@@ -716,6 +731,66 @@ jobs:
         BASE: master
         BRANCH: *libtirpc-bump-branch
         TITLE: "Bump Libtirpc to v((.:libtirpc.version.ref))"
+        LABELS: dependencies
+
+- name: bump-rpcbind
+  plan:
+  - in_parallel:
+    - get: rpcbind-version
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-rpcbind-bump
+  - load_var: rpcbind
+    file: rpcbind-version/version
+    format: json
+  - task: download-rpcbind
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:rpcbind.version.ref))
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+            wget -O "nfs-debs-rpcbind/rpcbind-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/rpcbind/files/rpcbind/${NEW_VERSION}/rpcbind-${NEW_VERSION}.tar.bz2/download"
+            echo ${NEW_VERSION} > nfs-debs-rpcbind/version
+      outputs:
+      - name: nfs-debs-rpcbind
+  - task: bump-rpcbind
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-rpcbind
+      bosh-release: nfs-volume-release-rpcbind-bump
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-rpcbind-bump
+    params:
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &rpcbind-bump-branch bump-rpcbind-to-v((.:rpcbind.version.ref))
+      BLOB_NAME: rpcbind
+      BLOB_EXTENSION: .tar.bz2
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-rpcbind-bump
+    params:
+      repository: nfs-volume-release-rpcbind-bump
+      force: true
+      branch: *rpcbind-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-rpcbind-bump
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: master
+        BRANCH: *rpcbind-bump-branch
+        TITLE: "Bump RPCBind to v((.:rpcbind.version.ref))"
         LABELS: dependencies
 
 - name: bump-golang
