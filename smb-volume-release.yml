@@ -388,12 +388,6 @@ resource_types:
     repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
   type: registry-image
 
-- name: git
-  type: docker-image
-  source:
-    repository: concourse/git-resource
-    tag: ubuntu
-
 - name: pull-request
   type: docker-image
   source:
