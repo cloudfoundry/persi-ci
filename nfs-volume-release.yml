@@ -542,7 +542,7 @@ jobs:
       trigger: true
     - get: image-cryo-essentials
     - get: cryogenics-concourse-tasks
-    - get: nfs-volume-release-nfs-utils-bump
+    - get: nfs-volume-release-master
   - load_var: nfs-utils
     file: nfs-utils-version/version
     format: json
@@ -565,7 +565,7 @@ jobs:
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     input_mapping:
       distributed-package: nfs-debs-nfs-utils
-      bosh-release: nfs-volume-release-nfs-utils-bump
+      bosh-release: nfs-volume-release-master
     output_mapping:
       bosh-release-updated: nfs-volume-release-nfs-utils-bump
     params:
@@ -603,7 +603,7 @@ jobs:
       trigger: true
     - get: image-cryo-essentials
     - get: cryogenics-concourse-tasks
-    - get: nfs-volume-release-sqlite-bump
+    - get: nfs-volume-release-master
   - load_var: sqlite-version
     file: sqlite-release/VERSION
     format: trim
@@ -631,7 +631,7 @@ jobs:
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     input_mapping:
       distributed-package: nfs-debs-sqlite
-      bosh-release: nfs-volume-release-sqlite-bump
+      bosh-release: nfs-volume-release-master
     output_mapping:
       bosh-release-updated: nfs-volume-release-sqlite-bump
     params:
@@ -667,14 +667,14 @@ jobs:
       - get: libevent-release
         trigger: true
       - get: cryogenics-concourse-tasks
-      - get: nfs-volume-release-libevent-bump
+      - get: nfs-volume-release-master
     - load_var: libevent-version
       file: libevent-release/version
     - task: bump
       file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
       input_mapping:
         distributed-package: libevent-release
-        bosh-release: nfs-volume-release-libevent-bump
+        bosh-release: nfs-volume-release-master
       output_mapping:
         bosh-release-updated: nfs-volume-release-libevent-bump
       params:
@@ -710,14 +710,14 @@ jobs:
       - get: rpcsvc-proto-release
         trigger: true
       - get: cryogenics-concourse-tasks
-      - get: nfs-volume-release-rpcsvc-proto-bump
+      - get: nfs-volume-release-master
     - load_var: rpcsvc-proto-version
       file: rpcsvc-proto-release/version
     - task: bump
       file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
       input_mapping:
         distributed-package: rpcsvc-proto-release
-        bosh-release: nfs-volume-release-rpcsvc-proto-bump
+        bosh-release: nfs-volume-release-master
       output_mapping:
         bosh-release-updated: nfs-volume-release-rpcsvc-proto-bump
       params:
@@ -754,7 +754,7 @@ jobs:
       trigger: true
     - get: image-cryo-essentials
     - get: cryogenics-concourse-tasks
-    - get: nfs-volume-release-libtirpc-bump
+    - get: nfs-volume-release-master
   - load_var: libtirpc
     file: libtirpc-version/version
     format: json
@@ -777,7 +777,7 @@ jobs:
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     input_mapping:
       distributed-package: nfs-debs-libtirpc
-      bosh-release: nfs-volume-release-libtirpc-bump
+      bosh-release: nfs-volume-release-master
     output_mapping:
       bosh-release-updated: nfs-volume-release-libtirpc-bump
     params:
@@ -814,7 +814,7 @@ jobs:
       trigger: true
     - get: image-cryo-essentials
     - get: cryogenics-concourse-tasks
-    - get: nfs-volume-release-rpcbind-bump
+    - get: nfs-volume-release-master
   - load_var: rpcbind
     file: rpcbind-version/version
     format: json
@@ -837,7 +837,7 @@ jobs:
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     input_mapping:
       distributed-package: nfs-debs-rpcbind
-      bosh-release: nfs-volume-release-rpcbind-bump
+      bosh-release: nfs-volume-release-master
     output_mapping:
       bosh-release-updated: nfs-volume-release-rpcbind-bump
     params:
@@ -874,7 +874,7 @@ jobs:
       trigger: true
     - get: image-cryo-essentials
     - get: cryogenics-concourse-tasks
-    - get: nfs-volume-release-tcl-bump
+    - get: nfs-volume-release-master
   - load_var: tcl
     file: tcl-version/version
     format: json
@@ -897,7 +897,7 @@ jobs:
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     input_mapping:
       distributed-package: nfs-debs-tcl
-      bosh-release: nfs-volume-release-tcl-bump
+      bosh-release: nfs-volume-release-master
     output_mapping:
       bosh-release-updated: nfs-volume-release-tcl-bump
     params:
@@ -933,9 +933,7 @@ jobs:
     - get: golang-release
       trigger: true
     - get: cryogenics-concourse-tasks
-    - get: nfs-volume-release-bump-golang
-      params:
-        branch: master
+    - get: nfs-volume-release-master
     - get: image-cryo-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
@@ -943,7 +941,7 @@ jobs:
     image: image-cryo-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-golang/task.yml
     input_mapping:
-      release: nfs-volume-release-bump-golang
+      release: nfs-volume-release-master
       vendored-package-release: golang-release
     params:
       VENDORED_PACKAGE_NAME: golang-1-linux
