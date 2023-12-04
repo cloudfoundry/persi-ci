@@ -259,44 +259,6 @@ resources:
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
-# On 2023-12-04 we added a copy of the nfs-volume-release-lts resource called
-# nfs-volume-release-lts-bump-openssl so that we could push PRs to
-# nfs-volume-release-lts-bump-openssl without corrupting the `get` steps that
-# pull from the `nfs-volume-release-lts` resource. Previously, every time pushed
-# a new PR to `nfs-volume-release-lts`, that PR became the input of the next
-# `get` step. That behaviour was documented here:
-# https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
-- name: nfs-volume-release-lts-bump-openssl
-  type: git
-  icon: github
-  source:
-    submodule_credentials:
-    - host: github.com
-      username: *github_https_username
-      password: *github_https_password
-    branch: {{lts-nfs-branch}}
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
-# On 2023-12-04 we added a copy of the nfs-volume-release-lts resource called
-# nfs-volume-release-lts-bump-openldap so that we could push PRs to
-# nfs-volume-release-lts-bump-openldap without corrupting the `get` steps that
-# pull from the `nfs-volume-release-lts` resource. Previously, every time pushed
-# a new PR to `nfs-volume-release-lts`, that PR became the input of the next
-# `get` step. That behaviour was documented here:
-# https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
-- name: nfs-volume-release-lts-bump-openldap
-  type: git
-  icon: github
-  source:
-    submodule_credentials:
-    - host: github.com
-      username: *github_https_username
-      password: *github_https_password
-    branch: {{lts-nfs-branch}}
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
 - name: nfs-volume-release-lts-production-files-only
   type: git
   icon: github
@@ -366,7 +328,14 @@ resources:
     uri: https://github.com/bosh-packages/golang-release.git
     tag_filter: v*
 
-- name: nfs-volume-release-bump-golang
+# On 2023-12-04 we added a copy of the nfs-volume-release-lts resource called
+# nfs-volume-release-lts-bump-openldap so that we could push PRs to
+# nfs-volume-release-lts-bump-openldap without corrupting the `get` steps that
+# pull from the `nfs-volume-release-lts` resource. Previously, every time pushed
+# a new PR to `nfs-volume-release-lts`, that PR became the input of the next
+# `get` step. That behaviour was documented here:
+# https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
+- name: nfs-volume-release-lts-write
   type: git
   icon: github
   source:
@@ -393,13 +362,13 @@ resources:
     disable_ci_skip: true
 
 # On 2023-12-04 we added a copy of the nfsv3driver-v5 resource called
-# nfsv3driver-v5-update-go-directive so that we could push PRs to
-# nfsv3driver-v5-update-go-directive without corrupting the `get` steps that
+# nfsv3driver-v5-write so that we could push PRs to
+# nfsv3driver-v5-write without corrupting the `get` steps that
 # pull from the `nfsv3driver-v5` resource. Previously, every time pushed
 # a new PR to `nfsv3driver-v5`, that PR became the input of the next
 # `get` step. That behaviour was documented here:
 # https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
-- name: nfsv3driver-v5-update-go-directive
+- name: nfsv3driver-v5-write
   type: git
   icon: github
   source:
@@ -418,13 +387,13 @@ resources:
     disable_ci_skip: true
 
 # On 2023-12-04 we added a copy of the nfsbroker-v5 resource called
-# nfsbroker-v5-update-go-directive so that we could push PRs to
-# nfsbroker-v5-v5-update-go-directive without corrupting the `get` steps that
+# nfsbroker-v5-write so that we could push PRs to
+# nfsbroker-v5-write without corrupting the `get` steps that
 # pull from the `nfsbroker-v5` resource. Previously, every time pushed
 # a new PR to `nfsbroker-v5`, that PR became the input of the next
 # `get` step. That behaviour was documented here:
 # https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
-- name: nfsbroker-v5-update-go-directive
+- name: nfsbroker-v5-write
   type: git
   icon: github
   source:
@@ -478,7 +447,7 @@ jobs:
       BLOB_NAME: openldap-
       BLOB_EXTENSION: .tgz
       BLOB_DIRECTORY: openldap/
-  - put: nfs-volume-release-lts-bump-openldap
+  - put: nfs-volume-release-lts-write
     params:
       repository: nfs-volume-release-lts
       force: true
@@ -488,7 +457,7 @@ jobs:
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       image: image-cryo-essentials
       input_mapping:
-        source-repo: nfs-volume-release-lts-bump-openldap
+        source-repo: nfs-volume-release-lts-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: v5.0
@@ -523,7 +492,7 @@ jobs:
       BLOB_NAME: openssl-
       BLOB_EXTENSION: .tar.gz
       BLOB_DIRECTORY: test-dependencies/
-  - put: nfs-volume-release-lts-bump-openssl
+  - put: nfs-volume-release-lts-write
     params:
       repository: nfs-volume-release-lts
       force: true
@@ -533,7 +502,7 @@ jobs:
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       image: image-cryo-essentials
       input_mapping:
-        source-repo: nfs-volume-release-lts-bump-openssl
+        source-repo: nfs-volume-release-lts-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: v5.0
@@ -566,7 +535,7 @@ jobs:
       AWS_ACCESS_KEY_ID: *aws_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
       AWS_ASSUME_ROLE_ARN: *aws_uploader_role_arn
-  - put: nfs-volume-release-bump-golang
+  - put: nfs-volume-release-lts-write
     params:
       repository: release-with-updated-vendored-package
       branch: *golang-vendor-branch
@@ -595,7 +564,7 @@ jobs:
           \nIf this does not look right, please reach out to the \
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
-        source-repo: nfs-volume-release-bump-golang
+        source-repo: nfs-volume-release-lts-write
 
 - name: update-go-directive-for-nfsv3driver
   plan:
@@ -619,9 +588,9 @@ jobs:
       golang-project-repo: nfsv3driver-v5
     output_mapping:
       golang-project-repo: nfsv3driver-v5
-  - put: nfsv3driver-v5-update-go-directive
+  - put: nfsv3driver-v5-write
     params:
-      repository: nfsv3driver-v5-update-go-directive
+      repository: nfsv3driver-v5
       branch: *golang-vendor-branch
   - try:
       # We've seen cases where there are 2 or more new releases of
@@ -640,7 +609,7 @@ jobs:
       params:
         <<: *golang-bump-pr-params
       input_mapping:
-        source-repo: nfsv3driver-v5-update-go-directive
+        source-repo: nfsv3driver-v5-write
 
 - name: update-go-directive-for-nfsbroker
   plan:
@@ -664,9 +633,9 @@ jobs:
       golang-project-repo: nfsbroker-v5
     output_mapping:
       golang-project-repo: nfsbroker-v5
-  - put: nfsbroker-v5-update-go-directive
+  - put: nfsbroker-v5-write
     params:
-      repository: nfsbroker-v5-update-go-directive
+      repository: nfsbroker-v5
       branch: *golang-vendor-branch
   - try:
       # We've seen cases where there are 2 or more new releases of
@@ -685,7 +654,7 @@ jobs:
       params:
         <<: *golang-bump-pr-params
       input_mapping:
-        source-repo: nfsbroker-v5-update-go-directive
+        source-repo: nfsbroker-v5-write
 
 - name: nfs-security-scan
   plan:
