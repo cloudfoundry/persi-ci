@@ -441,7 +441,7 @@ jobs:
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       image: cryogenics-essentials-docker
       input_mapping:
-        source-repo: mapfs-release-master
+        source-repo: mapfs-release-master-bump-libfuse
       params:
         GITHUB_TOKEN: *github-access-token
         BASE: master
@@ -553,7 +553,7 @@ jobs:
         [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
         team.
     input_mapping:
-      source-repo: mapfs
+      source-repo: mapfs-update-go-directive
 
 - name: update-go-directive-for-mapfs-release
   plan:
@@ -603,7 +603,7 @@ jobs:
         [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
         team.
     input_mapping:
-      source-repo: mapfs-release-master
+      source-repo: mapfs-release-master-update-go-directive
 
 - name: combined-nfs-mapfs-volume-release-tests
   plan:
