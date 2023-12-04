@@ -311,6 +311,7 @@ resources:
 # pull from the `mapfs-release-master` resource. Previously, every time pushed
 # a new PR to `mapfs-release-master`, that PR became the input of the next
 # `get` step. That behaviour was documented here:
+# This is used on both the golang and other bumps.
 # https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
 - icon: github
   name: mapfs-release-write
