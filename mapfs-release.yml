@@ -202,7 +202,7 @@ resources:
 # the `mapfs` resource. Previously, every time pushed a new PR to `mapfs`, that
 # PR became the input of the next `get` step. That behaviour was documented here:
 # https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
-- name: mapfs-update-go-directive
+- name: mapfs-write
   type: git
   source:
     private_key: *github-ssh-key
@@ -221,32 +221,6 @@ resources:
   type: git
   source:
     branch: master
-    private_key: *github-ssh-key
-    uri: git@github.com:cloudfoundry/mapfs-release.git
-
-# On 2023-12-04 we added a copy of the mapfs-release-master resource called
-# mapfs-release-master-bump-libfuse so that we could push PRs to
-# mapfs-release-master-bump-libfuse without corrupting the `get` steps that
-# pull from the `mapfs-release-master` resource. Previously, every time pushed
-# a new PR to `mapfs-release-master`, that PR became the input of the next
-# `get` step. That behaviour was documented here:
-# https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
-- name: mapfs-release-master-bump-libfuse
-  type: git
-  source:
-    private_key: *github-ssh-key
-    uri: git@github.com:cloudfoundry/mapfs-release.git
-
-# On 2023-12-04 we added a copy of the mapfs-release-master resource called
-# mapfs-release-master-update-go-directive so that we could push PRs to
-# mapfs-release-master-update-go-directive without corrupting the `get` steps that
-# pull from the `mapfs-release-master` resource. Previously, every time pushed
-# a new PR to `mapfs-release-master`, that PR became the input of the next
-# `get` step. That behaviour was documented here:
-# https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
-- name: mapfs-release-master-update-go-directive
-  type: git
-  source:
     private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs-release.git
 
@@ -339,9 +313,8 @@ resources:
 # `get` step. That behaviour was documented here:
 # https://github.com/concourse/git-resource/blob/0a2b7d7df059f6e06319768396e0ae7d3a73449c/README.md?plain=1#L341-L345
 - icon: github
-  name: mapfs-release-bump-golang
+  name: mapfs-release-write
   source:
-    branch: master
     private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs-release.git
   type: git
@@ -431,7 +404,7 @@ jobs:
       BLOB_NAME: fuse-
       BLOB_EXTENSION: .tar.gz
       BLOB_DIRECTORY: fuse/
-  - put: mapfs-release-master-bump-libfuse
+  - put: mapfs-release-write
     params:
       repository: mapfs-release-bumped
       branch: *libfuse-bump-branch
@@ -441,7 +414,7 @@ jobs:
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       image: cryogenics-essentials-docker
       input_mapping:
-        source-repo: mapfs-release-master-bump-libfuse
+        source-repo: mapfs-release-write
       params:
         GITHUB_TOKEN: *github-access-token
         BASE: master
@@ -473,7 +446,7 @@ jobs:
       AWS_ACCESS_KEY_ID: *aws-uploader-role-id
       AWS_SECRET_ACCESS_KEY: *aws-uploader-role-secret
       AWS_ASSUME_ROLE_ARN: *aws-uploader-role-arn
-  - put: mapfs-release-bump-golang
+  - put: mapfs-release-write
     params:
       repository: release-with-updated-vendored-package
       branch: *golang-vendor-branch
@@ -503,7 +476,7 @@ jobs:
           \nIf this does not look right, please reach out to the \
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
-        source-repo: mapfs-release-bump-golang
+        source-repo: mapfs-release-write
 
 - name: update-go-directive-for-mapfs
   plan:
@@ -531,7 +504,7 @@ jobs:
       PATH_TO_GO_MODULE: .
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
-  - put: mapfs-update-go-directive
+  - put: mapfs-write
     params:
       repository: mapfs
       branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
@@ -553,7 +526,7 @@ jobs:
         [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
         team.
     input_mapping:
-      source-repo: mapfs-update-go-directive
+      source-repo: mapfs-write
 
 - name: update-go-directive-for-mapfs-release
   plan:
@@ -581,7 +554,7 @@ jobs:
       PATH_TO_GO_MODULE: src/bosh_release
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
-  - put: mapfs-release-master-update-go-directive
+  - put: mapfs-release-write
     params:
       repository: mapfs-release-master
       branch: &mapfs-release-gomod-update-branch bump-release-golang-vendor-((.:golang-release-version))
@@ -603,7 +576,7 @@ jobs:
         [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
         team.
     input_mapping:
-      source-repo: mapfs-release-master-update-go-directive
+      source-repo: mapfs-release-write
 
 - name: combined-nfs-mapfs-volume-release-tests
   plan:
