@@ -81,6 +81,7 @@ groups:
   - bump-rpcsvc-proto
   - bump-libtirpc
   - bump-rpcbind
+  - bump-tcl
   - bump-golang
   - bump-openldap
   - bump-openssl
@@ -191,6 +192,13 @@ resources:
     watchfile: |
       version=4
       https://sf.net/rpcbind/ rpcbind-(.+)\.tar\.bz2
+
+- name: tcl-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://sf.net/tcl/ tcl((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))-src\.tar\.gz
 
 - name: sqlite-release
   type: git
@@ -324,6 +332,13 @@ resources:
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
 
 - name: nfs-volume-release-rpcbind-bump
+  type: git
+  source:
+    branch: master
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/nfs-volume-release.git
+
+- name: nfs-volume-release-tcl-bump
   type: git
   source:
     branch: master
@@ -850,6 +865,66 @@ jobs:
         BASE: master
         BRANCH: *rpcbind-bump-branch
         TITLE: "Bump RPCBind to v((.:rpcbind.version.ref))"
+        LABELS: dependencies
+
+- name: bump-tcl
+  plan:
+  - in_parallel:
+    - get: tcl-version
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-tcl-bump
+  - load_var: tcl
+    file: tcl-version/version
+    format: json
+  - task: download-tcl
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:tcl.version.ref))
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+            wget -O "nfs-debs-tcl/tcl${NEW_VERSION}-src.tar.gz" "https://sourceforge.net/projects/tcl/files/Tcl/${NEW_VERSION}/tcl${NEW_VERSION}-src.tar.gz/download"
+            echo ${NEW_VERSION} > nfs-debs-tcl/version
+      outputs:
+      - name: nfs-debs-tcl
+  - task: bump-tcl
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-tcl
+      bosh-release: nfs-volume-release-tcl-bump
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-tcl-bump
+    params:
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &tcl-bump-branch bump-tcl-to-v((.:tcl.version.ref))
+      BLOB_NAME: tcl
+      BLOB_EXTENSION: -src.tar.gz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-tcl-bump
+    params:
+      repository: nfs-volume-release-tcl-bump
+      force: true
+      branch: *tcl-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-tcl-bump
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: master
+        BRANCH: *tcl-bump-branch
+        TITLE: "Bump Tcl to v((.:tcl.version.ref))"
         LABELS: dependencies
 
 - name: bump-golang
