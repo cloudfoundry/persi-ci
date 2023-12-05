@@ -623,23 +623,19 @@ jobs:
   - load_var: sqlite-version
     file: sqlite-release/VERSION
     format: trim
-  - task: create-tarball
+  - task: download-tarball
     image: image-cryo-essentials
     config:
       platform: linux
       params:
         NEW_VERSION: ((.:sqlite-version))
-      inputs:
-        - name: sqlite-release
       run:
         path: /bin/sh
         args:
         - -c
         - |
-            set -x
-            mkdir -p nfs-debs-sqlite
-            cp -r sqlite-release/ sqlite-version-${NEW_VERSION}
-            tar -zcvf nfs-debs-sqlite/sqlite-${NEW_VERSION}.tar.gz --exclude=.git sqlite-version-${NEW_VERSION}
+            set -e
+            wget -O "nfs-debs-sqlite/sqlite-${NEW_VERSION}.tar.gz" "https://github.com/sqlite/sqlite/archive/refs/tags/version-${NEW_VERSION}.tar.gz"
             echo ${NEW_VERSION} > nfs-debs-sqlite/version
       outputs:
       - name: nfs-debs-sqlite
