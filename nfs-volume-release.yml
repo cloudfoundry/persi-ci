@@ -572,6 +572,7 @@ jobs:
         args:
         - -c
         - |
+            set -e
             wget -O "nfs-debs-nfs-utils/nfs-utils-${NEW_VERSION}.tar.xz" "https://www.kernel.org/pub/linux/utils/nfs-utils/${NEW_VERSION}/nfs-utils-${NEW_VERSION}.tar.xz"
             echo ${NEW_VERSION} > nfs-debs-nfs-utils/version
       outputs:
@@ -784,6 +785,7 @@ jobs:
         args:
         - -c
         - |
+            set -e
             wget -O "nfs-debs-libtirpc/libtirpc-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/libtirpc/files/libtirpc/${NEW_VERSION}/libtirpc-${NEW_VERSION}.tar.bz2/download"
             echo ${NEW_VERSION} > nfs-debs-libtirpc/version
       outputs:
@@ -844,6 +846,7 @@ jobs:
         args:
         - -c
         - |
+            set -e
             wget -O "nfs-debs-rpcbind/rpcbind-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/rpcbind/files/rpcbind/${NEW_VERSION}/rpcbind-${NEW_VERSION}.tar.bz2/download"
             echo ${NEW_VERSION} > nfs-debs-rpcbind/version
       outputs:
@@ -904,6 +907,7 @@ jobs:
         args:
         - -c
         - |
+            set -e
             wget -O "nfs-debs-tcl/tcl${NEW_VERSION}-src.tar.gz" "https://sourceforge.net/projects/tcl/files/Tcl/${NEW_VERSION}/tcl${NEW_VERSION}-src.tar.gz/download"
             echo ${NEW_VERSION} > nfs-debs-tcl/version
       outputs:
@@ -964,6 +968,7 @@ jobs:
         args:
         - -c
         - |
+            set -e
             wget -O "nfs-debs-util-linux/util-linux-${NEW_VERSION}.tar.gz" "https://github.com/util-linux/util-linux/archive/refs/tags/v${NEW_VERSION}.tar.gz"
             echo ${NEW_VERSION} > nfs-debs-util-linux/version
       outputs:
@@ -1388,6 +1393,7 @@ jobs:
         args:
         - -c
         - |
+            set -e
             wget -O "openldap-tarball/openldap-${NEW_VERSION}.tgz" "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-${NEW_VERSION}.tgz"
             echo ${NEW_VERSION} > openldap-tarball/version
       outputs:
