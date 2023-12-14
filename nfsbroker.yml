@@ -79,7 +79,7 @@ resources:
   icon: github
   source:
     private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfsbroker.git
+    uri: &source-repo git@github.com:cloudfoundry/nfsbroker.git
     branch: *base_branch
 
 - name: nfsbroker-repo-write
@@ -87,7 +87,7 @@ resources:
   icon: github
   source:
     private_key: *github_ssh_key
-    uri: git@github.com:pivotal-cf/ipsec-release.git
+    uri: *source-repo
 
 
 - name: credhub
