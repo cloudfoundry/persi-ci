@@ -13,6 +13,7 @@ rules:
   commas: enable
   comments:
     level: warning
+    require-starting-space: false
   comments-indentation:
     level: warning
   document-end: disable

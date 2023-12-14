@@ -11,13 +11,16 @@
 #! this needs to come first, else all other vars can't be resolved.
 #! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
 cerberus: &cerberus
-  role_id: ((cerberus-auth.role_id))
-  secret_id: ((cerberus-auth.secret_id))
-cerberus_url: &cerberus_url ((cerberus-auth.url))
+  role_id: e3ec12b4-fee3-fab0-7e19-b3931c3251f0
+  secret_id: 30e7e91f-d88a-12ce-a705-f305929bedec
+cerberus_url: &cerberus_url https://vault.console.cerberus.vmware.com/add164e1-f7fe-4e62-a548-a65690758636/
 
 github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
 github_access_token: &github_access_token ((cerberus:github.access_token))
 # used to get pull requests and get git repos
+github_email: &github_email ((cerberus:github.email))
+github_user: &github_user ((cerberus:github.user))
+#! github_email and github_username were used on 2023-12-13 for committing bumped blobs to git. They refer to the team github-ci account from lastpass.
 
 # **************
 # End of secrets
@@ -31,6 +34,17 @@ var_sources:
     auth_params: *cerberus
     url: *cerberus_url
     path_prefix: secret
+
+groups:
+- name: test
+  jobs:
+  - security-scan
+  - unit-and-integration-test
+  - merge-pr
+- name: bump
+  jobs:
+  - bump-go-module
+
 resource_types:
 - name: pull-request
   type: docker-image
@@ -40,20 +54,45 @@ resource_types:
 resources:
 - name: persi-ci
   type: git
+  icon: github
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
     branch: master
 
 - name: nfsbroker
   type: pull-request
+  icon: source-pull
   source:
     repository: cloudfoundry/nfsbroker
-    base_branch: master
+    base_branch: &base_branch master
     disable_forks: true
     access_token: *github_access_token
 
+- name: run-once-a-day
+  type: time
+  icon: timer-outline
+  source:
+    days: [ Monday, Tuesday, Wednesday, Thursday, Friday ]
+
+- name: nfsbroker-repo
+  type: git
+  icon: github
+  source:
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/nfsbroker.git
+    branch: *base_branch
+
+- name: nfsbroker-repo-write
+  type: git
+  icon: github
+  source:
+    private_key: *github_ssh_key
+    uri: git@github.com:pivotal-cf/ipsec-release.git
+
+
 - name: credhub
   type: git
+  icon: github
   source:
     branch: main
     uri: https://github.com/cloudfoundry-incubator/credhub
@@ -69,6 +108,21 @@ resources:
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/golang
     tag: latest
+
+- name: cryogenics-essentials
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/essentials
+    tag: latest
+
+- name: cryogenics-concourse-tasks
+  type: git
+  icon: github
+  source:
+    private_key: *github_ssh_key
+    uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+    branch: main
 
 jobs:
 - name: security-scan
@@ -109,3 +163,46 @@ jobs:
     params:
       merge: true
       repository: nfsbroker
+
+- name: bump-go-module
+  plan:
+  - in_parallel:
+    - get: run-once-a-day
+      trigger: true
+    - get: source-repo
+      resource: nfsbroker-repo
+    - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
+  - task: bump-go-module
+    file: cryogenics-concourse-tasks/deps-automation/bump-go-module/task.yml
+    image: cryogenics-essentials
+    params:
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+  - try:
+      load_var: go-module-update-branch
+      file: destination-repo/.update-branch-name
+      reveal: true
+      on_success:
+        do:
+        - put: nfsbroker-repo-write
+          params:
+            repository: destination-repo
+            branch: &go-module-branch ((.:go-module-update-branch))
+        - task: create-pull-request
+          file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+          image: cryogenics-essentials
+          params:
+            BASE: *base_branch
+            BRANCH: *go-module-branch
+            LABELS: dependencies
+            TITLE: Bump go module ((.:go-module-update-branch)) in v5.0
+            MESSAGE: |
+              This is an automatically generated Pull Request from the Cryogenics CI Bot.
+
+              I have detected a new version of a go module and automatically bumped
+              it to benefit from the latest changes.
+
+              If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+          input_mapping:
+            source-repo: nfsbroker-repo-write
