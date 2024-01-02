@@ -7,6 +7,6 @@ if [ -d toolsmiths-env ]; then
 
   pushd cf-deployment-pinned
     git fetch --tags
-    git checkout "v${VERS}"
+    git checkout "${VERS}"
   popd
 fi
