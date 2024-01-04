@@ -1,9 +1,5 @@
 #!/bin/bash
 
-wget https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.0/bbl-v8.4.0_linux_x86-64
-chmod +x bbl-v8.4.0_linux_x86-64
-mv bbl-v8.4.0_linux_x86-64 `which bbl`
-
 export SCRIPTS_ROOT_DIR="${PWD}"
 export BBL_PATH="$(which bbl)"
 mkdir $SCRIPTS_ROOT_DIR/bbl-state
