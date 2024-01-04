@@ -17,11 +17,15 @@ bbl() {
   fi
 }
 
+get_system_domain() {
+  jq -r '.cf.api_url | capture("^api\\.(?<system_domain>.*)$") | .system_domain' \
+    ${SCRIPTS_ROOT_DIR}/cf-deployment-env/metadata
+}
 
 ENV=`cat cf-deployment-env/metadata | jq -r ".name"`
-export APPS_DOMAIN="${ENV}.cf-app.com"
-export CF_API_ENDPOINT="api.${ENV}.cf-app.com"
-export SYSTEM_DOMAIN="${ENV}.cf-app.com"
+export SYSTEM_DOMAIN="$(get_system_domain)"
+export CF_API_ENDPOINT="api.${SYSTEM_DOMAIN}"
+export APPS_DOMAIN="$SYSTEM_DOMAIN"
 export -f bbl
 
 if [[ -x "$UPDATE_INTEGRATION_CONFIG_SCRIPT" ]]; then
