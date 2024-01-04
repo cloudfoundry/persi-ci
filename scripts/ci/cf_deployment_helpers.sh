@@ -10,6 +10,6 @@ function set_cf_api_url() {
 }
 
 function set_apps_domain() {
-    BOSH_ENV_NAME=$(cat smith-env/metadata | jq -r '.name')
-    export APPS_DOMAIN="${BOSH_ENV_NAME}.cf-app.com"
+    APPS_DOMAIN="$(jq -r '.cf.api_url | capture("^api\\.(?<system_domain>.*)$") | .system_domain' smith-env/metadata)"
+    export APPS_DOMAIN
 }
