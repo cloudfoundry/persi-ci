@@ -10,11 +10,16 @@ set -euo pipefail
 source "$(dirname $0)/helpers.sh"
 source "${VAR_RESOLVER_SCRIPT}"
 
+function get_system_domain() {
+  jq -r '.cf.api_url | capture("^api\\.(?<system_domain>.*)$") | .system_domain' \
+    smith-env/metadata
+}
+
 function setup_bosh_env_vars() {
   set +x
   if [ -d smith-env ]; then
     eval "$(bbl print-env --metadata-file smith-env/metadata)"
-    export SYSTEM_DOMAIN="$(jq -r .name smith-env/metadata).cf-app.com"
+    export SYSTEM_DOMAIN="$(get_system_domain)"
     export TCP_DOMAIN="tcp.${SYSTEM_DOMAIN}"
   else
     echo "Must provide either smith-env as an input"
