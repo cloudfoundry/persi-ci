@@ -15,31 +15,31 @@ cerberus: &cerberus
 cerberus_url: &cerberus_url ((cerberus-auth.url))
 
 aws_nfsvolume_uploader_role_arn: &aws_nfsvolume_uploader_role_arn ((cerberus:aws/nfsvolume-uploader.role_arn))
-    #! aws_nfsvolume_uploader_role_arn was needed on 2023-10-05 for defining the AWS role assumed when accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
+#! aws_nfsvolume_uploader_role_arn was needed on 2023-10-05 for defining the AWS role assumed when accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
 
 aws_nfsvolume_uploader_role_id: &aws_nfsvolume_uploader_role_id ((cerberus:aws/nfsvolume-uploader.role_id))
-    #! aws_nfsvolume_uploader_role_id was needed on 2023-10-05 for defining the AWS Access Key for accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
+#! aws_nfsvolume_uploader_role_id was needed on 2023-10-05 for defining the AWS Access Key for accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
 
 aws_nfsvolume_uploader_role_secret: &aws_nfsvolume_uploader_role_secret ((cerberus:aws/nfsvolume-uploader.role_secret))
-    #! aws_nfsvolume_uploader_role_secret was needed on 2023-10-05 for defining the AWS Access Secret for accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
+#! aws_nfsvolume_uploader_role_secret was needed on 2023-10-05 for defining the AWS Access Secret for accessing the S3 bucket that (1) stores the version file used to keep track of the next version; (2) serves as BOSH blobstore for this release. The token was given to us by the Volume Services team. It lives in Runway's Vault under the path: 'runway_concourse/cryogenics'.
 
 github_access_token: &github_access_token ((cerberus:github.access_token))
-    #! github_access_token was needed on 2023-10-05 for accessing the Github API in order to consume PRs, create and download releases. Genearted using Github account and lives in Lastpass.
+#! github_access_token was needed on 2023-10-05 for accessing the Github API in order to consume PRs, create and download releases. Genearted using Github account and lives in Lastpass.
 
 github_email: &github_email ((cerberus:github.email))
-    #! github_email was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault.
+#! github_email was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault.
 
 github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
-    #! github_ssh_key was needed on 2023-10-05 by the git-resource to access various Git repos via SSH. Genearted using Github account and lives in Runway's Vault.
+#! github_ssh_key was needed on 2023-10-05 by the git-resource to access various Git repos via SSH. Genearted using Github account and lives in Runway's Vault.
 
 github_user: &github_user ((cerberus:github.user))
-    #! github_user was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault as well as in Lastpass.
+#! github_user was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault as well as in Lastpass.
 
 slack_webhook: &slack_webhook ((cerberus:slack.webhook))
-    #! slack_webhook was needed on 2023-10-05 for sending notifications in our Slack channel. It lives in Runway's Vault.
+#! slack_webhook was needed on 2023-10-05 for sending notifications in our Slack channel. It lives in Runway's Vault.
 
 shepherd_account_key: &shepherd_account_key ((cerberus:shepherd.sa_key))
-  #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
+#! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
 
 
 #! **************
@@ -144,7 +144,7 @@ resources:
 - name: every-week
   type: time
   source:
-    interval: 168h # 24h*7days
+    interval: 168h  # 24h*7days
 
 - name: python-394
   type: docker-image
@@ -473,6 +473,12 @@ resources:
     branch: master
     private_key: *github_ssh_key
 
+- name: existingvolumebroker-write
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/existingvolumebroker.git
+    private_key: *github_ssh_key
+
 - name: volume-mount-options
   type: git
   source:
@@ -531,24 +537,24 @@ resource_types:
 jobs:
 - name: check-for-cves
   plan:
-    - in_parallel:
-        - get: git-concourse-cve-scan
-        - get: github-release-tas-cve
-        - get: nfs-volume-release
-          trigger: true
-        - get: git-tas-vex
-    - task: run-scan
-      file: git-concourse-cve-scan/tasks/scan/scan.yml
-      input_mapping:
-        concourse-cve-scan: git-concourse-cve-scan
-        tas-cve: github-release-tas-cve
-        target-bosh-release: nfs-volume-release
-        tas-vex: git-tas-vex
-      params:
-        DRY_RUN: true
-        GRYPE_FAILURE_LEVEL: negligible #! Can be any of: none | negligible | low | medium | high | critical
-        RELEASE_NAME: nfs-volume
-        RELEASE_VERSION: pre-release-cve-scan
+  - in_parallel:
+    - get: git-concourse-cve-scan
+    - get: github-release-tas-cve
+    - get: nfs-volume-release
+      trigger: true
+    - get: git-tas-vex
+  - task: run-scan
+    file: git-concourse-cve-scan/tasks/scan/scan.yml
+    input_mapping:
+      concourse-cve-scan: git-concourse-cve-scan
+      tas-cve: github-release-tas-cve
+      target-bosh-release: nfs-volume-release
+      tas-vex: git-tas-vex
+    params:
+      DRY_RUN: true
+      GRYPE_FAILURE_LEVEL: negligible  #! Can be any of: none | negligible | low | medium | high | critical
+      RELEASE_NAME: nfs-volume
+      RELEASE_VERSION: pre-release-cve-scan
 
 - name: bump-nfs-utils
   plan:
@@ -572,9 +578,9 @@ jobs:
         args:
         - -c
         - |
-            set -e
-            wget -O "nfs-debs-nfs-utils/nfs-utils-${NEW_VERSION}.tar.xz" "https://www.kernel.org/pub/linux/utils/nfs-utils/${NEW_VERSION}/nfs-utils-${NEW_VERSION}.tar.xz"
-            echo ${NEW_VERSION} > nfs-debs-nfs-utils/version
+          set -e
+          wget -O "nfs-debs-nfs-utils/nfs-utils-${NEW_VERSION}.tar.xz" "https://www.kernel.org/pub/linux/utils/nfs-utils/${NEW_VERSION}/nfs-utils-${NEW_VERSION}.tar.xz"
+          echo ${NEW_VERSION} > nfs-debs-nfs-utils/version
       outputs:
       - name: nfs-debs-nfs-utils
   - task: bump-nfs-utils
@@ -634,9 +640,9 @@ jobs:
         args:
         - -c
         - |
-            set -e
-            wget -O "nfs-debs-sqlite/sqlite-${NEW_VERSION}.tar.gz" "https://github.com/sqlite/sqlite/archive/refs/tags/version-${NEW_VERSION}.tar.gz"
-            echo ${NEW_VERSION} > nfs-debs-sqlite/version
+          set -e
+          wget -O "nfs-debs-sqlite/sqlite-${NEW_VERSION}.tar.gz" "https://github.com/sqlite/sqlite/archive/refs/tags/version-${NEW_VERSION}.tar.gz"
+          echo ${NEW_VERSION} > nfs-debs-sqlite/version
       outputs:
       - name: nfs-debs-sqlite
   - task: bump-sqlite
@@ -675,89 +681,89 @@ jobs:
 
 - name: bump-libevent
   plan:
-    - in_parallel:
-      - get: libevent-release
-        trigger: true
-      - get: cryogenics-concourse-tasks
-      - get: nfs-volume-release-master
-    - load_var: libevent-version
-      file: libevent-release/version
-    - task: bump
-      file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+  - in_parallel:
+    - get: libevent-release
+      trigger: true
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-master
+  - load_var: libevent-version
+    file: libevent-release/version
+  - task: bump
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: libevent-release
+      bosh-release: nfs-volume-release-master
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-libevent-bump
+    params:
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &libevent-bump-branch bump-libevent-to-v((.:libevent-version))
+      BLOB_NAME: libevent
+      BLOB_EXTENSION: -stable.tar.gz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-libevent-bump
+    params:
+      repository: nfs-volume-release-libevent-bump
+      force: true
+      branch: *libevent-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        distributed-package: libevent-release
-        bosh-release: nfs-volume-release-master
-      output_mapping:
-        bosh-release-updated: nfs-volume-release-libevent-bump
+        source-repo: nfs-volume-release-libevent-bump
       params:
-        AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
-        AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
-        AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
-        GIT_USERNAME: *github_user
-        GIT_EMAIL: *github_email
-        GIT_BRANCH: &libevent-bump-branch bump-libevent-to-v((.:libevent-version))
-        BLOB_NAME: libevent
-        BLOB_EXTENSION: -stable.tar.gz
-        BLOB_DIRECTORY: nfs-debs/
-    - put: nfs-volume-release-libevent-bump
-      params:
-        repository: nfs-volume-release-libevent-bump
-        force: true
-        branch: *libevent-bump-branch
-      on_success:
-        task: create-pull-request
-        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-        input_mapping:
-          source-repo: nfs-volume-release-libevent-bump
-        params:
-          GITHUB_TOKEN: *github_access_token
-          BASE: master
-          BRANCH: *libevent-bump-branch
-          TITLE: "Bump Libevent to v((.:libevent-version))"
-          LABELS: dependencies
+        GITHUB_TOKEN: *github_access_token
+        BASE: master
+        BRANCH: *libevent-bump-branch
+        TITLE: "Bump Libevent to v((.:libevent-version))"
+        LABELS: dependencies
 
 - name: bump-rpcsvc-proto
   plan:
-    - in_parallel:
-      - get: rpcsvc-proto-release
-        trigger: true
-      - get: cryogenics-concourse-tasks
-      - get: nfs-volume-release-master
-    - load_var: rpcsvc-proto-version
-      file: rpcsvc-proto-release/version
-    - task: bump
-      file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+  - in_parallel:
+    - get: rpcsvc-proto-release
+      trigger: true
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-master
+  - load_var: rpcsvc-proto-version
+    file: rpcsvc-proto-release/version
+  - task: bump
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: rpcsvc-proto-release
+      bosh-release: nfs-volume-release-master
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-rpcsvc-proto-bump
+    params:
+      AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
+      AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &rpcsvc-proto-bump-branch bump-rpcsvc-proto-to-v((.:rpcsvc-proto-version))
+      BLOB_NAME: rpcsvc-proto
+      BLOB_EXTENSION: .tar.xz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-rpcsvc-proto-bump
+    params:
+      repository: nfs-volume-release-rpcsvc-proto-bump
+      force: true
+      branch: *rpcsvc-proto-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        distributed-package: rpcsvc-proto-release
-        bosh-release: nfs-volume-release-master
-      output_mapping:
-        bosh-release-updated: nfs-volume-release-rpcsvc-proto-bump
+        source-repo: nfs-volume-release-rpcsvc-proto-bump
       params:
-        AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
-        AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
-        AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
-        GIT_USERNAME: *github_user
-        GIT_EMAIL: *github_email
-        GIT_BRANCH: &rpcsvc-proto-bump-branch bump-rpcsvc-proto-to-v((.:rpcsvc-proto-version))
-        BLOB_NAME: rpcsvc-proto
-        BLOB_EXTENSION: .tar.xz
-        BLOB_DIRECTORY: nfs-debs/
-    - put: nfs-volume-release-rpcsvc-proto-bump
-      params:
-        repository: nfs-volume-release-rpcsvc-proto-bump
-        force: true
-        branch: *rpcsvc-proto-bump-branch
-      on_success:
-        task: create-pull-request
-        file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-        input_mapping:
-          source-repo: nfs-volume-release-rpcsvc-proto-bump
-        params:
-          GITHUB_TOKEN: *github_access_token
-          BASE: master
-          BRANCH: *rpcsvc-proto-bump-branch
-          TITLE: "Bump rpcsvc-proto to v((.:rpcsvc-proto-version))"
-          LABELS: dependencies
+        GITHUB_TOKEN: *github_access_token
+        BASE: master
+        BRANCH: *rpcsvc-proto-bump-branch
+        TITLE: "Bump rpcsvc-proto to v((.:rpcsvc-proto-version))"
+        LABELS: dependencies
 
 - name: bump-libtirpc
   plan:
@@ -781,9 +787,9 @@ jobs:
         args:
         - -c
         - |
-            set -e
-            wget -O "nfs-debs-libtirpc/libtirpc-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/libtirpc/files/libtirpc/${NEW_VERSION}/libtirpc-${NEW_VERSION}.tar.bz2/download"
-            echo ${NEW_VERSION} > nfs-debs-libtirpc/version
+          set -e
+          wget -O "nfs-debs-libtirpc/libtirpc-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/libtirpc/files/libtirpc/${NEW_VERSION}/libtirpc-${NEW_VERSION}.tar.bz2/download"
+          echo ${NEW_VERSION} > nfs-debs-libtirpc/version
       outputs:
       - name: nfs-debs-libtirpc
   - task: bump-libtirpc
@@ -842,9 +848,9 @@ jobs:
         args:
         - -c
         - |
-            set -e
-            wget -O "nfs-debs-rpcbind/rpcbind-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/rpcbind/files/rpcbind/${NEW_VERSION}/rpcbind-${NEW_VERSION}.tar.bz2/download"
-            echo ${NEW_VERSION} > nfs-debs-rpcbind/version
+          set -e
+          wget -O "nfs-debs-rpcbind/rpcbind-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/rpcbind/files/rpcbind/${NEW_VERSION}/rpcbind-${NEW_VERSION}.tar.bz2/download"
+          echo ${NEW_VERSION} > nfs-debs-rpcbind/version
       outputs:
       - name: nfs-debs-rpcbind
   - task: bump-rpcbind
@@ -903,9 +909,9 @@ jobs:
         args:
         - -c
         - |
-            set -e
-            wget -O "nfs-debs-tcl/tcl${NEW_VERSION}-src.tar.gz" "https://sourceforge.net/projects/tcl/files/Tcl/${NEW_VERSION}/tcl${NEW_VERSION}-src.tar.gz/download"
-            echo ${NEW_VERSION} > nfs-debs-tcl/version
+          set -e
+          wget -O "nfs-debs-tcl/tcl${NEW_VERSION}-src.tar.gz" "https://sourceforge.net/projects/tcl/files/Tcl/${NEW_VERSION}/tcl${NEW_VERSION}-src.tar.gz/download"
+          echo ${NEW_VERSION} > nfs-debs-tcl/version
       outputs:
       - name: nfs-debs-tcl
   - task: bump-tcl
@@ -964,9 +970,9 @@ jobs:
         args:
         - -c
         - |
-            set -e
-            wget -O "nfs-debs-util-linux/util-linux-${NEW_VERSION}.tar.gz" "https://github.com/util-linux/util-linux/archive/refs/tags/v${NEW_VERSION}.tar.gz"
-            echo ${NEW_VERSION} > nfs-debs-util-linux/version
+          set -e
+          wget -O "nfs-debs-util-linux/util-linux-${NEW_VERSION}.tar.gz" "https://github.com/util-linux/util-linux/archive/refs/tags/v${NEW_VERSION}.tar.gz"
+          echo ${NEW_VERSION} > nfs-debs-util-linux/version
       outputs:
       - name: nfs-debs-util-linux
   - task: bump-util-linux
@@ -1253,7 +1259,7 @@ jobs:
       golang-project-repo: existingvolumebroker
     output_mapping:
       golang-project-repo: existingvolumebroker
-  - put: existingvolumebroker
+  - put: existingvolumebroker-write
     params:
       force: true
       repository: existingvolumebroker
@@ -1275,7 +1281,7 @@ jobs:
       params:
         <<: *golang-bump-pr-params
       input_mapping:
-        source-repo: existingvolumebroker
+        source-repo: existingvolumebroker-write
 
 - name: update-go-directive-for-service-broker-store
   plan:
@@ -1390,9 +1396,9 @@ jobs:
         args:
         - -c
         - |
-            set -e
-            wget -O "openldap-tarball/openldap-${NEW_VERSION}.tgz" "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-${NEW_VERSION}.tgz"
-            echo ${NEW_VERSION} > openldap-tarball/version
+          set -e
+          wget -O "openldap-tarball/openldap-${NEW_VERSION}.tgz" "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-${NEW_VERSION}.tgz"
+          echo ${NEW_VERSION} > openldap-tarball/version
       outputs:
       - name: openldap-tarball
   - task: bump-openldap
@@ -1562,15 +1568,15 @@ jobs:
       fail_fast: true
       steps:
       - get: env
-        passed: [claim-env]
+        passed: [ claim-env ]
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: cf-deployment
       - get: persi-ci
       - get: nfs-volume-release
-        passed: [claim-env]
+        passed: [ claim-env ]
       - get: mapfs-release
-        passed: [claim-env]
+        passed: [ claim-env ]
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
@@ -1627,12 +1633,12 @@ jobs:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: env
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
         trigger: true
       - get: nfs-volume-release
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
       - get: mapfs-release
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
     input_mapping:
@@ -1666,10 +1672,10 @@ jobs:
       fail_fast: true
       steps:
       - get: nfs-volume-release
-        passed: [pats]
+        passed: [ pats ]
         trigger: true
       - get: env
-        passed: [pats]
+        passed: [ pats ]
         trigger: true
       - get: persi-ci
       - get: cf-acceptance-tests
@@ -1705,13 +1711,13 @@ jobs:
       fail_fast: true
       steps:
       - get: nfs-volume-release
-        passed: [cats-nfs]
+        passed: [ cats-nfs ]
         trigger: true
       - get: bbr-binary-release
       - get: disaster-recovery-acceptance-tests
       - get: persi-ci
       - get: env
-        passed: [cats-nfs]
+        passed: [ cats-nfs ]
         trigger: true
       - get: image-cryo-essentials
   - task: generate-integration-config
