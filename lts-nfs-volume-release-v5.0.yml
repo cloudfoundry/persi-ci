@@ -372,10 +372,11 @@ resources:
   type: git
   icon: github
   source:
-    branch: {{lts-nfs-branch}}
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfsv3driver.git
-    disable_ci_skip: true
+    commit_filter:
+      exclude:
+      - resource comment; This resource is used exclusively for pushing new changes
 
 - name: nfsbroker-v5
   type: git
