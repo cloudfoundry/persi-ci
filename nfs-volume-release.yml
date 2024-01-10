@@ -208,7 +208,7 @@ resources:
     tag_filter: version-*
     private_key: *github_ssh_key
 
-- name: util-linux-version
+- name: util-linux
   source:
     url: https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/*
     version_regex: util-linux-(?P<version>.*).tar.gz$
@@ -958,34 +958,18 @@ jobs:
 - name: bump-util-linux
   plan:
   - in_parallel:
-    - get: util-linux-version
+    - get: util-linux
       trigger: true
     - get: image-cryo-essentials
     - get: cryogenics-concourse-tasks
     - get: nfs-volume-release-master
-  - load_var: util-linux
-    file: util-linux-version/version
-    format: json
-  - task: download-util-linux
-    image: image-cryo-essentials
-    config:
-      platform: linux
-      params:
-        NEW_VERSION: ((.:util-linux.version.ref))
-      run:
-        path: /bin/sh
-        args:
-        - -c
-        - |
-          set -e
-          wget -O "nfs-debs-util-linux/util-linux-${NEW_VERSION}.tar.gz" "https://github.com/util-linux/util-linux/archive/refs/tags/v${NEW_VERSION}.tar.gz"
-          echo ${NEW_VERSION} > nfs-debs-util-linux/version
-      outputs:
-      - name: nfs-debs-util-linux
+  - load_var: util-linux-version
+    file: util-linux/version
+    format: raw
   - task: bump-util-linux
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     input_mapping:
-      distributed-package: nfs-debs-util-linux
+      distributed-package: util-linux
       bosh-release: nfs-volume-release-master
     output_mapping:
       bosh-release-updated: nfs-volume-release-util-linux-bump
@@ -995,7 +979,7 @@ jobs:
       AWS_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
       GIT_USERNAME: *github_user
       GIT_EMAIL: *github_email
-      GIT_BRANCH: &util-linux-bump-branch bump-util-linux-to-v((.:util-linux.version.ref))
+      GIT_BRANCH: &util-linux-bump-branch bump-util-linux-to-v((.:util-linux-version))
       BLOB_NAME: util-linux
       BLOB_EXTENSION: .tar.gz
       BLOB_DIRECTORY: nfs-debs/
@@ -1013,7 +997,7 @@ jobs:
         GITHUB_TOKEN: *github_access_token
         BASE: master
         BRANCH: *util-linux-bump-branch
-        TITLE: "Bump util-linux to v((.:util-linux.version.ref))"
+        TITLE: "Bump util-linux to v((.:util-linux-version))"
         LABELS: dependencies
 
 - name: bump-golang
