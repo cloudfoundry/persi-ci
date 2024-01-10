@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM harbor-repo.vmware.com/dockerhub-proxy-cache/golang:latest
 
 RUN set -eux \
   ; curl -s https://api.github.com/repos/cloudfoundry/bosh-cli/releases/latest \
