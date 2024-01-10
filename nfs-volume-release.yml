@@ -271,11 +271,15 @@ resources:
     disable_forks: true
     autosync_pr: true
 
-- name: nfs-volume-release-bump
+- name: nfs-volume-release-write
   type: git
+  icon: github
   source:
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
+    commit_filter:
+      exclude:
+      - resource comment; This resource is used exclusively for pushing new changes
 
 # Resource used to track production changes in the release job so that we don't
 # trigger a release with only changes (CI, tests, etc.) that are not relevant to
@@ -297,62 +301,6 @@ resources:
     - src
 
 - name: nfs-volume-release-master
-  type: git
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
-- name: nfs-volume-release-nfs-utils-bump
-  type: git
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
-- name: nfs-volume-release-sqlite-bump
-  type: git
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
-- name: nfs-volume-release-rpcsvc-proto-bump
-  type: git
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
-- name: nfs-volume-release-libevent-bump
-  type: git
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
-- name: nfs-volume-release-libtirpc-bump
-  type: git
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
-- name: nfs-volume-release-rpcbind-bump
-  type: git
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
-- name: nfs-volume-release-tcl-bump
-  type: git
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-
-- name: nfs-volume-release-util-linux-bump
   type: git
   source:
     branch: master
@@ -435,14 +383,6 @@ resources:
   source:
     uri: https://github.com/bosh-packages/golang-release.git
     tag_filter: v*
-
-- icon: github
-  name: nfs-volume-release-bump-golang
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/nfs-volume-release.git
-  type: git
 
 - name: nfsv3driver
   type: git
@@ -596,7 +536,7 @@ jobs:
       distributed-package: nfs-debs-nfs-utils
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-nfs-utils-bump
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -607,9 +547,9 @@ jobs:
       BLOB_NAME: nfs-utils
       BLOB_EXTENSION: .tar.xz
       BLOB_DIRECTORY: nfs-debs/
-  - put: nfs-volume-release-nfs-utils-bump
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-nfs-utils-bump
+      repository: nfs-volume-release-write
       force: true
       branch: *nfs-utils-bump-branch
     on_success:
@@ -617,7 +557,7 @@ jobs:
       image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-nfs-utils-bump
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -658,7 +598,7 @@ jobs:
       distributed-package: nfs-debs-sqlite
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-sqlite-bump
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -669,16 +609,16 @@ jobs:
       BLOB_NAME: sqlite
       BLOB_EXTENSION: .tar.gz
       BLOB_DIRECTORY: nfs-debs/
-  - put: nfs-volume-release-sqlite-bump
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-sqlite-bump
+      repository: nfs-volume-release-write
       force: true
       branch: *sqlite-bump-branch
     on_success:
       task: create-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-sqlite-bump
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -701,7 +641,7 @@ jobs:
       distributed-package: libevent-release
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-libevent-bump
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -712,16 +652,16 @@ jobs:
       BLOB_NAME: libevent
       BLOB_EXTENSION: -stable.tar.gz
       BLOB_DIRECTORY: nfs-debs/
-  - put: nfs-volume-release-libevent-bump
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-libevent-bump
+      repository: nfs-volume-release-write
       force: true
       branch: *libevent-bump-branch
     on_success:
       task: create-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-libevent-bump
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -744,7 +684,7 @@ jobs:
       distributed-package: rpcsvc-proto-release
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-rpcsvc-proto-bump
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -755,16 +695,16 @@ jobs:
       BLOB_NAME: rpcsvc-proto
       BLOB_EXTENSION: .tar.xz
       BLOB_DIRECTORY: nfs-debs/
-  - put: nfs-volume-release-rpcsvc-proto-bump
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-rpcsvc-proto-bump
+      repository: nfs-volume-release-write
       force: true
       branch: *rpcsvc-proto-bump-branch
     on_success:
       task: create-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-rpcsvc-proto-bump
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -805,7 +745,7 @@ jobs:
       distributed-package: nfs-debs-libtirpc
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-libtirpc-bump
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -816,16 +756,16 @@ jobs:
       BLOB_NAME: libtirpc
       BLOB_EXTENSION: .tar.bz2
       BLOB_DIRECTORY: nfs-debs/
-  - put: nfs-volume-release-libtirpc-bump
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-libtirpc-bump
+      repository: nfs-volume-release-write
       force: true
       branch: *libtirpc-bump-branch
     on_success:
       task: create-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-libtirpc-bump
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -866,7 +806,7 @@ jobs:
       distributed-package: nfs-debs-rpcbind
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-rpcbind-bump
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -877,16 +817,16 @@ jobs:
       BLOB_NAME: rpcbind
       BLOB_EXTENSION: .tar.bz2
       BLOB_DIRECTORY: nfs-debs/
-  - put: nfs-volume-release-rpcbind-bump
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-rpcbind-bump
+      repository: nfs-volume-release-write
       force: true
       branch: *rpcbind-bump-branch
     on_success:
       task: create-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-rpcbind-bump
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -927,7 +867,7 @@ jobs:
       distributed-package: nfs-debs-tcl
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-tcl-bump
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -938,16 +878,16 @@ jobs:
       BLOB_NAME: tcl
       BLOB_EXTENSION: -src.tar.gz
       BLOB_DIRECTORY: nfs-debs/
-  - put: nfs-volume-release-tcl-bump
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-tcl-bump
+      repository: nfs-volume-release-write
       force: true
       branch: *tcl-bump-branch
     on_success:
       task: create-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-tcl-bump
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -972,7 +912,7 @@ jobs:
       distributed-package: util-linux
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-util-linux-bump
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -983,16 +923,16 @@ jobs:
       BLOB_NAME: util-linux
       BLOB_EXTENSION: .tar.gz
       BLOB_DIRECTORY: nfs-debs/
-  - put: nfs-volume-release-util-linux-bump
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-util-linux-bump
+      repository: nfs-volume-release-write
       force: true
       branch: *util-linux-bump-branch
     on_success:
       task: create-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-util-linux-bump
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -1024,7 +964,7 @@ jobs:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
       AWS_ASSUME_ROLE_ARN: *aws_nfsvolume_uploader_role_arn
-  - put: nfs-volume-release-bump-golang
+  - put: nfs-volume-release-write
     params:
       repository: release-with-updated-vendored-package
       branch: *golang-vendor-branch
@@ -1053,7 +993,7 @@ jobs:
           \nIf this does not look right, please reach out to the \
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
-        source-repo: nfs-volume-release-bump-golang
+        source-repo: nfs-volume-release-write
 
 - name: update-go-directive-for-nfsv3driver
   plan:
@@ -1429,7 +1369,7 @@ jobs:
 
   on_success:
     do:
-    - put: nfs-volume-release-bump
+    - put: nfs-volume-release-write
       params:
         repository: nfs-volume-release-master
         force: true
@@ -1439,7 +1379,7 @@ jobs:
       image: image-cryo-essentials
       file: cryogenics-concourse-tasks/tasks/create-pr/task.yml
       input_mapping:
-        repo: nfs-volume-release-bump
+        repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
