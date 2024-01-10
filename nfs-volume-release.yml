@@ -108,6 +108,7 @@ resources:
     repository: openssl
     tag_filter: ^openssl-?([0-9]+\.[0-9]+\.[0-9]+)$
     access_token: *github_access_token
+
 - name: git-concourse-cve-scan
   type: git
   source:
@@ -391,6 +392,15 @@ resources:
     branch: master
     private_key: *github_ssh_key
 
+- name: nfsv3driver-write
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/nfsv3driver.git
+    private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - resource comment; This resource is used exclusively for pushing new changes
+
 - name: nfsbroker
   type: git
   source:
@@ -398,12 +408,31 @@ resources:
     branch: master
     private_key: *github_ssh_key
 
+- name: nfsbroker-write
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/nfsbroker.git
+    private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - resource comment; This resource is used exclusively for pushing new changes
+
 - name: service-broker-store
   type: git
   source:
     uri: git@github.com:cloudfoundry/service-broker-store.git
     branch: master
     private_key: *github_ssh_key
+
+- name: service-broker-store-write
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/service-broker-store.git
+    private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - resource comment; This resource is used exclusively for pushing new changes
+
 
 - name: existingvolumebroker
   type: git
@@ -417,6 +446,9 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/existingvolumebroker.git
     private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - resource comment; This resource is used exclusively for pushing new changes
 
 - name: volume-mount-options
   type: git
@@ -425,12 +457,31 @@ resources:
     branch: master
     private_key: *github_ssh_key
 
+- name: volume-mount-options-write
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/volume-mount-options.git
+    private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - resource comment; This resource is used exclusively for pushing new changes
+
 - name: volumedriver
   type: git
   source:
     uri: git@github.com:cloudfoundry/volumedriver.git
     branch: master
     private_key: *github_ssh_key
+
+- name: volumedriver-write
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/volumedriver.git
+    private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - resource comment; This resource is used exclusively for pushing new changes
+
 
 resource_types:
 - name: http
@@ -1017,7 +1068,7 @@ jobs:
       golang-project-repo: nfsv3driver
     output_mapping:
       golang-project-repo: nfsv3driver
-  - put: nfsv3driver
+  - put: nfsv3driver-write
     params:
       repository: nfsv3driver
       branch: *golang-vendor-branch
@@ -1063,7 +1114,7 @@ jobs:
       golang-project-repo: nfsbroker
     output_mapping:
       golang-project-repo: nfsbroker
-  - put: nfsbroker
+  - put: nfsbroker-write
     params:
       force: true
       repository: nfsbroker
@@ -1098,7 +1149,7 @@ jobs:
       golang-project-repo: volumedriver
     output_mapping:
       golang-project-repo: volumedriver
-  - put: volumedriver
+  - put: volumedriver-write
     params:
       force: true
       repository: volumedriver
@@ -1144,7 +1195,7 @@ jobs:
       golang-project-repo: volume-mount-options
     output_mapping:
       golang-project-repo: volume-mount-options
-  - put: volume-mount-options
+  - put: volume-mount-options-write
     params:
       force: true
       repository: volume-mount-options
@@ -1236,7 +1287,7 @@ jobs:
       golang-project-repo: service-broker-store
     output_mapping:
       golang-project-repo: service-broker-store
-  - put: service-broker-store
+  - put: service-broker-store-write
     params:
       repository: service-broker-store
       branch: *golang-vendor-branch
@@ -1276,7 +1327,7 @@ jobs:
       distributed-package: openssl
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-master
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -1287,9 +1338,9 @@ jobs:
       BLOB_NAME: openssl-
       BLOB_EXTENSION: .tar.gz
       BLOB_DIRECTORY: test-dependencies/
-  - put: nfs-volume-release-master
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-master
+      repository: nfs-volume-release-write
       force: true
       branch: *openssl-bump-branch
     on_success:
@@ -1297,7 +1348,7 @@ jobs:
       image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-master
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -1338,7 +1389,7 @@ jobs:
       distributed-package: openldap-tarball
       bosh-release: nfs-volume-release-master
     output_mapping:
-      bosh-release-updated: nfs-volume-release-master
+      bosh-release-updated: nfs-volume-release-write
     params:
       AWS_ACCESS_KEY_ID: *aws_nfsvolume_uploader_role_id
       AWS_SECRET_ACCESS_KEY: *aws_nfsvolume_uploader_role_secret
@@ -1349,9 +1400,9 @@ jobs:
       BLOB_NAME: openldap-
       BLOB_EXTENSION: .tgz
       BLOB_DIRECTORY: openldap/
-  - put: nfs-volume-release-master
+  - put: nfs-volume-release-write
     params:
-      repository: nfs-volume-release-master
+      repository: nfs-volume-release-write
       force: true
       branch: *openldap-bump-branch
     on_success:
@@ -1359,7 +1410,7 @@ jobs:
       image: image-cryo-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        source-repo: nfs-volume-release-master
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
