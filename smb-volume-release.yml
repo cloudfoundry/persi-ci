@@ -159,9 +159,11 @@ resources:
   type: git
   icon: github
   source:
-    branch: master
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/smb-volume-release.git
+    commit_filter:
+      exclude:
+      - resource comment; This resource is used exclusively for pushing new changes
 
 - name: smb-volume-release-master-production-files-only
   type: git
@@ -765,7 +767,7 @@ jobs:
       AWS_ACCESS_KEY_ID: *upload_role_id
       AWS_SECRET_ACCESS_KEY: *upload_role_secret
       AWS_ASSUME_ROLE_ARN: *upload_role_arn
-  - put: smb-volume-release-bump-golang
+  - put: smb-volume-release-master-write
     params:
       repository: release-with-updated-vendored-package
       branch: *golang-vendor-branch
@@ -794,7 +796,7 @@ jobs:
           \nIf this does not look right, please reach out to the \
           [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
       input_mapping:
-        source-repo: smb-volume-release-bump-golang
+        source-repo: smb-volume-release-master-write
 
 - name: update-go-directive-for-smbbroker-for-gomod-directive-updates
   plan:

@@ -1090,7 +1090,7 @@ jobs:
       params:
         <<: *golang-bump-pr-params
       input_mapping:
-        source-repo: nfsv3driver
+        source-repo: nfsv3driver-write
 
 - name: update-go-directive-for-nfsbroker
   plan:
@@ -1125,7 +1125,7 @@ jobs:
     params:
       <<: *golang-bump-pr-params
     input_mapping:
-      source-repo: nfsbroker
+      source-repo: nfsbroker-write
 
 - name: update-go-directive-for-volumedriver
   plan:
@@ -1171,7 +1171,7 @@ jobs:
       params:
         <<: *golang-bump-pr-params
       input_mapping:
-        source-repo: volumedriver
+        source-repo: volumedriver-write
 
 - name: update-go-directive-for-volume-mount-options
   plan:
@@ -1217,7 +1217,7 @@ jobs:
       params:
         <<: *golang-bump-pr-params
       input_mapping:
-        source-repo: volume-mount-options
+        source-repo: volume-mount-options-write
 
 - name: update-go-directive-for-existingvolumebroker
   plan:
@@ -1309,7 +1309,7 @@ jobs:
       params:
         <<: *golang-bump-pr-params
       input_mapping:
-        source-repo: service-broker-store
+        source-repo: service-broker-store-write
 
 - name: bump-openssl
   plan:
