@@ -209,11 +209,10 @@ resources:
     private_key: *github_ssh_key
 
 - name: util-linux-version
-  type: uscan
   source:
-    watchfile: |
-      version=4
-      opts="filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.tar\.gz%@PACKAGE@-$1.tar.gz%" https://github.com/util-linux/util-linux/tags (?:.*?/)?v?(\d[\d.]*)\.tar\.gz
+    url: https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/*
+    version_regex: util-linux-(?P<version>.*).tar.gz$
+  type: http
 
 - name: libevent-release
   type: github-release
@@ -494,6 +493,14 @@ resources:
     private_key: *github_ssh_key
 
 resource_types:
+- name: http
+  source:
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    tag: http
+    repository: cryogenics/concourse-ftp-resource
+  type: registry-image
+
 - name: semver
   source:
     registry_mirror:
