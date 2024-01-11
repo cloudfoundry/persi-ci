@@ -37,7 +37,7 @@ pats:
 slack.webhook: &slack_webhook ((cerberus:slack.webhook))
 # Slack webhook is used for notifications, currently its origins are unknown
 shepherd_account_key: &shepherd_account_key ((cerberus:shepherd.sa_key))
-  #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
+#! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
 
 # **************
 # End of secrets
@@ -314,6 +314,12 @@ resources:
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pcfplatformrecovery/backup-and-restore
 
+- name: image-busybox
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/busybox
+
 - name: cifs-utils-latest
   type: git
   icon: github
@@ -395,24 +401,24 @@ resource_types:
 jobs:
 - name: check-for-cves
   plan:
-    - in_parallel:
-        - get: git-concourse-cve-scan
-        - get: github-release-tas-cve
-        - get: smb-volume-release
-          trigger: true
-        - get: git-tas-vex
-    - task: run-scan
-      file: git-concourse-cve-scan/tasks/scan/scan.yml
-      input_mapping:
-        concourse-cve-scan: git-concourse-cve-scan
-        tas-cve: github-release-tas-cve
-        target-bosh-release: smb-volume-release
-        tas-vex: git-tas-vex
-      params:
-        DRY_RUN: true
-        GRYPE_FAILURE_LEVEL: negligible #! Can be any of: none | negligible | low | medium | high | critical
-        RELEASE_NAME: smb-volume
-        RELEASE_VERSION: pre-release-cve-scan
+  - in_parallel:
+    - get: git-concourse-cve-scan
+    - get: github-release-tas-cve
+    - get: smb-volume-release
+      trigger: true
+    - get: git-tas-vex
+  - task: run-scan
+    file: git-concourse-cve-scan/tasks/scan/scan.yml
+    input_mapping:
+      concourse-cve-scan: git-concourse-cve-scan
+      tas-cve: github-release-tas-cve
+      target-bosh-release: smb-volume-release
+      tas-vex: git-tas-vex
+    params:
+      DRY_RUN: true
+      GRYPE_FAILURE_LEVEL: negligible  #! Can be any of: none | negligible | low | medium | high | critical
+      RELEASE_NAME: smb-volume
+      RELEASE_VERSION: pre-release-cve-scan
 
 - name: *bump-blob-cifs-utils-job-name
   plan:
@@ -422,19 +428,18 @@ jobs:
     - get: cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
+    - get: image-busybox
   - task: create-blob-tarball-and-version
+    image: image-busybox
     config:
       platform: linux
-      image_resource:
-        type: registry-image
-        source: { repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/busybox }
       run:
         path: sh
         args:
-          - -exc
-          - |
-            cat cifs-utils-latest/.git/ref | sed 's/cifs-utils-//g' > distributed-package/version
-            tar -cjf distributed-package/keyutils-$(cat distributed-package/version).tar.bz -C cifs-utils-latest .
+        - -exc
+        - |
+          cat cifs-utils-latest/.git/ref | sed 's/cifs-utils-//g' > distributed-package/version
+          tar -cjf distributed-package/keyutils-$(cat distributed-package/version).tar.bz -C cifs-utils-latest .
       inputs:
       - name: cifs-utils-latest
       outputs:
@@ -453,7 +458,7 @@ jobs:
       GIT_USERNAME: *github_user
       GIT_EMAIL: *github_email
       GIT_BRANCH: &bump-cifs-utils-branch bump-cifs-utils-to-((.:cifs-utils-version))
-      BLOB_NAME: cifs-utils 
+      BLOB_NAME: cifs-utils
       BLOB_EXTENSION: tar.bz2
   - put: smb-volume-release-master-write
     params:
@@ -483,19 +488,18 @@ jobs:
     - get: cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
+    - get: image-busybox
   - task: create-blob-tarball-and-version
+    image: image-busybox
     config:
       platform: linux
-      image_resource:
-        type: registry-image
-        source: { repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/busybox }
       run:
         path: sh
         args:
-          - -exc
-          - |
-            cat keyutils-latest/.git/ref | sed 's/v//g' > distributed-package/version
-            tar -czf distributed-package/keyutils-$(cat distributed-package/version).tar.gz -C keyutils-latest .
+        - -exc
+        - |
+          cat keyutils-latest/.git/ref | sed 's/v//g' > distributed-package/version
+          tar -czf distributed-package/keyutils-$(cat distributed-package/version).tar.gz -C keyutils-latest .
       inputs:
       - name: keyutils-latest
       outputs:
@@ -514,7 +518,7 @@ jobs:
       GIT_USERNAME: *github_user
       GIT_EMAIL: *github_email
       GIT_BRANCH: &bump-keyutils-branch bump-keyutils-to-((.:keyutils-version))
-      BLOB_NAME: keyutils 
+      BLOB_NAME: keyutils
       BLOB_EXTENSION: tar.gz
   - put: smb-volume-release-master-write
     params:
@@ -636,20 +640,19 @@ jobs:
     - get: cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
+    - get: image-busybox
   - load_var: talloc-version
     file: talloc-latest/version
     format: json
   - task: rewrite-version-file
+    image: image-busybox
     config:
       platform: linux
-      image_resource:
-        type: registry-image
-        source: { repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/busybox }
       run:
         path: sh
         args:
-          - -exc
-          - cp -r talloc-latest/* distributed-package/ && echo ((.:talloc-version.version.ref)) > distributed-package/version
+        - -exc
+        - cp -r talloc-latest/* distributed-package/ && echo ((.:talloc-version.version.ref)) > distributed-package/version
       inputs:
       - name: talloc-latest
       outputs:
@@ -666,7 +669,7 @@ jobs:
       GIT_USERNAME: *github_user
       GIT_EMAIL: *github_email
       GIT_BRANCH: &bump-talloc-branch bump-talloc-to-((.:talloc-version.version.ref))
-      BLOB_NAME: talloc 
+      BLOB_NAME: talloc
       BLOB_EXTENSION: tar.gz
       KEEP_BLOBS_FILTER: xenial-talloc-2.3.1.tar.gz
   - put: smb-volume-release-master-write
@@ -938,7 +941,7 @@ jobs:
       fail_fast: true
       steps:
       - get: cf-deployment-env
-        passed: [smb-volume-release-job-tests]
+        passed: [ smb-volume-release-job-tests ]
         trigger: true
       - get: cf-deployment-concourse-tasks
       - get: image-cf-deployment-concourse-tasks
@@ -946,7 +949,7 @@ jobs:
       - get: cf-deployment
       - get: persi-ci
       - get: smb-volume-release
-        passed: [smb-volume-release-job-tests]
+        passed: [ smb-volume-release-job-tests ]
   - task: pin-cf-deployment-version
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     image: image-cf-deployment-concourse-tasks
@@ -1046,14 +1049,14 @@ jobs:
       fail_fast: true
       steps:
       - get: smb-volume-release
-        passed: [cats]
+        passed: [ cats ]
         trigger: true
       - get: bbr-binary-release
       - get: disaster-recovery-acceptance-tests
       - get: persi-ci
       - get: cryogenics-essentials
       - get: cf-deployment-env
-        passed: [cats]
+        passed: [ cats ]
         trigger: true
   - task: generate-integration-config
     file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
@@ -1081,10 +1084,10 @@ jobs:
       - get: cf-volume-services-acceptance-tests
       - get: persi-ci
       - get: cf-deployment-env
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
         trigger: true
       - get: smb-volume-release
-        passed: [deploy-cf]
+        passed: [ deploy-cf ]
       - get: cryogenics-essentials
       - get: smb-volume-release-concourse-tasks
         params:
