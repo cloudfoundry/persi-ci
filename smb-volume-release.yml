@@ -165,6 +165,15 @@ resources:
       exclude:
       - resource comment; This resource is used exclusively for pushing new changes
 
+- name: smb-volume-release-bump-golang-master
+  type: git
+  icon: github
+  source:
+    branch: master
+    private_key: *github_ssh_key
+    uri: git@github.com:cloudfoundry/smb-volume-release.git
+    disable_ci_skip: true
+
 - name: smb-volume-release-master-production-files-only
   type: git
   source:
@@ -246,23 +255,6 @@ resources:
   source:
     uri: https://github.com/bosh-packages/golang-release.git
     tag_filter: v*
-
-- icon: github
-  name: smb-volume-release-bump-golang
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/smb-volume-release.git
-  type: git
-
-- icon: github
-  name: smb-volume-release-bump-golang-master
-  source:
-    branch: master
-    private_key: *github_ssh_key
-    uri: git@github.com:cloudfoundry/smb-volume-release.git
-    disable_ci_skip: true
-  type: git
 
 - name: cryogenics-concourse-tasks
   type: git
