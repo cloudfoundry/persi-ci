@@ -1,3 +1,4 @@
+---
 #  To set the pipeline, run:
 #    fly -t runway-cryogenics set-pipeline -p smb-volume-release -c smb-volume-release.yml
 #
@@ -264,24 +265,41 @@ resources:
     private_key: *github_ssh_key
     branch: main
 
-# This resource must only be used for gomod directive updates:
-#  https://github.com/concourse/git-resource/blob/master/README.md?plain=1#L341-L345
-- name: smbdriver-for-gomod-directive-updates
+- name: smbdriver
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/smbdriver.git
+    branch: master
+    private_key: *github_ssh_key
+
+- name: smbdriver-write
   type: git
   icon: github
   source:
     uri: git@github.com:cloudfoundry/smbdriver.git
     private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
-# This resource must only be used for gomod directive updates:
-#  https://github.com/concourse/git-resource/blob/master/README.md?plain=1#L341-L345
-- name: smbbroker-for-gomod-directive-updates
+- name: smbbroker
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/smbbroker.git
+    branch: main
+    private_key: *github_ssh_key
+
+- name: smbbroker-write
   type: git
   icon: github
   source:
     uri: git@github.com:cloudfoundry/smbbroker.git
     private_key: *github_ssh_key
-
+    commit_filter:
+      exclude:
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: cryogenics-essentials
   type: registry-image
@@ -803,27 +821,25 @@ jobs:
     - get: cryogenics-concourse-tasks
       passed:
       - bump-golang
-    - get: smbbroker-for-gomod-directive-updates
-      params:
-        branch: master
+    - get: smbbroker
     - get: cryogenics-essentials
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     image: cryogenics-essentials
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
-      golang-project-repo: smbbroker-for-gomod-directive-updates
+      golang-project-repo: smbbroker
     output_mapping:
-      golang-project-repo: smbbroker-for-gomod-directive-updates
+      golang-project-repo: smbbroker
     params:
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
       PATH_TO_GO_MODULE: .
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
-  - put: smbbroker-for-gomod-directive-updates
+  - put: smbbroker-write
     params:
-      repository: smbbroker-for-gomod-directive-updates
+      repository: smbbroker
       branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
       force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-updates-pull-request
@@ -843,7 +859,7 @@ jobs:
         [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
         team.
     input_mapping:
-      source-repo: smbbroker-for-gomod-directive-updates
+      source-repo: smbbroker-write
 
 - name: update-go-directive-for-smbdriver-for-gomod-directive-updates
   plan:
@@ -855,27 +871,25 @@ jobs:
     - get: cryogenics-concourse-tasks
       passed:
       - bump-golang
-    - get: smbdriver-for-gomod-directive-updates
-      params:
-        branch: master
+    - get: smbdriver
     - get: cryogenics-essentials
   - task: update-go-directive
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     image: cryogenics-essentials
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
-      golang-project-repo: smbdriver-for-gomod-directive-updates
+      golang-project-repo: smbdriver
     output_mapping:
-      golang-project-repo: smbdriver-for-gomod-directive-updates
+      golang-project-repo: smbdriver
     params:
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
       PATH_TO_GO_MODULE: .
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
-  - put: smbdriver-for-gomod-directive-updates
+  - put: smbdriver-write
     params:
-      repository: smbdriver-for-gomod-directive-updates
+      repository: smbdriver
       branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
       force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-updates-pull-request
@@ -895,7 +909,7 @@ jobs:
         [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
         team.
     input_mapping:
-      source-repo: smbdriver-for-gomod-directive-updates
+      source-repo: smbdriver-write
 
 - name: smb-volume-release-job-tests
   plan:
