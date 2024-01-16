@@ -127,6 +127,7 @@ resources:
   type: git
   source:
     uri: git@github.com:pivotal/tas-vex.git
+    branch: main
     private_key: *github_ssh_key
 
 - name: github-release-tas-cve
@@ -165,6 +166,7 @@ resources:
   icon: github
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+    branch: main
     private_key: *github_ssh_key
 
 - name: openldap-version
@@ -280,7 +282,7 @@ resources:
     uri: git@github.com:cloudfoundry/nfs-volume-release.git
     commit_filter:
       exclude:
-      - resource comment; This resource is used exclusively for pushing new changes
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 # Resource used to track production changes in the release job so that we don't
 # trigger a release with only changes (CI, tests, etc.) that are not relevant to
@@ -359,6 +361,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+    branch: main
 
 - name: cf-acceptance-tests
   type: git
@@ -377,6 +380,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
+    branch: main
 
 - name: golang-release
   type: git
@@ -399,7 +403,7 @@ resources:
     private_key: *github_ssh_key
     commit_filter:
       exclude:
-      - resource comment; This resource is used exclusively for pushing new changes
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: nfsbroker
   type: git
@@ -415,7 +419,7 @@ resources:
     private_key: *github_ssh_key
     commit_filter:
       exclude:
-      - resource comment; This resource is used exclusively for pushing new changes
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: service-broker-store
   type: git
@@ -431,7 +435,7 @@ resources:
     private_key: *github_ssh_key
     commit_filter:
       exclude:
-      - resource comment; This resource is used exclusively for pushing new changes
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 
 - name: existingvolumebroker
@@ -448,7 +452,7 @@ resources:
     private_key: *github_ssh_key
     commit_filter:
       exclude:
-      - resource comment; This resource is used exclusively for pushing new changes
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: volume-mount-options
   type: git
@@ -464,7 +468,7 @@ resources:
     private_key: *github_ssh_key
     commit_filter:
       exclude:
-      - resource comment; This resource is used exclusively for pushing new changes
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: volumedriver
   type: git
@@ -480,7 +484,7 @@ resources:
     private_key: *github_ssh_key
     commit_filter:
       exclude:
-      - resource comment; This resource is used exclusively for pushing new changes
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 
 resource_types:

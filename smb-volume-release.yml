@@ -97,6 +97,7 @@ resources:
   source:
     uri: git@github.com:pivotal/tas-vex.git
     private_key: *github_ssh_key
+    branch: main
 
 - name: github-release-tas-cve
   type: github-release
@@ -214,6 +215,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/smb-volume-release.git
+    branch: master
 
 - name: cf-deployment
   type: git
@@ -231,6 +233,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+    branch: main
 
 - name: cf-acceptance-tests
   type: git
@@ -249,6 +252,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
+    branch: main
 
 - name: golang-release
   type: git

@@ -127,6 +127,7 @@ resources:
   type: git
   source:
     uri: git@github.com:pivotal/tas-vex.git
+    branch: main
     private_key: *github-ssh-key
 
 - name: libfuse-git-release
@@ -279,6 +280,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/cf-volume-services-acceptance-tests.git
+    branch: main
 
 - name: cf-acceptance-tests
   type: git
@@ -297,6 +299,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests.git
+    branch: main
 
 - name: golang-release
   type: git

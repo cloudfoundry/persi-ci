@@ -34,6 +34,7 @@ resources:
   type: git
   source:
     uri: https://github.com/zfsonlinux/fstest.git
+    branch: master
 
 - name: persi-ci
   type: git
