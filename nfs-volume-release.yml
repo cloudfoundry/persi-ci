@@ -488,6 +488,12 @@ resources:
 
 
 resource_types:
+- name: git
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/git-resource
+    tag: ubuntu
+
 - name: http
   source:
     registry_mirror:
@@ -516,12 +522,6 @@ resource_types:
       host: harbor-repo.vmware.com
     repository: cryogenics/concourse-uscan-resource
   type: registry-image
-
-- name: git
-  type: registry-image
-  source:
-    repository: concourse/git-resource
-    tag: ubuntu
 
 - name: shepherd
   source:
