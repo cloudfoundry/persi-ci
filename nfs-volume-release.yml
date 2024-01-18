@@ -1742,6 +1742,7 @@ jobs:
         - claim-ldap-env
         trigger: true
       - get: cf-deployment-concourse-tasks
+      - get: cf-deployment-concourse-tasks-image
       - get: cf-deployment
       - get: persi-ci
       - get: nfs-volume-release
@@ -1755,6 +1756,7 @@ jobs:
     input_mapping:
       toolsmiths-env: env
   - task: collect-persi-ci-ops-files
+    image: cf-deployment-concourse-tasks-image
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
       base-ops-files: cf-deployment
