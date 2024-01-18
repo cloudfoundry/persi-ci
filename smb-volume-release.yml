@@ -165,7 +165,7 @@ resources:
     uri: git@github.com:cloudfoundry/smb-volume-release.git
     commit_filter:
       exclude:
-      - resource comment; This resource is used exclusively for pushing new changes
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: smb-volume-release-bump-golang-master
   type: git

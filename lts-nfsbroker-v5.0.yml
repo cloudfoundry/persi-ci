@@ -86,6 +86,9 @@ resources:
   source:
     private_key: *github_ssh_key
     uri: *source-repo
+    commit_filter:
+      exclude:
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: credhub
   type: git

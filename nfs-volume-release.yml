@@ -1427,7 +1427,6 @@ jobs:
         BRANCH: *openldap-bump-branch
         TITLE: "Bump Openldap to v((.:openldap.version.ref))"
         LABELS: dependencies
-
   on_success:
     do:
     - put: nfs-volume-release-write
