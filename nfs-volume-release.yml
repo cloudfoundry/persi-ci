@@ -101,6 +101,12 @@ groups:
   - manual-bump-nfs-minor
 
 resources:
+- name: cf-deployment-concourse-tasks-image
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cloudfoundry/cf-deployment-concourse-tasks
+    tag: latest
+
 - name: openssl
   type: github-release
   source:
@@ -1557,6 +1563,7 @@ jobs:
         passed: [ claim-env ]
         trigger: true
       - get: cf-deployment-concourse-tasks
+      - get: cf-deployment-concourse-tasks-image
       - get: cf-deployment
       - get: persi-ci
       - get: nfs-volume-release
@@ -1568,6 +1575,7 @@ jobs:
     input_mapping:
       toolsmiths-env: env
   - task: collect-persi-ci-ops-files
+    image: cf-deployment-concourse-tasks-image
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
       base-ops-files: cf-deployment
