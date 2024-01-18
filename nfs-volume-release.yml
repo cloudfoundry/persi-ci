@@ -1606,6 +1606,7 @@ jobs:
                   operations/backup-and-restore/enable-restore-nfs-broker.yml
                   operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
+    image: cf-deployment-concourse-tasks-image
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: env
@@ -1792,6 +1793,7 @@ jobs:
                   operations/test/enable-nfs-test-ldapserver.yml
                   operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
+    image: cf-deployment-concourse-tasks-image
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: env
