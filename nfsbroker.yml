@@ -115,7 +115,7 @@ resources:
   type: docker-image
   icon: docker
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/essentials
+    repository: harbor-repo.vmware.com/cryogenics/essentials
     tag: latest
 
 - name: cryogenics-concourse-tasks

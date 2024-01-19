@@ -6,7 +6,7 @@ image_resource:
   source:
     registry_mirror:
       host: harbor-repo.vmware.com
-    repository: dockerhub-proxy-cache/cryogenics/essentials
+    repository: cryogenics/essentials
 
 inputs:
 - name: persi-ci

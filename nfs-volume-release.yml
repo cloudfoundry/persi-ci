@@ -509,11 +509,9 @@ resource_types:
   type: registry-image
 
 - name: semver
-  source:
-    registry_mirror:
-      host: harbor-repo.vmware.com
-    repository: dockerhub-proxy-cache/concourse/semver-resource
   type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/semver-resource
 
 - name: slack-notification
   type: registry-image
