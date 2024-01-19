@@ -292,7 +292,7 @@ resources:
   icon: github
   source:
     uri: git@github.com:cloudfoundry/smbbroker.git
-    branch: main
+    branch: master
     private_key: *github_ssh_key
 
 - name: smbbroker-write
