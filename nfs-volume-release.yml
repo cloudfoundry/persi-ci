@@ -220,7 +220,7 @@ resources:
 - name: util-linux
   source:
     url: https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/*
-    version_regex: util-linux-(?P<version>.*).tar.gz$
+    version_regex: util-linux-(?P<version>[0-9][0-9.]+[0-9]).tar.gz$
   type: http
 
 - name: libevent-release
