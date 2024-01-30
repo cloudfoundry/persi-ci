@@ -47,6 +47,7 @@ shepherd_account_key: &shepherd_account_key ((cerberus:shepherd.sa_key))
 #! **************
 
 number_of_retries: &number_of_retries 2
+number_of_claim_env_retries: &number_of_claim_env_retries 5
 var_sources:
 - name: cerberus
   type: vault
@@ -1435,9 +1436,9 @@ jobs:
 
     - task: create-pull-request
       image: image-cryo-essentials
-      file: cryogenics-concourse-tasks/tasks/create-pr/task.yml
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       input_mapping:
-        repo: nfs-volume-release-write
+        source-repo: nfs-volume-release-write
       params:
         GITHUB_TOKEN: *github_access_token
         BASE: master
@@ -1456,6 +1457,7 @@ jobs:
         trigger: true
       - get: image-cryo-essentials
       - put: env-tas-jammy
+        attempts: *number_of_claim_env_retries
         params:
           action: create
           duration: 6h
