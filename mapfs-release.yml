@@ -597,6 +597,39 @@ jobs:
     input_mapping:
       test-repo: nfs-volume-release
   - in_parallel:
+    # we never test that the release can be upgraded in place (meaning without recreating the VM). 
+    # This lead  to a broken release because of pre-start script failing to run a 2nd time on 
+    # the same VM. It slipped through because all of our deploy scenarios included recreating the VM 
+    # with a new stemcell.
+    - task: upgrade-release-in-existing-cf
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: harbor-repo.vmware.com/cryogenics/essentials
+        inputs:
+          - name: env-tas-xenial
+        run:
+          path: bash
+          args:
+          - -c
+          - |
+            set -eu
+            set -o pipefail
+            . <(smith -l env-tas-xenial/metadata bosh)
+            export BOSH_DEPLOYMENT=$(bosh ds | grep '^cf-'  | awk '{print $1}')
+            bosh manifest > cf.yml
+            cat << EOF > ops.yml
+            - type: replace
+              path: /releases/name=mapfs
+              value:
+                name: mapfs
+                version: latest
+            EOF
+            until [[ $(bosh releases | grep mapfs | wc -l) -gt 1 ]]; do echo "waiting for dev release to be available"; done
+            bosh deploy cf.yml -o ops.yml -n
+
     - task: bosh-release-test
       image: cryogenics-essentials-docker
       file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests-in-shepherd/task.yml
