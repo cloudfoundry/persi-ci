@@ -60,6 +60,14 @@ groups:
   - merge-pr
 - name: bump
   jobs:
+  - bump-nfs-utils
+  - bump-sqlite
+  - bump-libevent
+  - bump-rpcsvc-proto
+  - bump-libtirpc
+  - bump-rpcbind
+  - bump-tcl
+  - bump-util-linux
   - bump-golang
   - update-go-directive-for-nfsv3driver
   - update-go-directive-for-nfsbroker
@@ -72,6 +80,13 @@ groups:
   - shipit-nfs
 
 resource_types:
+- name: http
+  source:
+    registry_mirror:
+      host: harbor-repo.vmware.com
+    tag: latest
+    repository: cryogenics/concourse-ftp-resource
+  type: registry-image
 - name: uscan
   source:
     registry_mirror:
@@ -108,6 +123,61 @@ resource_types:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
 
 resources:
+- name: nfs-utils-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://www.kernel.org/pub/linux/utils/nfs-utils/([\d\.]+)/nfs-utils-([\d\.]+).tar.xz
+
+- name: libtirpc-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://sf.net/libtirpc/ libtirpc-(.+)\.tar\.bz2
+
+- name: rpcbind-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://sf.net/rpcbind/ rpcbind-(.+)\.tar\.bz2
+
+- name: tcl-version
+  type: uscan
+  source:
+    watchfile: |
+      version=4
+      https://sf.net/tcl/ tcl([1-9]\d*\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))-src\.tar\.gz
+
+- name: sqlite-release
+  type: git
+  source:
+    uri: git@github.com:sqlite/sqlite.git
+    tag_filter: version-*
+    private_key: *github_ssh_key
+
+- name: util-linux
+  source:
+    url: https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/*
+    version_regex: util-linux-(?P<version>[0-9][0-9.]+[0-9]).tar.gz$
+  type: http
+- name: libevent-release
+  type: github-release
+  source:
+    owner: libevent
+    repository: libevent
+    tag_filter: release-([\d\.]+\d+)-stable
+    access_token: *github_access_token
+
+- name: rpcsvc-proto-release
+  type: github-release
+  source:
+    owner: thkukuk
+    repository: rpcsvc-proto
+    tag_filter: v([\d\.]+\d+)
+    access_token: *github_access_token
 - name: mapfs-release
   type: git
   source:
@@ -388,6 +458,440 @@ resources:
       - ;resource comment; This resource is used exclusively for pushing new changes
 
 jobs:
+- name: bump-libevent
+  plan:
+  - in_parallel:
+    - get: libevent-release
+      trigger: true
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-lts
+  - load_var: libevent-version
+    file: libevent-release/version
+  - task: bump
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: libevent-release
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts-write
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &libevent-bump-branch v5-bump-libevent-to-v((.:libevent-version))
+      BLOB_NAME: libevent
+      BLOB_EXTENSION: -stable.tar.gz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-lts-write
+    params:
+      repository: nfs-volume-release-lts-write
+      force: true
+      branch: *libevent-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-lts-write
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *libevent-bump-branch
+        TITLE: "Bump Libevent to v((.:libevent-version))"
+        LABELS: dependencies,v5
+
+- name: bump-rpcsvc-proto
+  plan:
+  - in_parallel:
+    - get: rpcsvc-proto-release
+      trigger: true
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-lts
+  - load_var: rpcsvc-proto-version
+    file: rpcsvc-proto-release/version
+  - task: bump
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: rpcsvc-proto-release
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts-write
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &rpcsvc-proto-bump-branch v5-bump-rpcsvc-proto-to-v((.:rpcsvc-proto-version))
+      BLOB_NAME: rpcsvc-proto
+      BLOB_EXTENSION: .tar.xz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-lts-write
+    params:
+      repository: nfs-volume-release-lts-write
+      force: true
+      branch: *rpcsvc-proto-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-lts-write
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *rpcsvc-proto-bump-branch
+        TITLE: "Bump rpcsvc-proto to v((.:rpcsvc-proto-version))"
+        LABELS: dependencies,v5
+
+- name: bump-libtirpc
+  plan:
+  - in_parallel:
+    - get: libtirpc-version
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-lts
+  - load_var: libtirpc
+    file: libtirpc-version/version
+    format: json
+  - task: download-libtirpc
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:libtirpc.version.ref))
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+          set -e
+          wget -O "nfs-debs-libtirpc/libtirpc-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/libtirpc/files/libtirpc/${NEW_VERSION}/libtirpc-${NEW_VERSION}.tar.bz2/download"
+          echo ${NEW_VERSION} > nfs-debs-libtirpc/version
+      outputs:
+      - name: nfs-debs-libtirpc
+  - task: bump-libtirpc
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-libtirpc
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts-write
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &libtirpc-bump-branch v5-bump-libtirpc-to-v((.:libtirpc.version.ref))
+      BLOB_NAME: libtirpc
+      BLOB_EXTENSION: .tar.bz2
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-lts-write
+    params:
+      repository: nfs-volume-release-lts-write
+      force: true
+      branch: *libtirpc-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-lts-write
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *libtirpc-bump-branch
+        TITLE: "Bump Libtirpc to v((.:libtirpc.version.ref))"
+        LABELS: dependencies,v5
+
+- name: bump-rpcbind
+  plan:
+  - in_parallel:
+    - get: rpcbind-version
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-lts
+  - load_var: rpcbind
+    file: rpcbind-version/version
+    format: json
+  - task: download-rpcbind
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:rpcbind.version.ref))
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+          set -e
+          wget -O "nfs-debs-rpcbind/rpcbind-${NEW_VERSION}.tar.bz2" "https://sourceforge.net/projects/rpcbind/files/rpcbind/${NEW_VERSION}/rpcbind-${NEW_VERSION}.tar.bz2/download"
+          echo ${NEW_VERSION} > nfs-debs-rpcbind/version
+      outputs:
+      - name: nfs-debs-rpcbind
+  - task: bump-rpcbind
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-rpcbind
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts-write
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &rpcbind-bump-branch v5-bump-rpcbind-to-v((.:rpcbind.version.ref))
+      BLOB_NAME: rpcbind
+      BLOB_EXTENSION: .tar.bz2
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-lts-write
+    params:
+      repository: nfs-volume-release-lts-write
+      force: true
+      branch: *rpcbind-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-lts-write
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *rpcbind-bump-branch
+        TITLE: "Bump RPCBind to v((.:rpcbind.version.ref))"
+        LABELS: dependencies,v5
+
+- name: bump-tcl
+  plan:
+  - in_parallel:
+    - get: tcl-version
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-lts
+  - load_var: tcl
+    file: tcl-version/version
+    format: json
+  - task: download-tcl
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:tcl.version.ref))
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+          set -e
+          wget -O "nfs-debs-tcl/tcl${NEW_VERSION}-src.tar.gz" "https://sourceforge.net/projects/tcl/files/Tcl/${NEW_VERSION}/tcl${NEW_VERSION}-src.tar.gz/download"
+          echo ${NEW_VERSION} > nfs-debs-tcl/version
+      outputs:
+      - name: nfs-debs-tcl
+  - task: bump-tcl
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-tcl
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts-write
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &tcl-bump-branch v5-bump-tcl-to-v((.:tcl.version.ref))
+      BLOB_NAME: tcl
+      BLOB_EXTENSION: -src.tar.gz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-lts-write
+    params:
+      repository: nfs-volume-release-lts-write
+      force: true
+      branch: *tcl-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-lts-write
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *tcl-bump-branch
+        TITLE: "Bump Tcl to v((.:tcl.version.ref))"
+        LABELS: dependencies,v5
+
+- name: bump-util-linux
+  plan:
+  - in_parallel:
+    - get: util-linux
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-lts
+  - load_var: util-linux-version
+    file: util-linux/version
+    format: raw
+  - task: bump-util-linux
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: util-linux
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts-write
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &util-linux-bump-branch v5-bump-util-linux-to-v((.:util-linux-version))
+      BLOB_NAME: util-linux
+      BLOB_EXTENSION: .tar.gz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-lts-write
+    params:
+      repository: nfs-volume-release-lts-write
+      force: true
+      branch: *util-linux-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-lts-write
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *util-linux-bump-branch
+        TITLE: "Bump util-linux to v((.:util-linux-version))"
+        LABELS: dependencies,v5
+- name: bump-sqlite
+  plan:
+  - in_parallel:
+    - get: sqlite-release
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-lts
+  - load_var: sqlite-version
+    file: sqlite-release/VERSION
+    format: trim
+  - task: download-tarball
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:sqlite-version))
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+          set -e
+          wget -O "nfs-debs-sqlite/sqlite-${NEW_VERSION}.tar.gz" "https://github.com/sqlite/sqlite/archive/refs/tags/version-${NEW_VERSION}.tar.gz"
+          echo ${NEW_VERSION} > nfs-debs-sqlite/version
+      outputs:
+      - name: nfs-debs-sqlite
+  - task: bump-sqlite
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-sqlite
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts-write
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &sqlite-bump-branch v5-bump-sqlite-to-v((.:sqlite-version))
+      BLOB_NAME: sqlite
+      BLOB_EXTENSION: .tar.gz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-lts-write
+    params:
+      repository: nfs-volume-release-lts-write
+      force: true
+      branch: *sqlite-bump-branch
+    on_success:
+      task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-lts-write
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *sqlite-bump-branch
+        TITLE: "Bump SQLite to v((.:sqlite-version))"
+        LABELS: dependencies,v5
+- name: bump-nfs-utils
+  plan:
+  - in_parallel:
+    - get: nfs-utils-version
+      trigger: true
+    - get: image-cryo-essentials
+    - get: cryogenics-concourse-tasks
+    - get: nfs-volume-release-lts
+  - load_var: nfs-utils
+    file: nfs-utils-version/version
+    format: json
+  - task: download-nfs-utils
+    image: image-cryo-essentials
+    config:
+      platform: linux
+      params:
+        NEW_VERSION: ((.:nfs-utils.version.ref))
+      run:
+        path: /bin/sh
+        args:
+        - -c
+        - |
+          set -e
+          wget -O "nfs-debs-nfs-utils/nfs-utils-${NEW_VERSION}.tar.xz" "https://www.kernel.org/pub/linux/utils/nfs-utils/${NEW_VERSION}/nfs-utils-${NEW_VERSION}.tar.xz"
+          echo ${NEW_VERSION} > nfs-debs-nfs-utils/version
+      outputs:
+      - name: nfs-debs-nfs-utils
+  - task: bump-nfs-utils
+    file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
+    input_mapping:
+      distributed-package: nfs-debs-nfs-utils
+      bosh-release: nfs-volume-release-lts
+    output_mapping:
+      bosh-release-updated: nfs-volume-release-lts-write
+    params:
+      AWS_ACCESS_KEY_ID: *aws_uploader_role_id
+      AWS_SECRET_ACCESS_KEY: *aws_uploader_role_secret
+      AWS_ROLE_ARN: *aws_uploader_role_arn
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      GIT_BRANCH: &nfs-utils-bump-branch v5-bump-nfs-utils-to-v((.:nfs-utils.version.ref))
+      BLOB_NAME: nfs-utils
+      BLOB_EXTENSION: .tar.xz
+      BLOB_DIRECTORY: nfs-debs/
+  - put: nfs-volume-release-lts-write
+    params:
+      repository: nfs-volume-release-lts-write
+      force: true
+      branch: *nfs-utils-bump-branch
+    on_success:
+      task: create-pull-request
+      image: image-cryo-essentials
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      input_mapping:
+        source-repo: nfs-volume-release-lts-write
+      params:
+        GITHUB_TOKEN: *github_access_token
+        BASE: {{lts-nfs-branch}}
+        BRANCH: *nfs-utils-bump-branch
+        TITLE: "Bump NFS-Utils to v((.:nfs-utils.version.ref))"
+        LABELS: dependencies,v5
 - name: bump-openldap
   plan:
   - in_parallel:
@@ -448,7 +952,7 @@ jobs:
         BASE: v5.0
         BRANCH: *openldap-bump-branch
         TITLE: "Bump Openldap to v((.:openldap.version.ref))"
-        LABELS: dependencies
+        LABELS: dependencies,v5
 
 - name: bump-openssl
   plan:
@@ -493,7 +997,7 @@ jobs:
         BASE: v5.0
         BRANCH: *openssl-bump-branch
         TITLE: "Bump OpenSSL to v((.:new-version))"
-        LABELS: dependencies
+        LABELS: dependencies,v5
 - name: bump-golang
   plan:
   - in_parallel:
