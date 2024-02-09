@@ -505,7 +505,7 @@ resource_types:
   source:
     registry_mirror:
       host: harbor-repo.vmware.com
-    tag: http
+    tag: latest
     repository: cryogenics/concourse-ftp-resource
   type: registry-image
 
