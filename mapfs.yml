@@ -56,7 +56,7 @@ resource_types:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
 
 resources:
-- name: mapfs-pr
+- name: mapfs
   type: pull-request
   icon: source-pull
   source:
@@ -125,20 +125,20 @@ jobs:
 - name: unit-test
   public: true
   plan:
-  - get: mapfs-pr
+  - get: mapfs
     trigger: true
   - task: build
-    file: mapfs-pr/scripts/ci/run_unit.build.yml
+    file: mapfs/scripts/ci/run_unit.build.yml
     privileged: true
 
 - name: fs-test
   public: true
   plan:
-  - get: mapfs-pr
+  - get: mapfs
     trigger: true
   - get: fstest
   - task: build
-    file: mapfs-pr/scripts/ci/run_fstest.build.yml
+    file: mapfs/scripts/ci/run_fstest.build.yml
     privileged: true
 
 - name: security-scan
@@ -146,7 +146,7 @@ jobs:
   - in_parallel:
     - get: persi-ci
     - get: image-nfs-unit-tests
-    - get: mapfs-pr
+    - get: mapfs
       trigger: true
   - task: build
     image: image-nfs-unit-tests
@@ -154,20 +154,20 @@ jobs:
     params:
       PATHS: "./"
     input_mapping:
-      release-dir: mapfs-pr
+      release-dir: mapfs
 
 - name: merge-pr
   plan:
-  - get: mapfs-pr
+  - get: mapfs
     trigger: true
     passed:
     - unit-test
     - fs-test
     - security-scan
-  - put: mapfs-pr
+  - put: mapfs
     params:
       merge: true
-      repository: mapfs-pr
+      repository: mapfs
 - name: bump-go-module
   plan:
   - in_parallel:
