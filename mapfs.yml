@@ -1,19 +1,45 @@
 ---
-#  This pipeline is set automatics, any none committed changes will be lost.
+#  This pipeline is set automatically, any uncommitted changes will be lost.
 #
-# To set the pipeline, run:
+# To set the pipeline manually, run:
 #    fly -t cryo-runway set-pipeline -p mapfs -c mapfs.yml
 #
 # ************************************
 # Secrets we need to run this pipeline
 # ************************************
+#! this needs to come first, otherwise all other vars can't be resolved.
+#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created
+#! manually via the vault-cli targeting the teams cerberus vault. Example steps to create an approle are here:
+#! https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the
+#! auth method is mounted on the standard path.
+cerberus: &cerberus
+  role_id: ((cerberus-auth.role_id))
+  secret_id: ((cerberus-auth.secret_id))
+cerberus_url: &cerberus_url ((cerberus-auth.url))
 
-github_access_token: &github_access_token ((github.access_token))
+cerberus_secrets:
+- &github_access_token ((cerberus:github.access_token))
 # used to get pull requests
 
 # **************
 # End of secrets
 # **************
+var_sources:
+- name: cerberus
+  type: vault
+  config:
+    auth_backend: approle
+    auth_params: *cerberus
+    url: *cerberus_url
+    path_prefix: secret
+
+groups:
+- name: test
+  jobs:
+  - unit-test
+  - fs-test
+  - security-scan
+  - merge-pr
 
 resource_types:
 - name: pull-request
@@ -22,7 +48,7 @@ resource_types:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
 
 resources:
-- name: mapfs
+- name: mapfs-pr
   type: pull-request
   source:
     repository: cloudfoundry/mapfs
@@ -52,20 +78,20 @@ jobs:
 - name: unit-test
   public: true
   plan:
-  - get: mapfs
+  - get: mapfs-pr
     trigger: true
   - task: build
-    file: mapfs/scripts/ci/run_unit.build.yml
+    file: mapfs-pr/scripts/ci/run_unit.build.yml
     privileged: true
 
 - name: fs-test
   public: true
   plan:
-  - get: mapfs
+  - get: mapfs-pr
     trigger: true
   - get: fstest
   - task: build
-    file: mapfs/scripts/ci/run_fstest.build.yml
+    file: mapfs-pr/scripts/ci/run_fstest.build.yml
     privileged: true
 
 - name: security-scan
@@ -73,7 +99,7 @@ jobs:
   - in_parallel:
     - get: persi-ci
     - get: image-nfs-unit-tests
-    - get: mapfs
+    - get: mapfs-pr
       trigger: true
   - task: build
     image: image-nfs-unit-tests
@@ -81,17 +107,17 @@ jobs:
     params:
       PATHS: "./"
     input_mapping:
-      release-dir: mapfs
+      release-dir: mapfs-pr
 
 - name: merge-pr
   plan:
-  - get: mapfs
+  - get: mapfs-pr
     trigger: true
     passed:
     - unit-test
     - fs-test
     - security-scan
-  - put: mapfs
+  - put: mapfs-pr
     params:
       merge: true
-      repository: mapfs
+      repository: mapfs-pr
