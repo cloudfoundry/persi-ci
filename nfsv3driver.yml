@@ -188,7 +188,7 @@ jobs:
   - put: nfsv3driver-pr
     params:
       merge: true
-      repository: nfsv3driver
+      repository: nfsv3driver-pr
 
 - name: bump-go-module
   plan:
