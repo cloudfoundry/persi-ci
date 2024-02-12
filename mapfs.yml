@@ -76,7 +76,7 @@ resources:
   type: git
   icon: git
   source:
-    uri: git@github.com/cloudfoundry/mapfs.git
+    uri: git@github.com:cloudfoundry/mapfs.git
     private_key: *github_ssh_key
     commit_filter:
       exclude:
