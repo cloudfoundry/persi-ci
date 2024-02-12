@@ -175,7 +175,7 @@ jobs:
       resource: mapfs-read
     - get: cryogenics-concourse-tasks
     - get: cryogenics-essentials
-    - get: run-once-a-day
+    - get: once-a-week
       trigger: true
   - task: bump-go-module
     file: cryogenics-concourse-tasks/deps-automation/bump-go-module/task.yml
