@@ -1,12 +1,12 @@
 ---
-#  This pipeline is set automatically, any uncommitted changes will be lost.
-#
-# To set the pipeline manually, run:
-#    fly -t cryo-runway set-pipeline -p mapfs -c mapfs.yml
-#
-# ************************************
-# Secrets we need to run this pipeline
-# ************************************
+#!  This pipeline is set automatically, any uncommitted changes will be lost.
+#!
+#! To set the pipeline manually, run:
+#!    fly -t cryo-runway set-pipeline -p mapfs -c mapfs.yml
+#!
+#! ************************************
+#! Secrets we need to run this pipeline
+#! ************************************
 #! this needs to come first, otherwise all other vars can't be resolved.
 #! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created
 #! manually via the vault-cli targeting the teams cerberus vault. Example steps to create an approle are here:
@@ -19,16 +19,16 @@ cerberus_url: &cerberus_url ((cerberus-auth.url))
 
 cerberus_secrets:
 - &github_access_token ((cerberus:github.access_token))
-# used to manage pull requests
+#! used to manage pull requests
 - &github_ssh_key ((cerberus:github.ssh_key))
 #! GitHub SSH key is used to gain write access to the repository
 - &github_user ((cerberus:github.user))
 - &github_email ((cerberus:github.email))
 #! GitHub email and username are used to sign the commits and PRs for go module auto bumps. Added 2024-02-12
 
-# **************
-# End of secrets
-# **************
+#! **************
+#! End of secrets
+#! **************
 var_sources:
 - name: cerberus
   type: vault
