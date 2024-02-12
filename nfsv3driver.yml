@@ -74,6 +74,9 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/nfsv3driver.git
     private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: cryogenics-concourse-tasks
   type: git
