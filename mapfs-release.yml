@@ -720,7 +720,7 @@ jobs:
   - put: shepherd-env
     params:
       action: extend
-      expire-in: 2h
+      expire-in: 6h
       resource: shepherd-env
   - task: output-env-details
     file: persi-ci/scripts/ci/claim-pooled-env.build.yml
