@@ -15,9 +15,13 @@ cerberus: &cerberus
   secret_id: ((cerberus-auth.secret_id))
 cerberus_url: &cerberus_url ((cerberus-auth.url))
 
-github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
-github_access_token: &github_access_token ((cerberus:github.access_token))
+cerberus_secrets:
+- &github_ssh_key ((cerberus:github.ssh_key))
+- &github_access_token ((cerberus:github.access_token))
 # used to get pull requests and get git repos
+- &github_user ((cerberus:github.user))
+- &github_email ((cerberus:github.email))
+#! GitHub email and username are used to sign the commits and PRs for go module auto bumps. Added 2024-02-15
 
 # **************
 # End of secrets
@@ -32,6 +36,17 @@ var_sources:
     url: *cerberus_url
     path_prefix: secret
 
+groups:
+- name: test
+  jobs:
+  - unit-test
+  - security-scan
+  - integration
+  - merge-pr
+- name: updates
+  jobs:
+  - bump-go-module
+
 resource_types:
 - name: pull-request
   type: docker-image
@@ -41,20 +56,52 @@ resource_types:
 resources:
 - name: nfsv3driver
   type: pull-request
+  icon: source-pull
   source:
     repository: cloudfoundry/nfsv3driver
     base_branch: v5.0
     disable_forks: true
     access_token: *github_access_token
 
+- name: nfsv3driver-read
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/cloudfoundry/nfsv3driver
+    branch: v5.0
+
+- name: nfsv3driver-write
+  type: git
+  icon: git
+  source:
+    uri: git@github.com:cloudfoundry/nfsv3driver.git
+    private_key: *github_ssh_key
+
+- name: cryogenics-concourse-tasks
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+    private_key: *github_ssh_key
+    branch: main
+
+- name: cryogenics-essentials
+  icon: docker
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/cryogenics/essentials
+    tag: latest
+
 - name: persi-ci
   type: git
+  icon: github
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
     branch: master
 
 - name: mapfs
   type: git
+  icon: github
   source:
     branch: master
     uri: git@github.com:cloudfoundry/mapfs.git
@@ -62,15 +109,23 @@ resources:
 
 - name: docker_driver_integration_tests
   type: git
+  icon: github
   source:
     branch: main
     uri: https://github.com/cloudfoundry/docker_driver_integration_tests
 
 - name: image-nfs-unit-tests
   type: docker-image
+  icon: docker
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
     tag: latest
+
+- name: once-a-week
+  type: time
+  icon: clock-outline
+  source:
+    days: [ Monday ]
 
 jobs:
 - name: unit-test
@@ -142,3 +197,47 @@ jobs:
     params:
       merge: true
       repository: nfsv3driver
+
+- name: bump-go-module
+  plan:
+  - in_parallel:
+    - get: source-repo
+      resource: nfsv3driver-read
+    - get: cryogenics-concourse-tasks
+    - get: cryogenics-essentials
+    - get: once-a-week
+      trigger: true
+  - task: bump-go-module
+    file: cryogenics-concourse-tasks/deps-automation/bump-go-module/task.yml
+    image: cryogenics-essentials
+    params:
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      ROOT_DIRECTORIES: .
+      BRANCH_PREFIX: v5.0-
+  - try:
+      load_var: go-module-update-branch
+      file: destination-repo/.update-branch-name
+      on_success:
+        do:
+        - put: nfsv3driver-write
+          params:
+            repository: destination-repo
+            branch: &go-module-branch ((.:go-module-update-branch))
+        - task: create-go-module-bump-pull-request
+          file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+          image: cryogenics-essentials
+          params:
+            BASE: v5.0
+            BRANCH: *go-module-branch
+            LABELS: dependencies
+            TITLE: Bump go module ((.:go-module-update-branch))
+            MESSAGE: |
+              This is an automatically generated Pull Request from the Cryogenics CI Bot.
+
+              I have detected a new version of a go module and automatically bumped
+              it to benefit from the latest changes.
+
+              If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+          input_mapping:
+            source-repo: nfsv3driver-write
