@@ -68,11 +68,11 @@ resources:
     disable_forks: true
     access_token: *github_access_token
 
-- name: run-once-a-day
+- name: run-once-a-week
   type: time
   icon: timer-outline
   source:
-    days: [ Monday, Tuesday, Wednesday, Thursday, Friday ]
+    days: [ Tuesday ]
 
 - name: nfsbroker-repo
   type: git
@@ -169,7 +169,7 @@ jobs:
 - name: bump-go-module
   plan:
   - in_parallel:
-    - get: run-once-a-day
+    - get: run-once-a-week
       trigger: true
     - get: source-repo
       resource: nfsbroker-repo
