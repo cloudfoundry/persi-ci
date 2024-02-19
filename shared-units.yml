@@ -74,7 +74,7 @@ groups:
   - '*-merge-pr'
 - name: updates
   jobs:
-  - 'bump-*'
+  - 'bump-go-module-*'
 
 resource_types:
 - name: semver
@@ -109,6 +109,16 @@ resources:
     uri: git@github.com:cloudfoundry/existingvolumebroker.git
     branch: master
     private_key: *github_ssh_key
+
+- name: existingvolumebroker-write
+  type: git
+  icon: git
+  source:
+    uri: git@github.com:cloudfoundry/existingvolumebroker.git
+    private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: goshims
   type: git
@@ -176,6 +186,9 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/volumedriver.git
     private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: volumedriver-version
   type: semver
@@ -318,6 +331,50 @@ jobs:
     params:
       bump: minor
 
+- name: bump-go-module
+  plan:
+  - in_parallel:
+    - get: source-repo
+      resource: existingvolumebroker
+    - get: cryogenics-concourse-tasks
+    - get: image-cryogenics-essentials
+    - get: every-monday
+      trigger: true
+  - task: bump-go-module
+    file: cryogenics-concourse-tasks/deps-automation/bump-go-module/task.yml
+    image: image-cryogenics-essentials
+    params:
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      ROOT_DIRECTORIES: .
+  - try:
+      load_var: go-module-update-branch
+      file: destination-repo/.update-branch-name
+      on_success:
+        do:
+        - put: existingvolumebroker-write
+          params:
+            repository: destination-repo
+            branch: &go-module-branch ((.:go-module-update-branch))
+        - task: create-go-module-bump-pull-request
+          file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+          image: image-cryogenics-essentials
+          params:
+            BASE: master
+            BRANCH: *go-module-branch
+            LABELS: dependencies
+            TITLE: Bump go module ((.:go-module-update-branch))
+            MESSAGE: |
+              This is an automatically generated Pull Request from the Cryogenics CI Bot.
+
+              I have detected a new version of a go module and automatically bumped
+              it to benefit from the latest changes.
+
+              If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+          input_mapping:
+            source-repo: existingvolumebroker-write
+
+
 - name: service-broker-store-unit
   public: true
   plan:
@@ -402,7 +459,7 @@ jobs:
     params:
       bump: minor
 
-- name: bump-go-module
+- name: bump-go-module-volumedriver
   plan:
   - in_parallel:
     - get: source-repo
