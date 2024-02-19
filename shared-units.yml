@@ -365,13 +365,13 @@ jobs:
         - put: existingvolumebroker-write
           params:
             repository: destination-repo
-            branch: &go-module-branch ((.:go-module-update-branch))
+            branch: &existingvolumebroker-bump-go-module-branch ((.:go-module-update-branch))
         - task: create-go-module-bump-pull-request
           file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
           image: image-cryogenics-essentials
           params:
             BASE: master
-            BRANCH: *go-module-branch
+            BRANCH: *existingvolumebroker-bump-go-module-branch
             LABELS: dependencies
             TITLE: Bump go module ((.:go-module-update-branch))
             MESSAGE: |
@@ -450,13 +450,13 @@ jobs:
         - put: service-broker-store-write
           params:
             repository: destination-repo
-            branch: &go-module-branch ((.:go-module-update-branch))
+            branch: &service-broker-store-bump-go-module-branch ((.:go-module-update-branch))
         - task: create-go-module-bump-pull-request
           file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
           image: image-cryogenics-essentials
           params:
             BASE: master
-            BRANCH: *go-module-branch
+            BRANCH: *service-broker-store-bump-go-module-branch
             LABELS: dependencies
             TITLE: Bump go module ((.:go-module-update-branch))
             MESSAGE: |
@@ -537,13 +537,13 @@ jobs:
         - put: volumedriver-write
           params:
             repository: destination-repo
-            branch: &go-module-branch ((.:go-module-update-branch))
+            branch: &bump-volumedriver-go-module-branch ((.:go-module-update-branch))
         - task: create-go-module-bump-pull-request
           file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
           image: image-cryogenics-essentials
           params:
             BASE: master
-            BRANCH: *go-module-branch
+            BRANCH: *bump-volumedriver-go-module-branch
             LABELS: dependencies
             TITLE: Bump go module ((.:go-module-update-branch))
             MESSAGE: |
