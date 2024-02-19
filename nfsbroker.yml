@@ -167,6 +167,7 @@ jobs:
       repository: nfsbroker
 
 - name: bump-go-module
+  serial: true
   plan:
   - in_parallel:
     - get: run-once-a-week

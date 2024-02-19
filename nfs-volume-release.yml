@@ -564,6 +564,7 @@ jobs:
       RELEASE_VERSION: pre-release-cve-scan
 
 - name: bump-nfs-utils
+  serial: true
   plan:
   - in_parallel:
     - get: nfs-utils-version
@@ -626,6 +627,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-sqlite
+  serial: true
   plan:
   - in_parallel:
     - get: sqlite-release
@@ -687,6 +689,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-libevent
+  serial: true
   plan:
   - in_parallel:
     - get: libevent-release
@@ -730,6 +733,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-rpcsvc-proto
+  serial: true
   plan:
   - in_parallel:
     - get: rpcsvc-proto-release
@@ -773,6 +777,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-libtirpc
+  serial: true
   plan:
   - in_parallel:
     - get: libtirpc-version
@@ -834,6 +839,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-rpcbind
+  serial: true
   plan:
   - in_parallel:
     - get: rpcbind-version
@@ -895,6 +901,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-tcl
+  serial: true
   plan:
   - in_parallel:
     - get: tcl-version
@@ -956,6 +963,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-util-linux
+  serial: true
   plan:
   - in_parallel:
     - get: util-linux
@@ -1001,6 +1009,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-golang
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
@@ -1056,6 +1065,7 @@ jobs:
         source-repo: nfs-volume-release-write
 
 - name: update-go-directive-for-nfsv3driver
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
@@ -1102,6 +1112,7 @@ jobs:
         source-repo: nfsv3driver-write
 
 - name: update-go-directive-for-nfsbroker
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
@@ -1137,6 +1148,7 @@ jobs:
       source-repo: nfsbroker-write
 
 - name: update-go-directive-for-volumedriver
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
@@ -1183,6 +1195,7 @@ jobs:
         source-repo: volumedriver-write
 
 - name: update-go-directive-for-volume-mount-options
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
@@ -1229,6 +1242,7 @@ jobs:
         source-repo: volume-mount-options-write
 
 - name: update-go-directive-for-existingvolumebroker
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
@@ -1275,6 +1289,7 @@ jobs:
         source-repo: existingvolumebroker-write
 
 - name: update-go-directive-for-service-broker-store
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
@@ -1321,6 +1336,7 @@ jobs:
         source-repo: service-broker-store-write
 
 - name: bump-openssl
+  serial: true
   plan:
   - in_parallel:
     - get: openssl
@@ -1366,6 +1382,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-openldap
+  serial: true
   plan:
   - in_parallel:
     - get: openldap-version

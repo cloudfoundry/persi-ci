@@ -443,6 +443,7 @@ jobs:
       RELEASE_VERSION: pre-release-cve-scan
 
 - name: *bump-blob-cifs-utils-job-name
+  serial: true
   plan:
   - in_parallel:
     - get: cifs-utils-latest
@@ -503,6 +504,7 @@ jobs:
       input_mapping:
         source-repo: smb-volume-release-master-write
 - name: *bump-blob-keyutils-job-name
+  serial: true
   plan:
   - in_parallel:
     - get: keyutils-latest
@@ -564,6 +566,7 @@ jobs:
         source-repo: smb-volume-release-master-write
 
 - name: *bump-blob-autoconf-job-name
+  serial: true
   plan:
   - in_parallel:
     - get: autoconf-latest
@@ -610,6 +613,7 @@ jobs:
         source-repo: smb-volume-release-master-write
 
 - name: *bump-blob-automake-job-name
+  serial: true
   plan:
   - in_parallel:
     - get: automake-latest
@@ -655,6 +659,7 @@ jobs:
         source-repo: smb-volume-release-master-write
 
 - name: *bump-blob-talloc-job-name
+  serial: true
   plan:
   - in_parallel:
     - get: talloc-latest
@@ -716,6 +721,7 @@ jobs:
         source-repo: smb-volume-release-master-write
 
 - name: *bump-blob-libtool-job-name
+  serial: true
   plan:
   - in_parallel:
     - get: libtool-latest
@@ -761,6 +767,7 @@ jobs:
         source-repo: smb-volume-release-master-write
 
 - name: bump-golang
+  serial: true
   plan:
   - in_parallel:
     - get: cryogenics-concourse-tasks
@@ -816,6 +823,7 @@ jobs:
         source-repo: smb-volume-release-master-write
 
 - name: update-go-directive-for-smbbroker-for-gomod-directive-updates
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
@@ -866,6 +874,7 @@ jobs:
       source-repo: smbbroker-write
 
 - name: update-go-directive-for-smbdriver-for-gomod-directive-updates
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
