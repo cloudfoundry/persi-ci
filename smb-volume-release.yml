@@ -903,14 +903,14 @@ jobs:
   - put: smbdriver-write
     params:
       repository: smbdriver
-      branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
+      branch: &smbdriver-golang-vendor-update-branch bump-golang-vendor-((.:golang-release-version))
       force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-updates-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     image: cryogenics-essentials
     params:
       BASE: master
-      BRANCH: *mapfs-gomod-update-branch
+      BRANCH: *smbdriver-golang-vendor-update-branch
       LABELS: dependencies
       TITLE: Update gomod directive
       MESSAGE: |
