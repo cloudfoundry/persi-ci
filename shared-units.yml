@@ -331,7 +331,7 @@ jobs:
     params:
       bump: minor
 
-- name: bump-go-module
+- name: bump-go-module-existingvolumebroker
   plan:
   - in_parallel:
     - get: source-repo
