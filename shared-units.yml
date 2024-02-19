@@ -1,5 +1,5 @@
 ---
-#  This pipeline is set automatics, any none committed changes will be lost.
+#  This pipeline is set automatically, any non-committed changes will be lost.
 #
 # To set the pipeline, run:
 #    fly -t cryo-runway set-pipeline -p shared-units -c shared-units.yml
@@ -8,39 +8,46 @@
 # Secrets we need to run this pipeline
 # ************************************
 #! this needs to come first, else all other vars can't be resolved.
-#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
+#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created
+#! manually via the vault-cli targeting the teams cerberus vault. Example steps to create an approle are here:
+#! https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the
+#! auth method is mounted on the standard path.
 cerberus: &cerberus
   role_id: ((cerberus-auth.role_id))
   secret_id: ((cerberus-auth.secret_id))
 cerberus_url: &cerberus_url ((cerberus-auth.url))
 
-github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
-github_access_token: &github_access_token ((cerberus:github.access_token))
+cerberus_secrets:
+- &github_ssh_key ((cerberus:github.ssh_key))
+- &github_access_token ((cerberus:github.access_token))
 # SSH key/access token is used for accessing the GH release and PRs
+- &github_user ((cerberus:github.user))
+- &github_email ((cerberus:github.email))
+#! GitHub email and username are used to sign the commits and PRs for go module auto bumps. Added 2024-02-19
 
-goshims_uploader_role_id: &goshims_uploader_role_id ((cerberus:aws/volume-services/goshims-uploader.role_id))
-goshims_uploader_role_secret: &goshims_uploader_role_secret ((cerberus:aws/volume-services/goshims-uploader.role_secret))
-goshims_uploader_role_arn: &goshims_uploader_role_arn ((cerberus:aws/volume-services/goshims-uploader.role_arn))
+- &goshims_uploader_role_id ((cerberus:aws/volume-services/goshims-uploader.role_id))
+- &goshims_uploader_role_secret ((cerberus:aws/volume-services/goshims-uploader.role_secret))
+- &goshims_uploader_role_arn ((cerberus:aws/volume-services/goshims-uploader.role_arn))
 # Used to get a semver of goshims
 
-existingvolumebroker_uploader_role_id: &existingvolumebroker_uploader_role_id ((cerberus:aws/volume-services/existingvolumebroker-uploader.role_id))
-existingvolumebroker_uploader_role_secret: &existingvolumebroker_uploader_role_secret ((cerberus:aws/volume-services/existingvolumebroker-uploader.role_secret))
-existingvolumebroker_uploader_role_arn: &existingvolumebroker_uploader_role_arn ((cerberus:aws/volume-services/existingvolumebroker-uploader.role_arn))
+- &existingvolumebroker_uploader_role_id ((cerberus:aws/volume-services/existingvolumebroker-uploader.role_id))
+- &existingvolumebroker_uploader_role_secret ((cerberus:aws/volume-services/existingvolumebroker-uploader.role_secret))
+- &existingvolumebroker_uploader_role_arn ((cerberus:aws/volume-services/existingvolumebroker-uploader.role_arn))
 # Used to get a semver of existingvolumebroker
 
-service_broker_store_uploader_role_id: &service_broker_store_uploader_role_id ((cerberus:aws/volume-services/service-broker-store-uploader.role_id))
-service_broker_store_uploader_role_secret: &service_broker_store_uploader_role_secret ((cerberus:aws/volume-services/service-broker-store-uploader.role_secret))
-service_broker_store_uploader_role_arn: &service_broker_store_uploader_role_arn ((cerberus:aws/volume-services/service-broker-store-uploader.role_arn))
+- &service_broker_store_uploader_role_id ((cerberus:aws/volume-services/service-broker-store-uploader.role_id))
+- &service_broker_store_uploader_role_secret ((cerberus:aws/volume-services/service-broker-store-uploader.role_secret))
+- &service_broker_store_uploader_role_arn ((cerberus:aws/volume-services/service-broker-store-uploader.role_arn))
 # Used to get a semver of service_broker_store_uploader
 
-volumedriver_uploader_role_id: &volumedriver_uploader_role_id ((cerberus:aws/volume-services/volumedriver-uploader.role_id))
-volumedriver_uploader_role_secret: &volumedriver_uploader_role_secret ((cerberus:aws/volume-services/volumedriver-uploader.role_secret))
-volumedriver_uploader_role_arn: &volumedriver_uploader_role_arn ((cerberus:aws/volume-services/volumedriver-uploader.role_arn))
+- &volumedriver_uploader_role_id ((cerberus:aws/volume-services/volumedriver-uploader.role_id))
+- &volumedriver_uploader_role_secret ((cerberus:aws/volume-services/volumedriver-uploader.role_secret))
+- &volumedriver_uploader_role_arn ((cerberus:aws/volume-services/volumedriver-uploader.role_arn))
 # Used to get a semver of volumedriver_uploader
 
-volume_mount_options_uploader_role_id: &volume_mount_options_uploader_role_id ((cerberus:aws/volume-services/volume-mount-options-uploader.role_id))
-volume_mount_options_uploader_role_secret: &volume_mount_options_uploader_role_secret ((cerberus:aws/volume-services/volume-mount-options-uploader.role_secret))
-volume_mount_options_uploader_role_arn: &volume_mount_options_uploader_role_arn ((cerberus:aws/volume-services/volume-mount-options-uploader.role_arn))
+- &volume_mount_options_uploader_role_id ((cerberus:aws/volume-services/volume-mount-options-uploader.role_id))
+- &volume_mount_options_uploader_role_secret ((cerberus:aws/volume-services/volume-mount-options-uploader.role_secret))
+- &volume_mount_options_uploader_role_arn ((cerberus:aws/volume-services/volume-mount-options-uploader.role_arn))
 # Used to get a semver of volume_mount_options_uploader
 
 # **************
@@ -65,6 +72,9 @@ groups:
   - '*-build'
   - '*-unit'
   - '*-merge-pr'
+- name: updates
+  jobs:
+  - 'bump-*'
 
 resource_types:
 - name: semver
@@ -81,17 +91,20 @@ resource_types:
 resources:
 - name: every-monday
   type: time
+  icon: timer-outline
   source:
     days: [Monday]
 
 - name: persi-ci
   type: git
+  icon: github
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
     branch: master
 
 - name: existingvolumebroker
   type: git
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/existingvolumebroker.git
     branch: master
@@ -99,6 +112,7 @@ resources:
 
 - name: goshims
   type: git
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/goshims.git
     branch: master
@@ -106,6 +120,7 @@ resources:
 
 - name: goshims-version
   type: semver
+  icon: counter
   source:
     access_key_id: *goshims_uploader_role_id
     bucket: goshims-versions
@@ -117,6 +132,7 @@ resources:
 
 - name: existingvolumebroker-version
   type: semver
+  icon: counter
   source:
     access_key_id: *existingvolumebroker_uploader_role_id
     bucket: existingvolumebroker-versions
@@ -128,6 +144,7 @@ resources:
 
 - name: service-broker-store
   type: git
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/service-broker-store.git
     branch: master
@@ -135,6 +152,7 @@ resources:
 
 - name: service-broker-store-version
   type: semver
+  icon: counter
   source:
     access_key_id: *service_broker_store_uploader_role_id
     bucket: service-broker-store-versions
@@ -146,13 +164,22 @@ resources:
 
 - name: volumedriver
   type: git
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/volumedriver.git
     branch: master
     private_key: *github_ssh_key
 
+- name: volumedriver-write
+  type: git
+  icon: git
+  source:
+    uri: git@github.com:cloudfoundry/volumedriver.git
+    private_key: *github_ssh_key
+
 - name: volumedriver-version
   type: semver
+  icon: counter
   source:
     access_key_id: *volumedriver_uploader_role_id
     bucket: volumedriver-versions
@@ -164,6 +191,7 @@ resources:
 
 - name: volume-mount-options
   type: git
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/volume-mount-options.git
     branch: master
@@ -171,6 +199,7 @@ resources:
 
 - name: volume-mount-options-version
   type: semver
+  icon: counter
   source:
     access_key_id: *volume_mount_options_uploader_role_id
     bucket: volume-mount-options-versions
@@ -182,6 +211,7 @@ resources:
 
 - name: volumedriver-pr
   type: pull-request
+  icon: source-pull
   source:
     repository: cloudfoundry/volumedriver
     base_branch: master
@@ -190,6 +220,7 @@ resources:
 
 - name: goshims-pr
   type: pull-request
+  icon: source-pull
   source:
     repository: cloudfoundry/goshims
     base_branch: master
@@ -198,6 +229,7 @@ resources:
 
 - name: existingvolumebroker-pr
   type: pull-request
+  icon: source-pull
   source:
     repository: cloudfoundry/existingvolumebroker
     base_branch: master
@@ -206,6 +238,7 @@ resources:
 
 - name: service-broker-store-pr
   type: pull-request
+  icon: source-pull
   source:
     repository: cloudfoundry/service-broker-store
     base_branch: master
@@ -214,6 +247,7 @@ resources:
 
 - name: volume-mount-options-pr
   type: pull-request
+  icon: source-pull
   source:
     repository: cloudfoundry/volume-mount-options
     base_branch: master
@@ -222,9 +256,25 @@ resources:
 
 - name: image-golang
   type: registry-image
+  icon: docker
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/golang
     tag: latest
+
+- name: image-cryogenics-essentials
+  type: registry-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/cryogenics/essentials
+    tag: latest
+
+- name: cryogenics-concourse-tasks
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+    branch: main
+    private_key: *github_ssh_key
 
 jobs:
 - name: existingvolumebroker-unit
@@ -351,6 +401,49 @@ jobs:
   - put: volumedriver-version
     params:
       bump: minor
+
+- name: bump-go-module
+  plan:
+  - in_parallel:
+    - get: source-repo
+      resource: volumedriver
+    - get: cryogenics-concourse-tasks
+    - get: image-cryogenics-essentials
+    - get: every-monday
+      trigger: true
+  - task: bump-go-module
+    file: cryogenics-concourse-tasks/deps-automation/bump-go-module/task.yml
+    image: image-cryogenics-essentials
+    params:
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      ROOT_DIRECTORIES: .
+  - try:
+      load_var: go-module-update-branch
+      file: destination-repo/.update-branch-name
+      on_success:
+        do:
+        - put: volumedriver-write
+          params:
+            repository: destination-repo
+            branch: &go-module-branch ((.:go-module-update-branch))
+        - task: create-go-module-bump-pull-request
+          file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+          image: image-cryogenics-essentials
+          params:
+            BASE: master
+            BRANCH: *go-module-branch
+            LABELS: dependencies
+            TITLE: Bump go module ((.:go-module-update-branch))
+            MESSAGE: |
+              This is an automatically generated Pull Request from the Cryogenics CI Bot.
+
+              I have detected a new version of a go module and automatically bumped
+              it to benefit from the latest changes.
+
+              If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+          input_mapping:
+            source-repo: volumedriver-write
 
 - name: volume-mount-options-unit
   public: true
