@@ -4,22 +4,32 @@
 #!  To set pipeline manually run:
 #!    fly set-pipeline -p smbdriver -c smbdriver.yml
 
-# ************************************
-# Secrets we need to run this pipeline
-# ************************************
+#! ************************************
+#! Secrets we need to run this pipeline
+#! ************************************
 
 #! this needs to come first, else all other vars can't be resolved.
-#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
+#! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created
+#! manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here:
+#! https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the
+#! auth method is mounted on the standard path.
 cerberus: &cerberus
   role_id: ((cerberus-auth.role_id))
   secret_id: ((cerberus-auth.secret_id))
 cerberus_url: &cerberus_url ((cerberus-auth.url))
 
-github_access_token: &github_access_token ((cerberus:github.access_token))
+cerberus_secrets:
+- &github_access_token ((cerberus:github.access_token))
+- &github_ssh_key ((cerberus:github.ssh_key))
+#! GitHub SSH Key is used to push git commits and accessing repositories. Added 2024-02-19
+- &github_user ((cerberus:github.user))
+- &github_email ((cerberus:github.email))
+#! GitHub email and username are used to sign the commits and PRs for go module auto bumps. Added 2024-02-19
 
-# **************
-# End of secrets
-# **************
+
+#! **************
+#! End of secrets
+#! **************
 
 var_sources:
 - name: cerberus
@@ -30,6 +40,16 @@ var_sources:
     url: *cerberus_url
     path_prefix: secret
 
+groups:
+- name: test
+  jobs:
+  - unit-test
+  - security-scan
+  - integration
+  - merge-pr
+- name: updates
+  jobs:
+  - bump-go-module
 
 resource_types:
 - name: pull-request
@@ -40,42 +60,87 @@ resource_types:
 resources:
 - name: smbdriver
   type: pull-request
+  icon: source-pull
   source:
     repository: cloudfoundry/smbdriver
     base_branch: master
     disable_forks: true
     access_token: *github_access_token
 
+- name: git-smbdriver
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/smbdriver.git
+    private_key: *github_ssh_key
+    branch: master
+
+- name: git-smbdriver-write
+  type: git
+  icon: git
+  source:
+    uri: git@github.com:cloudfoundry/smbdriver.git
+    private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - ;resource comment; This resource is used exclusively for pushing new changes
+
 - name: persi-ci
   type: git
+  icon: github
   source:
     uri: https://github.com/cloudfoundry/persi-ci.git
     branch: master
 
 - name: docker_driver_integration_tests
   type: git
+  icon: github
   source:
     branch: main
     uri: https://github.com/cloudfoundry/docker_driver_integration_tests
 
+- name: cryogenics-concourse-tasks
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+    branch: main
+    private_key: *github_ssh_key
+
 - name: image-nfs-unit-tests
   type: docker-image
+  icon: docker
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
     tag: latest
 
 - name: image-golang
   type: registry-image
+  icon: docker
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/golang
     tag: latest
 
 - name: image-bosh
   type: docker-image
+  icon: docker
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/bosh/docker-cpi
     privileged: true
     tag: latest
+
+- name: image-cryogenics-essentials
+  type: docker-image
+  icon: docker
+  source:
+    repository: harbor-repo.vmware.com/cryogenics/essentials
+    tag: latest
+
+- name: run-once-a-week
+  type: time
+  icon: clock-outline
+  source:
+    days: [ Monday ]
 
 jobs:
 - name: unit-test
@@ -150,3 +215,46 @@ jobs:
     params:
       merge: true
       repository: smbdriver
+
+- name: bump-go-module
+  plan:
+  - in_parallel:
+    - get: source-repo
+      resource: git-smbdriver
+    - get: cryogenics-concourse-tasks
+    - get: image-cryogenics-essentials
+    - get: run-once-a-week
+      trigger: true
+  - task: bump-go-module
+    file: cryogenics-concourse-tasks/deps-automation/bump-go-module/task.yml
+    image: image-cryogenics-essentials
+    params:
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+      ROOT_DIRECTORIES: .
+  - try:
+      load_var: go-module-update-branch
+      file: destination-repo/.update-branch-name
+      on_success:
+        do:
+        - put: git-smbdriver-write
+          params:
+            repository: destination-repo
+            branch: &go-module-branch ((.:go-module-update-branch))
+        - task: create-go-module-bump-pull-request
+          file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+          image: image-cryogenics-essentials
+          params:
+            BASE: master
+            BRANCH: *go-module-branch
+            LABELS: dependencies
+            TITLE: Bump go module ((.:go-module-update-branch))
+            MESSAGE: |
+              This is an automatically generated Pull Request from the Cryogenics CI Bot.
+
+              I have detected a new version of a go module and automatically bumped
+              it to benefit from the latest changes.
+
+              If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+          input_mapping:
+            source-repo: git-smbdriver-write
