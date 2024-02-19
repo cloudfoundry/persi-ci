@@ -459,6 +459,7 @@ resources:
 
 jobs:
 - name: bump-libevent
+  serial: true
   plan:
   - in_parallel:
     - get: libevent-release
@@ -502,6 +503,7 @@ jobs:
         LABELS: dependencies,v5
 
 - name: bump-rpcsvc-proto
+  serial: true
   plan:
   - in_parallel:
     - get: rpcsvc-proto-release
@@ -545,6 +547,7 @@ jobs:
         LABELS: dependencies,v5
 
 - name: bump-libtirpc
+  serial: true
   plan:
   - in_parallel:
     - get: libtirpc-version
@@ -606,6 +609,7 @@ jobs:
         LABELS: dependencies,v5
 
 - name: bump-rpcbind
+  serial: true
   plan:
   - in_parallel:
     - get: rpcbind-version
@@ -667,6 +671,7 @@ jobs:
         LABELS: dependencies,v5
 
 - name: bump-tcl
+  serial: true
   plan:
   - in_parallel:
     - get: tcl-version
@@ -728,6 +733,7 @@ jobs:
         LABELS: dependencies,v5
 
 - name: bump-util-linux
+  serial: true
   plan:
   - in_parallel:
     - get: util-linux
@@ -772,6 +778,7 @@ jobs:
         TITLE: "Bump util-linux to v((.:util-linux-version))"
         LABELS: dependencies,v5
 - name: bump-sqlite
+  serial: true
   plan:
   - in_parallel:
     - get: sqlite-release
@@ -832,6 +839,7 @@ jobs:
         TITLE: "Bump SQLite to v((.:sqlite-version))"
         LABELS: dependencies,v5
 - name: bump-nfs-utils
+  serial: true
   plan:
   - in_parallel:
     - get: nfs-utils-version
@@ -893,6 +901,7 @@ jobs:
         TITLE: "Bump NFS-Utils to v((.:nfs-utils.version.ref))"
         LABELS: dependencies,v5
 - name: bump-openldap
+  serial: true
   plan:
   - in_parallel:
     - get: openldap-version
@@ -955,6 +964,7 @@ jobs:
         LABELS: dependencies,v5
 
 - name: bump-openssl
+  serial: true
   plan:
   - in_parallel:
     - get: openssl
@@ -999,6 +1009,7 @@ jobs:
         TITLE: "Bump OpenSSL to v((.:new-version))"
         LABELS: dependencies,v5
 - name: bump-golang
+  serial: true
   plan:
   - in_parallel:
     - get: image-cryo-essentials
@@ -1056,6 +1067,7 @@ jobs:
         source-repo: nfs-volume-release-lts-write
 
 - name: update-go-directive-for-nfsv3driver
+  serial: true
   plan:
   - in_parallel:
     - get: image-cryo-essentials
@@ -1101,6 +1113,7 @@ jobs:
         source-repo: nfsv3driver-v5-write
 
 - name: update-go-directive-for-nfsbroker
+  serial: true
   plan:
   - in_parallel:
     - get: image-cryo-essentials

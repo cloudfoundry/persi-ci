@@ -374,6 +374,7 @@ jobs:
       RELEASE_VERSION: pre-release-cve-scan
 
 - name: bump-libfuse
+  serial: true
   plan:
   - in_parallel:
     - get: cryogenics-concourse-tasks
@@ -419,6 +420,7 @@ jobs:
         LABELS: dependencies
 
 - name: bump-golang
+  serial: true
   plan:
   - in_parallel:
     - get: cryogenics-concourse-tasks
@@ -475,6 +477,7 @@ jobs:
         source-repo: mapfs-release-write
 
 - name: update-go-directive-for-mapfs
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
@@ -525,6 +528,7 @@ jobs:
       source-repo: mapfs-write
 
 - name: update-go-directive-for-mapfs-release
+  serial: true
   plan:
   - in_parallel:
     - get: golang-release
