@@ -312,18 +312,10 @@ resources:
   type: registry-image
   icon: docker
   source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/essentials/cryo-essnetials
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/essentials/cryo-essentials
     username: _json_key
     password: *gcr_viewer_key
 
-
-- name: ruby
-  type: registry-image
-  icon: docker
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/ruby
-    username: _json_key
-    password: *gcr_viewer_key
 
 - name: python-394
   type: registry-image
@@ -956,7 +948,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: ruby
+      - get: cryogenics-essentials
       - get: smb-volume-release
         trigger: true
       - get: stemcell
