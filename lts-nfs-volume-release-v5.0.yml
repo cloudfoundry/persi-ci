@@ -1132,7 +1132,7 @@ jobs:
   - put: nfsv3driver-v5-write
     params:
       repository: nfsv3driver-v5
-      branch: &golang-vendor-branch bump-golang-vendor-((.:golang-release-version))-into-v5
+      branch: &golang-vendor-branch-anchor bump-golang-vendor-((.:golang-release-version))-into-v5
   - try:
       # We've seen cases where there are 2 or more new releases of
       # golang-release which causes this job to trigger 2x or more. A PR will
@@ -1149,7 +1149,7 @@ jobs:
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
         BASE: {{lts-nfs-branch}}
-        BRANCH: *golang-vendor-branch
+        BRANCH: *golang-vendor-branch-anchor
         LABELS: dependencies,v5
         TITLE: Update vendored package golang-1-linux
         MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
