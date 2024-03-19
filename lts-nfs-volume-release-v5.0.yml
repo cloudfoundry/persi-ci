@@ -241,7 +241,7 @@ resources:
   icon: docker
   type: registry-image
   source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/bosh/integration
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/bosh/integration
     tag: main
     username: _json_key
     password: *gcr_viewer_key
