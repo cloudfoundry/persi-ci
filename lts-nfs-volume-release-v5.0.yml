@@ -246,21 +246,6 @@ resources:
     username: _json_key
     password: *gcr_viewer_key
 
-- name: cfpersi-nfs-unit-tests-docker
-  icon: docker
-  type: registry-image
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfpersi/nfs-unit-tests
-    tag: latest
-    username: _json_key
-    password: *gcr_viewer_key
-
-- name: cfpersi-nfs-integration-tests-docker
-  icon: docker
-  type: registry-image
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfpersi/nfs-integration-tests
-    tag: latest
 
 - name: slack-cryo-notification
   type: slack-notification
@@ -489,6 +474,7 @@ jobs:
       trigger: true
     - get: cryogenics-concourse-tasks
     - get: nfs-volume-release-lts
+    - get: image-cryogenics-essentials
   - load_var: libevent-version
     file: libevent-release/version
   - task: bump
@@ -535,6 +521,7 @@ jobs:
       trigger: true
     - get: cryogenics-concourse-tasks
     - get: nfs-volume-release-lts
+    - get: image-cryogenics-essentials
   - load_var: rpcsvc-proto-version
     file: rpcsvc-proto-release/version
   - task: bump
@@ -1210,11 +1197,11 @@ jobs:
   plan:
   - in_parallel:
     - get: persi-ci
-    - get: cfpersi-nfs-unit-tests-docker
+    - get: image-cryogenics-essentials
     - get: nfs-volume-release
       trigger: true
   - task: build
-    image: cfpersi-nfs-unit-tests-docker
+    image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/security-scan.build.yml
     params:
       PATHS: "src/code.cloudfoundry.org/nfsv3driver/:src/code.cloudfoundry.org/nfsbroker/"
@@ -1226,14 +1213,14 @@ jobs:
   public: true
   plan:
   - in_parallel:
-    - get: cfpersi-nfs-unit-tests-docker
+    - get: image-cryogenics-essentials
     - get: nfs-volume-release-concourse-tasks
       params:
         submodules: none
     - get: nfs-volume-release
       trigger: true
   - task: build
-    image: cfpersi-nfs-unit-tests-docker
+    image: image-cryogenics-essentials
     file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
 
 - name: nfsbroker-tests
@@ -1295,7 +1282,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: cfpersi-nfs-integration-tests-docker
+      - get: image-cryogenics-essentials
       - get: persi-ci
       - get: docker_driver_integration_tests
       - get: nfs-volume-release-concourse-tasks
@@ -1311,19 +1298,19 @@ jobs:
       fail_fast: true
       steps:
       - task: run_docker_driver_integration_tests
-        image: cfpersi-nfs-integration-tests-docker
+        image: image-cryogenics-essentials
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
       - task: run_docker_driver_lazy_unmount_integration_tests
-        image: cfpersi-nfs-integration-tests-docker
+        image: image-cryogenics-essentials
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
       - task: run_driver_broker_compatibility_tests
-        image: cfpersi-nfs-integration-tests-docker
+        image: image-cryogenics-essentials
         privileged: true
         input_mapping:
           director-state: bbl-state
