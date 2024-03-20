@@ -1291,6 +1291,7 @@ jobs:
       - get: image-cryogenics-essentials
       - get: persi-ci
       - get: docker_driver_integration_tests
+      - get: cfpersi-nfs-integration-tests
       - get: nfs-volume-release-concourse-tasks
         params:
           submodules: none
