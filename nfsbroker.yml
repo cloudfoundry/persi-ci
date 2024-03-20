@@ -11,8 +11,8 @@
 #! this needs to come first, else all other vars can't be resolved.
 #! cerberus creds are required to access the teams vault instance managed by cerberus. The creds have been created manually via the vault-cli targetting the teams cerberus vault. Example steps to create an approle are here: https://developer.hashicorp.com/vault/docs/auth/approle the required value for policies is `restricted-admin` the auth method is mounted on the standard path.
 cerberus: &cerberus
-  role_id: e3ec12b4-fee3-fab0-7e19-b3931c3251f0
-  secret_id: 30e7e91f-d88a-12ce-a705-f305929bedec
+  role_id: ((cerberus-auth.role_id))
+  secret_id: ((cerberus-auth.secret_id))
 cerberus_url: &cerberus_url https://vault.console.cerberus.vmware.com/add164e1-f7fe-4e62-a548-a65690758636/
 
 secrets:
