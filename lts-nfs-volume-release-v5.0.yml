@@ -140,6 +140,12 @@ resource_types:
     password: *gcr_viewer_key
 
 resources:
+- name: cfpersi-nfs-integration-tests
+  type: registry-image
+  source:
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfpersi/nfs-integration-tests
+    username: _json_key
+    password: *gcr_viewer_key
 - name: image-cryogenics-essentials
   type: registry-image
   source:
@@ -1298,19 +1304,19 @@ jobs:
       fail_fast: true
       steps:
       - task: run_docker_driver_integration_tests
-        image: image-cryogenics-essentials
+        image: cfpersi-nfs-integration-tests
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
       - task: run_docker_driver_lazy_unmount_integration_tests
-        image: image-cryogenics-essentials
+        image: cfpersi-nfs-integration-tests
         file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
       - task: run_driver_broker_compatibility_tests
-        image: image-cryogenics-essentials
+        image: cfpersi-nfs-integration-tests
         privileged: true
         input_mapping:
           director-state: bbl-state
