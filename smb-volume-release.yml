@@ -308,7 +308,7 @@ resources:
       exclude:
       - ;resource comment; This resource is used exclusively for pushing new changes
 
-- name: cryogenics-essentials
+- name: image-cryogenics-essentials
   type: registry-image
   icon: docker
   source:
@@ -323,30 +323,6 @@ resources:
   source:
     repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/python
     tag: 3.9.4
-    username: _json_key
-    password: *gcr_viewer_key
-
-- name: image-cf-deployment-concourse-tasks
-  type: registry-image
-  icon: docker
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/relintdockerhubpushbot/cf-deployment-concourse-tasks
-    username: _json_key
-    password: *gcr_viewer_key
-
-- name: image-backup-and-restore
-  type: registry-image
-  icon: docker
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/pcfplatformrecovery/backup-and-restore
-    username: _json_key
-    password: *gcr_viewer_key
-
-- name: image-busybox
-  type: registry-image
-  icon: docker
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/busybox
     username: _json_key
     password: *gcr_viewer_key
 
@@ -466,12 +442,11 @@ jobs:
   - in_parallel:
     - get: cifs-utils-latest
       trigger: true
-    - get: cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
-    - get: image-busybox
+    - get: image-cryogenics-essentials
   - task: create-blob-tarball-and-version
-    image: image-busybox
+    image: image-cryogenics-essentials
     config:
       platform: linux
       run:
@@ -488,8 +463,8 @@ jobs:
   - load_var: cifs-utils-version
     file: distributed-package/version
   - task: bump-cifs-utils
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
-    image: cryogenics-essentials
     input_mapping:
       bosh-release: smb-volume-release-master
     params:
@@ -507,8 +482,8 @@ jobs:
       branch: *bump-cifs-utils-branch
   - try:
       task: create-cifs-utils-update-pr
+      image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      image: cryogenics-essentials
       params:
         BASE: master
         BRANCH: *bump-cifs-utils-branch
@@ -527,12 +502,11 @@ jobs:
   - in_parallel:
     - get: keyutils-latest
       trigger: true
-    - get: cryogenics-essentials
+    - get: image-cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
-    - get: image-busybox
   - task: create-blob-tarball-and-version
-    image: image-busybox
+    image: image-cryogenics-essentials
     config:
       platform: linux
       run:
@@ -549,8 +523,8 @@ jobs:
   - load_var: keyutils-version
     file: distributed-package/version
   - task: bump-keyutils
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
-    image: cryogenics-essentials
     input_mapping:
       bosh-release: smb-volume-release-master
     params:
@@ -568,8 +542,8 @@ jobs:
       branch: *bump-keyutils-branch
   - try:
       task: create-keyutils-update-pr
+      image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      image: cryogenics-essentials
       params:
         BASE: master
         BRANCH: *bump-keyutils-branch
@@ -589,14 +563,14 @@ jobs:
   - in_parallel:
     - get: autoconf-latest
       trigger: true
-    - get: cryogenics-essentials
+    - get: image-cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
   - load_var: autoconf-version
     file: autoconf-latest/version
   - task: bump-autoconf
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
-    image: cryogenics-essentials
     input_mapping:
       distributed-package: autoconf-latest
       bosh-release: smb-volume-release-master
@@ -615,8 +589,8 @@ jobs:
       branch: *bump-autoconf-branch
   - try:
       task: create-autoconf-update-pr
+      image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      image: cryogenics-essentials
       params:
         BASE: master
         BRANCH: *bump-autoconf-branch
@@ -636,14 +610,14 @@ jobs:
   - in_parallel:
     - get: automake-latest
       trigger: true
-    - get: cryogenics-essentials
+    - get: image-cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
   - load_var: automake-version
     file: automake-latest/version
   - task: bump-automake
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
-    image: cryogenics-essentials
     input_mapping:
       distributed-package: automake-latest
       bosh-release: smb-volume-release-master
@@ -661,8 +635,8 @@ jobs:
       branch: *bump-automake-branch
   - try:
       task: create-automake-update-pr
+      image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      image: cryogenics-essentials
       params:
         BASE: master
         BRANCH: *bump-automake-branch
@@ -682,15 +656,14 @@ jobs:
   - in_parallel:
     - get: talloc-latest
       trigger: true
-    - get: cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
-    - get: image-busybox
+    - get: image-cryogenics-essentials
   - load_var: talloc-version
     file: talloc-latest/version
     format: json
   - task: rewrite-version-file
-    image: image-busybox
+    image: image-cryogenics-essentials
     config:
       platform: linux
       run:
@@ -703,8 +676,8 @@ jobs:
       outputs:
       - name: distributed-package
   - task: bump-talloc
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
-    image: cryogenics-essentials
     input_mapping:
       bosh-release: smb-volume-release-master
     params:
@@ -723,8 +696,8 @@ jobs:
       branch: *bump-talloc-branch
   - try:
       task: create-talloc-update-pr
+      image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      image: cryogenics-essentials
       params:
         BASE: master
         BRANCH: *bump-talloc-branch
@@ -744,14 +717,14 @@ jobs:
   - in_parallel:
     - get: libtool-latest
       trigger: true
-    - get: cryogenics-essentials
+    - get: image-cryogenics-essentials
     - get: smb-volume-release-master
     - get: cryogenics-concourse-tasks
   - load_var: libtool-version
     file: libtool-latest/version
   - task: bump-libtool
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
-    image: cryogenics-essentials
     input_mapping:
       distributed-package: libtool-latest
       bosh-release: smb-volume-release-master
@@ -769,8 +742,8 @@ jobs:
       branch: *bump-libtool-branch
   - try:
       task: create-libtool-update-pr
+      image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      image: cryogenics-essentials
       params:
         BASE: master
         BRANCH: *bump-libtool-branch
@@ -792,12 +765,12 @@ jobs:
     - get: golang-release
       trigger: true
     - get: smb-volume-release-bump-golang-master
-    - get: cryogenics-essentials
+    - get: image-cryogenics-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
   - task: bump-golang
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-golang/task.yml
-    image: cryogenics-essentials
     input_mapping:
       release: smb-volume-release-bump-golang-master
       vendored-package-release: golang-release
@@ -825,8 +798,8 @@ jobs:
       # saying "Your branch is up-to-date with
       # 'origin/golang-vendor-update'."
       task: create-golang-vendor-pull-request
+      image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      image: cryogenics-essentials
       params:
         BASE: master
         BRANCH: *golang-vendor-branch
@@ -852,10 +825,10 @@ jobs:
       passed:
       - bump-golang
     - get: smbbroker
-    - get: cryogenics-essentials
+    - get: image-cryogenics-essentials
   - task: update-go-directive
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
-    image: cryogenics-essentials
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: smbbroker
@@ -873,8 +846,8 @@ jobs:
       branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
       force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-updates-pull-request
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-    image: cryogenics-essentials
     params:
       BASE: master
       BRANCH: *mapfs-gomod-update-branch
@@ -903,10 +876,10 @@ jobs:
       passed:
       - bump-golang
     - get: smbdriver
-    - get: cryogenics-essentials
+    - get: image-cryogenics-essentials
   - task: update-go-directive
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
-    image: cryogenics-essentials
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: smbdriver
@@ -924,8 +897,8 @@ jobs:
       branch: &smbdriver-golang-vendor-update-branch bump-golang-vendor-((.:golang-release-version))
       force: true  # If the last PR got stuck just overwrite it with new stuff
   - task: create-gomod-directive-updates-pull-request
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-    image: cryogenics-essentials
     params:
       BASE: master
       BRANCH: *smbdriver-golang-vendor-update-branch
@@ -948,7 +921,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
-      - get: cryogenics-essentials
+      - get: image-cryogenics-essentials
       - get: smb-volume-release
         trigger: true
       - get: stemcell
@@ -961,12 +934,12 @@ jobs:
           resource: cf-deployment
           timeout: 6h
   - task: rspec
-    image: cryogenics-essentials
+    image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/run-rspec.build.yml
     input_mapping:
       test-repo: smb-volume-release
   - task: bosh-release-test
-    image: cryogenics-essentials
+    image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/run_bosh_release_tests.build.yml
     attempts: 1
     input_mapping:
@@ -990,36 +963,35 @@ jobs:
         passed: [ smb-volume-release-job-tests ]
         trigger: true
       - get: cf-deployment-concourse-tasks
-      - get: image-cf-deployment-concourse-tasks
-      - get: cryogenics-essentials
+      - get: image-cryogenics-essentials
       - get: cf-deployment
       - get: persi-ci
       - get: smb-volume-release
         passed: [ smb-volume-release-job-tests ]
   - task: pin-cf-deployment-version
+    image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
-    image: cryogenics-essentials
     input_mapping:
       toolsmiths-env: cf-deployment-env
   - task: collect-persi-ci-ops-files
+    image: image-cryogenics-essentials
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    image: cryogenics-essentials
     input_mapping:
       base-ops-files: cf-deployment-pinned
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
   - task: generate-variables
+    image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/generate_variables.build.yml
-    image: cryogenics-essentials
     params:
       GENERATE_NFS_VARS: false
       GENERATE_SMB_VARS: true
       SMB_USERNAME: *pats_username
       SMB_PASSWORD: *pats_password
   - task: bosh-deploy-cf
+    image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
-    image: cryogenics-essentials
     input_mapping:
       cf-deployment: cf-deployment-pinned
       toolsmiths-env: cf-deployment-env
@@ -1035,16 +1007,16 @@ jobs:
                   updated-smb-releases.yml
                   operations/experimental/fast-deploy-with-downtime-and-danger.yml"
   - task: run-smoke-tests
+    image: image-cryogenics-essentials
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    image: cryogenics-essentials
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
       ERRAND_NAME: smoke_tests
   - task: run-smb-broker-errand
+    image: image-cryogenics-essentials
     attempts: 3
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    image: cryogenics-essentials
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
@@ -1067,11 +1039,10 @@ jobs:
       - get: persi-ci
       - get: cf-acceptance-tests
       - get: cf-deployment-concourse-tasks
-      - get: image-cf-deployment-concourse-tasks
-      - get: cryogenics-essentials
+      - get: image-cryogenics-essentials
   - task: generate-cats-config
+    image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/generate_cats_config.build.yml
-    image: cryogenics-essentials
     input_mapping:
       smith-env: cf-deployment-env
     params:
@@ -1081,8 +1052,8 @@ jobs:
       PLAN_NAME: Existing
       CREATE_CONFIG: *cats_create_config
   - task: run-cats
+    image: image-cryogenics-essentials
     file: cf-deployment-concourse-tasks/run-cats/task.yml
-    image: cryogenics-essentials
     input_mapping:
       integration-config: cats-config
     params:
@@ -1100,13 +1071,13 @@ jobs:
       - get: bbr-binary-release
       - get: disaster-recovery-acceptance-tests
       - get: persi-ci
-      - get: cryogenics-essentials
+      - get: image-cryogenics-essentials
       - get: cf-deployment-env
         passed: [ cats ]
         trigger: true
   - task: generate-integration-config
+    image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/generate-drats-integration-config.build.yml
-    image: cryogenics-essentials
     params:
       INTEGRATION_CONFIG_FILE_PATH: config/drats-smb.json
     input_mapping:
@@ -1114,8 +1085,8 @@ jobs:
       smith-env: cf-deployment-env
 
   - task: drats-with-integration-config
+    image: image-cryogenics-essentials
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
-    image: cryogenics-essentials
     privileged: true
     input_mapping:
       drats-integration-config: updated-integration-configs
@@ -1134,13 +1105,13 @@ jobs:
         trigger: true
       - get: smb-volume-release
         passed: [ deploy-cf ]
-      - get: cryogenics-essentials
+      - get: image-cryogenics-essentials
       - get: smb-volume-release-concourse-tasks
         params:
           submodules: none
   - task: generate-pats-config-smb
+    image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/generate_pats_config.build.yml
-    image: cryogenics-essentials
     input_mapping:
       smith-env: cf-deployment-env
     params:
@@ -1155,10 +1126,10 @@ jobs:
     output_mapping:
       pats-config: smb-pats-config
   - task: run-pats-smb
+    image: image-cryogenics-essentials
     input_mapping:
       pats-config: smb-pats-config
     file: persi-ci/scripts/ci/run-pats.build.yml
-    image: cryogenics-essentials
     attempts: 3
     params:
       PARALLEL_NODES: 5
@@ -1207,8 +1178,7 @@ jobs:
       steps:
       - get: persi-ci
       - get: cryogenics-concourse-tasks
-      - get: cryogenics-essentials
-      - get: image-backup-and-restore
+      - get: image-cryogenics-essentials
       - get: python-394
       - get: smb-volume-release-master-production-files-only
         trigger: true
@@ -1223,8 +1193,8 @@ jobs:
         params:
           bump: final
   - task: create-final-release
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/bosh-tasks/create-release/task.yml
-    image: cryogenics-essentials
     input_mapping:
       release-repo: release
     output_mapping:
@@ -1239,15 +1209,15 @@ jobs:
       FINAL: true
       RELEASE_NAME: smb-volume
   - task: create-release-notes
-    file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
     image: python-394
+    file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
     input_mapping:
       git-repo: release
     params:
       USE_LATEST_PUBLISHED_TAG: true
   - task: format-release-notes
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/release-automation/format-release-notes/task.yml
-    image: cryogenics-essentials
     input_mapping:
       template-folder: cryogenics-concourse-tasks
     params:
