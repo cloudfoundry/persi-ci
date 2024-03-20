@@ -47,7 +47,7 @@ groups:
 
 resource_types:
 - name: pull-request
-  type: docker-image
+  type: registry-image
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
 
