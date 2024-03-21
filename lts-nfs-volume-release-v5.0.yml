@@ -272,14 +272,6 @@ resources:
   source:
     interval: 168h  # 24h*7days
 
-- name: nfs-volume-release-concourse-tasks
-  type: git
-  icon: github
-  source:
-    branch: {{lts-nfs-branch}}
-    private_key: *github_ssh_key
-    uri: https://github.com/cloudfoundry/nfs-volume-release.git
-
 - name: shepherd-env
   type: pcf-pool
   icon: pool
@@ -1220,14 +1212,11 @@ jobs:
   plan:
   - in_parallel:
     - get: image-cryogenics-essentials
-    - get: nfs-volume-release-concourse-tasks
-      params:
-        submodules: none
     - get: nfs-volume-release
       trigger: true
   - task: build
     image: image-cryogenics-essentials
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_driver_unit.build.yml
+    file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
 
 - name: nfsbroker-tests
   public: true
@@ -1236,15 +1225,12 @@ jobs:
       fail_fast: true
       steps:
       - get: bosh-integration-docker
-      - get: nfs-volume-release-concourse-tasks
-        params:
-          submodules: none
       - get: nfs-volume-release
         trigger: true
       - get: credhub
   - task: run-test
     image: bosh-integration-docker
-    file: nfs-volume-release-concourse-tasks/scripts/ci/run_broker_integration.build.yml
+    file: nfs-volume-release/scripts/ci/run_broker_integration.build.yml
 
 - name: nfs-volume-release-job-tests
   plan:
@@ -1292,9 +1278,6 @@ jobs:
       - get: persi-ci
       - get: docker_driver_integration_tests
       - get: cfpersi-nfs-integration-tests
-      - get: nfs-volume-release-concourse-tasks
-        params:
-          submodules: none
       - get: nfs-volume-release
         passed:
         - nfsdriver-unit
@@ -1306,13 +1289,13 @@ jobs:
       steps:
       - task: run_docker_driver_integration_tests
         image: cfpersi-nfs-integration-tests
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+        file: nfs-volume-release/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
       - task: run_docker_driver_lazy_unmount_integration_tests
         image: cfpersi-nfs-integration-tests
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+        file: nfs-volume-release/scripts/ci/run_docker_driver_integration_tests.build.yml
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
@@ -1323,7 +1306,7 @@ jobs:
           director-state: bbl-state
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
-        file: nfs-volume-release-concourse-tasks/scripts/ci/run_docker_driver_integration_tests.build.yml
+        file: nfs-volume-release/scripts/ci/run_docker_driver_integration_tests.build.yml
 
 - name: claim-env
   plan:
