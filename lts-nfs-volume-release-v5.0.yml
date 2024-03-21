@@ -1292,12 +1292,16 @@ jobs:
       - task: run_docker_driver_integration_tests
         image: cfpersi-nfs-integration-tests
         file: nfs-volume-release/scripts/ci/run_docker_driver_integration_tests.build.yml
+        input_mapping:
+          nfs-volume-release-concourse-tasks: nfs-volume-release
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/
       - task: run_docker_driver_lazy_unmount_integration_tests
         image: cfpersi-nfs-integration-tests
         file: nfs-volume-release/scripts/ci/run_docker_driver_integration_tests.build.yml
+        input_mapping:
+          nfs-volume-release-concourse-tasks: nfs-volume-release
         privileged: true
         params:
           TEST_PACKAGE: docker_driver_integration_tests/lazy_unmount
@@ -1306,6 +1310,7 @@ jobs:
         privileged: true
         input_mapping:
           director-state: bbl-state
+          nfs-volume-release-concourse-tasks: nfs-volume-release
         params:
           TEST_PACKAGE: docker_driver_integration_tests/compatibility
         file: nfs-volume-release/scripts/ci/run_docker_driver_integration_tests.build.yml
