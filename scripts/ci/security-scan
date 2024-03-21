@@ -1,22 +1,17 @@
 #!/bin/bash
 set -eux
 
-export GOROOT=/usr/local/go
-export PATH=$GOROOT/bin:$PATH
-
 pushd release-dir
     if [[ ! -z "${RELEASE_DIR}" ]]; then
         export GOPATH=$PWD
         export PATH=$PWD/bin:$PATH
     fi
 
-    GO111MODULE=on go install github.com/securego/gosec/v2/cmd/gosec@v2.18.2
-
     IFS=':' read -r -a array <<< "$PATHS"
 
     for path in "${array[@]}"; do
       pushd $path
-        GO111MODULE=auto gosec "./..."
+        go run github.com/securego/gosec/v2/cmd/gosec@latest ./...
       popd
     done
 
