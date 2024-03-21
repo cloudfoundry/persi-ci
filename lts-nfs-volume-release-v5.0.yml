@@ -1232,6 +1232,8 @@ jobs:
       - get: credhub
   - task: run-test
     image: bosh-integration-docker
+    input_mapping:
+      nfs-volume-release-concourse-tasks: nfs-volume-release
     file: nfs-volume-release/scripts/ci/run_broker_integration.build.yml
 
 - name: nfs-volume-release-job-tests
