@@ -1216,6 +1216,8 @@ jobs:
       trigger: true
   - task: build
     image: image-cryogenics-essentials
+    input_mapping:
+      nfs-volume-release-concourse-tasks: nfs-volume-release
     file: nfs-volume-release/scripts/ci/run_driver_unit.build.yml
 
 - name: nfsbroker-tests
