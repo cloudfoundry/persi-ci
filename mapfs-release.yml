@@ -714,6 +714,7 @@ jobs:
       fail_fast: true
       steps:
       - get: persi-ci
+      - get: image-cryogenics-essentials
       - get: nfs-volume-release
         passed:
         - env-gate
