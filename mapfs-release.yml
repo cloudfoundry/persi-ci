@@ -364,12 +364,10 @@ jobs:
   - in_parallel:
     - get: git-concourse-cve-scan
     - get: github-release-tas-cve
-    - get: image-cryogenics-essentials
     - get: mapfs-release
       trigger: true
     - get: git-tas-vex
   - task: run-scan
-    image: image-cryogenics-essentials
     file: git-concourse-cve-scan/tasks/scan/scan.yml
     input_mapping:
       concourse-cve-scan: git-concourse-cve-scan
