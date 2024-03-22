@@ -118,7 +118,8 @@ resources:
   icon: docker
   source:
     repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/bosh/docker-cpi
-    privileged: true
+    username: _json_key
+    password: *gcr_viewer_key
     tag: latest
 
 - name: image-cryogenics-essentials
