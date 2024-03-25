@@ -113,6 +113,15 @@ resources:
     password: *gcr_viewer_key
     tag: latest
 
+- name: cfpersi-mapfs-tests
+  icon: docker
+  type: registry-image
+  source:
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfpersi/mapfs-tests
+    username: _json_key
+    password: *gcr_viewer_key
+    tag: latest
+
 - name: fstest
   type: git
   source:
@@ -149,9 +158,9 @@ jobs:
   - get: mapfs
     trigger: true
   - get: fstest
-  - get: cfpersi-nfs-integration-tests
+  - get: cfpersi-mapfs-tests
   - task: build
-    image: cfpersi-nfs-integration-tests
+    image: cfpersi-mapfs-tests
     file: mapfs/scripts/ci/run_fstest.build.yml
     privileged: true
 
