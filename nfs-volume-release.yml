@@ -124,11 +124,10 @@ groups:
   - manual-bump-nfs-minor
 
 resources:
-
-- name: cfpersi-nfs-integration-tests
+- name: docker-cpi
   type: registry-image
   source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfpersi/nfs-integration-tests
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/bosh/docker-cpi
     username: _json_key
     password: *gcr_viewer_key
 
@@ -1535,12 +1534,14 @@ jobs:
       - get: mapfs-release
         trigger: true
       - get: mapfs-release-concourse-tasks
-      - get: cfpersi-nfs-integration-tests
+      - get: docker-cpi
   - task: bosh-release-test
-    image: cfpersi-nfs-integration-tests
+    image: docker-cpi
     file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
     timeout: 1h
+    params:
+      REGISTRY: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/
 
 - name: claim-env
   plan:
