@@ -124,10 +124,10 @@ groups:
   - manual-bump-nfs-minor
 
 resources:
-- name: docker-cpi
+- name: main-bosh-docker
   type: registry-image
   source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/bosh/docker-cpi
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/bosh/main-bosh-docker
     username: _json_key
     password: *gcr_viewer_key
 
@@ -1534,9 +1534,9 @@ jobs:
       - get: mapfs-release
         trigger: true
       - get: mapfs-release-concourse-tasks
-      - get: docker-cpi
+      - get: main-bosh-docker
   - task: bosh-release-test
-    image: docker-cpi
+    image: main-bosh-docker
     file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
     privileged: true
     timeout: 1h
