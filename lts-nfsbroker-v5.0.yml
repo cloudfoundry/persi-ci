@@ -49,7 +49,9 @@ resource_types:
 - name: pull-request
   type: registry-image
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cryogenics/pr-queue-resource
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/concourse-resources/pr-queue-resource
+    username: _json_key
+    password: *gcr_viewer_key
 
 resources:
 - name: persi-ci
