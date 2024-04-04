@@ -117,13 +117,6 @@ resource_types:
     password: *gcr_viewer_key
     tag: latest
 
-- name: git
-  type: registry-image
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/concourse/git-resource
-    username: _json_key
-    password: *gcr_viewer_key
-
 - name: pcf-pool
   type: registry-image
   source:
