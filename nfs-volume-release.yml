@@ -124,12 +124,12 @@ groups:
   - manual-bump-nfs-minor
 
 resources:
-- name: main-bosh-docker
-  type: registry-image
+- name: bosh-main-docker
   source:
+    password: *gcr_viewer_key
     repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/bosh/main-bosh-docker
     username: _json_key
-    password: *gcr_viewer_key
+  type: registry-image
 
 - name: openssl
   type: github-release
@@ -1534,10 +1534,19 @@ jobs:
       - get: mapfs-release
         trigger: true
       - get: mapfs-release-concourse-tasks
-      - get: main-bosh-docker
+      - get: cryogenics-concourse-tasks
+      - get: bosh-main-docker
+      - get: image-cryogenics-essentials
+        params:
+          format: oci
   - task: bosh-release-test
-    image: main-bosh-docker
-    file: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests.build.yml
+    image: bosh-main-docker
+    file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests/task.yml
+    params:
+      RELEASE: "MAPFS"
+    input_mapping:
+      image: image-cryogenics-essentials
+      vol-services-bosh-release: mapfs-release
     privileged: true
     timeout: 1h
     params:
