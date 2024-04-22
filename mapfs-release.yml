@@ -36,6 +36,7 @@ number_of_retries: &number_of_retries 2
 groups:
 - name: test
   jobs:
+  - claim-env-combined-nfs-mapfs-volume-release-tests
   - combined-nfs-mapfs-volume-release-tests
   - env-gate
   - claim-env
@@ -570,6 +571,20 @@ jobs:
         team.
     input_mapping:
       source-repo: mapfs-release-write
+- name: claim-env-combined-nfs-mapfs-volume-release-tests
+  plan:
+  - in_parallel:
+      fail_fast: true
+      steps:
+      - get: mapfs-release
+        trigger: true
+      - get: nfs-volume-release
+      - put: env-tas-xenial
+        params:
+          action: create
+          duration: 6h
+          resource: env
+        timeout: 6h
 
 - name: combined-nfs-mapfs-volume-release-tests
   plan:
@@ -579,15 +594,12 @@ jobs:
       - get: persi-ci
       - get: cryogenics-concourse-tasks
       - get: mapfs-release
-        trigger: true
       - get: nfs-volume-release
       - get: image-cryogenics-essentials
-      - put: env-tas-xenial
-        params:
-          action: create
-          duration: 6h
-          resource: env
-        timeout: 6h
+      - get: env-tas-xenial
+        trigger: true
+        passed: [ claim-env-combined-nfs-mapfs-volume-release-tests ]
+
   - task: rspec
     image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/run-rspec.build.yml
