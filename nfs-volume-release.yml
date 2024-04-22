@@ -106,6 +106,10 @@ groups:
   - manual-bump-nfs-minor
 
 resources:
+- name: stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-warden-boshlite-ubuntu-jammy-go_agent
 - name: bosh-main-docker
   source:
     password: *gcr_viewer_key
@@ -1518,6 +1522,7 @@ jobs:
       - get: mapfs-release-concourse-tasks
       - get: cryogenics-concourse-tasks
       - get: bosh-main-docker
+      - get: stemcell
       - get: image-cryogenics-essentials
         params:
           format: oci
