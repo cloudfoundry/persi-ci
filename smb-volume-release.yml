@@ -477,7 +477,7 @@ jobs:
           \nI have detected a new version of [cifs-utils](https://git.samba.org/?p=cifs-utils.git;a=summary) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: smb-volume-release-master-write
 - name: *bump-blob-keyutils-job-name
@@ -537,7 +537,7 @@ jobs:
           \nI have detected a new version of [keyutils](https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/keyutils.git) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: smb-volume-release-master-write
 
@@ -584,7 +584,7 @@ jobs:
           \nI have detected a new version of [autoconf](https://ftp.gnu.org/gnu/autoconf/) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: smb-volume-release-master-write
 
@@ -630,7 +630,7 @@ jobs:
           \nI have detected a new version of [automake](https://ftp.gnu.org/gnu/automake/) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: smb-volume-release-master-write
 
@@ -691,7 +691,7 @@ jobs:
           \nI have detected a new version of [talloc](https://www.samba.org/ftp/talloc/) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: smb-volume-release-master-write
 
@@ -737,7 +737,7 @@ jobs:
           \nI have detected a new version of [libtool](https://ftp.gnu.org/gnu/libtool/) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: smb-volume-release-master-write
 
@@ -793,7 +793,7 @@ jobs:
           \nI have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: smb-volume-release-master-write
 
