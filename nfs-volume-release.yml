@@ -2051,7 +2051,7 @@ jobs:
     - load_var: version-number
       file: nfsvolume-version/number
   - put: gchat-cryo-notification
-    paramts:
+    params:
       text: |
         *nfs-volume*: version `((.:version-number))` has been published 🎉
         Next steps <users/all>:
