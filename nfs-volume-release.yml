@@ -44,8 +44,8 @@ cerberus_secrets:
 #! github_user was needed on 2023-10-05 for Git commits when creating a new release. It lives in Runway's Vault as
 #! well as in Lastpass.
 
-- &slack_webhook ((slack.webhook))
-#! slack_webhook was needed on 2023-10-05 for sending notifications in our Slack channel. It lives in Runway's Vault.
+- &gchat_webhook ((gchat-webhook.url))
+#! as of 23/04/2024 gchat webhook is used to send us ci status messages. It was created in gchat space settings after logging in with personal creds
 
 - &shepherd_account_key ((shepherd.sa_key))
 #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using
@@ -153,11 +153,10 @@ resources:
     repository: tas-cve
     user: pivotal
 
-- name: slack-cryo-notification
-  type: slack-notification
-  icon: bell-ring
+- name: gchat-cryo-notification
+  type: google-chat-notify-resource
   source:
-    url: *slack_webhook
+    url: *gchat_webhook
 
 - name: every-week
   type: time
@@ -522,12 +521,13 @@ resource_types:
     username: _json_key
     password: *gcr_viewer_key
 
-- name: slack-notification
+- name: google-chat-notify-resource
   type: registry-image
   source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfcommunity/slack-notification-resource
+    repository:  us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/springio/google-chat-notify-resource
     username: _json_key
     password: *gcr_viewer_key
+    tag: 0.0.1-SNAPSHOT
 
 - name: uscan
   source:
@@ -1087,7 +1087,7 @@ jobs:
           \nI have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: nfs-volume-release-write
 
@@ -2050,11 +2050,11 @@ jobs:
       file: github-release-nfs/url
     - load_var: version-number
       file: nfsvolume-version/number
-  - put: slack-cryo-notification
-    params:
+  - put: gchat-cryo-notification
+    paramts:
       text: |
         *nfs-volume*: version `((.:version-number))` has been published 🎉
-        Next steps (cc <!subteam^S028XABEHAP>):
+        Next steps <users/all>:
           1. Review the release notes and undraft the release <((.:github-release-url))|here>.
 
 - name: manual-bump-nfs-patch
