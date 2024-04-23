@@ -25,8 +25,8 @@ secrets:
 - &github_ssh_key ((github.ssh_key))
 - &github_user ((github.user))
 
-#! as of 2024-03-18 slack webhook token is required to send slack messages when a new draft release is cut so we can check the release notes before making it public.
-- &slack_webhook ((slack.webhook))
+#! as of 23/04/2024 gchat webhook is used to send us ci status messages. It was created in gchat space settings after logging in with personal creds
+- &gchat_webhook ((gchat-webhook.url))
 
 #! as of 2024-03-18 shepherd token is required to create test envs against shepher. it was created using personal access creds using the shepherd cli.
 - &shepherd-token ((shepherd.sa_key))
@@ -94,13 +94,14 @@ resource_types:
     tag: "1.6"
   type: registry-image
 
-- name: slack-notification
+- name: google-chat-notify-resource
   type: registry-image
   source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfcommunity/slack-notification-resource
+    repository:  us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/springio/google-chat-notify-resource
     username: _json_key
     password: *gcr_viewer_key
-    tag: latest
+    tag: 0.0.1-SNAPSHOT
+
 
 - name: pcf-pool
   type: registry-image
@@ -230,12 +231,10 @@ resources:
     username: _json_key
     password: *gcr_viewer_key
 
-
-- name: slack-cryo-notification
-  type: slack-notification
-  icon: bell-ring
+- name: gchat-cryo-notification
+  type: google-chat-notify-resource
   source:
-    url: *slack_webhook
+    url: *gchat_webhook
 
 - name: cryogenics-concourse-tasks
   type: git
@@ -1065,7 +1064,7 @@ jobs:
           \nI have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: nfs-volume-release-lts-write
 
@@ -1119,7 +1118,7 @@ jobs:
           \nI have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and \
           automatically bumped\nthis package to benefit from the latest changes.\
           \nIf this does not look right, please reach out to the \
-          [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.\n"
+          mapbu-cryogenics team.\n"
       input_mapping:
         source-repo: nfsv3driver-v5-write
 
@@ -1563,7 +1562,7 @@ jobs:
       file: github-release-nfs/url
     - load_var: version-number
       file: version/number
-  - put: slack-cryo-notification
+  - put: gchat-cryo-notification
     params:
       text: |
         *nfs-volume*: version `((.:version-number))` has been published 🎉
