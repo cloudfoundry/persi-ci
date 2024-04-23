@@ -649,22 +649,22 @@ jobs:
       attempts: *number_of_retries
       file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests-in-shepherd/task.yml
       params:
-        STEMCELL_LINE: xenial
+        STEMCELL: xenial
         TEST_REPO: mapfs-release
       input_mapping:
         shepherd-env: env-tas-xenial
-    ensure:
-      do:
-      - put: env-tas-xenial
-        params:
-          action: release
-          resource: env-tas-xenial
+
 
 - name: env-gate
   plan:
+  - get: env-tas-xenial
+    passed: [ combined-nfs-mapfs-volume-release-tests ]
   - in_parallel:
       fail_fast: true
       steps:
+      - put: env-tas-xenial
+        params:
+          action: release
       - get: nfs-volume-release
         passed:
         - combined-nfs-mapfs-volume-release-tests
