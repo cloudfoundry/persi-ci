@@ -29,8 +29,8 @@ cerberus_secrets:
 - &pats_create_config '{\"share\":\"((smb_cats.remote_path))\"}'
 - &pats_bind_config '["{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"domain\": \"foo\", \"version\": \"3.0\"}", "{\"username\":\"((smb_cats.username))\",\"password\":\"((smb_cats.password))\", \"mount\": \"/var/vcap/data/foo\", \"domain\": \"foo\"}"]'  # yamllint disable-line rule:line-length
 
-# Slack webhook is used for notifications, currently its origins are unknown
-- &slack_webhook ((slack.webhook))
+#! as of 23/04/2024 gchat webhook is used to send us ci status messages. It was created in gchat space settings after logging in with personal creds
+- &gchat_webhook ((gchat-webhook.url))
 
 #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
 - &shepherd_account_key ((shepherd.sa_key))
@@ -94,11 +94,10 @@ resources:
     repository: tas-cve
     user: pivotal
 
-- name: slack-cryo-notification
-  type: slack-notification
-  icon: bell-ring
+- name: gchat-cryo-notification
+  type: google-chat-notify-resource
   source:
-    url: *slack_webhook
+    url: *gchat_webhook
 
 - name: every-week
   type: time
@@ -355,6 +354,14 @@ resources:
     version_regex: '^libtool-(?P<version>[0-9][0-9.]+[0-9]).tar.xz$'
 
 resource_types:
+- name: google-chat-notify-resource
+  type: registry-image
+  source:
+    repository:  us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/springio/google-chat-notify-resource
+    username: _json_key
+    password: *gcr_viewer_key
+    tag: 0.0.1-SNAPSHOT
+
 - name: uscan
   source:
     repository: us-west2-docker.pkg.dev/mapbu-cryogenics/concourse-resources/concourse-uscan-resource
@@ -368,14 +375,6 @@ resource_types:
     username: _json_key
     password: *gcr_viewer_key
     tag: "1.6"
-
-- name: slack-notification
-  type: registry-image
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfcommunity/slack-notification-resource
-    username: _json_key
-    password: *gcr_viewer_key
-    tag: latest
 
 - name: shepherd
   source:
@@ -1229,11 +1228,11 @@ jobs:
       file: github-release-smb/url
     - load_var: version-number
       file: smb-volume-version/number
-  - put: slack-cryo-notification
+  - put: gchat-cryo-notification
     params:
       text: |
         *smb-volume*: version `((.:version-number))` has been published 🎉
-        Next steps (cc <!subteam^S028XABEHAP>):
+        Next steps <users/all>:
           1. Review the release notes and undraft the release <((.:github-release-url))|here>.
   - put: smb-volume-version
     params:
