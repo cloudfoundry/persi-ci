@@ -1565,8 +1565,8 @@ jobs:
   - put: gchat-cryo-notification
     params:
       text: |
-        *nfs-volume*: version `((.:version-number))` has been published 🎉
-        Next steps (cc <!subteam^S028XABEHAP>):
+        *nfs-volume*: version `((.:version-number))` has been published 
+        Next steps <users/all>:
           1. Review the release notes and undraft the release <((.:github-release-url))|here>.
   - put: nfsvolume-version
     params:
