@@ -662,6 +662,7 @@ jobs:
       - put: env-tas-xenial
         params:
           action: release
+          resource: env-tas-xenial
       - get: nfs-volume-release
         passed:
         - combined-nfs-mapfs-volume-release-tests
