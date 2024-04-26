@@ -110,10 +110,10 @@ resources:
   type: bosh-io-stemcell
   source:
     name: bosh-warden-boshlite-ubuntu-jammy-go_agent
-- name: bosh-main-docker
+- name: bosh-docker-cpi
   source:
     password: *gcr_viewer_key
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/bosh/main-bosh-docker
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/bosh/docker-cpi
     username: _json_key
   type: registry-image
 
@@ -1521,13 +1521,13 @@ jobs:
         trigger: true
       - get: mapfs-release-concourse-tasks
       - get: cryogenics-concourse-tasks
-      - get: bosh-main-docker
+      - get: bosh-docker-cpi
       - get: stemcell
       - get: image-cryogenics-essentials
         params:
           format: oci
   - task: bosh-release-test
-    image: bosh-main-docker
+    image: bosh-docker-cpi
     file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests/task.yml
     params:
       RELEASE: "MAPFS"
