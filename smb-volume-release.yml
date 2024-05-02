@@ -842,9 +842,7 @@ jobs:
         Bot. I have detected a new version of
         [golang-release](https://github.com/bosh-packages/golang-release) and
         automatically updated the go mod directive for this go module. If this
-        does not look right, please reach out to the
-        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
-        team.
+        does not look right, please reach out to the mapbu-cryogenics team.
     input_mapping:
       source-repo: smbbroker-write
 
@@ -894,8 +892,7 @@ jobs:
         [golang-release](https://github.com/bosh-packages/golang-release) and
         automatically updated the go mod directive for this go module. If this
         does not look right, please reach out to the
-        [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU)
-        team.
+        mapbu-cryogenics team.
     input_mapping:
       source-repo: smbdriver-write
 
