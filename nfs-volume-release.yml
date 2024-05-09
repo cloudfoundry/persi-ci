@@ -2053,7 +2053,7 @@ jobs:
   - put: gchat-cryo-notification
     params:
       text: |
-        *nfs-volume*: version `((.:version-number))` has been published 🎉
+        *nfs-volume*: version `((.:version-number))` has been published :rocket:
         Next steps <users/all>:
           1. Review the release notes and undraft the release <((.:github-release-url))|here>.
 
