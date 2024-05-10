@@ -1228,7 +1228,7 @@ jobs:
   - put: gchat-cryo-notification
     params:
       text: |
-        *smb-volume*: version `((.:version-number))` has been published 🎉
+        *smb-volume*: version `((.:version-number))` has been published :rocket:
         Next steps <users/all>:
           1. Review the release notes and undraft the release <((.:github-release-url))|here>.
   - put: smb-volume-version
