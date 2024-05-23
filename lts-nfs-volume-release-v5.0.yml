@@ -477,7 +477,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *libevent-bump-branch
         TITLE: "Bump Libevent to v((.:libevent-version))"
@@ -524,7 +524,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *rpcsvc-proto-bump-branch
         TITLE: "Bump rpcsvc-proto to v((.:rpcsvc-proto-version))"
@@ -588,7 +588,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *libtirpc-bump-branch
         TITLE: "Bump Libtirpc to v((.:libtirpc.version.ref))"
@@ -652,7 +652,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *rpcbind-bump-branch
         TITLE: "Bump RPCBind to v((.:rpcbind.version.ref))"
@@ -716,7 +716,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *tcl-bump-branch
         TITLE: "Bump Tcl to v((.:tcl.version.ref))"
@@ -764,7 +764,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *util-linux-bump-branch
         TITLE: "Bump util-linux to v((.:util-linux-version))"
@@ -827,7 +827,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *sqlite-bump-branch
         TITLE: "Bump SQLite to v((.:sqlite-version))"
@@ -890,7 +890,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *nfs-utils-bump-branch
         TITLE: "Bump NFS-Utils to v((.:nfs-utils.version.ref))"
@@ -953,7 +953,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: v5.0
         BRANCH: *openldap-bump-branch
         TITLE: "Bump Openldap to v((.:openldap.version.ref))"
@@ -1000,7 +1000,7 @@ jobs:
       input_mapping:
         source-repo: nfs-volume-release-lts-write
       params:
-        GITHUB_TOKEN: *github_access_token
+        GH_TOKEN: *github_access_token
         BASE: v5.0
         BRANCH: *openssl-bump-branch
         TITLE: "Bump OpenSSL to v((.:new-version))"
@@ -1051,6 +1051,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params: &golang-bump-pr-params
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *golang-vendor-branch
         LABELS: dependencies,v5
@@ -1105,6 +1106,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
+        GH_TOKEN: *github_access_token
         BASE: {{lts-nfs-branch}}
         BRANCH: *golang-vendor-branch-anchor
         LABELS: dependencies,v5

@@ -406,7 +406,7 @@ jobs:
       input_mapping:
         source-repo: mapfs-release-write
       params:
-        GITHUB_TOKEN: *github-access-token
+        GH_TOKEN: *github-access-token
         BASE: master
         BRANCH: *libfuse-bump-branch
         TITLE: "Bump libfuse to v((.:libfuse-release-version))"
@@ -457,6 +457,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
+        GH_TOKEN: *github-access-token
         BASE: master
         BRANCH: *golang-vendor-branch
         LABELS: dependencies
@@ -505,6 +506,7 @@ jobs:
     image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
+      GH_TOKEN: *github-access-token
       BASE: master
       BRANCH: *mapfs-gomod-update-branch
       LABELS: dependencies
@@ -555,6 +557,7 @@ jobs:
     image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
+      GH_TOKEN: *github-access-token
       BASE: master
       BRANCH: *mapfs-release-gomod-update-branch
       LABELS: dependencies

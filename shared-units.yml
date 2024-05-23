@@ -318,6 +318,7 @@ jobs:
           image: image-cryogenics-essentials
           file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
           params:
+            GH_TOKEN: *github_access_token
             BASE: master
             BRANCH: *existingvolumebroker-bump-go-module-branch
             LABELS: dependencies
@@ -403,6 +404,7 @@ jobs:
           image: image-cryogenics-essentials
           file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
           params:
+            GH_TOKEN: *github_access_token
             BASE: master
             BRANCH: *service-broker-store-bump-go-module-branch
             LABELS: dependencies
@@ -490,6 +492,7 @@ jobs:
           image: image-cryogenics-essentials
           file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
           params:
+            GH_TOKEN: *github_access_token
             BASE: master
             BRANCH: *bump-volumedriver-go-module-branch
             LABELS: dependencies

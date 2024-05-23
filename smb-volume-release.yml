@@ -469,6 +469,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
+        GH_TOKEN: *github_access_token
         BASE: master
         BRANCH: *bump-cifs-utils-branch
         LABELS: dependencies
@@ -529,6 +530,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
+        GH_TOKEN: *github_access_token
         BASE: master
         BRANCH: *bump-keyutils-branch
         LABELS: dependencies
@@ -576,6 +578,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
+        GH_TOKEN: *github_access_token
         BASE: master
         BRANCH: *bump-autoconf-branch
         LABELS: dependencies
@@ -622,6 +625,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
+        GH_TOKEN: *github_access_token
         BASE: master
         BRANCH: *bump-automake-branch
         LABELS: dependencies
@@ -683,6 +687,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
+        GH_TOKEN: *github_access_token
         BASE: master
         BRANCH: *bump-talloc-branch
         LABELS: dependencies
@@ -729,6 +734,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
+        GH_TOKEN: *github_access_token
         BASE: master
         BRANCH: *bump-libtool-branch
         LABELS: dependencies
@@ -785,6 +791,7 @@ jobs:
       image: image-cryogenics-essentials
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
       params:
+        GH_TOKEN: *github_access_token
         BASE: master
         BRANCH: *golang-vendor-branch
         LABELS: dependencies
@@ -833,6 +840,7 @@ jobs:
     image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
+      GH_TOKEN: *github_access_token
       BASE: master
       BRANCH: *mapfs-gomod-update-branch
       LABELS: dependencies
@@ -882,6 +890,7 @@ jobs:
     image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
     params:
+      GH_TOKEN: *github_access_token
       BASE: master
       BRANCH: *smbdriver-golang-vendor-update-branch
       LABELS: dependencies

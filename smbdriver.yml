@@ -231,6 +231,7 @@ jobs:
           image: image-cryogenics-essentials
           file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
           params:
+            GH_TOKEN: *github_access_token
             BASE: master
             BRANCH: *go-module-branch
             LABELS: dependencies
