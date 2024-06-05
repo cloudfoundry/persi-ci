@@ -51,6 +51,13 @@ groups:
   - unclaim-ldap-env
   - merge-pr
   - check-for-cves
+- name: bump-mapfs-submodule
+  jobs:
+  - bump-mapfs
+  - bump-mapfs-go-module
+  - mapfs-unit-test
+  - mapfs-fs-test
+  - mapfs-security-scan
 - name: bump
   jobs:
   - bump-libfuse
@@ -197,7 +204,7 @@ resources:
   source:
     private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs.git
-    branch: master
+    branch: main
 
 - name: mapfs-write
   type: git
@@ -211,11 +218,18 @@ resources:
 - name: mapfs-release
   type: pull-request
   source:
-    base_branch: master
+    branch: master
     access_token: *github-access-token
     repository: cloudfoundry/mapfs-release
     disable_forks: true
     autosync_pr: true
+
+- name: mapfs-release-develop
+  type: git
+  source:
+    branch: develop
+    private_key: *github-ssh-key
+    uri: git@github.com:cloudfoundry/mapfs-release.git
 
 - name: mapfs-release-master
   type: git
@@ -343,6 +357,30 @@ resources:
     username: _json_key
     password: *gcr_viewer_key
 
+- name: cfpersi-nfs-integration-tests
+  icon: docker
+  type: registry-image
+  source:
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfpersi/nfs-integration-tests
+    username: _json_key
+    password: *gcr_viewer_key
+    tag: latest
+
+- name: cfpersi-mapfs-tests
+  icon: docker
+  type: registry-image
+  source:
+    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/cfpersi/mapfs-tests
+    username: _json_key
+    password: *gcr_viewer_key
+    tag: latest
+
+- name: fstest
+  type: git
+  source:
+    uri: https://github.com/zfsonlinux/fstest.git
+    branch: master
+
 jobs:
 - name: check-for-cves
   plan:
@@ -364,6 +402,90 @@ jobs:
       GRYPE_FAILURE_LEVEL: negligible  # Can be any of: none | negligible | low | medium | high | critical
       RELEASE_NAME: mapfs
       RELEASE_VERSION: pre-release-cve-scan
+
+- name: bump-mapfs-go-module
+  plan:
+  - in_parallel:
+    - get: source-repo
+      resource: mapfs
+    - get: cryogenics-concourse-tasks
+    - get: image-cryogenics-essentials
+    - get: every-week
+      trigger: true
+  - task: bump-go-module
+    image: image-cryogenics-essentials
+    file: cryogenics-concourse-tasks/deps-automation/bump-go-module/task.yml
+    params:
+      GIT_USERNAME: *github-user
+      GIT_EMAIL: *github-email
+      ROOT_DIRECTORIES: .
+  - put: mapfs
+    params:
+      repository: destination-repo
+      branch: main
+
+- name: mapfs-unit-test
+  public: true
+  plan:
+  - get: mapfs
+    trigger: true
+  - get: cfpersi-nfs-integration-tests
+  - task: build
+    image: cfpersi-nfs-integration-tests
+    file: mapfs/scripts/ci/run_unit.build.yml
+    privileged: true
+
+- name: mapfs-fs-test
+  public: true
+  plan:
+  - get: mapfs
+    trigger: true
+  - get: fstest
+  - get: cfpersi-mapfs-tests
+  - task: build
+    image: cfpersi-mapfs-tests
+    file: mapfs/scripts/ci/run_fstest.build.yml
+    privileged: true
+
+- name: mapfs-security-scan
+  plan:
+  - in_parallel:
+    - get: persi-ci
+    - get: image-cryogenics-essentials
+    - get: mapfs
+      trigger: true
+  - task: build
+    image: image-cryogenics-essentials
+    file: persi-ci/scripts/ci/security-scan.build.yml
+    params:
+      PATHS: "./"
+    input_mapping:
+      release-dir: mapfs
+
+- name: bump-mapfs
+  serial: true
+  plan:
+  - in_parallel:
+    - get: persi-ci
+    - get: mapfs-release-develop
+    - get: mapfs
+      trigger: true
+      passed:
+      - mapfs-unit-test
+      - mapfs-fs-test
+      - mapfs-security-scan
+    - get: image-cryogenics-essentials
+  - task: bump-mapfs
+    file: persi-ci/scripts/ci/bump_submodule.build.yml
+    input_mapping:
+      release-repo: mapfs-release-develop
+      submodule-repo: mapfs
+    params:
+      SUBMODULE_PATH: src/mapfs
+  - put: mapfs-release-develop
+    params:
+      rebase: true
+      repository: bumped-repo
 
 - name: bump-libfuse
   serial: true
