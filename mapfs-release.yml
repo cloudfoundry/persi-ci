@@ -312,16 +312,6 @@ resources:
     uri: https://github.com/bosh-packages/golang-release.git
     tag_filter: v*
 
-- name: mapfs-release-write
-  icon: github
-  type: git
-  source:
-    private_key: *github-ssh-key
-    uri: git@github.com:cloudfoundry/mapfs-release.git
-    commit_filter:
-      exclude:
-      - ;resource comment; This resource is used exclusively for pushing new changes
-
 - name: cryogenics-concourse-tasks
   type: git
   icon: github
@@ -485,7 +475,7 @@ jobs:
     - get: cryogenics-concourse-tasks
     - get: libfuse-git-release
       trigger: true
-    - get: mapfs-release-master
+    - get: mapfs-release-develop
     - get: image-cryogenics-essentials
   - load_var: libfuse-release-version
     file: libfuse-git-release/version
@@ -494,7 +484,7 @@ jobs:
     file: cryogenics-concourse-tasks/deps-automation/bump-blob/task.yml
     input_mapping:
       distributed-package: libfuse-git-release
-      bosh-release: mapfs-release-master
+      bosh-release: mapfs-release-develop
     output_mapping:
       bosh-release-updated: mapfs-release-bumped
     params:
@@ -507,23 +497,10 @@ jobs:
       BLOB_NAME: fuse-
       BLOB_EXTENSION: .tar.gz
       BLOB_DIRECTORY: fuse/
-  - put: mapfs-release-write
+  - put: mapfs-release-develop
     params:
       repository: mapfs-release-bumped
-      branch: *libfuse-bump-branch
-      force: true  # If the last PR got stuck just overwrite it with new stuff
-    on_success:
-      task: create-pull-request
-      image: image-cryogenics-essentials
-      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      input_mapping:
-        source-repo: mapfs-release-write
-      params:
-        GH_TOKEN: *github-access-token
-        BASE: master
-        BRANCH: *libfuse-bump-branch
-        TITLE: "Bump libfuse to v((.:libfuse-release-version))"
-        LABELS: dependencies
+      rebase: true
 
 - name: bump-golang
   serial: true
