@@ -206,15 +206,6 @@ resources:
     uri: git@github.com:cloudfoundry/mapfs.git
     branch: main
 
-- name: mapfs-write
-  type: git
-  source:
-    private_key: *github-ssh-key
-    uri: git@github.com:cloudfoundry/mapfs.git
-    commit_filter:
-      exclude:
-      - ;resource comment; This resource is used exclusively for pushing new changes
-
 - name: mapfs-release
   type: pull-request
   source:
@@ -541,7 +532,7 @@ jobs:
     - get: cryogenics-concourse-tasks
     - get: golang-release
       trigger: true
-    - get: mapfs-release-master
+    - get: mapfs-release-develop
     - get: image-cryogenics-essentials
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
@@ -549,7 +540,7 @@ jobs:
     image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/deps-automation/bump-golang/task.yml
     input_mapping:
-      release: mapfs-release-master
+      release: mapfs-release-develop
       vendored-package-release: golang-release
     params:
       VENDORED_PACKAGE_NAME: golang-1-linux
@@ -559,38 +550,10 @@ jobs:
       AWS_ACCESS_KEY_ID: *aws-uploader-role-id
       AWS_SECRET_ACCESS_KEY: *aws-uploader-role-secret
       AWS_ASSUME_ROLE_ARN: *aws-uploader-role-arn
-  - put: mapfs-release-write
+  - put: mapfs-release-develop
     params:
+      rebase: true
       repository: release-with-updated-vendored-package
-      branch: *golang-vendor-branch
-      force: true  # If the last PR got stuck just overwrite it with new stuff
-  - try:
-      # We've seen cases where there are 2 or more new releases of
-      # golang-release which causes this job to trigger 2x or more. A PR will
-      # be created on the 1st build. On the following ones, it is possible
-      # that this task will fail as there exist already a PR (which is
-      # probably flowing through the pipeline). To prevent this scenario
-      # we're making this step best-effort.
-      # This also makes the job idempotent. If we re-trigger the job but if
-      # there are no new version of golang-release, this step will fail
-      # saying "Your branch is up-to-date with
-      # 'origin/golang-vendor-update'."
-      task: create-golang-vendor-pull-request
-      image: image-cryogenics-essentials
-      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      params:
-        GH_TOKEN: *github-access-token
-        BASE: master
-        BRANCH: *golang-vendor-branch
-        LABELS: dependencies
-        TITLE: Update vendored package golang-1-linux
-        MESSAGE: "This is an automatically generated Pull Request from the Cryogenics CI Bot.\
-          \nI have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and \
-          automatically bumped\nthis package to benefit from the latest changes.\
-          \nIf this does not look right, please reach out to the \
-          mapbu-cryogenics team.\n"
-      input_mapping:
-        source-repo: mapfs-release-write
 
 - name: update-go-directive-for-mapfs
   serial: true
@@ -619,29 +582,10 @@ jobs:
       PATH_TO_GO_MODULE: .
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
-  - put: mapfs-write
+  - put: mapfs
     params:
       repository: mapfs
-      branch: &mapfs-gomod-update-branch bump-golang-vendor-((.:golang-release-version))
-      force: true  # If the last PR got stuck just overwrite it with new stuff
-  - task: create-gomod-directive-update-pull-request
-    image: image-cryogenics-essentials
-    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-    params:
-      GH_TOKEN: *github-access-token
-      BASE: master
-      BRANCH: *mapfs-gomod-update-branch
-      LABELS: dependencies
-      TITLE: Update gomod directive
-      MESSAGE: |
-        This is an automatically generated Pull Request from the Cryogenics CI
-        Bot. I have detected a new version of
-        [golang-release](https://github.com/bosh-packages/golang-release) and
-        automatically updated the go mod directive for this go module. If this
-        does not look right, please reach out to the
-        mapbu-cryogenics team.
-    input_mapping:
-      source-repo: mapfs-write
+      rebase: true
 
 - name: update-go-directive-for-mapfs-release
   serial: true
@@ -654,45 +598,27 @@ jobs:
     - get: cryogenics-concourse-tasks
       passed:
       - bump-golang
-    - get: mapfs-release-master
+    - get: mapfs-release-develop
     - get: image-cryogenics-essentials
   - task: update-go-directive
     image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     input_mapping:
       bosh-release-repo-with-vendored-golang: golang-release
-      golang-project-repo: mapfs-release-master
+      golang-project-repo: mapfs-release-develop
     output_mapping:
-      golang-project-repo: mapfs-release-master
+      golang-project-repo: mapfs-release-develop
     params:
       COMMIT_USERNAME: bump-golang CI job
       COMMIT_USEREMAIL: mapbu-cryogenics@groups.vmware.com
       PATH_TO_GO_MODULE: src/bosh_release
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
-  - put: mapfs-release-write
+  - put: mapfs-release-develop
     params:
-      repository: mapfs-release-master
-      branch: &mapfs-release-gomod-update-branch bump-release-golang-vendor-((.:golang-release-version))
-      force: true  # If the last PR got stuck just overwrite it with new stuff
-  - task: create-gomod-directive-update-pull-request
-    image: image-cryogenics-essentials
-    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-    params:
-      GH_TOKEN: *github-access-token
-      BASE: master
-      BRANCH: *mapfs-release-gomod-update-branch
-      LABELS: dependencies
-      TITLE: Update gomod directive
-      MESSAGE: |
-        This is an automatically generated Pull Request from the Cryogenics CI
-        Bot. I have detected a new version of
-        [golang-release](https://github.com/bosh-packages/golang-release) and
-        automatically updated the go mod directive for this go module. If this
-        does not look right, please reach out to the
-        mapbu-cryogenics team.
-    input_mapping:
-      source-repo: mapfs-release-write
+      repository: mapfs-release-develop
+      rebase: true
+
 - name: claim-env-combined-nfs-mapfs-volume-release-tests
   plan:
   - in_parallel:
