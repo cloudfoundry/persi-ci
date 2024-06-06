@@ -2,7 +2,7 @@
 #  This pipeline is set automatically, any non-committed changes will be lost.
 #
 # To set the pipeline, run:
-#    fly -t cryo set-pipeline -p mapfs-release -c mapfs-release.yml
+#    fly -t wg-sm-volume-services set-pipeline -p mapfs-release -c mapfs-release.yml
 #
 # ************************************
 # Secrets we need to run this pipeline
@@ -49,7 +49,7 @@ groups:
   - deploy-cf-with-ldap
   - pats-nfs-ldap
   - unclaim-ldap-env
-  - merge-pr
+  - ship-what
   - check-for-cves
 - name: bump-mapfs-submodule
   jobs:
@@ -113,6 +113,27 @@ resource_types:
     password: *gcr_viewer_key
 
 resources:
+- name: image
+  type: docker-image                             
+  source:                                        
+    repository: us-central1-docker.pkg.dev/cf-diego-pivotal/tas-runtime-dockerhub-mirror/cloudfoundry/tas-runtime-build
+    tag: 'latest'
+    username: _json_key
+    password: ((gcp-tas-runtime-service-account/config-json))
+
+- name: ci
+  type: git
+  source:
+    branch: main
+    uri: https://github.com/cloudfoundry/wg-app-platform-runtime-ci
+
+- name: github-release
+  source:
+    access_token: ((github-tas-runtime-bot/access-token))
+    repository: mapfs-release
+    owner: cloudfoundry
+  type: github-release
+
 - name: env-tas-xenial
   icon: pool
   type: pcf-pool
@@ -184,6 +205,19 @@ resources:
     compatibility_mode: environments-app
     debug: true
 
+- name: shepherd-env-ldap
+  type: pcf-pool
+  source:
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd-token
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: cfd
+    compatibility_mode: environments-app
+    debug: true
+
 - name: persi-ci
   type: git
   source:
@@ -205,20 +239,17 @@ resources:
     private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs.git
     branch: main
-
-- name: mapfs-release
-  type: pull-request
-  source:
-    branch: master
-    access_token: *github-access-token
-    repository: cloudfoundry/mapfs-release
-    disable_forks: true
-    autosync_pr: true
-
 - name: mapfs-release-develop
   type: git
   source:
     branch: develop
+    private_key: *github-ssh-key
+    uri: git@github.com:cloudfoundry/mapfs-release.git
+
+- name: mapfs-release-release
+  type: git
+  source:
+    branch: release
     private_key: *github-ssh-key
     uri: git@github.com:cloudfoundry/mapfs-release.git
 
@@ -368,7 +399,7 @@ jobs:
   - in_parallel:
     - get: git-concourse-cve-scan
     - get: github-release-tas-cve
-    - get: mapfs-release
+    - get: mapfs-release-develop
       trigger: true
     - get: git-tas-vex
   - task: run-scan
@@ -376,7 +407,7 @@ jobs:
     input_mapping:
       concourse-cve-scan: git-concourse-cve-scan
       tas-cve: github-release-tas-cve
-      target-bosh-release: mapfs-release
+      target-bosh-release: mapfs-release-develop
       tas-vex: git-tas-vex
     params:
       DRY_RUN: true
@@ -601,7 +632,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: mapfs-release
+      - get: mapfs-release-develop
         trigger: true
       - get: nfs-volume-release
       - put: env-tas-xenial
@@ -618,7 +649,7 @@ jobs:
       steps:
       - get: persi-ci
       - get: cryogenics-concourse-tasks
-      - get: mapfs-release
+      - get: mapfs-release-develop  
       - get: nfs-volume-release
       - get: image-cryogenics-essentials
       - get: env-tas-xenial
@@ -669,15 +700,17 @@ jobs:
         TEST_REPO: nfs-volume-release
       input_mapping:
         shepherd-env: env-tas-xenial
+        mapfs-release: mapfs-release-develop
     - task: bosh-release-test-mapfs
       image: image-cryogenics-essentials
       attempts: *number_of_retries
       file: cryogenics-concourse-tasks/vol-service/run-bosh-release-tests-in-shepherd/task.yml
       params:
         STEMCELL: xenial
-        TEST_REPO: mapfs-release
+        TEST_REPO: mapfs-release-develop
       input_mapping:
         shepherd-env: env-tas-xenial
+        mapfs-release: mapfs-release-develop
 
 
 - name: env-gate
@@ -694,7 +727,7 @@ jobs:
       - get: nfs-volume-release
         passed:
         - combined-nfs-mapfs-volume-release-tests
-      - get: mapfs-release
+      - get: mapfs-release-develop
         trigger: true
         passed:
         - combined-nfs-mapfs-volume-release-tests
@@ -710,7 +743,7 @@ jobs:
         passed:
         - env-gate
       - get: image-cryogenics-essentials
-      - get: mapfs-release
+      - get: mapfs-release-develop
         trigger: true
         passed:
         - env-gate
@@ -741,26 +774,26 @@ jobs:
       - get: nfs-volume-release
         passed:
         - env-gate
-      - get: mapfs-release
+      - get: mapfs-release-develop
         trigger: true
         passed:
         - env-gate
-  - put: shepherd-env
+  - put: shepherd-env-ldap
     params:
       action: create
       duration: 6h
-      resource: shepherd-env
+      resource: shepherd-env-ldap
     timeout: 6h
-  - put: shepherd-env
+  - put: shepherd-env-ldap
     params:
       action: extend
       expire-in: 6h
-      resource: shepherd-env
+      resource: shepherd-env-ldap
   - task: output-env-details
     image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/claim-pooled-env.build.yml
     input_mapping:
-      pooled-env: shepherd-env
+      pooled-env: shepherd-env-ldap
 
 - name: deploy-cf
   public: true
@@ -778,7 +811,7 @@ jobs:
       - get: persi-ci
       - get: nfs-volume-release
         passed: [ claim-env ]
-      - get: mapfs-release
+      - get: mapfs-release-develop
         passed: [ claim-env ]
   - task: pin-cf-deployment-version
     image: image-cryogenics-essentials
@@ -853,7 +886,7 @@ jobs:
       - get: cf-acceptance-tests
       - get: cf-deployment-concourse-tasks
       - get: image-cryogenics-essentials
-      - get: mapfs-release
+      - get: mapfs-release-develop
         passed: [ deploy-cf ]
   - task: generate-cats-config
     image: image-cryogenics-essentials
@@ -887,7 +920,7 @@ jobs:
       - get: disaster-recovery-acceptance-tests
       - get: image-cryogenics-essentials
       - get: persi-ci
-      - get: mapfs-release
+      - get: mapfs-release-develop
         passed: [ deploy-cf ]
       - get: shepherd-env
         passed: [ deploy-cf ]
@@ -925,7 +958,7 @@ jobs:
         trigger: true
       - get: nfs-volume-release
         passed: [ deploy-cf ]
-      - get: mapfs-release
+      - get: mapfs-release-develop
         passed: [ deploy-cf ]
   - task: generate-pats-config-nfs
     image: image-cryogenics-essentials
@@ -963,7 +996,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: shepherd-env
+      - get: shepherd-env-ldap
         passed:
         - claim-ldap-env
         trigger: true
@@ -974,14 +1007,14 @@ jobs:
       - get: nfs-volume-release
         passed:
         - claim-ldap-env
-      - get: mapfs-release
+      - get: mapfs-release-develop
         passed:
         - claim-ldap-env
   - task: pin-cf-deployment-version
     image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
     input_mapping:
-      toolsmiths-env: shepherd-env
+      toolsmiths-env: shepherd-env-ldap
   - task: collect-persi-ci-ops-files
     image: image-cryogenics-essentials
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
@@ -994,7 +1027,7 @@ jobs:
     image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/generate_variables.build.yml
     input_mapping:
-      smith-env: shepherd-env
+      smith-env: shepherd-env-ldap
     params:
       GENERATE_NFS_VARS: true
       GENERATE_SMB_VARS: false
@@ -1008,7 +1041,7 @@ jobs:
     image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
-      toolsmiths-env: shepherd-env
+      toolsmiths-env: shepherd-env-ldap
       cf-deployment: cf-deployment
       ops-files: collected-ops-files
       vars-files: generated-vars
@@ -1026,7 +1059,7 @@ jobs:
     image: image-cryogenics-essentials
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
-      toolsmiths-env: shepherd-env
+      toolsmiths-env: shepherd-env-ldap
     params:
       ERRAND_NAME: smoke_tests
   - task: run-nfs-broker-errand
@@ -1034,7 +1067,7 @@ jobs:
     attempts: *number_of_retries
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
-      toolsmiths-env: shepherd-env
+      toolsmiths-env: shepherd-env-ldap
     params:
       ERRAND_NAME: nfsbrokerpush
       INSTANCE: nfs-broker-push
@@ -1044,7 +1077,7 @@ jobs:
   - in_parallel:
       fail_fast: true
       steps:
-      - get: shepherd-env
+      - get: shepherd-env-ldap
         passed:
         - deploy-cf-with-ldap
         trigger: true
@@ -1054,7 +1087,7 @@ jobs:
       - get: nfs-volume-release
         passed:
         - deploy-cf-with-ldap
-      - get: mapfs-release
+      - get: mapfs-release-develop
         passed:
         - deploy-cf-with-ldap
   - in_parallel:
@@ -1071,7 +1104,7 @@ jobs:
           PLAN_NAME: Existing
           SERVICE_NAME: nfs-legacy
         input_mapping:
-          smith-env: shepherd-env
+          smith-env: shepherd-env-ldap
         output_mapping:
           pats-config: nfs-legacy-pats-config
       - task: generate-pats-config
@@ -1085,7 +1118,7 @@ jobs:
           PLAN_NAME: Existing
           SERVICE_NAME: nfs
         input_mapping:
-          smith-env: shepherd-env
+          smith-env: shepherd-env-ldap
         output_mapping:
           pats-config: nfs-pats-config
   - in_parallel:
@@ -1106,13 +1139,53 @@ jobs:
         params:
           TEST_DOCKER_PORA: true
 
+- name: ship-what
+  plan:
+    - in_parallel:
+        steps:
+        - get: ci
+        - get: mapfs-release-develop
+          passed:
+            - pats
+            - drats
+            - cats-nfs
+            - pats-nfs-ldap
+          trigger: true
+        - get: image
+        - get: mapfs-release-release
+          params:
+            submodules: none
+        - get: github-release
+        - get: version
+          resource: mapfs-version
+        - get: shepherd-env
+          passed:
+            - pats
+            - drats
+            - cats-nfs
+          trigger: true
+        - get: shepherd-env-ldap
+          passed:
+            - pats-nfs-ldap
+          trigger: true
+
+    - task: check-safe-to-release-repo
+      image: image
+      file: ci/shared/tasks/check-safe-to-release-repo/linux.yml
+      input_mapping:
+        release-repo: mapfs-release-release
+
+    - task: build-release-notes-diego-release
+      image: image
+      file: ci/shared/tasks/build-release-notes/linux.yml
+      input_mapping:
+        previous-github-release: github-release
+
 - name: unclaim-env
   plan:
   - get: shepherd-env
     passed:
-    - pats
-    - drats
-    - cats-nfs
+    - ship-what
     trigger: true
   - put: shepherd-env
     params:
@@ -1121,28 +1194,15 @@ jobs:
 
 - name: unclaim-ldap-env
   plan:
-  - get: shepherd-env
+  - get: shepherd-env-ldap
     passed:
-    - pats-nfs-ldap
+    - ship-what
     trigger: true
   - put: shepherd-env
     params:
       action: release
       resource: shepherd-env
 
-- name: merge-pr
-  plan:
-  - get: mapfs-release
-    trigger: true
-    passed:
-    - pats
-    - pats-nfs-ldap
-    - drats
-    - cats-nfs
-  - put: mapfs-release
-    params:
-      merge: true
-      repository: mapfs-release
 
 - name: check-for-changes
   plan:
