@@ -2,7 +2,7 @@
 #  This pipeline is set automatically, any non-committed changes will be lost.
 #
 # To set the pipeline, run:
-#    fly -t cryo set-pipeline -p nfs-volume-release -c nfs-volume-release.yml
+#    fly -t cryo set-pipeline -p nfs-volume-release -c nfs-volume-release.yme
 #
 #! ************************************
 #! Secrets we need to run this pipeline
@@ -337,7 +337,7 @@ resources:
 - name: mapfs-release
   type: git
   source:
-    branch: master
+    branch: release
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/mapfs-release.git
     ignore_paths:
@@ -346,7 +346,7 @@ resources:
 - name: mapfs-release-concourse-tasks
   type: git
   source:
-    branch: master
+    branch: release
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry/mapfs-release.git
 
@@ -2019,7 +2019,7 @@ jobs:
           tag_prefix: v
     - do:
       - task: create-release-notes
-        image: python-394
+        image: image-cryogenics-essentials
         file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
         input_mapping:
           git-repo: release
