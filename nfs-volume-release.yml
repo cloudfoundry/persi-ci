@@ -2,7 +2,7 @@
 #  This pipeline is set automatically, any non-committed changes will be lost.
 #
 # To set the pipeline, run:
-#    fly -t cryo set-pipeline -p nfs-volume-release -c nfs-volume-release.yme
+#    fly -t cryo set-pipeline -p nfs-volume-release -c nfs-volume-release.yml
 #
 #! ************************************
 #! Secrets we need to run this pipeline
@@ -277,7 +277,6 @@ resources:
     access_token: *github_access_token
     repository: cloudfoundry/nfs-volume-release
     disable_forks: true
-    autosync_pr: true
 
 - name: nfs-volume-release-write
   type: git
@@ -353,7 +352,7 @@ resources:
 - name: cf-deployment
   type: git
   source:
-    branch: release-candidate
+    branch: develop
     uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
@@ -1610,11 +1609,6 @@ jobs:
         passed: [ claim-env ]
       - get: mapfs-release
         passed: [ claim-env ]
-  - task: pin-cf-deployment-version
-    image: image-cryogenics-essentials
-    file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
-    input_mapping:
-      toolsmiths-env: env
   - task: collect-persi-ci-ops-files
     image: image-cryogenics-essentials
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml

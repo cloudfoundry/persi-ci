@@ -207,7 +207,7 @@ resources:
 - name: cf-deployment
   type: git
   source:
-    branch: release-candidate
+    branch: develop
     uri: https://github.com/cloudfoundry/cf-deployment.git
 
 - name: cf-deployment-concourse-tasks
@@ -958,16 +958,11 @@ jobs:
       - get: persi-ci
       - get: smb-volume-release
         passed: [ smb-volume-release-job-tests ]
-  - task: pin-cf-deployment-version
-    image: image-cryogenics-essentials
-    file: persi-ci/scripts/ci/pin_cf_deployment_version.build.yml
-    input_mapping:
-      toolsmiths-env: cf-deployment-env
   - task: collect-persi-ci-ops-files
     image: image-cryogenics-essentials
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     input_mapping:
-      base-ops-files: cf-deployment-pinned
+      base-ops-files: cf-deployment
       new-ops-files: persi-ci
     params:
       BASE_OPS_FILE_DIR: "operations"
@@ -983,7 +978,6 @@ jobs:
     image: image-cryogenics-essentials
     file: persi-ci/scripts/ci/deploy-cf-with-multiple-releases.build.yml
     input_mapping:
-      cf-deployment: cf-deployment-pinned
       toolsmiths-env: cf-deployment-env
       ops-files: collected-ops-files
       vars-files: generated-vars
