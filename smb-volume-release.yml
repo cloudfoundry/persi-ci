@@ -300,16 +300,6 @@ resources:
     username: _json_key
     password: *gcr_viewer_key
 
-
-- name: python-394
-  type: registry-image
-  icon: docker
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/python
-    tag: 3.9.4
-    username: _json_key
-    password: *gcr_viewer_key
-
 - name: cifs-utils-latest
   type: git
   icon: github
@@ -1163,7 +1153,6 @@ jobs:
       - get: persi-ci
       - get: cryogenics-concourse-tasks
       - get: image-cryogenics-essentials
-      - get: python-394
       - get: smb-volume-release-master-production-files-only
         trigger: true
         passed:
@@ -1193,7 +1182,7 @@ jobs:
       FINAL: true
       RELEASE_NAME: smb-volume
   - task: create-release-notes
-    image: python-394
+    image: image-cryogenics-essentials
     file: cryogenics-concourse-tasks/release-automation/release-notes/task.yml
     input_mapping:
       git-repo: release

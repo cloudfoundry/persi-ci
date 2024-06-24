@@ -157,15 +157,6 @@ resources:
   source:
     interval: 168h  # 24h*7days
 
-- name: python-394
-  type: registry-image
-  icon: docker
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache/python
-    username: _json_key
-    password: *gcr_viewer_key
-    tag: 3.9.4
-
 - name: cryogenics-concourse-tasks
   type: git
   icon: github
@@ -1986,7 +1977,6 @@ jobs:
         params:
           bump: patch
       - get: image-cryogenics-essentials
-      - get: python-394
   - in_parallel:
     - do:
       - task: create-final-release
